@@ -20,10 +20,6 @@ namespace SSAGES
 
 		virtual void SyncToSnapshot() = 0;
 
-	public:
-		Hook() : 
-		_listeners(0), _snapshot() {}
-
 		void PreSimulationHook()
 		{
 			for(auto& listener : _listeners)
@@ -37,8 +33,10 @@ namespace SSAGES
 
 		void PostIntegration()
 		{
-			for(auto& listener : _listeners)
-				listener->PostIntegration(&_snapshot);
+			for(auto& listener : _listeners){
+				if(_snapshot.GetIteration() % listener->GetFrequency() == 0)
+					listener->PostIntegration(&_snapshot);
+			}
 
 			if(_snapshot.HasChanged())
 				SyncToEngine();
@@ -51,7 +49,15 @@ namespace SSAGES
 			for(auto& listener : _listeners)
 				listener->PostSimulation(&_snapshot);
 
+			if(_snapshot.HasChanged())
+				SyncToEngine();
+
+			_snapshot.Changed(false);
 		}
+
+	public:
+		Hook() : 
+		_listeners(0), _snapshot() {}
 
 		void AddListener(EventListener* listener)
 		{

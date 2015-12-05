@@ -64,10 +64,25 @@ namespace SSAGES
 		}
 
 		const Label& GetAtomIDs() const { return _atomids; }
+	 	Label& GetAtomIDs()
+	 	{ 
+	 		_changed = true;
+	 		return _atomids; 
+	 	}
 
 		const Label& GetMoleculeIDs() const { return _molids; }
+	 	Label& GetMoleculeIDs() 
+	 	{ 
+	 		_changed = true;
+	 		return _molids; 
+	 	}
 		
 		const Label& GetAtomTypes() const { return _types; }
+		Label& GetAtomTypes() 
+		{
+			_changed = true; 
+			return _types; 
+		}
 
 		bool HasChanged() const { return _changed; }
 		void Changed(bool state) { _changed = state; }

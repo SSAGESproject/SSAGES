@@ -15,11 +15,28 @@ namespace LAMMPS_NS
 	void FixSSAGES::setup(int)
 	{
 		// Allocate vectors for snapshot.
-		auto n = atom->natoms;
+		auto n = atom->natoms + 1;
+		auto& pos = _snapshot.GetPositions();
+		pos.resize(n);
+		auto& vel = _snapshot.GetVelocities();
+		vel.resize(n);
+		auto& frc = _snapshot.GetForces();
+		frc.resize(n);
+		auto& ids = _snapshot.GetAtomIDs();
+		ids.resize(n);
+		auto& mids = _snapshot.GetMoleculeIDs();
+		mids.resize(n);
+		auto& types = _snapshot.GetAtomTypes();
+		types.resize(n);
 
 		SyncToSnapshot();
-		SyncToEngine();
 		Hook::PreSimulationHook();
+	}
+
+	void FixSSAGES::post_force(int)
+	{
+		SyncToSnapshot();
+		Hook::PostIntegration();
 	}
 
 	int FixSSAGES::setmask()
@@ -35,11 +52,6 @@ namespace LAMMPS_NS
 	}
 
 	void FixSSAGES::SyncToEngine()
-	{
-
-	}
-
-	void FixSSAGES::post_force(int)
 	{
 
 	}
