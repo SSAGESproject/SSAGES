@@ -1,6 +1,7 @@
 # pragma once 
 
 #include "Snapshot.h"
+#include "CollectiveVariable.h"
 
 namespace SSAGES
 {
@@ -20,12 +21,12 @@ namespace SSAGES
 		unsigned int GetFrequency() const { return _frequency; }
 
 		// Method call prior to simulation initiation.
-		virtual void PreSimulation(Snapshot* snapshot) = 0;
+		virtual void PreSimulation(Snapshot* snapshot, const CVList& cvs) = 0;
 
 		// Method call post integration.
-		virtual void PostIntegration(Snapshot* snapshot) = 0;
+		virtual void PostIntegration(Snapshot* snapshot, const CVList& cvs) = 0;
 
 		// Method call post simulation.
-		virtual void PostSimulation(Snapshot* snapshot) = 0;
+		virtual void PostSimulation(Snapshot* snapshot, const CVList& cvs) = 0;
 	};
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EventListener.h"
+#include "CollectiveVariable.h"
 #include "Snapshot.h"
 #include <algorithm>
 
@@ -12,6 +13,7 @@ namespace SSAGES
 	{
 	private:
 		std::vector<EventListener*> _listeners;
+		CVList _cvs;
 
 	protected:
 		Snapshot _snapshot;
@@ -22,8 +24,9 @@ namespace SSAGES
 
 		void PreSimulationHook()
 		{
+
 			for(auto& listener : _listeners)
-				listener->PreSimulation(&_snapshot);
+				listener->PreSimulation(&_snapshot, _cvs);
 
 			if(_snapshot.HasChanged())
 				SyncToEngine();
@@ -35,7 +38,7 @@ namespace SSAGES
 		{
 			for(auto& listener : _listeners){
 				if(_snapshot.GetIteration() % listener->GetFrequency() == 0)
-					listener->PostIntegration(&_snapshot);
+					listener->PostIntegration(&_snapshot, _cvs);
 			}
 
 			if(_snapshot.HasChanged())
@@ -47,7 +50,7 @@ namespace SSAGES
 		void PostSimulationHook()
 		{
 			for(auto& listener : _listeners)
-				listener->PostSimulation(&_snapshot);
+				listener->PostSimulation(&_snapshot, _cvs);
 
 			if(_snapshot.HasChanged())
 				SyncToEngine();
@@ -63,6 +66,12 @@ namespace SSAGES
 		{
 			if(std::find(_listeners.begin(), _listeners.end(), listener) == _listeners.end())
 				_listeners.push_back(listener);
+		}
+
+		void AddCV(CollectiveVariable* cv)
+		{
+			if(std::find(_cvs.begin(), _cvs.end(), cv) == _cvs.end())
+				_cvs.push_back(cv);
 		}
 
 		~Hook(){}

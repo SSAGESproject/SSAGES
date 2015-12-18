@@ -12,13 +12,13 @@ namespace SSAGES
 		EventListener(frequency) {}
 
 		// Method call prior to simulation initiation.
-		virtual void PreSimulation(Snapshot* snapshot) override = 0;
+		virtual void PreSimulation(Snapshot* snapshot, const CVList& cvs) override = 0;
 
 		// Method call post integration.
-		virtual void PostIntegration(Snapshot* snapshot) override = 0;
+		virtual void PostIntegration(Snapshot* snapshot, const CVList& cvs) override = 0;
 
 		// Method call post simulation.
-		virtual void PostSimulation(Snapshot* snapshot) override = 0;
+		virtual void PostSimulation(Snapshot* snapshot, const CVList& cvs) override = 0;
 
 		~Method() {}
 	};
