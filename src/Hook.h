@@ -24,6 +24,7 @@ namespace SSAGES
 
 		void PreSimulationHook()
 		{
+			_snapshot.Changed(false);
 
 			for(auto& listener : _listeners)
 				listener->PreSimulation(&_snapshot, _cvs);
@@ -36,6 +37,8 @@ namespace SSAGES
 
 		void PostIntegration()
 		{
+			_snapshot.Changed(false);
+
 			for(auto& listener : _listeners){
 				if(_snapshot.GetIteration() % listener->GetFrequency() == 0)
 					listener->PostIntegration(&_snapshot, _cvs);
@@ -49,6 +52,8 @@ namespace SSAGES
 
 		void PostSimulationHook()
 		{
+			_snapshot.Changed(false);
+			
 			for(auto& listener : _listeners)
 				listener->PostSimulation(&_snapshot, _cvs);
 
