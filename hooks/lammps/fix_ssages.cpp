@@ -24,8 +24,6 @@ namespace LAMMPS_NS
 		frc.resize(n);
 		auto& ids = _snapshot.GetAtomIDs();
 		ids.resize(n);
-		auto& mids = _snapshot.GetMoleculeIDs();
-		mids.resize(n);
 		auto& types = _snapshot.GetAtomTypes();
 		types.resize(n);
 
@@ -63,35 +61,49 @@ namespace LAMMPS_NS
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
 		auto& ids = _snapshot.GetAtomIDs();
-		auto& mids = _snapshot.GetMoleculeIDs();
 		auto& types = _snapshot.GetAtomTypes();
+
+		// Thermo properties
+		
 
 		// Positions
 		for (int i=0; i<_atom->x.size(); i++)
 		{
-			for (int j=0; j<_atom->x[i].size(); j++)
-			{
-				pos[3*i+j]=_atom->x[i][j];
-			}
+			pos[i][0]=_atom->x[i][0]; //x
+			pos[i][1]=_atom->x[i][1]; //y
+			pos[i][2]=_atom->x[i][2]; //z
 		}
 
 		// Forces
 		for (int i=0; i<_atom->f.size(); i++)
 		{
-			for (int j=0; j<_atom->f[i].size(); j++)
-			{
-				frc[3*i+j]=_atom->f[i][j];
-			}
+			frc[i][0]=_atom->f[i][0]; //force->x
+			frc[i][1]=_atom->f[i][1]; //force->y
+			frc[i][2]=_atom->f[i][2]; //force->z
 		}
 
-		//velocities
+		// Velocities
 		for (int i=0; i<_atom->v.size(); i++)
 		{
-			for (int j=0; j<_atom->v[i].size(); j++)
-			{
-				vel[3*i+j]=_atom->v[i][j];
-			}
+			vel[i][0]=_atom->v[i][0];
+			vel[i][1]=_atom->v[i][1];
+			vel[i][2]=_atom->v[i][2];
 		}
+
+		// IDs
+		for (int i=0; i<_atom->tag.size();i++)
+		{
+			ids[i]=_atom->tag[i];
+		}
+
+		// Types
+		for (int i=0; i<_atom->type.size();i++)
+		{
+			types[i]=_atom->type[i];
+		}
+
+		// Set thermodynamic information
+
 	}
 
 	void FixSSAGES::SyncToEngine() //put Snapshot values -> LAMMPS
@@ -101,15 +113,14 @@ namespace LAMMPS_NS
 		// not being changed. Only engine side variables should
 		// change. 
 
-		const Vector& pos = _snapshot.GetPositions();
-		const Vector& vel = _snapshot.GetVelocities();
-		const Vector& frc = _snapshot.GetForces();
+		const auto& pos = _snapshot.GetPositions();
+		const auto& vel = _snapshot.GetVelocities();
+		const auto& frc = _snapshot.GetForces();
 
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
-		const Label& ids = _snapshot.GetAtomIDs();
-		const Label& mids = _snapshot.GetMoleculeIDs();
-		const Label& types = _snapshot.GetAtomTypes();
+		const auto& ids = _snapshot.GetAtomIDs();
+		const auto& types = _snapshot.GetAtomTypes();
 
 		// Need to parallize this portion each processor can set and read
 		// certain atoms.
@@ -117,28 +128,37 @@ namespace LAMMPS_NS
 		//Positions
 		for (int i=0; i<atom->x.size(); i++)
 		{
-			for (int j=0; j<atom->x[i].size(); j++)
-			{
-				atom->x[i][j]=pos[3*i+j];
-			}
+			atom->x[i][0]=pos[i][0]; //x 
+			atom->x[i][1]=pos[i][1]; //y
+			atom->x[i][2]=pos[i][2]; //z
 		}
 
 		// Forces
 		for (int i=0; i<atom->f.size(); i++)
 		{
-			for (int j=0; j<atom->f[i].size(); j++)
-			{
-				atom->f[i][j]=frc[3*i+j];
-			}
+			atom->f[i][0]=frc[i][0]; //force->x
+			atom->f[i][1]=frc[i][1]; //force->y
+			atom->f[i][2]=frc[i][2]; //force->z
 		}
 
 		//velocities
 		for (int i=0; i<atom->v.size(); i++)
 		{
-			for (int j=0; j<atom->v[i].size(); j++)
-			{
-				atom->v[i][j]=vel[3*i+j];
-			}
+			atom->v[i][0]=vel[i][0]; //velocity->x
+			atom->v[i][1]=vel[i][1]; //velocity->y
+			atom->v[i][2]=vel[i][2]; //velocity->z
+		}
+
+		// IDs
+		for (int i=0; i<_atom->tag.size();i++)
+		{
+			atom->tag[i]=ids[i];
+		}
+
+		// Types
+		for (int i=0; i<_atom->type.size();i++)
+		{
+			atom->type[i]=types[i];
 		}
 
 		// Set thermodynamic information

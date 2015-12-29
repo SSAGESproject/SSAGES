@@ -1,9 +1,10 @@
 #pragma once
 #include <vector>
+#include <memory>
 
 namespace SSAGES
 {
-	using Vector = std::vector<double>;
+	using Vector3 = std::array<double, 3>;
 	using Label = std::vector<int>;
 	// Class containing a snapshot of the current simulation in time. 
 	// This contains information on the particle positions, velocities, etc.. 
@@ -11,11 +12,10 @@ namespace SSAGES
 	class Snapshot
 	{
 	private:
-		Vector _positions;
-		Vector _velocities;
-		Vector _forces;
+		Vector3 _positions;
+		Vector3 _velocities;
+		Vector3 _forces;
 		Label _atomids;
-		Label _molids;
 		Label _types;
 
 		int _iteration; 
@@ -29,8 +29,8 @@ namespace SSAGES
 
 	public:
 		Snapshot() :
-		_positions(0), _velocities(0), _forces(0),
-		_atomids(0), _molids(0), _types(0), _iteration(0), 
+		_positions({{0,0,0}}), _velocities({{0,0,0}}), _forces({{0,0,0}}),
+		_atomids(0), _types(0), _iteration(0), 
 		_time(0), _temperature(0), _pressure(0), _energy(0),
 		_volume(0)
 		{}
@@ -42,22 +42,22 @@ namespace SSAGES
 		double GetEnergy() const { return _energy; }
 		double GetVolume() const { return _volume; }
 
-		const Vector& GetPositions() const { return _positions; }
-		Vector& GetPositions() 
+		const Vector3& GetPositions() const { return _positions; }
+		Vector3& GetPositions() 
 		{ 
 			_changed = true;
 			return _positions; 
 		}
 
-		const Vector& GetVelocities() const { return _velocities; }
-		Vector& GetVelocities() 
+		const Vector3& GetVelocities() const { return _velocities; }
+		Vector3& GetVelocities() 
 		{
 			_changed = true;
 			return _velocities; 
 		}
 
-		const Vector& GetForces() const { return _forces; }
-		Vector& GetForces() 
+		const Vector3& GetForces() const { return _forces; }
+		Vector3& GetForces() 
 		{
 			_changed = true; 
 			return _forces; 
@@ -68,13 +68,6 @@ namespace SSAGES
 	 	{ 
 	 		_changed = true;
 	 		return _atomids; 
-	 	}
-
-		const Label& GetMoleculeIDs() const { return _molids; }
-	 	Label& GetMoleculeIDs() 
-	 	{ 
-	 		_changed = true;
-	 		return _molids; 
 	 	}
 		
 		const Label& GetAtomTypes() const { return _types; }
