@@ -42,6 +42,40 @@ namespace SSAGES
 		double GetEnergy() const { return _energy; }
 		double GetVolume() const { return _volume; }
 
+		void SetIteration(int iteration) 
+		{
+			_iteration = iteration; 
+			_changed = true; 
+		}
+
+		void SetTime(double time) 
+		{
+			_time = time; 
+			_changed = true;
+		}
+
+		void SetTemperature(double temperature) 
+		{ 
+			_temperature = temperature;
+			_changed = true;
+		}
+
+		void SetPressure(double pressure) 
+		{ 
+			_pressure = pressure;
+			_changed = true;
+		}
+		void SetEnergy(double energy) 
+		{
+			_energy = energy;
+			_changed = true;
+		}
+		void SetVolume(double volume) 
+		{
+			_volume = volume;
+			_changed = true;
+		}
+
 		const Vector3& GetPositions() const { return _positions; }
 		Vector3& GetPositions() 
 		{ 

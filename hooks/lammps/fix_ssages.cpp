@@ -44,7 +44,6 @@ namespace LAMMPS_NS
 	  return mask;
 	}
 
-	//Will force a call to SyncToEngine?
 	void FixSSAGES::SyncToSnapshot() //put LAMMPS values -> Snapshot
 	{
 
@@ -63,8 +62,29 @@ namespace LAMMPS_NS
 		auto& ids = _snapshot.GetAtomIDs();
 		auto& types = _snapshot.GetAtomTypes();
 
-		// Thermo properties
+		// Thermo properties:
+		//Temperature
+		class Compute *thermoproperty;
+		std::string id_temp='thermo_temp';
+		int icompute = modify->find_compute(id_temp);
+		thermoproperty = modify->compute[icompute];
+		_snapshot.SetTemperature(thermoproperty->compute_scalar());
+		//Pressure
+		std::string id_temp='thermo_press';
+		int icompute = modify->find_compute(id_temp);
+		thermoproperty = modify->compute[icompute];
+		_snapshot.SetPressure(thermoproperty->compute_scalar());
+		//Energy
+		std::string id_temp='thermo_etotal';
+		int icompute = modify->find_compute(id_temp);
+		thermoproperty = modify->compute[icompute];
+		_snapshot.SetEnergy(thermoproperty->compute_scalar());
 		
+		/* Figure out the following later:
+		_snapshot.SetIteration();
+		_snapshot.SetTime();
+		_snapshot.SetVolume();
+		*/
 
 		// Positions
 		for (int i=0; i<_atom->x.size(); i++)
@@ -161,7 +181,11 @@ namespace LAMMPS_NS
 			atom->type[i]=types[i];
 		}
 
-		// Set thermodynamic information
+		// LAMMPS computes will reset thermo data based on
+		// updated information. No need to synch thermo data
+		// from snapshot to engine.
+		// However, this could change in the future.
+
 
 	}
 }
