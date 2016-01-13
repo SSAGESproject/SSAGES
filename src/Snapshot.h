@@ -12,9 +12,9 @@ namespace SSAGES
 	class Snapshot
 	{
 	private:
-		Vector3 _positions;
-		Vector3 _velocities;
-		Vector3 _forces;
+		std::vector<Vector3> _positions;
+		std::vector<Vector3> _velocities;
+		std::vector<Vector3> _forces;
 		Label _atomids;
 		Label _types;
 
@@ -29,7 +29,7 @@ namespace SSAGES
 
 	public:
 		Snapshot() :
-		_positions({{0,0,0}}), _velocities({{0,0,0}}), _forces({{0,0,0}}),
+		_positions(0), _velocities(0), _forces(0),
 		_atomids(0), _types(0), _iteration(0), 
 		_time(0), _temperature(0), _pressure(0), _energy(0),
 		_volume(0)
@@ -76,22 +76,22 @@ namespace SSAGES
 			_changed = true;
 		}
 
-		const Vector3& GetPositions() const { return _positions; }
-		Vector3& GetPositions() 
+		const std::vector<Vector3>& GetPositions() const { return _positions; }
+		std::vector<Vector3>& GetPositions() 
 		{ 
 			_changed = true;
 			return _positions; 
 		}
 
-		const Vector3& GetVelocities() const { return _velocities; }
-		Vector3& GetVelocities() 
+		const std::vector<Vector3>& GetVelocities() const { return _velocities; }
+		std::vector<Vector3>& GetVelocities() 
 		{
 			_changed = true;
 			return _velocities; 
 		}
 
-		const Vector3& GetForces() const { return _forces; }
-		Vector3& GetForces() 
+		const std::vector<Vector3>& GetForces() const { return _forces; }
+		std::vector<Vector3>& GetForces() 
 		{
 			_changed = true; 
 			return _forces; 
