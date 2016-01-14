@@ -1,8 +1,12 @@
+#include <iostream>
 #include "fix_ssages.h"
 #include "atom.h"
 #include "compute.h"
 #include "modify.h"
-#include <iostream>
+#include "force.h"
+#include "update.h"
+#include "domain.h"
+#include "MockMethod.h"
 
 using namespace SSAGES;
 using namespace LAMMPS_NS::FixConst;
@@ -12,10 +16,12 @@ namespace LAMMPS_NS
 	FixSSAGES::FixSSAGES(LAMMPS *lmp, int narg, char **arg) : 
 	Fix(lmp, narg, arg), Hook()
 	{
+		this->AddListener(new MockMethod(1));
 	}
 
 	void FixSSAGES::setup(int)
 	{
+		std::cout << "Im here !!" << std::endl;
 		// Allocate vectors for snapshot.
 		auto n = atom->natoms;
 		auto& pos = _snapshot.GetPositions();
@@ -42,7 +48,7 @@ namespace LAMMPS_NS
 	int FixSSAGES::setmask()
 	{
 	  int mask = 0;
-	  mask |= PRE_EXCHANGE;
+	  mask |= POST_FORCE;
 	  return mask;
 	}
 
@@ -71,8 +77,8 @@ namespace LAMMPS_NS
 		//Temperature
 		const char* id_temp = "thermo_temp";
 		icompute = modify->find_compute(id_temp);
-		thermoproperty = modify->compute[icompute];
-		_snapshot.SetTemperature(thermoproperty->compute_scalar());
+		auto* temperature = modify->compute[icompute];
+		_snapshot.SetTemperature(temperature->compute_scalar());
 		
 		//Pressure
 		const char* id_press = "thermo_press";
@@ -81,16 +87,31 @@ namespace LAMMPS_NS
 		_snapshot.SetPressure(thermoproperty->compute_scalar());
 		
 		//Energy
-		const char* id_etot = "thermo_etotal";
-		icompute = modify->find_compute(id_etot);
-		thermoproperty = modify->compute[icompute];
-		_snapshot.SetEnergy(thermoproperty->compute_scalar());
+		double etot = 0;
+
+		// Get potential energy.
+		const char* id_pe = "thermo_pe";
+		icompute = modify->find_compute(id_pe);
+		auto* pe = modify->compute[icompute];
+		etot += pe->scalar;
+
+		// Compute kinetic energy.
+		double ekin = 0.5 * temperature->scalar * temperature->dof  * force->boltz;
+		etot += ekin;
+
+		// Store in snapshot.
+		_snapshot.SetEnergy(etot/atom->natoms);
 		
-		/* Figure out the following later:
-		_snapshot.SetIteration();
-		_snapshot.SetTime();
-		_snapshot.SetVolume();
-		*/
+		// Get iteration.
+		_snapshot.SetIteration(update->ntimestep);
+		
+		// Get volume.
+		double vol = 0;
+		if (domain->dimension == 3)
+			vol = domain->xprd * domain->yprd * domain->zprd;
+		else
+			vol = domain->xprd * domain->yprd;
+		_snapshot.SetVolume(vol);
 
 		// Positions
 		for (int i = 0; i < 3; ++i)
@@ -98,33 +119,19 @@ namespace LAMMPS_NS
 			pos[i][0] = _atom->x[i][0]; //x
 			pos[i][1] = _atom->x[i][1]; //y
 			pos[i][2] = _atom->x[i][2]; //z
-		}
-
-		// Forces
-		for (int i = 0; i< 3; ++i)
-		{
+			
 			frc[i][0] = _atom->f[i][0]; //force->x
 			frc[i][1] = _atom->f[i][1]; //force->y
 			frc[i][2] = _atom->f[i][2]; //force->z
-		}
-
-		// Velocities
-		for (int i = 0; i < 3; ++i)
-		{
+			
 			vel[i][0] = _atom->v[i][0];
 			vel[i][1] = _atom->v[i][1];
 			vel[i][2] = _atom->v[i][2];
-		}
-
-		// IDs
-		for (int i = 0; i < _atom->natoms; ++i)
+			
 			ids[i] = _atom->tag[i];
-
-		// Types
-		for (int i = 0; i < _atom->natoms; ++i)
+			
 			types[i] = _atom->type[i];
-
-		// Set thermodynamic information
+		}
 	}
 
 	void FixSSAGES::SyncToEngine() //put Snapshot values -> LAMMPS
@@ -149,31 +156,15 @@ namespace LAMMPS_NS
 			atom->x[i][0] = pos[i][0]; //x 
 			atom->x[i][1] = pos[i][1]; //y
 			atom->x[i][2] = pos[i][2]; //z
-		}
-
-		// Forces
-		for (int i = 0; i < atom->natoms; ++i)
-		{
 			atom->f[i][0] = frc[i][0]; //force->x
 			atom->f[i][1] = frc[i][1]; //force->y
 			atom->f[i][2] = frc[i][2]; //force->z
-		}
-
-		//velocities
-		for (int i = 0; i < atom->natoms; ++i)
-		{
 			atom->v[i][0] = vel[i][0]; //velocity->x
 			atom->v[i][1] = vel[i][1]; //velocity->y
 			atom->v[i][2] = vel[i][2]; //velocity->z
-		}
-
-		// IDs
-		for (int i = 0; i < atom->natoms; ++i)
 			atom->tag[i] = ids[i];
-
-		// Types
-		for (int i = 0; i < atom->natoms; ++i)
 			atom->type[i] = types[i];
+		}
 
 		// LAMMPS computes will reset thermo data based on
 		// updated information. No need to sync thermo data
