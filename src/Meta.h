@@ -5,41 +5,61 @@
 
 namespace SSAGES
 {
-  class Meta : public Method
-  {
-  private:
-    struct Hill {
-      vector<double> center;
-      vector<double> width;
-      double height;
-      Hill(const vector<double> & center, const vector<double> & sigma, double height):
-       center(center), width(width), height(height);
-    };
-    vector<double> width_;
-    vector<Hill>   hills_;
+	struct Hill {
+		std::vector<double> center;
+		std::vector<double> width;
+		double height;
+	
+		Hill(const std::vector<double>& center, 
+			 const std::vector<double>& sigma, 
+			 double height) :
+		 center(center), width(sigma), height(height)
+		{}
+	};
 
-    void addHill(void);
-    void calcBiasForce (void);
-    void chainRule (void);
-    void oneBiasForce (void);
-    
-    int dim;
-    vector<double> mycv_;
-    vector<double> myder_;
-    double bias_;
-    CVList mycvlist_;
+	class Meta : public Method
+	{
+	private:		
+		// Contains values of the CV's.
+		std::vector<double> _cvs;
 
-  public: 
+		// Hills.
+		std::vector<Hill> _hills;
 
-    Meta(unsigned int frequency) : Method(frequency) {
-      //We need to inherit 
-    }
-    void PreSimulation(Snapshot* snapshot, const CVList& cvs);
-    void PostIntegration(Snapshot* snapshot, const CVList& cvs);
-    ~Meta(){
-      //not sure what to put here currently.
-    }
-  }
+		// Hill widths.
+		std::vector<double> _widths;
 
+		// Hill height.
+		double _height;
 
-      
+		// Derivatives.	
+		std::vector<double> _derivatives;
+
+		// Bias magnitude.
+		double _bias;
+
+		// Adds a new hill.
+		void AddHill(const CVList& cvs);
+
+		// Computes the bias force.
+		void CalcBiasForce();
+
+		// Computes chain rule.
+		void ChainRule(const CVList& cvs);
+
+	public: 
+		Meta(unsigned int frequency) : 
+		Method(frequency)
+		{
+		}
+
+		// Pre-simulation hook.
+		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override;
+
+		// Post-integration hook.
+		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
+
+		~Meta() {}
+	};
+}
+			
