@@ -1,5 +1,7 @@
 #include "fix_ssages.h"
 #include "atom.h"
+#include "compute.h"
+#include "modify.h"
 #include <iostream>
 
 using namespace SSAGES;
@@ -15,7 +17,7 @@ namespace LAMMPS_NS
 	void FixSSAGES::setup(int)
 	{
 		// Allocate vectors for snapshot.
-		auto n = atom->natoms + 1;
+		auto n = atom->natoms;
 		auto& pos = _snapshot.GetPositions();
 		pos.resize(n);
 		auto& vel = _snapshot.GetVelocities();
@@ -51,7 +53,7 @@ namespace LAMMPS_NS
 		// Const Atom will ensure that atom variables are
 		// not being changed. Only snapshot side variables should
 		// change.
-		const Atom& _atom=atom;
+		const auto* _atom = atom;
 
 		auto& pos = _snapshot.GetPositions();
 		auto& vel = _snapshot.GetVelocities();
@@ -63,20 +65,24 @@ namespace LAMMPS_NS
 		auto& types = _snapshot.GetAtomTypes();
 
 		// Thermo properties:
+		Compute *thermoproperty;
+		int icompute; 
+
 		//Temperature
-		class Compute *thermoproperty;
-		std::string id_temp='thermo_temp';
-		int icompute = modify->find_compute(id_temp);
+		const char* id_temp = "thermo_temp";
+		icompute = modify->find_compute(id_temp);
 		thermoproperty = modify->compute[icompute];
 		_snapshot.SetTemperature(thermoproperty->compute_scalar());
+		
 		//Pressure
-		std::string id_temp='thermo_press';
-		int icompute = modify->find_compute(id_temp);
+		const char* id_press = "thermo_press";
+		icompute = modify->find_compute(id_press);
 		thermoproperty = modify->compute[icompute];
 		_snapshot.SetPressure(thermoproperty->compute_scalar());
+		
 		//Energy
-		std::string id_temp='thermo_etotal';
-		int icompute = modify->find_compute(id_temp);
+		const char* id_etot = "thermo_etotal";
+		icompute = modify->find_compute(id_etot);
 		thermoproperty = modify->compute[icompute];
 		_snapshot.SetEnergy(thermoproperty->compute_scalar());
 		
@@ -87,43 +93,38 @@ namespace LAMMPS_NS
 		*/
 
 		// Positions
-		for (int i=0; i<_atom->x.size(); i++)
+		for (int i = 0; i < 3; ++i)
 		{
-			pos[i][0]=_atom->x[i][0]; //x
-			pos[i][1]=_atom->x[i][1]; //y
-			pos[i][2]=_atom->x[i][2]; //z
+			pos[i][0] = _atom->x[i][0]; //x
+			pos[i][1] = _atom->x[i][1]; //y
+			pos[i][2] = _atom->x[i][2]; //z
 		}
 
 		// Forces
-		for (int i=0; i<_atom->f.size(); i++)
+		for (int i = 0; i< 3; ++i)
 		{
-			frc[i][0]=_atom->f[i][0]; //force->x
-			frc[i][1]=_atom->f[i][1]; //force->y
-			frc[i][2]=_atom->f[i][2]; //force->z
+			frc[i][0] = _atom->f[i][0]; //force->x
+			frc[i][1] = _atom->f[i][1]; //force->y
+			frc[i][2] = _atom->f[i][2]; //force->z
 		}
 
 		// Velocities
-		for (int i=0; i<_atom->v.size(); i++)
+		for (int i = 0; i < 3; ++i)
 		{
-			vel[i][0]=_atom->v[i][0];
-			vel[i][1]=_atom->v[i][1];
-			vel[i][2]=_atom->v[i][2];
+			vel[i][0] = _atom->v[i][0];
+			vel[i][1] = _atom->v[i][1];
+			vel[i][2] = _atom->v[i][2];
 		}
 
 		// IDs
-		for (int i=0; i<_atom->tag.size();i++)
-		{
-			ids[i]=_atom->tag[i];
-		}
+		for (int i = 0; i < _atom->natoms; ++i)
+			ids[i] = _atom->tag[i];
 
 		// Types
-		for (int i=0; i<_atom->type.size();i++)
-		{
-			types[i]=_atom->type[i];
-		}
+		for (int i = 0; i < _atom->natoms; ++i)
+			types[i] = _atom->type[i];
 
 		// Set thermodynamic information
-
 	}
 
 	void FixSSAGES::SyncToEngine() //put Snapshot values -> LAMMPS
@@ -132,7 +133,6 @@ namespace LAMMPS_NS
 		// Const will ensure that _snapshot variables are
 		// not being changed. Only engine side variables should
 		// change. 
-
 		const auto& pos = _snapshot.GetPositions();
 		const auto& vel = _snapshot.GetVelocities();
 		const auto& frc = _snapshot.GetForces();
@@ -142,50 +142,42 @@ namespace LAMMPS_NS
 		const auto& ids = _snapshot.GetAtomIDs();
 		const auto& types = _snapshot.GetAtomTypes();
 
-		// Need to parallize this portion each processor can set and read
-		// certain atoms.
 		// Loop through all atoms and set their values
-		//Positions
-		for (int i=0; i<atom->x.size(); i++)
+		// Positions
+		for (int i = 0; i < atom->natoms; ++i)
 		{
-			atom->x[i][0]=pos[i][0]; //x 
-			atom->x[i][1]=pos[i][1]; //y
-			atom->x[i][2]=pos[i][2]; //z
+			atom->x[i][0] = pos[i][0]; //x 
+			atom->x[i][1] = pos[i][1]; //y
+			atom->x[i][2] = pos[i][2]; //z
 		}
 
 		// Forces
-		for (int i=0; i<atom->f.size(); i++)
+		for (int i = 0; i < atom->natoms; ++i)
 		{
-			atom->f[i][0]=frc[i][0]; //force->x
-			atom->f[i][1]=frc[i][1]; //force->y
-			atom->f[i][2]=frc[i][2]; //force->z
+			atom->f[i][0] = frc[i][0]; //force->x
+			atom->f[i][1] = frc[i][1]; //force->y
+			atom->f[i][2] = frc[i][2]; //force->z
 		}
 
 		//velocities
-		for (int i=0; i<atom->v.size(); i++)
+		for (int i = 0; i < atom->natoms; ++i)
 		{
-			atom->v[i][0]=vel[i][0]; //velocity->x
-			atom->v[i][1]=vel[i][1]; //velocity->y
-			atom->v[i][2]=vel[i][2]; //velocity->z
+			atom->v[i][0] = vel[i][0]; //velocity->x
+			atom->v[i][1] = vel[i][1]; //velocity->y
+			atom->v[i][2] = vel[i][2]; //velocity->z
 		}
 
 		// IDs
-		for (int i=0; i<_atom->tag.size();i++)
-		{
-			atom->tag[i]=ids[i];
-		}
+		for (int i = 0; i < atom->natoms; ++i)
+			atom->tag[i] = ids[i];
 
 		// Types
-		for (int i=0; i<_atom->type.size();i++)
-		{
-			atom->type[i]=types[i];
-		}
+		for (int i = 0; i < atom->natoms; ++i)
+			atom->type[i] = types[i];
 
 		// LAMMPS computes will reset thermo data based on
-		// updated information. No need to synch thermo data
+		// updated information. No need to sync thermo data
 		// from snapshot to engine.
 		// However, this could change in the future.
-
-
 	}
 }
