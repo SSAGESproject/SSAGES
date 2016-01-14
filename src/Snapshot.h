@@ -19,7 +19,6 @@ namespace SSAGES
 		Label _types;
 
 		int _iteration; 
-		double _time; 
 		double _temperature; 
 		double _pressure; 
 		double _energy;
@@ -31,12 +30,11 @@ namespace SSAGES
 		Snapshot() :
 		_positions(0), _velocities(0), _forces(0),
 		_atomids(0), _types(0), _iteration(0), 
-		_time(0), _temperature(0), _pressure(0), _energy(0),
+		_temperature(0), _pressure(0), _energy(0),
 		_volume(0)
 		{}
 
 		int GetIteration() const {return _iteration; }
-		double GetTime() const { return _time; }
 		double GetTemperature() const {return _temperature; }
 		double GetPressure() const { return _pressure; }
 		double GetEnergy() const { return _energy; }
@@ -46,12 +44,6 @@ namespace SSAGES
 		{
 			_iteration = iteration; 
 			_changed = true; 
-		}
-
-		void SetTime(double time) 
-		{
-			_time = time; 
-			_changed = true;
 		}
 
 		void SetTemperature(double temperature) 
