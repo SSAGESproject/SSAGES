@@ -106,7 +106,7 @@ namespace LAMMPS_NS
 		_snapshot.SetIteration(update->ntimestep);
 		
 		// Get volume.
-		double vol = 0;
+		double vol = 0.;
 		if (domain->dimension == 3)
 			vol = domain->xprd * domain->yprd * domain->zprd;
 		else

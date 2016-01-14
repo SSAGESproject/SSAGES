@@ -2,6 +2,7 @@
 
 #include "Method.h"
 #include <iostream>
+#include <iomanip>
 
 namespace SSAGES
 {
@@ -19,6 +20,18 @@ namespace SSAGES
 
 		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override
 		{
+			using std::setw;
+			using std::right;
+			using std::setprecision;
+
+			// An example of acquiring and printing some data from the snapshot.
+			std::cout 
+			<< setw(8) << right << snapshot->GetIteration() << std::fixed
+			<< setw(13) << right << setprecision(4) << snapshot->GetVolume() 
+			<< setw(13) << right << setprecision(7) << snapshot->GetPressure() 
+			<< setw(13) << right << setprecision(7) << snapshot->GetEnergy()
+			<< " // SSAGES mock method"
+			<< std::endl; 
 		}
 
 		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override
