@@ -20,7 +20,7 @@ namespace LAMMPS_NS
 	public:
 		FixSSAGES(class LAMMPS *, int, char**);
 		void setup(int) override;
-  		void post_force(int) override;
+  		void pre_force(int) override;
   		int setmask() override;
 	};
 }

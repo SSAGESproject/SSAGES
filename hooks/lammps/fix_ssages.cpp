@@ -38,7 +38,7 @@ namespace LAMMPS_NS
 		Hook::PreSimulationHook();
 	}
 
-	void FixSSAGES::post_force(int)
+	void FixSSAGES::pre_force(int)
 	{
 		SyncToSnapshot();
 		Hook::PostIntegration();
