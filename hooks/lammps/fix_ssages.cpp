@@ -21,7 +21,6 @@ namespace LAMMPS_NS
 
 	void FixSSAGES::setup(int)
 	{
-		std::cout << "Im here !!" << std::endl;
 		// Allocate vectors for snapshot.
 		auto n = atom->natoms;
 		auto& pos = _snapshot.GetPositions();
@@ -48,7 +47,7 @@ namespace LAMMPS_NS
 	int FixSSAGES::setmask()
 	{
 	  int mask = 0;
-	  mask |= POST_FORCE;
+	  mask |= PRE_FORCE;
 	  return mask;
 	}
 
