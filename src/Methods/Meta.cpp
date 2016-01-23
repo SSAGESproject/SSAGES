@@ -2,6 +2,7 @@
 
 #include "Meta.h"
 #include <math.h>
+#include <iostream>
 
 namespace SSAGES
 {
@@ -18,8 +19,11 @@ namespace SSAGES
 		return pre * exp(-arg);
 	}
 
-	void Meta::PreSimulation(Snapshot* snapshot, const CVList& cvs)
+	void Meta::PreSimulation(Snapshot*, const CVList& cvs)
 	{
+		// TODO: Check widths against CV list size.
+
+
 		// Get initial values of collective variables.
 		for(auto& cv : cvs)
 			_cvs.push_back(cv->GetValue());
@@ -30,7 +34,6 @@ namespace SSAGES
 		// TODO : This is condition for adding new hills. Should be changed
 		// to whatever is appropriate. If a user specified interval is needed
 		// it can be passed into the constructor.
-		_hillfreq = 5;
 		if(snapshot->GetIteration() % _hillfreq == 0)
 			AddHill(cvs);
 
@@ -38,7 +41,8 @@ namespace SSAGES
 		CalcBiasForce();
 
 		// Take each CV and add its biased forces to the atoms
-		for(int i = 0; i < cvs.size(); ++i)
+		// using the chain rule.
+		for(size_t i = 0; i < cvs.size(); ++i)
 		{
 			// We just take a reference to the current CV and derivative for readability.
 			auto& cv = cvs[i];
@@ -51,23 +55,22 @@ namespace SSAGES
 			// Boundaries are also available. This should be of length 2.
 			auto& bound = cv->GetBoundaries();
 
-			// List of all atom IDs to CV. This should be 
-			// the same length as grad.
-			auto& ids = cv->GetAtomIDs();
-
 			auto& forces = snapshot->GetForces();
 
 			//Sanity check:
 			if(forces.size() != grad.size())
 			{
-				std::cout<<"Error - cannot calculate dot product of mismatched matrix"<< std::endl;
-				std::cout<<"# atoms snap shot : "<<forces.size()<<". # atoms cv->GetGradient : "<<grad.size()<<endl;
+				std::cerr 
+				<< "Error - cannot calculate dot product of mismatched matrix!" << std::endl
+				<< "# atoms snap shot : " << forces.size() << ". # atoms cv->GetGradient : " 
+				<< grad.size() << std::endl;
+				exit(-1);
 			}
 
 			// Update the forces in snapshot by adding in the force bias from each
 			// CV to each atom based on the gradient of the CV.
-			for (int atomn = 0; atomn < forces.size())
-				for(int fxyz = 0; fxyz < forces[atomn].size())
+			for (size_t atomn = 0; atomn < forces.size(); ++atomn)
+				for(size_t fxyz = 0; fxyz < forces[atomn].size(); ++fxyz)
 					forces[atomn][fxyz] += derivative*grad[atomn][fxyz];
 		}
 	}
@@ -124,45 +127,6 @@ namespace SSAGES
 			_bias += _height * tbias;
 			for(size_t i = 0; i < n; ++i)
 				_derivatives[i] += _height*tder[i];
-		}
-	}
-
-	// Fill this in. I just demoed the methods but didn't do anything really. 
-	void Meta::ChainRule(Snapshot* snapshot, const CVList& cvs)
-	{
-		// The chain rule needs access to the atoms 
-		// involved in the CV. These are available here:
-		for(int i = 0; i < cvs.size(); ++i)
-		{
-			// We just take a reference to the current CV and derivative for readability.
-			auto& cv = cvs[i];
-			auto& derivative = _derivatives[i];
-
-			// This vector contains the CV gradient which should be of length 
-			// the number of atoms. Atoms that do not contribute have a gradient of zero. 
-			auto& grad = cv->GetGradient();
-
-			// Boundaries are also available. This should be of length 2.
-			auto& bound = cv->GetBoundaries();
-
-			// List of all atom IDs to CV. This should be 
-			// the same length as grad.
-			auto& ids = cv->GetAtomIDs();
-
-			auto& forces = snapshot->GetForces();
-
-			//Sanity check:
-			if(forces.size() != grad.size())
-			{
-				std::cout<<"Error - cannot calculate dot product of mismatched matrix"<< std::endl;
-				std::cout<<"# atoms snap shot : "<<forces.size()<<". # atoms cv->GetGradient : "<<grad.size()<<endl;
-			}
-
-			// Update the forces in snapshot by adding in the force bias from each
-			// CV to each atom based on the gradient of the CV.
-			for (int atomn = 0; atomn < forces.size())
-				for(int fxyz = 0; fxyz < forces[atomn].size())
-					forces[atomn][fxyz] += derivative*grad[atomn][fxyz];
 		}
 	}
 }

@@ -26,11 +26,11 @@ namespace SSAGES
 		// Hills.
 		std::vector<Hill> _hills;
 
-		// Hill widths.
-		std::vector<double> _widths;
-
 		// Hill height.
 		double _height;
+
+		// Hill widths.
+		std::vector<double> _widths;
 
 		// Derivatives.	
 		std::vector<double> _derivatives;
@@ -39,7 +39,7 @@ namespace SSAGES
 		double _bias;
 
 		// Frequency of new hills
-		double _hillfreq;
+		unsigned int _hillfreq;
 
 		// Adds a new hill.
 		void AddHill(const CVList& cvs);
@@ -47,12 +47,13 @@ namespace SSAGES
 		// Computes the bias force.
 		void CalcBiasForce();
 
-		// Computes chain rule.
-		void ChainRule(const CVList& cvs);
-
 	public: 
-		Meta(unsigned int frequency) : 
-		Method(frequency)
+		Meta(unsigned int height, 
+			 const std::vector<double>& widths, 
+			 unsigned int hillfreq, 
+			 unsigned int frequency) : 
+		Method(frequency), _cvs(0), _hills(), _height(height), _widths(widths), 
+		_derivatives(0), _bias(0), _hillfreq(hillfreq)
 		{
 		}
 
