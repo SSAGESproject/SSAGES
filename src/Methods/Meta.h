@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Method.h"
-#include "CollectiveVariable.h"
+#include "../CVs/CollectiveVariable.h"
 
 namespace SSAGES
 {
