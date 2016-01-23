@@ -1,7 +1,7 @@
 #pragma once
 
 #include "EventListener.h"
-#include "CollectiveVariable.h"
+#include "CVs/CollectiveVariable.h"
 #include "Snapshot.h"
 #include <algorithm>
 

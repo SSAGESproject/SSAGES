@@ -26,6 +26,14 @@ ExternalProject_Add(
 	LOG_BUILD ON
 )
 
+ExternalProject_Add_Step(
+	lammps forceconfigure
+	COMMENT "Configuring LAMMPS"
+	DEPENDERS build
+	DEPENDEES update
+	ALWAYS 1
+)
+
 add_custom_command(
     TARGET lammps PRE_BUILD
     COMMAND ln -sf ${PROJECT_SOURCE_DIR}/hooks/lammps/fix_ssages.h ${LAMMPS_SRC}/fix_ssages.h

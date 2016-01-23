@@ -6,7 +6,7 @@
 #include "force.h"
 #include "update.h"
 #include "domain.h"
-#include "MockMethod.h"
+#include "Methods/MockMethod.h"
 
 using namespace SSAGES;
 using namespace LAMMPS_NS::FixConst;
