@@ -30,51 +30,45 @@ namespace SSAGES
 		// TODO : This is condition for adding new hills. Should be changed
 		// to whatever is appropriate. If a user specified interval is needed
 		// it can be passed into the constructor.
-		if(snapshot->GetIteration() % 5 == 0)
+		_hillfreq = 5;
+		if(snapshot->GetIteration() % _hillfreq == 0)
 			AddHill(cvs);
 
-		// Always calculate the current bias force and chain rule.
+		// Always calculate the current bias.
 		CalcBiasForce();
-		ChainRule(cvs);
 
-		// TODO: At this point we have computed forces (if I'm not mistaken).
-		// To update them we go through our snapshot and update the forces 
-		// on the atoms associated with the particular CVs. Below is just 
-		// "rough" code. There is no private variable _forces. Make it if needed, 
-		// and should also be filled out in ChainRule I guess. 
-		for(size_t i = 0; i < cvs.size(); ++i)
+		// Take each CV and add its biased forces to the atoms
+		for(int i = 0; i < cvs.size(); ++i)
 		{
-			// Get references to current CV for readability.
+			// We just take a reference to the current CV and derivative for readability.
 			auto& cv = cvs[i];
+			auto& derivative = _derivatives[i];
+
+			// This vector contains the CV gradient which should be of length 
+			// the number of atoms. Atoms that do not contribute have a gradient of zero. 
+			auto& grad = cv->GetGradient();
+
+			// Boundaries are also available. This should be of length 2.
+			auto& bound = cv->GetBoundaries();
+
+			// List of all atom IDs to CV. This should be 
+			// the same length as grad.
 			auto& ids = cv->GetAtomIDs();
-			
-			// Get reference to forces in snapshot for updating.
+
 			auto& forces = snapshot->GetForces();
 
-			// Go through atoms IDs for force update.
-			for(size_t j = 0; j < ids.size(); ++j)
+			//Sanity check:
+			if(forces.size() != grad.size())
 			{
-				auto id = ids[j];
-				// I'm pretend updating the forces on atom "j" for the current
-				// CV, "i". "forces" is a vector of 3x1 arrays, where the id 
-				// obtains from the ID list of the CV is the index of the manipulated
-				// atom. 
-				// In this case, I am pretending that _forces is a private variables of 
-				// dimensions "cv count" x "cv atoms count" x 3. Note that I use index "j"
-				// instead of "id" because the only entries in the _forces vector are those
-				// corresponding to manipulated atoms.
-				forces[id][0] += _forces[i][j][0];
-				forces[id][1] += _forces[i][j][1];
-				forces[id][2] += _forces[i][j][2];
-
-				// NOTE: I of course do not knw of the forces are additive for each CV 
-				// or if a net force is computed and done only once. In that case we do 
-				// not need to loop through CV's. We need to maintain a list of atoms that
-				// are manipulated by Meta (the union of all atoms manipulated by CVs) and
-				// then just have a single loop going through forces and updating the
-				// corresponding IDs. I can take care of this part if the rest is filled out. 
+				std::cout<<"Error - cannot calculate dot product of mismatched matrix"<< std::endl;
+				std::cout<<"# atoms snap shot : "<<forces.size()<<". # atoms cv->GetGradient : "<<grad.size()<<endl;
 			}
-			
+
+			// Update the forces in snapshot by adding in the force bias from each
+			// CV to each atom based on the gradient of the CV.
+			for (int atomn = 0; atomn < forces.size())
+				for(int fxyz = 0; fxyz < forces[atomn].size())
+					forces[atomn][fxyz] += derivative*grad[atomn][fxyz];
 		}
 	}
 
@@ -84,11 +78,6 @@ namespace SSAGES
 		for(size_t i = 0; i < cvs.size(); ++i)
 			_cvs[i] = cvs[i]->GetValue();
 
-		// TODO: Widths and height are so far uninitialized. Are these 
-		// user-specified options passed in through the constructor? If so 
-		// then it should be added. Are there multiple widths but 1 height? 
-		// It seemed that way from the code so I put it in like that. Check Meta.h 
-		// and adjust accordingly. 
 		// Note: emplace_back constructs a hill in-place.
 		_hills.emplace_back(_cvs, _widths, _height);
 	}
@@ -139,29 +128,41 @@ namespace SSAGES
 	}
 
 	// Fill this in. I just demoed the methods but didn't do anything really. 
-	void Meta::ChainRule(const CVList& cvs)
+	void Meta::ChainRule(Snapshot* snapshot, const CVList& cvs)
 	{
 		// The chain rule needs access to the atoms 
 		// involved in the CV. These are available here:
 		for(int i = 0; i < cvs.size(); ++i)
 		{
-			// We just take a reference to the current CV for readability.
+			// We just take a reference to the current CV and derivative for readability.
 			auto& cv = cvs[i];
+			auto& derivative = _derivatives[i];
 
 			// This vector contains the CV gradient which should be of length 
-			// the number of atoms contributing to the CV. 
+			// the number of atoms. Atoms that do not contribute have a gradient of zero. 
 			auto& grad = cv->GetGradient();
 
-			// Boundaries are also available. This should be of length 2. 
+			// Boundaries are also available. This should be of length 2.
 			auto& bound = cv->GetBoundaries();
 
-			// List of atom IDs contributing to CV. This should be 
+			// List of all atom IDs to CV. This should be 
 			// the same length as grad.
 			auto& ids = cv->GetAtomIDs();
 
-			// Do we need access to the forces on the atoms at this point? or later?
-			// If needed pass snapshot* as an argument to ChainRule. If not see 
-			// Postintegration method for next step. 
+			auto& forces = snapshot->GetForces();
+
+			//Sanity check:
+			if(forces.size() != grad.size())
+			{
+				std::cout<<"Error - cannot calculate dot product of mismatched matrix"<< std::endl;
+				std::cout<<"# atoms snap shot : "<<forces.size()<<". # atoms cv->GetGradient : "<<grad.size()<<endl;
+			}
+
+			// Update the forces in snapshot by adding in the force bias from each
+			// CV to each atom based on the gradient of the CV.
+			for (int atomn = 0; atomn < forces.size())
+				for(int fxyz = 0; fxyz < forces[atomn].size())
+					forces[atomn][fxyz] += derivative*grad[atomn][fxyz];
 		}
 	}
 }

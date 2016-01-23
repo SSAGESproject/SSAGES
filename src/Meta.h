@@ -38,6 +38,9 @@ namespace SSAGES
 		// Bias magnitude.
 		double _bias;
 
+		// Frequency of new hills
+		double _hillfreq;
+
 		// Adds a new hill.
 		void AddHill(const CVList& cvs);
 
