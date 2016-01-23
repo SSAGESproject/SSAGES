@@ -1,5 +1,3 @@
-#pragma once
-
 #include "Meta.h"
 #include <math.h>
 #include <iostream>

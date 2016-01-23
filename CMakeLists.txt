@@ -51,7 +51,12 @@ set(HOOKSRC
 	hooks/lammps/fix_ssages.cpp
 )
 
-add_library(libssages ${HOOKSRC})
+# General source files
+set(SOURCE
+	src/Methods/Meta.cpp
+)
+
+add_library(libssages ${HOOKSRC} ${SOURCE})
 set_target_properties(libssages PROPERTIES PREFIX "")
 
 # Require C++11

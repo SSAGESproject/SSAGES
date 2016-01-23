@@ -5,7 +5,8 @@
 
 namespace SSAGES
 {
-	struct Hill {
+	struct Hill 
+	{
 		std::vector<double> center;
 		std::vector<double> width;
 		double height;
