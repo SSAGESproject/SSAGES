@@ -6,7 +6,8 @@
 #include "force.h"
 #include "update.h"
 #include "domain.h"
-#include "Methods/MockMethod.h"
+#include "Methods/Umbrella.h"
+#include "CVs/AtomPositionCV.h"
 
 using namespace SSAGES;
 using namespace LAMMPS_NS::FixConst;
@@ -16,8 +17,9 @@ namespace LAMMPS_NS
 	FixSSAGES::FixSSAGES(LAMMPS *lmp, int narg, char **arg) : 
 	Fix(lmp, narg, arg), Hook()
 	{
-		this->AddListener(new MockMethod(1));
-		//this->AddListener(new Umbrella({100}, {0}, 1));
+		//this->AddListener(new MockMethod(1));
+		this->AddListener(new Umbrella({100.0}, {0}, 1));
+		this->AddCV(new AtomPositionCV(20, {{10.0, 1.0, 1.0}}));
 	}
 
 	void FixSSAGES::setup(int)
@@ -39,7 +41,7 @@ namespace LAMMPS_NS
 		Hook::PreSimulationHook();
 	}
 
-	void FixSSAGES::pre_force(int)
+	void FixSSAGES::post_force(int)
 	{
 		SyncToSnapshot();
 		Hook::PostIntegrationHook();
@@ -54,7 +56,7 @@ namespace LAMMPS_NS
 	int FixSSAGES::setmask()
 	{
 	  int mask = 0;
-	  mask |= PRE_FORCE;
+	  mask |= POST_FORCE;
 	  mask |= POST_RUN;
 	  return mask;
 	}
