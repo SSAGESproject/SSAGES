@@ -54,6 +54,7 @@ set(HOOKSRC
 # General source files
 set(SOURCE
 	src/Methods/Meta.cpp
+	src/Methods/Umbrella.cpp
 )
 
 add_library(libssages ${HOOKSRC} ${SOURCE})
