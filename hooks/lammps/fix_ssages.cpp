@@ -17,6 +17,7 @@ namespace LAMMPS_NS
 	Fix(lmp, narg, arg), Hook()
 	{
 		this->AddListener(new MockMethod(1));
+		//this->AddListener(new Umbrella({100}, {0}, 1));
 	}
 
 	void FixSSAGES::setup(int)
@@ -41,13 +42,20 @@ namespace LAMMPS_NS
 	void FixSSAGES::pre_force(int)
 	{
 		SyncToSnapshot();
-		Hook::PostIntegration();
+		Hook::PostIntegrationHook();
+	}
+
+	void FixSSAGES::post_run()
+	{
+		SyncToSnapshot();
+		Hook::PostSimulationHook();
 	}
 
 	int FixSSAGES::setmask()
 	{
 	  int mask = 0;
 	  mask |= PRE_FORCE;
+	  mask |= POST_RUN;
 	  return mask;
 	}
 
@@ -113,7 +121,7 @@ namespace LAMMPS_NS
 		_snapshot.SetVolume(vol);
 
 		// Positions
-		for (int i = 0; i < 3; ++i)
+		for (int i = 0; i < atom->natoms; ++i)
 		{
 			pos[i][0] = _atom->x[i][0]; //x
 			pos[i][1] = _atom->x[i][1]; //y

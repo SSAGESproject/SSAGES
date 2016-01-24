@@ -21,6 +21,7 @@ namespace LAMMPS_NS
 		FixSSAGES(class LAMMPS *, int, char**);
 		void setup(int) override;
   		void pre_force(int) override;
+  		void post_run() override;
   		int setmask() override;
 	};
 }
