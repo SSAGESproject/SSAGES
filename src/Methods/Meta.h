@@ -64,6 +64,9 @@ namespace SSAGES
 		// Post-integration hook.
 		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
 
+		// Post-simulation hook.
+		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
+
 		~Meta() {}
 	};
 }

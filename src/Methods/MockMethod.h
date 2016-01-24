@@ -3,6 +3,7 @@
 #include "Method.h"
 #include <iostream>
 #include <iomanip>
+#include "mpi.h"
 
 namespace SSAGES
 {
@@ -23,7 +24,7 @@ namespace SSAGES
 			using std::setw;
 			using std::right;
 			using std::setprecision;
-
+			
 			// An example of acquiring and printing some data from the snapshot.
 			std::cout 
 			<< setw(8) << right << snapshot->GetIteration() << std::fixed
@@ -36,6 +37,8 @@ namespace SSAGES
 
 		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override
 		{
+			/*for(auto& a : snapshot->GetAtomIDs())
+				std::cout << "Atom ID: " << a << std::endl;*/
 		}
 	};
 }

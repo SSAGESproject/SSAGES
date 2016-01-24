@@ -52,6 +52,10 @@ namespace SSAGES
 		}
 	}
 
+	void Meta::PostSimulation(Snapshot*, const CVList&)
+	{
+	}
+
 	void Meta::AddHill(const CVList& cvs)
 	{
 		// Get cv values.

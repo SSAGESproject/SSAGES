@@ -18,6 +18,13 @@ namespace SSAGES
 		Method(frequency), _kspring(kspring), _centers(centers)
 		{}
 
+		// Pre-simulation hook.
+		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override;
+
+		// Post-integration hook.
 		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
+
+		// Post-simulation hook.
+		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
 	};
 }
