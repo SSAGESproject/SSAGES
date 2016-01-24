@@ -35,7 +35,7 @@ namespace SSAGES
 			_snapshot.Changed(false);
 		}
 
-		void PostIntegration()
+		void PostIntegrationHook()
 		{
 			_snapshot.Changed(false);
 
