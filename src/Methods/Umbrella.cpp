@@ -1,5 +1,7 @@
 #include "Umbrella.h"
 
+#include <iostream>
+
 namespace SSAGES
 {
 	double spring(double k, double x0, double x)
@@ -25,6 +27,8 @@ namespace SSAGES
 			auto& grad = cv->GetGradient();
 
 			auto D = springDer(_kspring[i], _centers[i], cv->GetValue());
+
+			std::cout << "Current CV value : " << cv->GetValue() << std::endl;
 
 			for(size_t j = 0; j < forces.size(); ++j)
 				for(size_t k = 0; k < forces[j].size(); ++k)
