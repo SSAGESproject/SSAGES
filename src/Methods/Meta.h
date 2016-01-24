@@ -49,7 +49,7 @@ namespace SSAGES
 		void CalcBiasForce();
 
 	public: 
-		Meta(unsigned int height, 
+		Meta(double height, 
 			 const std::vector<double>& widths, 
 			 unsigned int hillfreq, 
 			 unsigned int frequency) : 
