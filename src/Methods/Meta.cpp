@@ -19,11 +19,14 @@ namespace SSAGES
 
 	void Meta::PreSimulation(Snapshot*, const CVList& cvs)
 	{
-		// TODO: Check widths against CV list size.
+	  hillsout.open("hills.out");
+	    
+	        // TODO: Check widths against CV list size.
 
 		// Get initial values of collective variables.
 		for(auto& cv : cvs)
 			_cvs.push_back(cv->GetValue());
+		
 	}
 
 	void Meta::PostIntegration(Snapshot* snapshot, const CVList& cvs)
@@ -54,6 +57,7 @@ namespace SSAGES
 
 	void Meta::PostSimulation(Snapshot*, const CVList&)
 	{
+	        hillsout.close();
 	}
 
 	void Meta::AddHill(const CVList& cvs)
@@ -64,7 +68,23 @@ namespace SSAGES
 
 		// Note: emplace_back constructs a hill in-place.
 		_hills.emplace_back(_cvs, _widths, _height);
+
+		//TODO: Make this better
+		printHill();
 	}
+
+        //Ruthless pragmatism
+        void Meta::printHill()
+        {
+	  hillsout.precision(8);
+	  for(size_t i = 0; i < _cvs.size(); ++i){
+	    hillsout << _cvs[i] << " ";
+	  }
+	  for(size_t i = 0; i < _cvs.size(); ++i){
+	    hillsout << _widths[i] << " ";
+	  }
+	  hillsout << _height << "\n";
+        }
 
 	void Meta::CalcBiasForce()
 	{	

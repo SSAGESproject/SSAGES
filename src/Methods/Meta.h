@@ -2,6 +2,7 @@
 
 #include "Method.h"
 #include "../CVs/CollectiveVariable.h"
+#include <fstream>
 
 namespace SSAGES
 {
@@ -45,8 +46,13 @@ namespace SSAGES
 		// Adds a new hill.
 		void AddHill(const CVList& cvs);
 
+
 		// Computes the bias force.
 		void CalcBiasForce();
+
+		// Prints the new hill to file
+		void printHill ();
+		std::ofstream hillsout;
 
 	public: 
 		Meta(double height, 
