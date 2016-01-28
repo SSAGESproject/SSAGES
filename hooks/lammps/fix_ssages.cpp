@@ -7,7 +7,7 @@
 #include "update.h"
 #include "domain.h"
 #include "Methods/Umbrella.h"
-#include "CVs/AtomPositionCV.h"
+#include "CVs/AtomCoordinateCV.h"
 
 using namespace SSAGES;
 using namespace LAMMPS_NS::FixConst;
@@ -19,7 +19,7 @@ namespace LAMMPS_NS
 	{
 		//this->AddListener(new MockMethod(1));
 		this->AddListener(new Umbrella({100.0}, {0}, 1));
-		this->AddCV(new AtomPositionCV(20, {{10.0, 1.0, 1.0}}));
+		this->AddCV(new AtomCoordinateCV(1, 0));
 	}
 
 	void FixSSAGES::setup(int)

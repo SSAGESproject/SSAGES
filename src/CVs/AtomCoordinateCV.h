@@ -43,13 +43,12 @@ namespace SSAGES
 			{
 				if(ids[i] == _atomid)
 				{
-				  //not the most efficient way, but it does what it is supposed to in a minimal number of lines
-				  //grab positions, decide which one of the three directions matters, and move onward.
+					//grab positions, decide which one of the three directions matters, and move onward.
 					Vector3 dx{{pos[i][0], pos[i][1], pos[i][2]}};
-					for( jj = 0; jj < 3; jj++)
-					  if( jj != _index ) dx[jj] = 0;
+					for(int j = 0; j < 3; ++j)
+					  if(j != _index) dx[j] = 0;
 					
-					auto r = dx;
+					auto r = norm(dx);
 					_grad[i][0] = dx[0]/r;
 					_grad[i][1] = dx[1]/r;
 					_grad[i][2] = dx[2]/r;
