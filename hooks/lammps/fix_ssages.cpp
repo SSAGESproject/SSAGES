@@ -17,9 +17,14 @@ namespace LAMMPS_NS
 	FixSSAGES::FixSSAGES(LAMMPS *lmp, int narg, char **arg) : 
 	Fix(lmp, narg, arg), Hook()
 	{
-		//this->AddListener(new MockMethod(1));
-		this->AddListener(new Umbrella({100.0}, {0}, 1));
-		this->AddCV(new AtomCoordinateCV(1, 0));
+		///////Test Umbrella//////////////////////////////
+		//this->AddListener(new Umbrella({100.0}, {0}, 1));
+		//this->AddCV(new AtomCoordinateCV(1, 0));
+
+		///////Test MetaDynamics//////////////////////////
+		this->AddListener(new Meta(0.2, {0.05, 0.05}, 500, 500));
+		this->AddCV(new AtomPosition(1, {0,0,0}));
+		this->AddCV(new AtomPosition(1, {0,0,0}));
 	}
 
 	void FixSSAGES::setup(int)
