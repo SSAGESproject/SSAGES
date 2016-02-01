@@ -19,14 +19,14 @@ namespace SSAGES
 
 	void Meta::PreSimulation(Snapshot*, const CVList& cvs)
 	{
-	  hillsout.open("hills.out");
+	 	hillsout.open("hills.out");
 	    
-	        // TODO: Check widths against CV list size.
-
+	 	// TODO: Check widths against CV list size.
 		// Get initial values of collective variables.
 		for(auto& cv : cvs)
 			_cvs.push_back(cv->GetValue());
 		
+		_derivatives.resize(cvs.size());	
 	}
 
 	void Meta::PostIntegration(Snapshot* snapshot, const CVList& cvs)

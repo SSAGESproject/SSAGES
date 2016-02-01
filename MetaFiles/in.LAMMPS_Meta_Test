@@ -18,11 +18,11 @@ group solid type 1
 
 variable random equal 12394876
 
+fix 0 all ssages
 fix 1 all nve
 #Alteration of the diffusion time influences the diffusion constant (1/time)
 fix 2 all langevin 1.0 1.0 1.0 ${random}
 fix 3 all wall/reflect xlo EDGE xhi EDGE ylo EDGE yhi EDGE 
-
 #include SUBSTRATE_FUNCTIONS
 
 		variable _w01 equal -18.4631620773
@@ -66,8 +66,8 @@ compute yya all property/atom y
 compute yy all reduce sum c_yya
 
 timestep 0.001
-thermo_style custom step temp ke pe etotal c_xx c_yy c_ffx c_ffy c_ee
-thermo 1000
+thermo_style custom step temp ke pe etotal c_xx c_yy c_ffx c_ffy c_ee press
+thermo 1
 
 
 run 1000000

@@ -6,7 +6,7 @@
 #include "force.h"
 #include "update.h"
 #include "domain.h"
-#include "Methods/Umbrella.h"
+#include "Methods/Meta.h"
 #include "CVs/AtomCoordinateCV.h"
 
 using namespace SSAGES;
@@ -22,9 +22,9 @@ namespace LAMMPS_NS
 		//this->AddCV(new AtomCoordinateCV(1, 0));
 
 		///////Test MetaDynamics//////////////////////////
-		this->AddListener(new Meta(0.2, {0.05, 0.05}, 500, 500));
-		this->AddCV(new AtomPosition(1, {0,0,0}));
-		this->AddCV(new AtomPosition(1, {0,0,0}));
+		this->AddListener(new Meta(0.2, {0.05, 0.05}, 500, 1));
+		this->AddCV(new AtomCoordinateCV(1, 0));
+		this->AddCV(new AtomCoordinateCV(1, 1));
 	}
 
 	void FixSSAGES::setup(int)
