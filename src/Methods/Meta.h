@@ -21,10 +21,7 @@ namespace SSAGES
 
 	class Meta : public Method
 	{
-	private:		
-		// Contains values of the CV's.
-		std::vector<double> _cvs;
-
+	private:	
 		// Hills.
 		std::vector<Hill> _hills;
 
@@ -48,18 +45,19 @@ namespace SSAGES
 
 
 		// Computes the bias force.
-		void CalcBiasForce();
+		void CalcBiasForce(const CVList& cvs);
 
 		// Prints the new hill to file
-		void printHill ();
-		std::ofstream hillsout;
+		void PrintHill(const Hill& hill);
+		
+		std::ofstream _hillsout;
 
 	public: 
 		Meta(double height, 
 			 const std::vector<double>& widths, 
 			 unsigned int hillfreq, 
 			 unsigned int frequency) : 
-		Method(frequency), _cvs(0), _hills(), _height(height), _widths(widths), 
+		Method(frequency), _hills(), _height(height), _widths(widths), 
 		_derivatives(0), _bias(0), _hillfreq(hillfreq)
 		{
 		}

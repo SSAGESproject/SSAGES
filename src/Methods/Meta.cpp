@@ -19,13 +19,8 @@ namespace SSAGES
 
 	void Meta::PreSimulation(Snapshot*, const CVList& cvs)
 	{
-	 	hillsout.open("hills.out");
+	 	_hillsout.open("hills.out");
 	    
-	 	// TODO: Check widths against CV list size.
-		// Get initial values of collective variables.
-		for(auto& cv : cvs)
-			_cvs.push_back(cv->GetValue());
-		
 		_derivatives.resize(cvs.size());	
 	}
 
@@ -36,7 +31,7 @@ namespace SSAGES
 			AddHill(cvs);
 
 		// Always calculate the current bias.
-		CalcBiasForce();
+		CalcBiasForce(cvs);
 
 		// TODO: Bounds check needs to go in somewhere.
 
@@ -57,61 +52,55 @@ namespace SSAGES
 
 	void Meta::PostSimulation(Snapshot*, const CVList&)
 	{
-	        hillsout.close();
+	        _hillsout.close();
 	}
 
 	void Meta::AddHill(const CVList& cvs)
 	{
+		std::vector<double> cvals;
+
 		// Get cv values.
 		for(size_t i = 0; i < cvs.size(); ++i)
-			_cvs[i] = cvs[i]->GetValue();
+			cvals.push_back(cvs[i]->GetValue());
 
 		// Note: emplace_back constructs a hill in-place.
-		_hills.emplace_back(_cvs, _widths, _height);
+		_hills.emplace_back(cvals, _widths, _height);
 
 		//TODO: Make this better
-		printHill();
+		PrintHill(_hills.back());
 	}
 
-        //Ruthless pragmatism
-        void Meta::printHill()
-        {
-	  hillsout.precision(8);
-	  for(size_t i = 0; i < _cvs.size(); ++i){
-	    hillsout << _cvs[i] << " ";
-	  }
-	  for(size_t i = 0; i < _cvs.size(); ++i){
-	    hillsout << _widths[i] << " ";
-	  }
-	  hillsout << _height << "\n";
-        }
+	//Ruthless pragmatism
+	void Meta::PrintHill(const Hill& hill)
+	{
+		_hillsout.precision(8);
+		for(auto& cv : hill.center)
+			_hillsout << cv << " ";
 
-	void Meta::CalcBiasForce()
+		for(auto& w : hill.width)
+			_hillsout << w << " ";
+
+		_hillsout << _height << std::endl;
+	}
+
+	void Meta::CalcBiasForce(const CVList& cvs)
 	{	
 		// Reset bias and derivatives.
 		_bias = 0;
 		for(size_t i = 0; i < _derivatives.size(); ++i)
 			_derivatives[i] = 0;
 
-		// Initialize vectors and reserve memory for calculation.
-		std::vector<double> tder, dx; 
-		tder.reserve(_cvs.size());
-		dx.reserve(_cvs.size());
-
 		// Loop through hills and calculate the bias force.
 		for(auto& hill : _hills)
 		{
 			auto n = hill.center.size();
+			std::vector<double> tder(n, 1.0), dx(n, 1); 
 			auto tbias = 1.;
-			
-			// Resize vectors. 
-			tder.resize(n, 1.0);
-			dx.resize(n, 0);
 			
 			// Initialize dx and tbias.
 			for(size_t i = 0; i < n; ++i)
 			{
-				dx[i] = _cvs[i] - hill.center[i];
+				dx[i] = cvs[i]->GetValue() - hill.center[i];
 				tbias *= gaussian(dx[i], hill.width[i]);
 			}
 

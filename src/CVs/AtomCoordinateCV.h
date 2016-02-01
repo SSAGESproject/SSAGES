@@ -30,7 +30,7 @@ namespace SSAGES
 		void Initialize(const Snapshot& snapshot) override
 		{
 			// Initialize gradient. 
-			auto n = snapshot.GetPositions().size();		
+			auto n = snapshot.GetPositions().size();
 			_grad.resize(n);
 		}
 
@@ -44,15 +44,26 @@ namespace SSAGES
 				if(ids[i] == _atomid)
 				{
 					//grab positions, decide which one of the three directions matters, and move onward.
-					Vector3 dx{{pos[i][0], pos[i][1], pos[i][2]}};
-					for(int j = 0; j < 3; ++j)
-					  if(j != _index) dx[j] = 0;
-					
-					auto r = norm(dx);
-					_grad[i][0] = dx[0]/r;
-					_grad[i][1] = dx[1]/r;
-					_grad[i][2] = dx[2]/r;
-					_val = r;
+					double dx = 0;
+					_grad[i][0] = 0;
+					_grad[i][1] = 0;
+					_grad[i][2] = 0;
+					switch(_index)
+					{
+						case 0:
+							dx = pos[i][0];
+							_grad[i][0] = 1.0;
+							break;
+						case 1:
+							dx = pos[i][1];
+							_grad[i][1] = 1.0;
+							break;
+						case 2:
+							dx = pos[i][2];
+							_grad[i][2] = 1.0;
+							break;
+					}
+					_val = dx;
 				}
 				else
 				{

@@ -22,7 +22,7 @@ namespace LAMMPS_NS
 		//this->AddCV(new AtomCoordinateCV(1, 0));
 
 		///////Test MetaDynamics//////////////////////////
-		this->AddListener(new Meta(0.2, {0.05, 0.05}, 500, 1));
+		this->AddListener(new Meta(0.5, {0.05, 0.05}, 500, 1));
 		this->AddCV(new AtomCoordinateCV(1, 0));
 		this->AddCV(new AtomCoordinateCV(1, 1));
 	}
