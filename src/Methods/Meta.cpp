@@ -4,12 +4,14 @@
 
 namespace SSAGES
 {
+	// Evlauate Gaussian. Helper function.
 	double gaussian(double dx, double sigma)
 	{
 		double arg = (dx * dx) / (2. * sigma * sigma);
 		return exp(-arg);
 	}
 
+	// Evaluate Gaussian derivative. Helper function.
 	double gaussianDerv(double dx, double sigma)
 	{
 		double arg =  (dx * dx) / (2. * sigma * sigma);
@@ -17,13 +19,15 @@ namespace SSAGES
 		return pre * exp(-arg);
 	}
 
+	// Pre-simulation hook.
 	void Meta::PreSimulation(Snapshot*, const CVList& cvs)
 	{
+		// Open file for writing and allocate derivatives vector.
 	 	_hillsout.open("hills.out");
-	    
 		_derivatives.resize(cvs.size());	
 	}
 
+	// Post-integration hook.
 	void Meta::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
 		// Add hills when needed.
@@ -50,23 +54,25 @@ namespace SSAGES
 		}
 	}
 
+	// Post-simulation hook.
 	void Meta::PostSimulation(Snapshot*, const CVList&)
 	{
-	        _hillsout.close();
+		_hillsout.close();
 	}
 
+	// Drop a new hill.
 	void Meta::AddHill(const CVList& cvs)
 	{
 		std::vector<double> cvals;
 
-		// Get cv values.
+		// Get CV values.
 		for(size_t i = 0; i < cvs.size(); ++i)
 			cvals.push_back(cvs[i]->GetValue());
 
 		// Note: emplace_back constructs a hill in-place.
 		_hills.emplace_back(cvals, _widths, _height);
 
-		//TODO: Make this better
+		// Write hill to file.
 		PrintHill(_hills.back());
 	}
 

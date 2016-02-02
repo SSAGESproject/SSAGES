@@ -60,10 +60,11 @@ namespace LAMMPS_NS
 
 	int FixSSAGES::setmask()
 	{
-	  int mask = 0;
-	  mask |= POST_FORCE;
-	  mask |= POST_RUN;
-	  return mask;
+		// We are interested in post-force and post run hooks.
+		int mask = 0;
+		mask |= POST_FORCE;
+		mask |= POST_RUN;
+		return mask;
 	}
 
 	void FixSSAGES::SyncToSnapshot() //put LAMMPS values -> Snapshot
@@ -127,7 +128,7 @@ namespace LAMMPS_NS
 			vol = domain->xprd * domain->yprd;
 		_snapshot.SetVolume(vol);
 
-		// Positions
+		// Update values.
 		for (int i = 0; i < atom->natoms; ++i)
 		{
 			pos[i][0] = _atom->x[i][0]; //x
@@ -143,7 +144,6 @@ namespace LAMMPS_NS
 			vel[i][2] = _atom->v[i][2];
 			
 			ids[i] = _atom->tag[i];
-			
 			types[i] = _atom->type[i];
 		}
 	}
@@ -183,6 +183,6 @@ namespace LAMMPS_NS
 		// LAMMPS computes will reset thermo data based on
 		// updated information. No need to sync thermo data
 		// from snapshot to engine.
-		// However, this could change in the future.
+		// However, this will change in the future.
 	}
 }

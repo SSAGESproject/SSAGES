@@ -6,12 +6,22 @@
 
 namespace SSAGES
 {
+	// Structure representing a multidimensional hill (Gaussian)
+	// which is centered at "center" with widths "width" of height
+	// "height". A multidimensional Gaussian has one height but 
+	// n centers and widths.
 	struct Hill 
 	{
+		// Hill center.
 		std::vector<double> center;
+
+		// Hill width.
 		std::vector<double> width;
+
+		// Hill height.
 		double height;
-	
+		
+		// Constructs a multidimensional Hill (Gaussian)
 		Hill(const std::vector<double>& center, 
 			 const std::vector<double>& sigma, 
 			 double height) :
@@ -19,6 +29,8 @@ namespace SSAGES
 		{}
 	};
 
+	// Implementation of a "vanilla" multi-dimensional Metadynamics
+	// method with no bells and whistles.
 	class Meta : public Method
 	{
 	private:	
@@ -43,16 +55,22 @@ namespace SSAGES
 		// Adds a new hill.
 		void AddHill(const CVList& cvs);
 
-
 		// Computes the bias force.
 		void CalcBiasForce(const CVList& cvs);
 
 		// Prints the new hill to file
 		void PrintHill(const Hill& hill);
 		
+		// Output stream for hill data.
 		std::ofstream _hillsout;
 
 	public: 
+		// Constructs an instance of Metadynamics method.
+		// "height" specifies the hieght of the hills to be deposited. 
+		// "widths" specifies the widths of the hills to be deposited 
+		// along each dimension. "hillfreq" specifies the frequency of 
+		// depositing hills. Note that The size of "widths" should be 
+		// commensurate with the number of CV's expected.
 		Meta(double height, 
 			 const std::vector<double>& widths, 
 			 unsigned int hillfreq, 

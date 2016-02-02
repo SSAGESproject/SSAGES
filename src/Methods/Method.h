@@ -4,10 +4,11 @@
 
 namespace SSAGES
 {
-	// Abstract base class for method implementations.
+	// Interface for Method implementations.
 	class Method : public EventListener
 	{
 	public:
+		// Frequency of sampling must be specified by all methods.
 		Method(unsigned int frequency) : 
 		EventListener(frequency) {}
 

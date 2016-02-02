@@ -6,6 +6,7 @@ namespace SSAGES
 {
 	using Vector3 = std::array<double, 3>;
 	using Label = std::vector<int>;
+	
 	// Class containing a snapshot of the current simulation in time. 
 	// This contains information on the particle positions, velocities, etc.. 
 	// and additional information on the state of the system.

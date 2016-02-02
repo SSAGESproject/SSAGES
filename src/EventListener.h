@@ -18,6 +18,7 @@ namespace SSAGES
 
 		}
 
+		// Get frequency of event listener.
 		unsigned int GetFrequency() const { return _frequency; }
 
 		// Method call prior to simulation initiation.
