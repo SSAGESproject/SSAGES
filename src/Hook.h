@@ -66,10 +66,9 @@ namespace SSAGES
 			for(auto& cv : _cvs)
 				cv->Evaluate(_snapshot);
 
-			for(auto& listener : _listeners){
+			for(auto& listener : _listeners)
 				if(_snapshot.GetIteration() % listener->GetFrequency() == 0)
 					listener->PostIntegration(&_snapshot, _cvs);
-			}
 
 			if(_snapshot.HasChanged())
 				SyncToEngine();

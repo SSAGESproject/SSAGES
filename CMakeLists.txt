@@ -10,6 +10,13 @@ endif()
 find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
 
+# Require Boost MPI.
+find_package(Boost
+	1.55
+	REQUIRED
+	COMPONENTS mpi
+)
+
 # Get lammps source directory
 set(LAMMPS_SRC "" CACHE STRING "LAMMPS source directory")
 
@@ -20,7 +27,7 @@ ExternalProject_Add(
 	lammps
 	SOURCE_DIR ${LAMMPS_SRC}
 	CONFIGURE_COMMAND ""
-	BUILD_COMMAND $(MAKE) mpi CCFLAGS=-I${PROJECT_SOURCE_DIR}/src CCFLAGS+=-std=c++11 LIB=${PROJECT_SOURCE_DIR}/build/libssages.a
+	BUILD_COMMAND $(MAKE) mpi CCFLAGS=-I${PROJECT_SOURCE_DIR}/src CCFLAGS+=-I${Boost_INCLUDE_DIRS} CCFLAGS+=-std=c++11 CCFLAGS+=-L${Boost_LIBRARY_DIRS} CCFLAGS+=-lboost_mpi LIB=${PROJECT_SOURCE_DIR}/build/libssages.a
 	INSTALL_COMMAND ""
 	BUILD_IN_SOURCE true
 	LOG_BUILD ON
@@ -57,8 +64,14 @@ set(SOURCE
 	src/Methods/Umbrella.cpp
 )
 
+include_directories(${MPI_CXX_INCLUDE_PATH})
+include_directories(${Boost_INCLUDE_DIRS})
+add_definitions(${MPI_CXX_COMPILE_FLAGS})
+link_directories(${MPI_CXX_LIBRARIES})
+
 add_library(libssages ${HOOKSRC} ${SOURCE})
 set_target_properties(libssages PROPERTIES PREFIX "")
+target_link_libraries(libssages ${MPI_CXX_LIBRARIES} ${Boost_LIBRARIES})
 
 # Require C++11
 set_property(TARGET libssages PROPERTY CXX_STANDARD 11)
