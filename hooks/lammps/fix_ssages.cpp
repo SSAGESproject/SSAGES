@@ -12,7 +12,7 @@
 #include <boost/mpi.hpp>
 
 using namespace SSAGES;
-using namespace LAMMPS_NS::Fix;
+using namespace LAMMPS_NS::FixConst;
 using namespace boost;
 
 namespace LAMMPS_NS

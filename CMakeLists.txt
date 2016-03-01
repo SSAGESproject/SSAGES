@@ -14,7 +14,7 @@ include_directories(${MPI_INCLUDE_PATH})
 find_package(Boost
 	1.55
 	REQUIRED
-	COMPONENTS mpi
+	COMPONENTS mpi serialization
 )
 
 # Get lammps source directory
@@ -27,7 +27,14 @@ ExternalProject_Add(
 	lammps
 	SOURCE_DIR ${LAMMPS_SRC}
 	CONFIGURE_COMMAND ""
-	BUILD_COMMAND $(MAKE) mpi CCFLAGS=-I${PROJECT_SOURCE_DIR}/src CCFLAGS+=-I${Boost_INCLUDE_DIRS} CCFLAGS+=-std=c++11 CCFLAGS+=-L${Boost_LIBRARY_DIRS} CCFLAGS+=-lboost_mpi LIB=${PROJECT_SOURCE_DIR}/build/libssages.a
+	BUILD_COMMAND $(MAKE) mpi mode=shlib 
+	CCFLAGS=-I${PROJECT_SOURCE_DIR}/src  
+	CCFLAGS+=-I${Boost_INCLUDE_DIRS}     
+	CCFLAGS+=-std=c++11                  
+	CCFLAGS+=-L${Boost_LIBRARY_DIRS}      
+	LIB+=-lboost_mpi                      
+	LIB+=-lboost_serialization           
+	LIB+=${PROJECT_SOURCE_DIR}/build/libssages.a
 	INSTALL_COMMAND ""
 	BUILD_IN_SOURCE true
 	LOG_BUILD ON
@@ -69,17 +76,27 @@ include_directories(${Boost_INCLUDE_DIRS})
 add_definitions(${MPI_CXX_COMPILE_FLAGS})
 link_directories(${MPI_CXX_LIBRARIES})
 
+# SSAGES library.
 add_library(libssages ${HOOKSRC} ${SOURCE})
 set_target_properties(libssages PROPERTIES PREFIX "")
 target_link_libraries(libssages ${MPI_CXX_LIBRARIES} ${Boost_LIBRARIES})
+set_target_properties(libssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra -fPIC")
 
-# Require C++11
+# Require C++11.
 set_property(TARGET libssages PROPERTY CXX_STANDARD 11)
 set_property(TARGET libssages PROPERTY CXX_STANDARD_REQUIRED ON)
 
+# Dependency.
 add_dependencies(lammps libssages)
+
+# SSAGES executable.
+add_executable(ssages
+	src/main.cpp
+)
+target_link_libraries(ssages libssages ${LAMMPS_SRC}/liblammps_mpi.so)
+add_dependencies(ssages lammps)
+set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra")
 
 # Configure flags 
 # - Globals
-set_target_properties(libssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -pthread -std=c++11")
