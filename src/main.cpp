@@ -8,6 +8,8 @@
 #include "Hook.h"
 #include "fix.h"
 #include "Methods/MockMethod.h"
+#include "Methods/ElasticBand.h"
+#include "CVs/AtomCoordinateCV.h"
 
 namespace mpi = boost::mpi;
 using namespace LAMMPS_NS;
@@ -95,12 +97,43 @@ int main(int argc, char* argv[])
 		///////Test Umbrella//////////////////////////////
 		//hook->AddListener(new Umbrella({100.0}, {0}, 1));
 		//hook->AddCV(new AtomCoordinateCV(1, 0));
-		hook->AddListener(new MockMethod(1000));
+		
+		//Mock method
+		//hook->AddListener(new MockMethod(world, walker,1));
 
 		///////Test MetaDynamics//////////////////////////
 		//hook->AddListener(new Meta(0.5, {0.05, 0.05}, 500, 1));
 		//hook->AddCV(new AtomCoordinateCV(1, 0));
 		//hook->AddCV(new AtomCoordinateCV(1, 1));
+
+		///////Test Elastic Band////////////////////////
+		// Set up centers of each node based on toy system
+		if((int)world.size() < 3)
+		{
+			if(world.rank() == 0)
+				std::cerr << "The elastic band method requires "
+				<< "at least 3 walkers." << std::endl;
+			world.abort(-1);
+		}
+
+		auto StartPointx = -1.1;
+		auto StartPointy = -1.1;
+		auto EndPointx = 1.1;
+		auto EndPointy = 1.1;
+
+		auto Nodediffxc = StartPointx + (int)world.rank()*(EndPointx - StartPointx)/(world.size()-1);
+		auto Nodediffyc = StartPointy + (int)world.rank()*(EndPointy - StartPointy)/(world.size()-1);
+
+		if((int)world.rank() + 1 == world.size())
+		{
+			Nodediffxc = EndPointx;
+			Nodediffyc = EndPointy;
+		}
+
+		hook->AddListener(new ElasticBand(world, walker,
+		 100, 20000, 1000, 10, {Nodediffxc,Nodediffyc}, {0.1, 0.1}, 0.1, 0.1, 1));
+		hook->AddCV(new AtomCoordinateCV(1, 0));
+		hook->AddCV(new AtomCoordinateCV(1, 1));
 	}
 	else
 	{

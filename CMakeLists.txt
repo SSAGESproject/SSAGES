@@ -69,6 +69,7 @@ set(HOOKSRC
 set(SOURCE
 	src/Methods/Meta.cpp
 	src/Methods/Umbrella.cpp
+	src/Methods/ElasticBand.cpp
 )
 
 include_directories(${MPI_CXX_INCLUDE_PATH})
