@@ -20,10 +20,12 @@ namespace SSAGES
 		// Create instance of umbrella with spring constants "kspring", 
 		// and centers "centers". Note the sizes of the vectors should be 
 		// commensurate with the number of CVs.
-		Umbrella(const std::vector<double>& kspring,
+		Umbrella(boost::mpi::communicator& world,
+				 boost::mpi::communicator& comm,
+				 const std::vector<double>& kspring,
 				 const std::vector<double>& centers,
 				 unsigned int frequency) : 
-		Method(frequency), _kspring(kspring), _centers(centers)
+		Method(frequency, world, comm), _kspring(kspring), _centers(centers)
 		{}
 
 		// Pre-simulation hook.

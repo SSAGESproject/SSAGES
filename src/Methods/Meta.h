@@ -4,6 +4,7 @@
 #include "../CVs/CollectiveVariable.h"
 #include <fstream>
 
+
 namespace SSAGES
 {
 	// Structure representing a multidimensional hill (Gaussian)
@@ -71,11 +72,13 @@ namespace SSAGES
 		// along each dimension. "hillfreq" specifies the frequency of 
 		// depositing hills. Note that The size of "widths" should be 
 		// commensurate with the number of CV's expected.
-		Meta(double height, 
+		Meta(boost::mpi::communicator& world,
+			 boost::mpi::communicator& comm,
+			 double height, 
 			 const std::vector<double>& widths, 
 			 unsigned int hillfreq, 
 			 unsigned int frequency) : 
-		Method(frequency), _hills(), _height(height), _widths(widths), 
+		Method(frequency, world, comm), _hills(), _height(height), _widths(widths), 
 		_derivatives(0), _bias(0), _hillfreq(hillfreq)
 		{
 		}

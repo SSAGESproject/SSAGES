@@ -14,8 +14,10 @@ namespace SSAGES
 		std::ofstream _myout;
 
 	public:
-		MockMethod(unsigned int frequency) : 
-		Method(frequency)
+		MockMethod(boost::mpi::communicator& world,
+				   boost::mpi::communicator& comm,
+				   unsigned int frequency) : 
+		Method(frequency,world,comm)
 		{
 			_myout.open("foo.out");
 		}
@@ -33,7 +35,8 @@ namespace SSAGES
 
 			std::cout << snapshot->GetWalkerID() 
 			<< " " << snapshot->GetCommunicator().rank() << std::endl;
-
+			auto& v = snapshot->GetForces();
+			v[0][0] = 1.000000*v[0][0];
 			/*
 			// An example of acquiring and printing some data from the snapshot.
 			std::cout 
