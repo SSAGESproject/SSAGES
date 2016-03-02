@@ -6,9 +6,6 @@
 #include "force.h"
 #include "update.h"
 #include "domain.h"
-#include "Methods/Meta.h"
-#include "CVs/AtomCoordinateCV.h"
-#include "Methods/MockMethod.h"
 #include <boost/mpi.hpp>
 
 using namespace SSAGES;
@@ -82,15 +79,6 @@ namespace LAMMPS_NS
 	FixSSAGES::FixSSAGES(LAMMPS *lmp, int narg, char **arg) : 
 	Fix(lmp, narg, arg), Hook()
 	{
-		///////Test Umbrella//////////////////////////////
-		//this->AddListener(new Umbrella({100.0}, {0}, 1));
-		//this->AddCV(new AtomCoordinateCV(1, 0));
-		this->AddListener(new MockMethod(1000));
-
-		///////Test MetaDynamics//////////////////////////
-		//this->AddListener(new Meta(0.5, {0.05, 0.05}, 500, 1));
-		//this->AddCV(new AtomCoordinateCV(1, 0));
-		//this->AddCV(new AtomCoordinateCV(1, 1));
 	}
 
 	void FixSSAGES::setup(int)
@@ -99,15 +87,15 @@ namespace LAMMPS_NS
 		// Here we size to local number of atoms. We will 
 		// resize later.
 		auto n = atom->nlocal;
-		auto& pos = _snapshot.GetPositions();
+		auto& pos = _snapshot->GetPositions();
 		pos.resize(n);
-		auto& vel = _snapshot.GetVelocities();
+		auto& vel = _snapshot->GetVelocities();
 		vel.resize(n);
-		auto& frc = _snapshot.GetForces();
+		auto& frc = _snapshot->GetForces();
 		frc.resize(n);
-		auto& ids = _snapshot.GetAtomIDs();
+		auto& ids = _snapshot->GetAtomIDs();
 		ids.resize(n);
-		auto& types = _snapshot.GetAtomTypes();
+		auto& types = _snapshot->GetAtomTypes();
 		types.resize(n);
 
 		SyncToSnapshot();
@@ -139,8 +127,6 @@ namespace LAMMPS_NS
 	{
 		using namespace boost::mpi;
 
-		communicator comm;
-
 		// Obtain local reference to snapshot variables.
 		// Const Atom will ensure that atom variables are
 		// not being changed. Only snapshot side variables should
@@ -149,18 +135,18 @@ namespace LAMMPS_NS
 
 		auto n = atom->nlocal;
 
-		auto& pos = _snapshot.GetPositions();
+		auto& pos = _snapshot->GetPositions();
 		pos.resize(n);
-		auto& vel = _snapshot.GetVelocities();
+		auto& vel = _snapshot->GetVelocities();
 		vel.resize(n);
-		auto& frc = _snapshot.GetForces();
+		auto& frc = _snapshot->GetForces();
 		frc.resize(n);
 
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
-		auto& ids = _snapshot.GetAtomIDs();
+		auto& ids = _snapshot->GetAtomIDs();
 		ids.resize(n);
-		auto& types = _snapshot.GetAtomTypes();
+		auto& types = _snapshot->GetAtomTypes();
 		types.resize(n);
 
 		// Thermo properties:
@@ -171,13 +157,13 @@ namespace LAMMPS_NS
 		const char* id_temp = "thermo_temp";
 		icompute = modify->find_compute(id_temp);
 		auto* temperature = modify->compute[icompute];
-		_snapshot.SetTemperature(temperature->compute_scalar());
+		_snapshot->SetTemperature(temperature->compute_scalar());
 		
 		//Pressure
 		const char* id_press = "thermo_press";
 		icompute = modify->find_compute(id_press);
 		thermoproperty = modify->compute[icompute];
-		_snapshot.SetPressure(thermoproperty->compute_scalar());
+		_snapshot->SetPressure(thermoproperty->compute_scalar());
 		
 		//Energy
 		double etot = 0;
@@ -193,10 +179,10 @@ namespace LAMMPS_NS
 		etot += ekin;
 
 		// Store in snapshot.
-		_snapshot.SetEnergy(etot/atom->natoms);
+		_snapshot->SetEnergy(etot/atom->natoms);
 		
 		// Get iteration.
-		_snapshot.SetIteration(update->ntimestep);
+		_snapshot->SetIteration(update->ntimestep);
 		
 		// Get volume.
 		double vol = 0.;
@@ -204,7 +190,7 @@ namespace LAMMPS_NS
 			vol = domain->xprd * domain->yprd * domain->zprd;
 		else
 			vol = domain->xprd * domain->yprd;
-		_snapshot.SetVolume(vol);
+		_snapshot->SetVolume(vol);
 
 		// First we sync local data, then gather.
 		// we gather data across all processors.
@@ -226,6 +212,7 @@ namespace LAMMPS_NS
 			types[i] = _atom->type[i];
 		}
 
+		auto& comm = _snapshot->GetCommunicator();
 		allgatherv_serialize(comm, pos, pos);
 		allgatherv_serialize(comm, vel, vel);
 		allgatherv_serialize(comm, frc, frc);
@@ -239,14 +226,14 @@ namespace LAMMPS_NS
 		// Const will ensure that _snapshot variables are
 		// not being changed. Only engine side variables should
 		// change. 
-		const auto& pos = _snapshot.GetPositions();
-		const auto& vel = _snapshot.GetVelocities();
-		const auto& frc = _snapshot.GetForces();
+		const auto& pos = _snapshot->GetPositions();
+		const auto& vel = _snapshot->GetVelocities();
+		const auto& frc = _snapshot->GetForces();
 
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
-		const auto& ids = _snapshot.GetAtomIDs();
-		const auto& types = _snapshot.GetAtomTypes();
+		const auto& ids = _snapshot->GetAtomIDs();
+		const auto& types = _snapshot->GetAtomTypes();
 
 		// Loop through all atoms and set their values
 		// Positions. This is predicatd on the fact that the 

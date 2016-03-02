@@ -3,13 +3,19 @@
 #include <sstream>
 #include "lammps.h"
 #include "input.h"
+#include "modify.h"
+#include "Snapshot.h"
+#include "Hook.h"
+#include "fix.h"
+#include "Methods/MockMethod.h"
 
 namespace mpi = boost::mpi;
 using namespace LAMMPS_NS;
+using namespace SSAGES;
 
 // Retrieves the contents of a file and returns them
 // in a string. Throws exception on failure.
-inline std::string GetFileContents(const char *filename)
+std::string GetFileContents(const char *filename)
 {
 	std::FILE *fp = std::fopen(filename, "rb");
 	if (fp)
@@ -73,11 +79,41 @@ int main(int argc, char* argv[])
 	std::string token;
 	std::istringstream ss(contents);
 	while(std::getline(ss, token, '\n'))
-	{
 		lammps->input->one(token.c_str());
-		if(world.rank() == 0)
-			std::cout << token << std::endl;
+
+	// Initialize snapshot. 
+	Snapshot snapshot(walker, wid);
+
+	// Get hook from lammps modify.
+	// Horrid, I know.
+	auto fid = lammps->modify->find_fix("ssages");
+	if(auto* hook = dynamic_cast<Hook*>(lammps->modify->fix[fid]))
+	{
+		hook->SetSnapshot(&snapshot);
+
+		// Add methods and CV's here.
+		///////Test Umbrella//////////////////////////////
+		//hook->AddListener(new Umbrella({100.0}, {0}, 1));
+		//hook->AddCV(new AtomCoordinateCV(1, 0));
+		hook->AddListener(new MockMethod(1000));
+
+		///////Test MetaDynamics//////////////////////////
+		//hook->AddListener(new Meta(0.5, {0.05, 0.05}, 500, 1));
+		//hook->AddCV(new AtomCoordinateCV(1, 0));
+		//hook->AddCV(new AtomCoordinateCV(1, 1));
 	}
+	else
+	{
+		if(world.rank() == 0)
+		{
+			std::cerr << "Unable to dynamic cast hook. Error occurred" << std::endl;
+			world.abort(-1);			
+		}
+	}
+
+	// Run!
+	std::string rline = "run " + std::string(argv[3]);
+	lammps->input->one(rline.c_str());
 
 	// Free.
 	for(int i = 0; i < 5; ++i)

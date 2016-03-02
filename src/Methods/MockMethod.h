@@ -20,7 +20,7 @@ namespace SSAGES
 			_myout.open("foo.out");
 		}
 
-		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override
+		void PreSimulation(Snapshot*, const CVList&) override
 		{
 		}
 
@@ -30,14 +30,9 @@ namespace SSAGES
 			using std::right;
 			using std::setprecision;
 			
-			boost::mpi::communicator comm;
-			if(comm.rank() == 0)
-			{
-				for(auto& p : snapshot->GetPositions())
-					_myout << p[0] << " " << p[1] << " " << p[2] << std::endl;
 
-				_myout << std::endl;
- 			}
+			std::cout << snapshot->GetWalkerID() 
+			<< " " << snapshot->GetCommunicator().rank() << std::endl;
 
 			/*
 			// An example of acquiring and printing some data from the snapshot.
@@ -53,7 +48,7 @@ namespace SSAGES
 				std::cout << cv->GetValue() << std::endl;
 		}
 
-		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override
+		void PostSimulation(Snapshot*, const CVList&) override
 		{
 		}
 

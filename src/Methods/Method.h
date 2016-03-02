@@ -21,6 +21,6 @@ namespace SSAGES
 		// Method call post simulation.
 		virtual void PostSimulation(Snapshot* snapshot, const CVList& cvs) override = 0;
 
-		~Method() {}
+		virtual ~Method() {}
 	};
 }

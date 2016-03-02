@@ -20,7 +20,7 @@ namespace SSAGES
 
 	protected:
 		// Local snapshot.
-		Snapshot _snapshot;
+		Snapshot* _snapshot;
 
 		// Syncronization to engine. A Hook must implement this method 
 		// where data is taken from the snapshot and updated within 
@@ -36,24 +36,24 @@ namespace SSAGES
 		// time by the Hook implementation.
 		void PreSimulationHook()
 		{
-			_snapshot.Changed(false);
+			_snapshot->Changed(false);
 		
 			// Initialize/evaluate CVs.
 			for(auto& cv : _cvs)
 			{
-				cv->Initialize(_snapshot);
-				cv->Evaluate(_snapshot);
+				cv->Initialize(*_snapshot);
+				cv->Evaluate(*_snapshot);
 			}
 
 			// Call presimulation method on listeners. 
 			for(auto& listener : _listeners)
-				listener->PreSimulation(&_snapshot, _cvs);
+				listener->PreSimulation(_snapshot, _cvs);
 
 			// Sync snapshot to engine.
-			if(_snapshot.HasChanged())
+			if(_snapshot->HasChanged())
 				SyncToEngine();
 
-			_snapshot.Changed(false);
+			_snapshot->Changed(false);
 		}
 
 		// Post-integration hook. This hould be called by the Hook 
@@ -61,43 +61,51 @@ namespace SSAGES
 		// the forces, position, velocities, etc.. can be updated.
 		void PostIntegrationHook()
 		{
-			_snapshot.Changed(false);
+			_snapshot->Changed(false);
 
 			for(auto& cv : _cvs)
-				cv->Evaluate(_snapshot);
+				cv->Evaluate(*_snapshot);
 
 			for(auto& listener : _listeners)
-				if(_snapshot.GetIteration() % listener->GetFrequency() == 0)
-					listener->PostIntegration(&_snapshot, _cvs);
+				if(_snapshot->GetIteration() % listener->GetFrequency() == 0)
+					listener->PostIntegration(_snapshot, _cvs);
 
-			if(_snapshot.HasChanged())
+			if(_snapshot->HasChanged())
 				SyncToEngine();
 
-			_snapshot.Changed(false);
+			_snapshot->Changed(false);
 		}
 
 		// Post-simulation hook. This should be called by the Hook
 		// implementation at the appropriate time.
 		void PostSimulationHook()
 		{
-			_snapshot.Changed(false);
+			_snapshot->Changed(false);
 
 			for(auto& cv : _cvs)
-				cv->Evaluate(_snapshot);
+				cv->Evaluate(*_snapshot);
 			
 			for(auto& listener : _listeners)
-				listener->PostSimulation(&_snapshot, _cvs);
+				listener->PostSimulation(_snapshot, _cvs);
 
-			if(_snapshot.HasChanged())
+			if(_snapshot->HasChanged())
 				SyncToEngine();
 
-			_snapshot.Changed(false);
+			_snapshot->Changed(false);
 		}
 
 	public:
-		// Initialize a hook.
+		// Initialize a hook with world and walker communicators and corresponding 
+		// walker ID.
 		Hook() : 
-		_listeners(0), _snapshot() {}
+		_listeners(0), _snapshot(nullptr)
+		{}
+
+		// Sets the active snapshot.
+		void SetSnapshot(Snapshot* snapshot)
+		{
+			_snapshot = snapshot;
+		}
 
 		// Add a listener to the hook. Does nothing 
 		// if the listener is already added.
@@ -115,6 +123,6 @@ namespace SSAGES
 				_cvs.push_back(cv);
 		}
 
-		~Hook(){}
+		virtual ~Hook(){}
 	};
 }

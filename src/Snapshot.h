@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <memory>
+#include <boost/mpi.hpp>
 
 namespace SSAGES
 {
@@ -13,6 +14,12 @@ namespace SSAGES
 	class Snapshot
 	{
 	private:
+		// Local snapshot (walker) communicator.
+		boost::mpi::communicator _comm;
+
+		// Walker ID.
+		unsigned _wid;
+
 		std::vector<Vector3> _positions;
 		std::vector<Vector3> _velocities;
 		std::vector<Vector3> _forces;
@@ -28,11 +35,13 @@ namespace SSAGES
 		bool _changed;
 
 	public:
-		Snapshot() :
-		_positions(0), _velocities(0), _forces(0),
-		_atomids(0), _types(0), _iteration(0), 
-		_temperature(0), _pressure(0), _energy(0),
-		_volume(0)
+		// Initialize a snapshot with MPI communicator and a
+		// correpsonding walker ID.
+		Snapshot(boost::mpi::communicator& comm, unsigned wid) :
+		_comm(comm), _wid(wid), _positions(0), _velocities(0), 
+		_forces(0), _atomids(0), _types(0), 
+		_iteration(0), _temperature(0), _pressure(0), 
+		_energy(0), _volume(0)
 		{}
 
 		int GetIteration() const {return _iteration; }
@@ -40,6 +49,17 @@ namespace SSAGES
 		double GetPressure() const { return _pressure; }
 		double GetEnergy() const { return _energy; }
 		double GetVolume() const { return _volume; }
+		
+		// Get communicator for group (walker).
+		// This contains the set of processors that belong to a 
+		// single simulation box.
+		const boost::mpi::communicator& GetCommunicator() const
+		{
+			return _comm;
+		}
+
+		// Get walker ID.
+		unsigned GetWalkerID() const { return _wid; }
 
 		void SetIteration(int iteration) 
 		{
