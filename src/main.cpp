@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
 		}
 
 		hook->AddListener(new ElasticBand(world, walker,
-		 100, 20000, 1000, 10, {Nodediffxc,Nodediffyc}, {0.1, 0.1}, 0.1, 0.1, 1));
+		 100, 20000, 1000, 100, {Nodediffxc,Nodediffyc}, {3, 3}, 0.1, 0.1, 1));
 		hook->AddCV(new AtomCoordinateCV(1, 0));
 		hook->AddCV(new AtomCoordinateCV(1, 1));
 	}

@@ -23,7 +23,7 @@ namespace SSAGES
 	 	for(size_t i = 0; i < cvs.size(); ++i)
 	 	{
 	 		_gradient[i] = 0;
-	 		_curr_field[i] = 0;
+	 		_curr_field[i] = _centers[i];
 	 	}
 
 	 	_currentiter = 1;
@@ -60,7 +60,7 @@ namespace SSAGES
 					// generate the gradient
 					if(_restartiter >= _equilibrate && _restartiter % _evolution == 0)
 					{
-						_gradient[i] += D*grad[j][k];
+						_gradient[i] += 2*D*grad[j][k];
 						sampled = true;
 					}
 				}
@@ -74,6 +74,8 @@ namespace SSAGES
 		// next elastic band iteration
 		if(_restartiter > (_equilibrate + _evolution * _nsamples))
 		{
+			PrintString(cvs);
+
 			//obtain the unparameterized string
 			StringUpdate();
 
@@ -93,12 +95,7 @@ namespace SSAGES
 
 			_currentiter++;
 			_nsampled = 0;
-
-			PrintString(cvs);
 		}
-
-		if(_currentiter == _iterations)
-			exit(0);
 
 		_restartiter++;
 		// TODO: Bounds check needs to go in somewhere.
