@@ -109,31 +109,33 @@ int main(int argc, char* argv[])
 		///////Test Elastic Band////////////////////////
 		// Set up centers of each node based on toy system
 		if((int)world.size() < 3)
-		{
-			if(world.rank() == 0)
-				std::cerr << "The elastic band method requires "
+		  {
+		    if(world.rank() == 0)
+		      std::cerr << "The elastic band method requires "
 				<< "at least 3 walkers." << std::endl;
-			world.abort(-1);
-		}
+		    world.abort(-1);
+		  }
 
 		auto StartPointx = -1.1;
-		auto StartPointy = -1.1;
+		auto StartPointy = -1.05;
 		auto EndPointx = 1.1;
-		auto EndPointy = 1.1;
+		auto EndPointy = 1.15;
 
 		auto Nodediffxc = StartPointx + (int)world.rank()*(EndPointx - StartPointx)/(world.size()-1);
-		auto Nodediffyc = StartPointy + (int)world.rank()*(EndPointy - StartPointy)/(world.size()-1);
+		//		auto Nodediffyc = StartPointy + (EndPointy - StartPointy)*((double)world.rank()/(world.size()-1))*((double)world.rank()/(world.size()-1));
+		auto Nodediffyc = StartPointy + (EndPointy - StartPointy)*(int)world.rank()/(world.size()-1);
 
 		if((int)world.rank() + 1 == world.size())
-		{
-			Nodediffxc = EndPointx;
-			Nodediffyc = EndPointy;
-		}
+		  {
+		    Nodediffxc = EndPointx;
+		    Nodediffyc = EndPointy;
+		  }
 
 		hook->AddListener(new ElasticBand(world, walker,
-		 100, 20000, 1000, 100, {Nodediffxc,Nodediffyc}, {3, 3}, 0.1, 0.1, 1));
+						  5000, 20000, 1000, 100, {Nodediffxc,Nodediffyc}, {100.0, 100.0}, 100.0, 0.001, 1));
 		hook->AddCV(new AtomCoordinateCV(1, 0));
 		hook->AddCV(new AtomCoordinateCV(1, 1));
+
 	}
 	else
 	{

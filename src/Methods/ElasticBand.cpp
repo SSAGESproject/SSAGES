@@ -109,7 +109,7 @@ namespace SSAGES
 
 	void ElasticBand::PrintString(const CVList& CV)
 	{
-		_stringout.precision(8);
+ 		_stringout.precision(8);
 		_stringout << _mpiid << " "<< _currentiter << " ";
 
 		for(size_t jj = 0; jj < _centers.size(); jj++)
@@ -158,34 +158,62 @@ namespace SSAGES
 		for(ii = 0; ii<_centers.size(); ii++)
 		{
 			tngt[ii] = ucv0[ii] - lcv0[ii];
-			dot+=_gradient[ii]*tngt[ii]/_nsampled;
 			norm+=tngt[ii]*tngt[ii];
 		}
 
 		norm=sqrt(norm);
-		dot/=norm;
 
-
-		for(ii = 0; ii < _centers.size(); ii++) 
+		for(ii = 0; ii < _centers.size(); ii++)  {
 			tngt[ii] /= norm;
-
+		        _gradient[ii] /= ((double) _nsampled);
+			dot+=_gradient[ii]*tngt[ii];
+		}
+		
 		// Evolution of the images and reparametrirized of the string
 		for(ii = 0; ii < _centers.size(); ii++)
 		{
-			_gradient[ii] /= ((double) _nsampled);
+
 
 			if((_mpiid != 0) && (_mpiid != _world.size()-1))
 			{
 				_gradient[ii] -= dot*tngt[ii];
+				
+				
+				{
+				  
+				  std::cout.precision(8);
+				  std::cout << "a "<< _mpiid << " "<< _currentiter << " ";
+				  for(size_t jj = 0; jj < _centers.size(); jj++)
+				    std::cout << _centers[jj] << " " << _gradient[jj] << " " << tngt[jj] << " " << _gradient[jj] + _stringspring * (ucv0[jj] + lcv0[jj] - 2 * _curr_field[jj]) << " ";
+				  
+				  std::cout << std::endl;
+				  
+				}
+
+
 				next_field[ii] = _curr_field[ii] + _timestep * 
-				(_gradient[ii] + _stringspring * (ucv0[ii] + lcv0[ii] - 2 * _curr_field[ii])/_timestep);
+				(_gradient[ii] + _stringspring * (ucv0[ii] + lcv0[ii] - 2 * _curr_field[ii]));
 			}
 			else
 			{
+
+				{
+				  
+				  std::cout.precision(8);
+				  std::cout << " " <<_mpiid << " "<< _currentiter << " ";
+				  for(size_t jj = 0; jj < _centers.size(); jj++)
+				    std::cout << _centers[jj] << " " << _gradient[jj] << " " << tngt[jj] << " " << _gradient[jj] + _stringspring * (ucv0[jj] + lcv0[jj] - 2 * _curr_field[jj]) << " ";
+				  
+				  std::cout << std::endl;
+				  
+				}
+
 				next_field[ii] = _curr_field[ii] + _timestep * _gradient[ii];
 			}
 
 			_curr_field[ii] = next_field[ii];
 		}
+
+
 	}
 }
