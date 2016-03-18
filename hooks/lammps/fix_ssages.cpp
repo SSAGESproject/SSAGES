@@ -7,11 +7,13 @@
 #include "update.h"
 #include "domain.h"
 #include <boost/mpi.hpp>
+#include <boost/version.hpp>
 
 using namespace SSAGES;
 using namespace LAMMPS_NS::FixConst;
 using namespace boost;
 
+#if BOOST_VERSION < 105600
 namespace boost 
 {
 	namespace serialization 
@@ -23,6 +25,7 @@ namespace boost
 		}
 	} // namespace serialization
 } // namespace boost
+#endif
 
 namespace LAMMPS_NS
 {
