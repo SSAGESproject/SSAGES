@@ -12,6 +12,18 @@ using namespace SSAGES;
 using namespace LAMMPS_NS::FixConst;
 using namespace boost;
 
+namespace boost 
+{
+	namespace serialization 
+	{
+		template<class Archive, class T, size_t N>
+		void serialize(Archive & ar, std::array<T,N> & a, const unsigned int)
+		{
+		  ar & boost::serialization::make_array(a.data(), a.size());
+		}
+	} // namespace serialization
+} // namespace boost
+
 namespace LAMMPS_NS
 {
 	// Copyright (C) 2015 Lorenz Hübschle-Schneider <lorenz@4z2.de>

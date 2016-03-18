@@ -49,7 +49,7 @@ namespace SSAGES
 			// Update the forces in snapshot by adding in the force bias from each
 			// CV to each atom based on the gradient of the CV.
 			for (size_t j = 0; j < forces.size(); ++j)
-				for(size_t k = 0; k < forces[j].size(); ++k)
+				for(size_t k = 0; k < 3; ++k)
 					forces[j][k] -= _derivatives[i]*grad[j][k];
 		}
 	}
