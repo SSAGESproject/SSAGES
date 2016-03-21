@@ -34,7 +34,7 @@ ExternalProject_Add(
 	CCFLAGS+=-L${Boost_LIBRARY_DIRS}      
 	LIB+=-lboost_mpi                      
 	LIB+=-lboost_serialization           
-	LIB+=${PROJECT_SOURCE_DIR}/build/libssages.a
+	LIB+=${CMAKE_BINARY_DIR}/libssages.a
 	INSTALL_COMMAND ""
 	BUILD_IN_SOURCE true
 	LOG_BUILD ON
