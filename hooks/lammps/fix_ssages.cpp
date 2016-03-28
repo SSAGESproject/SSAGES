@@ -89,6 +89,8 @@ namespace LAMMPS_NS
 			archive >> temp;
 			out.insert(out.end(), temp.begin(), temp.end());
 		}
+
+		delete[] recv;
     }
 
 	FixSSAGES::FixSSAGES(LAMMPS *lmp, int narg, char **arg) : 
