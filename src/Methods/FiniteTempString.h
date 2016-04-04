@@ -31,7 +31,7 @@ namespace SSAGES
 		// The node this belongs to
 		unsigned int _mpiid;
 
-		// The world's strings centers for each CV
+		// The world's strings centers for each CV. _worldstring[cv#][node#]
 		std::vector<std::vector<double> > _worldstring;
 
 		// Time step of string change
@@ -42,6 +42,12 @@ namespace SSAGES
 
 		// Previous forces for restarting the position
 		std::vector<Vector3> _prev_positions;
+
+		// Number of nodes on a string
+		unsigned int _numnodes;
+
+		// Total iterations run so far
+		unsigned int _currentiter;
 		
 		// Output stream for string data.
 		std::ofstream _stringout;
@@ -50,22 +56,23 @@ namespace SSAGES
 		void StringUpdate();
 
 		// Prints the new hill to file
-		void PrintString();
+		void PrintString(const CVList& CV);
 
 	public: 
 		// Constructs an instance of Finite String method.
 		// isteps = Number Iterations per block averaging
 		// _tau and _kappa default values of 0.1 (JSON reader for this)
-		FiniteTempString(unsigned int isteps,
+		FiniteTempString(boost::mpi::communicator& world,
+					boost::mpi::communicator& com,
+					unsigned int isteps,
 					const std::vector<double>& centers,
-					int NumNodes,
+					unsigned int NumNodes,
 					double kappa,
 					double tau,
 			 		unsigned int frequency) : 
-		Method(frequency), _blockiterations(isteps), _centers(centers), _cv_prev(), _alpha(),
-		_mpiid(0), _worldstring(), _tau(tau), _kappa(kappa), _prev_positions()
+		Method(frequency, world, com), _blockiterations(isteps), _centers(centers), _cv_prev(), _alpha(),
+		_mpiid(0), _worldstring(), _tau(tau), _kappa(kappa), _prev_positions(), _numnodes(NumNodes), _currentiter(0)
 		{
-			_worldstring.resize(NumNodes);
 		}
 
 		// Pre-simulation hook.

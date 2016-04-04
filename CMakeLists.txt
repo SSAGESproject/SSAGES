@@ -70,6 +70,7 @@ set(SOURCE
 	src/Methods/Meta.cpp
 	src/Methods/Umbrella.cpp
 	src/Methods/ElasticBand.cpp
+	src/Methods/FiniteTempString.cpp
 )
 
 include_directories(${MPI_CXX_INCLUDE_PATH})
