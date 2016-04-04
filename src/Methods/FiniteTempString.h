@@ -10,14 +10,6 @@ namespace SSAGES
 	{
 	private:	
 		
-		// Number Iterations steps, number of iterations 
-		// of the elastic band method
-		unsigned int _iterations;
-
-		// Number Equilibration steps, number of MD steps to
-		// allow the system to reequilibrate before evolving string
-		unsigned int _equilibrate;
-
 		// Number of steps to block average the CV's postions over
 		unsigned int _blockiterations;
 
@@ -39,14 +31,8 @@ namespace SSAGES
 		// The node this belongs to
 		unsigned int _mpiid;
 
-		//current field, or center value
-		std::vector<double> _curr_field;
-
 		// The world's strings centers for each CV
 		std::vector<std::vector<double> > _worldstring;
-
-		// The world's running averages for each CV
-		std::vector<std::vector<double> > _worldaverages;
 
 		// Time step of string change
 		double _tau;
@@ -69,19 +55,17 @@ namespace SSAGES
 	public: 
 		// Constructs an instance of Finite String method.
 		// isteps = Number Iterations per block averaging
-		// eqsteps = Number Equilibration steps
 		// _tau and _kappa default values of 0.1 (JSON reader for this)
 		FiniteTempString(unsigned int isteps,
-					unsigned int eqsteps,
 					const std::vector<double>& centers,
 					int NumNodes,
 					double kappa,
 					double tau,
 			 		unsigned int frequency) : 
-		Method(frequency), _blockiterations(isteps), _equilibrate(eqsteps),
-		_gradient(), _centers(centers), _cv_prev(), _mpiid(0), _curr_field(),
-		_tau(tau), _kappa(kappa), _prev_forces()
+		Method(frequency), _blockiterations(isteps), _centers(centers), _cv_prev(), _alpha(),
+		_mpiid(0), _worldstring(), _tau(tau), _kappa(kappa), _prev_positions()
 		{
+			_worldstring.resize(NumNodes);
 		}
 
 		// Pre-simulation hook.

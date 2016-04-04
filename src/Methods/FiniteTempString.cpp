@@ -24,8 +24,6 @@ namespace SSAGES
 		char file[1024];
 		sprintf(file, "node-%04d.log",_mpiid);
 	 	_stringout.open(file);
-	 	_gradient.resize(cvs.size());
-	 	_curr_field.resize(cvs.size());
 	 	_prev_positions.resize(snapshot->GetPositions().size());
 
 	 	_iterator = 0;
@@ -37,7 +35,6 @@ namespace SSAGES
 		// initialize running averages
 		for(size_t i = 0; i< _cvs.size(); ++i){
 			_runavgs[i] = 0;
-			_curr_field[i] = 0;
 			_cv_prev[i] = _centers[i];
 		}
 
@@ -50,11 +47,6 @@ namespace SSAGES
 			MPI_Allgather(&_centers[ii], _centers[ii].size(), MPI_Float, 
 				&_worldstring[ii], _worldstring[ii].size(), MPI_Float, _world);
 		}
-
-		MPI_Allgather(&_runavgs, _runavgs.size(), MPI_Float,
-               &_worldaverages, _runavgs.size(), MPI_Float,
-               _world);
-
 	}
 
 	// Post-integration hook.
@@ -62,14 +54,10 @@ namespace SSAGES
 	{
 
 		auto& iter = snapshot->GetIteration();
-		if(iter < _equilibrate)
-			continue;
-
 		std::vector<double> dists;
 		dists.resize(_worldstring.size())
 		auto& forces = snapshot->GetForces();
 		auto& positions = snapshot->GetPositions();
-
 
 		// Record the difference between all cvs and all nodes
 		for (size_t i = 0; i < _worldstring.size(); i++)
@@ -116,7 +104,6 @@ namespace SSAGES
 
 		if(_iterator > _blockiterations)
 		{
-
 			//update the string and reparameterize 
 			StringUpdate();
 
@@ -124,17 +111,12 @@ namespace SSAGES
 			for (auto &cvavg : _runavgs)
 				cvavg = 0;
 
-			//wait for communication
-			MPI_Barrier(comm);
-
-			// update the umbrellas/string with new values
-			for (size_t ii = 0; ii < _centers.size(); ii++)
-				_centers[ii] = _curr_field[ii];
+			for(ii = 0; ii < _centers.size(); ii++)
+			{
+				MPI_Allgather(&_centers, _centers.size(), MPI_Float, 
+					&_worldstring[ii], _worldstring[ii].size(), MPI_Float, _world);
+			}
 		}
-
-		for(size_t i =0; i<_cvs.size(); i++)
-			_cv_prev[i] = _cvs[i]->GetValue();
-
 	}
 
 	// Post-simulation hook.
@@ -157,7 +139,7 @@ namespace SSAGES
 	{
 		size_t ii,jj;
 		int centersize = _centers.size();
-		std::vector<double> alpha_star;
+		double alpha_star;
 		std::vector<double> cvs_new;
 
 		std::vector<double> lcv0, ucv0;
@@ -167,8 +149,6 @@ namespace SSAGES
 		int sendneighbor, recvneighbor;
 		MPI_Status status;
 
-		//get tangent vector
-		//TODO: set nnodes somewhere
 		if(_mpiid == 0){
 			sendneighbor = 1;
 			recvneighbor = _world.size()-1;
@@ -188,32 +168,35 @@ namespace SSAGES
 		       &ucv0[0], centersize, MPI_DOUBLE, sendneighbor, 4321, 
 		       _world, &status);
 
-		MPI_Allgather(&_runavgs, _runavgs.size(), MPI_Float, 
-			&_worldaverages, _runavgs.size(), MPI_Float, _world);
-
-
 		cvs_new.resize(_cvs.size());
 		for(jj = 0; jj < cvs_new.size(); jj++)
 		{
 			if(_mpiid == 0 || _mpiid == _centers.size() - 1)
 				cvs_new[jj] = _centers[jj] - dtau * (_centers[jj] - _runavgs[jj]);
 			else
-				cvs_new[jj] = _wolrdstring[ii][jj] - dtau * (_centers[jj] - _runavgs[jj]) + 
-					(kappa * cvs_new.size() * dtau * 
+				cvs_new[jj] = _centers[jj] - dtau * (_centers[jj] - _runavgs[jj]) + 
+					(kappa * _centers.size() * dtau * 
 					(ucv0[jj] + lcv0[jj] - 2 * _centers[jj]));
 		}
 
-		alpha_star.push_back(0);
-		for(ii = 1; ii < _centers.size(); ii++)
-			alpha_star.push_back() = alpha_star[ii-1] + sqrt(sqdist(_wolrdstring[ii], _wolrdstring[ii-1]));
+		if(_mpiid == 0)
+			alpha_star = 0;
+		else
+			alpha_star = sqrt(sqdist(_centers, lcv0));
 
-		for(ii = 0; ii < _centers.size(); ii++)
-			alpha_star[ii] /= alpha_star[_centers.size() - 1];
+		MPI_Allgather(alpha_star, 1, MPI_Float, 
+			&alpha_starv, _cvs.size(), MPI_Float, _world);
 
-		for(ii = 0; ii < cvs_new.size(); ii++)
+		double EndAlpha = alpha_starv[alpha_starv.size() - 2] + alpha_starv[alpha_starv.size() - 1];
+
+		for(jj = 1; jj < alpha_starv.size(); jj++)
 		{
-			tk::spline spl.set_points(alpha_star[ii], cvs_new[ii]);
-			for(jj = 0; jj < cvs_new[ii].size(); jj++)
-				_wolrdstring[jj][ii] = spl(_alpha[jj]);
+			alpha_starv[jj] = alpha_starv[jj-1] + alpha_starv[jj];
+			alpha_star[jj] /= EndAlpha;
 		}
+
+		tk::spline spl.set_points(alpha_starv, cvs_new);
+
+		for(jj = 0; j < _centers.size(); jj++)
+			_centers[jj] = spl(_alpha[jj]);
 	}
