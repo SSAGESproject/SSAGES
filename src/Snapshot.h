@@ -23,6 +23,7 @@ namespace SSAGES
 		std::vector<Vector3> _positions;
 		std::vector<Vector3> _velocities;
 		std::vector<Vector3> _forces;
+		std::vector<double> _masses;
 		Label _atomids;
 		Label _types;
 
@@ -108,6 +109,14 @@ namespace SSAGES
 		{
 			_changed = true; 
 			return _forces; 
+		}
+
+
+		const std::vector<Vector3>& GetMasses() const { return _forces; }
+		std::vector<double>& GetMasses() 
+		{
+			_changed = true; 
+			return _masses; 
 		}
 
 		const Label& GetAtomIDs() const { return _atomids; }

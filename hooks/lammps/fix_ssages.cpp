@@ -110,6 +110,8 @@ namespace LAMMPS_NS
 		vel.resize(n);
 		auto& frc = _snapshot->GetForces();
 		frc.resize(n);
+		auto& masses = _snapshot->GetMasses();
+		masses.resize(n);
 		auto& ids = _snapshot->GetAtomIDs();
 		ids.resize(n);
 		auto& types = _snapshot->GetAtomTypes();
@@ -158,6 +160,8 @@ namespace LAMMPS_NS
 		vel.resize(n);
 		auto& frc = _snapshot->GetForces();
 		frc.resize(n);
+		auto& masses = _snapshot->GetForces();
+		masses.resize(n);
 
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
@@ -220,6 +224,8 @@ namespace LAMMPS_NS
 			frc[i][0] = _atom->f[i][0]; //force->x
 			frc[i][1] = _atom->f[i][1]; //force->y
 			frc[i][2] = _atom->f[i][2]; //force->z
+
+			masses[i] = _atom->mass[i];
 			
 			vel[i][0] = _atom->v[i][0];
 			vel[i][1] = _atom->v[i][1];
@@ -231,8 +237,9 @@ namespace LAMMPS_NS
 
 		auto& comm = _snapshot->GetCommunicator();
 		allgatherv_serialize(comm, pos, pos);
-		allgatherv_serialize(comm, vel, vel);
 		allgatherv_serialize(comm, frc, frc);
+		allgatherv_serialize(comm, masses, masses);
+		allgatherv_serialize(comm, vel, vel);
 		allgatherv_serialize(comm, ids, ids);
 		allgatherv_serialize(comm, types, types);
 	}
@@ -265,6 +272,7 @@ namespace LAMMPS_NS
 			atom->f[i][0] = frc[i][0]; //force->x
 			atom->f[i][1] = frc[i][1]; //force->y
 			atom->f[i][2] = frc[i][2]; //force->z
+			atom->mass[i] = masses[i]; //atom mass
 			atom->v[i][0] = vel[i][0]; //velocity->x
 			atom->v[i][1] = vel[i][1]; //velocity->y
 			atom->v[i][2] = vel[i][2]; //velocity->z
