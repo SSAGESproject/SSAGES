@@ -160,7 +160,7 @@ namespace LAMMPS_NS
 		vel.resize(n);
 		auto& frc = _snapshot->GetForces();
 		frc.resize(n);
-		auto& masses = _snapshot->GetForces();
+		auto& masses = _snapshot->GetMasses();
 		masses.resize(n);
 
 		// Labels and ids for future work on only updating
@@ -253,6 +253,7 @@ namespace LAMMPS_NS
 		const auto& pos = _snapshot->GetPositions();
 		const auto& vel = _snapshot->GetVelocities();
 		const auto& frc = _snapshot->GetForces();
+		const auto& masses = _snapshot->GetMasses();
 
 		// Labels and ids for future work on only updating
 		// atoms that have changed.

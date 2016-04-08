@@ -112,7 +112,7 @@ namespace SSAGES
 		}
 
 
-		const std::vector<Vector3>& GetMasses() const { return _forces; }
+		const std::vector<double>& GetMasses() const { return _masses; }
 		std::vector<double>& GetMasses() 
 		{
 			_changed = true; 
