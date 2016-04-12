@@ -19,6 +19,27 @@ namespace SSAGES
 		return distance;
 	}
 
+	bool FiniteTempString::InCell(const CVList& cvs)
+	{
+		std::vector<double> dists;
+		dists.resize(_worldstring[0].size());
+		// Record the difference between all cvs and all nodes
+		for (size_t i = 0; i < _worldstring[0].size(); i++)
+		{
+			dists[i] = 0;
+			for(size_t j = 0; j < cvs.size(); j++)
+				dists[i]+=(cvs[j]->GetValue() - _worldstring[j][i])*(cvs[j]->GetValue() - _worldstring[j][i]);
+		}
+		auto result = std::min_element(std::begin(dists), std::end(dists));
+		auto location = std::distance(std::begin(dists), result);
+
+		if(location == _mpiid)
+			return true;
+		else
+			return false;
+
+	}
+
 	// Pre-simulation hook.
 	void FiniteTempString::PreSimulation(Snapshot* snapshot, const CVList& cvs)
 	{
@@ -53,73 +74,107 @@ namespace SSAGES
 			// gathers into _worldstring, where it is cv followed by node
 			mpi::all_gather(_world, _centers[i], _worldstring[i]);
 		}
+
+		_cv_inside = InCell(cvs);
 	}
 
 	// Post-integration hook.
 	void FiniteTempString::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
 
-		std::vector<double> dists;
-		dists.resize(_numnodes);
 		auto& forces = snapshot->GetForces();
 		auto& positions = snapshot->GetPositions();
 
-		// Record the difference between all cvs and all nodes
-		for (size_t i = 0; i < _numnodes; i++)
+		if(_cv_inside)
 		{
-			dists[i] = 0;
-			for(size_t j = 0; j < cvs.size(); j++)
-				dists[i]+=(cvs[j]->GetValue() - _worldstring[j][i])*(cvs[j]->GetValue() - _worldstring[j][i]);
+			// Check to see if cv is still in the correct voronio cell, if not reverse the move
+			// Hard voronoi walls.
+			// Reverse move by moving everything back, and setting force to zero
+			// This should also 'Raondomize' the velocity, given the velocity will be that of the
+			// unaccepted move. Does this follow detailed balance?
+
+			if(InCell(cvs))
+			{
+				for(size_t i =0; i < cvs.size(); i++)
+					_cv_prev[i] = cvs[i]->GetValue();
+			}
+			else
+			{
+				for(auto& force : forces)
+					for(auto& xyz : force)
+						xyz = 0.0;
+
+				for(size_t i = 0; i < positions.size(); i++)
+					for(size_t j = 0; j < positions[i].size(); j++)
+						positions[i][j] = _prev_positions[i][j];		
+			}
+
+			// for(size_t i = 0; i < cvs.size(); i++){
+			// 	_stringout << _cv_prev[i] << " " << std::endl;
+			// }
+
+
+			// calculate running averages
+			for (size_t i = 0; i < _runavgs.size(); i++)
+			{
+				// calculate running average for each node
+				_runavgs[i] = _runavgs[i] * _iterator + _cv_prev[i];
+				_runavgs[i] /= (_iterator + 1);
+			}
+
+			if(_iterator > _blockiterations)
+			{
+
+				// Write out the string to file
+				PrintString(cvs);
+
+				// Update the string and reparameterize 
+				StringUpdate();
+
+				_iterator = 0;
+				for (auto &cvavg : _runavgs)
+						cvavg = 0;
+				//_iterator++;
+
+				for(size_t ii = 0; ii < _centers.size(); ii++)
+					mpi::all_gather(_world, _centers[ii], _worldstring[ii]);
+
+				_currentiter++;
+				_cv_inside = InCell(cvs);
+				_cv_inside_iterator = 0;
+				_cv_inside_spring = 0.1;
+
+			} 
+			else 
+			{
+				_iterator++;
+			}
 		}
-
-		// Check to see if cv is still in the correct voronio cell, if not reverse the move
-		// Hard voronoi walls.
-		// Reverse move by moving everything back, and setting force to zero
-		// This should also 'Raondomize' the velocity, given the velocity will be that of the
-		// unaccepted move. Does this follow detailed balance?
-
-		if(*std::min_element(dists.begin(), dists.end()) != _mpiid)
+		else // Direct the CV towards the node, stop when inside cell. 
 		{
-			for(auto& force : forces)
-				for(auto& xyz : force)
-					xyz = 0.0;
 
-			for(size_t i = 0; i < positions.size(); i++)
-				for(size_t j = 0; j < positions[i].size(); j++)
-					positions[i][j] = _prev_positions[i][j];
-		}
-		else
-		{		
-			for(size_t i =0; i<cvs.size(); i++)
-				_cv_prev[i] = cvs[i]->GetValue();
-		}
+			// Increase spring stiffness to ensure it overcomes high barriers
+			if(_cv_inside_iterator%100)
+				_cv_inside_spring *= 2;
 
-		// calculate running averages
-		for (size_t i = 0; i < _runavgs.size(); i++)
-		{
-			// calculate running average for each node
-			_runavgs[i] = _runavgs[i] * _iterator + _cv_prev[i];
-			_runavgs[i] /= (_iterator + 1);
-		}
+			// Typical harmonic spring to adjust forces
+			for(size_t i = 0; i < cvs.size(); ++i)
+			{
+				// Get current CV and gradient.
+				auto& cv = cvs[i];
+				auto& grad = cv->GetGradient();
 
-		if(_iterator > _blockiterations)
-		{
+				// Compute dV/dCV.
+				auto D = _cv_inside_spring*(cv->GetValue() - _centers[i]);
 
-			// Write out the string to file
-			PrintString(cvs);
+				// Update forces.
+				for(size_t j = 0; j < forces.size(); ++j)
+					for(size_t k = 0; k < forces[j].size(); ++k)
+						forces[j][k] -= D*grad[j][k];
+			}
 
-			// Update the string and reparameterize 
-			StringUpdate();
-
-			_iterator = 0;
-			for (auto &cvavg : _runavgs)
-				cvavg = 0;
-
-			for(size_t ii = 0; ii < _centers.size(); ii++)
-				mpi::all_gather(_world, _centers[ii], _worldstring[ii]);
-
-			_currentiter++;
-
+			_cv_inside = InCell(cvs);
+			_cv_inside_iterator++;
 		}
 		_iterator++;
 	}

@@ -52,11 +52,23 @@ namespace SSAGES
 		// Output stream for string data.
 		std::ofstream _stringout;
 
+		// Flag for when CV is inside newly paramaterized string voronoi cell
+		bool _cv_inside;
+
+		// Iterator to increase the spring stiffness on the umbrella method
+		int _cv_inside_iterator;
+
+		// Spring constant for the spring in the umbrella to get the CV to move
+		double _cv_inside_spring;
+
 		// Updates the position of the string.
 		void StringUpdate();
 
 		// Prints the new hill to file
 		void PrintString(const CVList& CV);
+
+		// Check if current cv values are in the nodes voronoi cell
+		bool InCell(const CVList& CV);
 
 	public: 
 		// Constructs an instance of Finite String method.
@@ -71,7 +83,8 @@ namespace SSAGES
 					double tau,
 			 		unsigned int frequency) : 
 		Method(frequency, world, com), _blockiterations(isteps), _centers(centers), _cv_prev(), _alpha(),
-		_mpiid(0), _worldstring(), _tau(tau), _kappa(kappa), _prev_positions(), _numnodes(NumNodes), _currentiter(0)
+		_mpiid(0), _worldstring(), _tau(tau), _kappa(kappa), _prev_positions(), _numnodes(NumNodes), _currentiter(0),
+		_cv_inside(false), _cv_inside_iterator(0), _cv_inside_spring(0.1)
 		{
 		}
 
