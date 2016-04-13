@@ -54,7 +54,6 @@ namespace SSAGES
 	 	_worldstring.resize(_centers.size());
 	 	_runavgs.resize(_centers.size());
 	 	_cv_prev.resize(_centers.size());
-	 	_alpha.resize(_centers.size());
 
 	 	_iterator = 0;
 
@@ -64,12 +63,13 @@ namespace SSAGES
 	 			_prev_positions[i][j] = positions[i][j];
 	 	}
 
+	 	_alpha = _mpiid / (_numnodes - 1.0);
+
 		// initialize running averages
 		for(size_t i = 0; i< _centers.size(); ++i){
 			_worldstring[i].resize(_numnodes);
 			_runavgs[i] = 0;
 			_cv_prev[i] = cvs[i]->GetValue();
-			_alpha[i] = i / (_centers.size());
 
 			// gathers into _worldstring, where it is cv followed by node
 			mpi::all_gather(_world, _centers[i], _worldstring[i]);
@@ -142,7 +142,7 @@ namespace SSAGES
 				_currentiter++;
 				_cv_inside = InCell(cvs);
 				_cv_inside_iterator = 0;
-				_cv_inside_spring = 0.1;
+				_cv_inside_spring = 1;
 
 			} 
 			else 
@@ -176,7 +176,6 @@ namespace SSAGES
 			_cv_inside = InCell(cvs);
 			_cv_inside_iterator++;
 		}
-		_iterator++;
 	}
 
 	// Post-simulation hook.
@@ -204,6 +203,7 @@ namespace SSAGES
 		double alpha_star;
 		std::vector<double> alpha_starv;
 		std::vector<double> cvs_new;
+		std::vector<double> cvs_newv; 
 
 		std::vector<double> lcv0, ucv0;
 		lcv0.resize(centersize);
@@ -238,6 +238,8 @@ namespace SSAGES
 
 		cvs_new.resize(centersize);
 		alpha_starv.resize(_numnodes);
+		cvs_newv.resize(_numnodes);
+
 		for(jj = 0; jj < cvs_new.size(); jj++)
 		{
 			if(_mpiid == 0 || _mpiid == _centers.size() - 1)
@@ -254,18 +256,24 @@ namespace SSAGES
 			alpha_star = sqrt(sqdist(_centers, lcv0));
 
 		mpi::all_gather(_world, alpha_star, alpha_starv);
-		double EndAlpha = alpha_starv[alpha_starv.size() - 2] + alpha_starv[alpha_starv.size() - 1];
 
 		for(jj = 1; jj < alpha_starv.size(); jj++)
 		{
 			alpha_starv[jj] = alpha_starv[jj-1] + alpha_starv[jj];
-			alpha_starv[jj] /= EndAlpha;
+		}
+
+		for(jj = 1; jj < alpha_starv.size(); jj++){
+			alpha_starv[jj] /= alpha_starv[_numnodes - 1];
 		}
 
 		tk::spline spl;
-		spl.set_points(alpha_starv, cvs_new);
 
-		for(jj = 0; jj < _centers.size(); jj++)
-			_centers[jj] = spl(_alpha[jj]);
+		for(jj = 0; jj < centersize; jj++)
+		{
+			mpi::all_gather(_world, cvs_new[jj], cvs_newv);
+			//spl.setpoints(alpha_starv, vector of all new points **in one particular dimension**);
+			spl.set_points(alpha_starv, cvs_newv);
+			_centers[jj] = spl(_alpha);
+		}
 	}
 }

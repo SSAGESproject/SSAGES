@@ -26,7 +26,7 @@ namespace SSAGES
 		std::vector<double> _cv_prev;
 
 		// for reparameterization
-		std::vector<double> _alpha;
+		double _alpha;
 
 		// The node this belongs to
 		unsigned int _mpiid;
@@ -84,7 +84,7 @@ namespace SSAGES
 			 		unsigned int frequency) : 
 		Method(frequency, world, com), _blockiterations(isteps), _centers(centers), _cv_prev(), _alpha(),
 		_mpiid(0), _worldstring(), _tau(tau), _kappa(kappa), _prev_positions(), _numnodes(NumNodes), _currentiter(0),
-		_cv_inside(false), _cv_inside_iterator(0), _cv_inside_spring(0.1)
+		_cv_inside(false), _cv_inside_iterator(0), _cv_inside_spring(1)
 		{
 		}
 
