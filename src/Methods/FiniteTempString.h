@@ -52,14 +52,17 @@ namespace SSAGES
 		// Output stream for string data.
 		std::ofstream _stringout;
 
-		// Flag for when CV is inside newly paramaterized string voronoi cell
-		bool _cv_inside;
+		// Flag for when CV is outside newly paramaterized string voronoi cell
+		bool _run_SMD;
 
 		// Iterator to increase the spring stiffness on the umbrella method
 		int _cv_inside_iterator;
 
-		// Spring constant for the spring in the umbrella to get the CV to move
-		double _cv_inside_spring;
+		// Steered MD centers
+		std::vector<double> _SMD_centers;
+
+		// length to move the steered MD every time step
+		std::vector<double> _SMD_lengths;
 
 		// Updates the position of the string.
 		void StringUpdate();
@@ -84,7 +87,7 @@ namespace SSAGES
 			 		unsigned int frequency) : 
 		Method(frequency, world, com), _blockiterations(isteps), _centers(centers), _cv_prev(), _alpha(),
 		_mpiid(0), _worldstring(), _tau(tau), _kappa(kappa), _prev_positions(), _numnodes(NumNodes), _currentiter(0),
-		_cv_inside(false), _cv_inside_iterator(0), _cv_inside_spring(1)
+		_run_SMD(true), _cv_inside_iterator(0)
 		{
 		}
 

@@ -24,19 +24,17 @@ namespace SSAGES
 		std::vector<double> dists;
 		dists.resize(_worldstring[0].size());
 		// Record the difference between all cvs and all nodes
-		for (size_t i = 0; i < _worldstring[0].size(); i++)
+		for (size_t i = 0; i < _numnodes; i++)
 		{
 			dists[i] = 0;
 			for(size_t j = 0; j < cvs.size(); j++)
 				dists[i]+=(cvs[j]->GetValue() - _worldstring[j][i])*(cvs[j]->GetValue() - _worldstring[j][i]);
 		}
-		auto result = std::min_element(std::begin(dists), std::end(dists));
-		auto location = std::distance(std::begin(dists), result);
 
-		if(location == _mpiid)
-			return true;
-		else
+		if(std::min_element(dists.begin(), dists.end()) - dists.begin() != _mpiid)
 			return false;
+		else
+			return true;
 
 	}
 
@@ -54,6 +52,8 @@ namespace SSAGES
 	 	_worldstring.resize(_centers.size());
 	 	_runavgs.resize(_centers.size());
 	 	_cv_prev.resize(_centers.size());
+	 	_SMD_centers.resize(_centers.size());
+	 	_SMD_lengths.resize(_centers.size());
 
 	 	_iterator = 0;
 
@@ -75,7 +75,7 @@ namespace SSAGES
 			mpi::all_gather(_world, _centers[i], _worldstring[i]);
 		}
 
-		_cv_inside = InCell(cvs);
+		_run_SMD = !InCell(cvs);
 	}
 
 	// Post-integration hook.
@@ -85,20 +85,77 @@ namespace SSAGES
 		auto& forces = snapshot->GetForces();
 		auto& positions = snapshot->GetPositions();
 
-		if(_cv_inside)
-		{
-			// Check to see if cv is still in the correct voronio cell, if not reverse the move
-			// Hard voronoi walls.
-			// Reverse move by moving everything back, and setting force to zero
-			// This should also 'Raondomize' the velocity, given the velocity will be that of the
-			// unaccepted move. Does this follow detailed balance?
 
-			if(InCell(cvs))
+		// Check to see if cv is still in the correct voronio cell, if not reverse the move
+		// Hard voronoi walls.
+		// Reverse move by moving everything back, and setting force to zero
+		// This should also 'Raondomize' the velocity, given the velocity will be that of the
+		// unaccepted move. Does this follow detailed balance?
+		if(_run_SMD)
+		{
+			double dist = 0;
+			double length = 0;
+			for(size_t i = 0; i < cvs.size(); ++i)
 			{
-				for(size_t i =0; i < cvs.size(); i++)
-					_cv_prev[i] = cvs[i]->GetValue();
+				auto& cv = cvs[i];
+				auto& center = _centers[i];
+
+				dist += (center - cv->GetValue())*(center - cv->GetValue());
+				length += _SMD_lengths[i]*_SMD_lengths[i]; 
+			}
+
+			if(sqrt(dist) < 2*sqrt(length))
+				_run_SMD = false;
+		}
+		if(_run_SMD)
+		{
+			// Run some SMD code
+			double spring = 10;
+
+			// Set up vector for SMD
+			if(_cv_inside_iterator == 0)
+			{
+				for(size_t i = 0; i < cvs.size(); ++i)
+				{
+					auto& cv = cvs[i];
+					auto& center = _centers[i];
+
+					_SMD_lengths[i] = (center - cv->GetValue())/2000.0;
+					_SMD_centers[i] = cv->GetValue() + _SMD_lengths[i];
+				}
+			}
+			else if(_cv_inside_iterator < 2000)
+			{
+				for(size_t i = 0; i < _SMD_centers.size(); ++i)
+					_SMD_centers[i]+=_SMD_lengths[i];
 			}
 			else
+			{
+				spring += _cv_inside_iterator - 2000;
+			}
+
+			// Typical harmonic spring to adjust forces
+			for(size_t i = 0; i < cvs.size(); ++i)
+			{
+				// Get current CV and gradient.
+				auto& cv = cvs[i];
+				auto& grad = cv->GetGradient();
+
+				// Compute dV/dCV.
+				auto D = spring*(cv->GetValue() - _SMD_centers[i]);
+
+				// Update forces.
+				for(size_t j = 0; j < forces.size(); ++j)
+					for(size_t k = 0; k < forces[j].size(); ++k)
+						forces[j][k] -= D*grad[j][k];
+			}
+			_cv_inside_iterator++;
+		}
+		else
+		{
+			auto inside = InCell(cvs);
+			// Do everything else
+			if(!inside)
 			{
 				for(auto& force : forces)
 					for(auto& xyz : force)
@@ -106,13 +163,17 @@ namespace SSAGES
 
 				for(size_t i = 0; i < positions.size(); i++)
 					for(size_t j = 0; j < positions[i].size(); j++)
-						positions[i][j] = _prev_positions[i][j];		
+						positions[i][j] = _prev_positions[i][j];	
 			}
+			else
+			{
+				for(size_t i = 0; i < positions.size(); i++)
+					for(size_t j = 0; j < positions[i].size(); j++)
+						_prev_positions[i][j] = positions[i][j];
 
-			// for(size_t i = 0; i < cvs.size(); i++){
-			// 	_stringout << _cv_prev[i] << " " << std::endl;
-			// }
-
+				for(size_t i =0; i < cvs.size(); i++)
+					_cv_prev[i] = cvs[i]->GetValue();
+			}
 
 			// calculate running averages
 			for (size_t i = 0; i < _runavgs.size(); i++)
@@ -134,47 +195,23 @@ namespace SSAGES
 				_iterator = 0;
 				for (auto &cvavg : _runavgs)
 						cvavg = 0;
-				//_iterator++;
 
 				for(size_t ii = 0; ii < _centers.size(); ii++)
 					mpi::all_gather(_world, _centers[ii], _worldstring[ii]);
 
 				_currentiter++;
-				_cv_inside = InCell(cvs);
-				_cv_inside_iterator = 0;
-				_cv_inside_spring = 1;
 
+				if(!InCell(cvs))
+				{
+					_run_SMD = true;
+					_cv_inside_iterator = 0;
+				}
 			} 
 			else 
 			{
 				_iterator++;
+				_run_SMD = false;
 			}
-		}
-		else // Direct the CV towards the node, stop when inside cell. 
-		{
-
-			// Increase spring stiffness to ensure it overcomes high barriers
-			if(_cv_inside_iterator%100)
-				_cv_inside_spring *= 2;
-
-			// Typical harmonic spring to adjust forces
-			for(size_t i = 0; i < cvs.size(); ++i)
-			{
-				// Get current CV and gradient.
-				auto& cv = cvs[i];
-				auto& grad = cv->GetGradient();
-
-				// Compute dV/dCV.
-				auto D = _cv_inside_spring*(cv->GetValue() - _centers[i]);
-
-				// Update forces.
-				for(size_t j = 0; j < forces.size(); ++j)
-					for(size_t k = 0; k < forces[j].size(); ++k)
-						forces[j][k] -= D*grad[j][k];
-			}
-
-			_cv_inside = InCell(cvs);
-			_cv_inside_iterator++;
 		}
 	}
 
@@ -193,6 +230,13 @@ namespace SSAGES
 			_stringout<< _centers[jj] << " " << CV[jj]->GetValue()<< " "; 
 
 		_stringout<<std::endl;
+
+		std::cout << _mpiid << " "<< _currentiter << " ";
+
+		for(size_t jj = 0; jj < _centers.size(); jj++)
+			std::cout<< _centers[jj] << " " << _runavgs[jj]<< " "; 
+
+		std::cout<<std::endl;
 
 	}
 
@@ -242,11 +286,11 @@ namespace SSAGES
 
 		for(jj = 0; jj < cvs_new.size(); jj++)
 		{
-			if(_mpiid == 0 || _mpiid == _centers.size() - 1)
+			if(_mpiid == 0 || _mpiid == _numnodes - 1)
 				cvs_new[jj] = _centers[jj] - _tau * (_centers[jj] - _runavgs[jj]);
 			else
 				cvs_new[jj] = _centers[jj] - _tau * (_centers[jj] - _runavgs[jj]) + 
-					(_kappa * _centers.size() * _tau * 
+					(_kappa * _numnodes * _tau * 
 					(ucv0[jj] + lcv0[jj] - 2 * _centers[jj]));
 		}
 
