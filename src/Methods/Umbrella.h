@@ -2,6 +2,7 @@
 
 #include "Method.h"
 #include "../CVs/CollectiveVariable.h"
+#include <fstream>
 
 namespace SSAGES
 {
@@ -15,6 +16,12 @@ namespace SSAGES
 
 		// Vector of equilibrium distances.
 		std::vector<double> _centers;
+
+		// iterator for this method
+		int _currentiter;
+
+		// Output stream for umbrella data.
+		std::ofstream _umbrella;
 
 	public:
 		// Create instance of umbrella with spring constants "kspring", 
@@ -36,5 +43,8 @@ namespace SSAGES
 
 		// Post-simulation hook.
 		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
+		
+		void PrintUmbrella(const CVList& cvs);
+
 	};
 }
