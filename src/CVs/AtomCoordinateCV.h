@@ -95,6 +95,11 @@ namespace SSAGES
 			return _val; 
 		}
 
+		double GetPeriodicValue(double Location) const override
+		{
+			return Location;
+		}
+
 		// Return the gradient of the CV.
 		const std::vector<Vector3>& GetGradient() const override
 		{
@@ -105,6 +110,11 @@ namespace SSAGES
 		const std::array<double, 2>& GetBoundaries() const override
 		{
 			return _bounds;
+		}
+
+		double GetDifference(const double Location) const override
+		{
+			return _val - Location;
 		}
 	};
 }

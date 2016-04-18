@@ -197,6 +197,20 @@ namespace SSAGES
 			return _val; 
 		}
 
+		double GetPeriodicValue(double Location) const override
+		{
+			int n = (int)(Location/(2.0*M_PI()));
+			double PeriodicLocation = Location-2.0*n*M_PI();
+
+			PeriodicLocation = Location - n*M_PI()
+			if(PeriodicLocation < -M_PI())
+				PeriodicLocation += 2.0*M_PI();
+			else if (Location > M_PI())
+				PeriodicLocation -= 2.0*M_PI();
+
+			return PeriodicLocation;
+		}
+
 		// Return the gradient of the CV.
 		const std::vector<Vector3>& GetGradient() const override
 		{
@@ -207,6 +221,18 @@ namespace SSAGES
 		const std::array<double, 2>& GetBoundaries() const override
 		{
 			return _bounds;
+		}
+
+		double GetDifference(const double Location) const override
+		{
+			double PeriodicDiff = _val - Location;
+			PeriodicDiff = GetPeriodicValue(PeriodicDiff);
+
+			if(PeriodicDiff > M_PI())
+				PeriodicDiff -= 2.0*M_PI();
+			else if(PeriodicDiff < M_PI())
+				PeriodicDiff += 2.0*M_PI();
+			return PeriodicDiff;
 		}
 	};
 }

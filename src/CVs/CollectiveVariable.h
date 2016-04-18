@@ -25,6 +25,12 @@ namespace SSAGES
 		// used by Methods.
 		virtual double GetValue() const = 0;
 
+		// Takes location and applies periodic boundaries of the CV on it
+		// and returns a correct value. Example would be torsional angle
+		// which has bounds at pi and -pi. If location = 2pi,
+		// GetPeriodicValue(location) would return 0.
+		virtual double GetPeriodicValue(double Location) const = 0;
+
 		// Returns the current value of the CV gradient. This should be 
 		// an n length vector, where n is the number of atoms in the 
 		// snapshot. Each element in the vector is the derivative of the 
@@ -35,6 +41,13 @@ namespace SSAGES
 		// within which the CV is expected to be constrained. There is 
 		// no requirement on the method to respect the values returned here.
 		virtual const std::array<double, 2>& GetBoundaries() const = 0;
+
+		// Returns the difference betwen the current cv value and Location:
+		// (_value - Location) respecting periodic boundary conditions of the CV,
+		// if the CV has periodic boundary conditions. 
+		// For example Torsional angle has boundaries at
+		// pi and -pi, in which the difference beteen the angles is 0 not 2pi
+		virtual double GetDifference(const double Location) const = 0;
 	};
 
 	// Definitions.
