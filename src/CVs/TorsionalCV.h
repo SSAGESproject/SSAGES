@@ -199,14 +199,15 @@ namespace SSAGES
 
 		double GetPeriodicValue(double Location) const override
 		{
-			int n = (int)(Location/(2.0*M_PI()));
-			double PeriodicLocation = Location-2.0*n*M_PI();
+			double pi = 3.14159;
+			int n = (int)(Location/(2.0*pi));
+			double PeriodicLocation = Location-2.0*n*pi;
 
-			PeriodicLocation = Location - n*M_PI()
-			if(PeriodicLocation < -M_PI())
-				PeriodicLocation += 2.0*M_PI();
-			else if (Location > M_PI())
-				PeriodicLocation -= 2.0*M_PI();
+			PeriodicLocation = Location - n*pi;
+			if(PeriodicLocation < -pi)
+				PeriodicLocation += 2.0*pi;
+			else if (Location > pi)
+				PeriodicLocation -= 2.0*pi;
 
 			return PeriodicLocation;
 		}
@@ -225,13 +226,15 @@ namespace SSAGES
 
 		double GetDifference(const double Location) const override
 		{
+			double pi = 3.14159;
 			double PeriodicDiff = _val - Location;
 			PeriodicDiff = GetPeriodicValue(PeriodicDiff);
 
-			if(PeriodicDiff > M_PI())
-				PeriodicDiff -= 2.0*M_PI();
-			else if(PeriodicDiff < M_PI())
-				PeriodicDiff += 2.0*M_PI();
+			if(PeriodicDiff > pi)
+				PeriodicDiff -= 2.0*pi;
+			else if(PeriodicDiff < -pi)
+				PeriodicDiff += 2.0*pi;
+
 			return PeriodicDiff;
 		}
 	};

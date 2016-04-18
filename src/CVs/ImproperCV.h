@@ -19,14 +19,8 @@ namespace SSAGES
 		int _atomid3;
 		int _atomid4; 
 
-		// Point in space.
-		//Vector3 _position1, Vector3 _position2, Vector3 _position3, Vector3 _position4;
-
 		// Current value of the CV.
 		double _val;
-
-		// Constraints in x,y,z dimensions.
-		//bool _fixx, _fixy, _fixz;
 
 		// Gradients of the Dihedral CV, dtheta/dri, dtheta/drj, dtheta/drk, dtheta/drl.
 		std::vector<Vector3> _grad;
@@ -159,12 +153,6 @@ namespace SSAGES
 			auto theta = atan2(y, x);
 			_val = theta;
 
-			std::cout<<_val<<std::endl;
-			// std::cout<<ix<<" "<<iy<<" "<<iz<<std::endl;
-			// std::cout<<jx<<" "<<jy<<" "<<jz<<std::endl;
-			// std::cout<<kx<<" "<<ky<<" "<<kz<<std::endl;
-			// std::cout<<lx<<" "<<ly<<" "<<lz<<std::endl;
-
 			//Calculate gradient
 			//atom i
 			_grad[_atomid1][0] = normkj/(normmj*normmj)*rmj[0];
@@ -198,14 +186,15 @@ namespace SSAGES
 
 		double GetPeriodicValue(double Location) const override
 		{
-			int n = (int)(Location/(2.0*M_PI()));
-			double PeriodicLocation = Location-2.0*n*M_PI();
+			double pi = 3.14159;
+			int n = (int)(Location/(2.0*pi));
+			double PeriodicLocation = Location-2.0*n*pi;
 
-			PeriodicLocation = Location - n*M_PI()
-			if(PeriodicLocation < -M_PI())
-				PeriodicLocation += 2.0*M_PI();
-			else if (Location > M_PI())
-				PeriodicLocation -= 2.0*M_PI();
+			PeriodicLocation = Location - n*pi;
+			if(PeriodicLocation < -pi)
+				PeriodicLocation += 2.0*pi;
+			else if (Location > pi)
+				PeriodicLocation -= 2.0*pi;
 
 			return PeriodicLocation;
 		}
@@ -224,13 +213,14 @@ namespace SSAGES
 
 		double GetDifference(const double Location) const override
 		{
+			double pi = 3.14159;
 			double PeriodicDiff = _val - Location;
 			PeriodicDiff = GetPeriodicValue(PeriodicDiff);
 
-			if(PeriodicDiff > M_PI())
-				PeriodicDiff -= 2.0*M_PI();
-			else if(PeriodicDiff < M_PI())
-				PeriodicDiff += 2.0*M_PI();
+			if(PeriodicDiff > pi)
+				PeriodicDiff -= 2.0*pi;
+			else if(PeriodicDiff < -pi)
+				PeriodicDiff += 2.0*pi;
 			return PeriodicDiff;
 		}
 	};
