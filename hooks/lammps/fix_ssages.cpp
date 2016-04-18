@@ -75,6 +75,7 @@ namespace LAMMPS_NS
 		std::vector<T> temp;
 		size_t largest_size = *std::max_element(in_sizes.begin(), in_sizes.end());
 		temp.reserve(largest_size);
+		out.clear();
 		out.reserve(std::accumulate(in_sizes.begin(), in_sizes.end(), 0));
 
 		// Deserialize archives one by one, inserting elements at the end.
@@ -242,6 +243,7 @@ namespace LAMMPS_NS
 		allgatherv_serialize(comm, vel, vel);
 		allgatherv_serialize(comm, ids, ids);
 		allgatherv_serialize(comm, types, types);
+
 	}
 
 	void FixSSAGES::SyncToEngine() //put Snapshot values -> LAMMPS
