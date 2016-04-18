@@ -186,14 +186,7 @@ namespace SSAGES
 			normrim = norm(rim);
 			normrln = norm(rln);
 
-			_val = acos(DotProduct(rim, rln)/(normrim*normrln));
-			std::cout<<_val<<std::endl;
-
-			auto rmj = CrossProduct(rij,rkj);
-			auto rnk = CrossProduct(rkj,rkl);
 			auto normkj = norm(rkj);
-			auto normmj = norm(rmj);
-			auto normnk = norm(rnk);
 			Vector3 rijrkjprod;
 			for(size_t i = 0; i < rijrkjprod.size();i++)
 				rijrkjprod[i] = rij[i]*normkj;
@@ -201,10 +194,7 @@ namespace SSAGES
 			auto y = DotProduct(rijrkjprod, rkjrklcross);
 			auto rijrkjcross = CrossProduct(rij, rkj);
 			auto x = DotProduct(rijrkjcross, rkjrklcross);
-			auto theta = atan2(y, x);
-
-			_val = theta;
-			std::cout<<theta<<std::endl;
+			_val = atan2(y, x);
 
 			Vector3 d0dri, d0drj, d0drk, d0drl;
 
