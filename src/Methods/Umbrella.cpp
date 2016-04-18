@@ -10,12 +10,6 @@ namespace SSAGES
 		return 0.5 * k * (x - x0) * (x - x0);
 	}
 
-	// Derivative of harmonic potential. Helper function.
-	double springDer(double k, double x0, double x)
-	{
-		return k * (x - x0);
-	}
-
 	void Umbrella::PreSimulation(Snapshot*, const CVList& cvs)
 	{
 		char file[1024];
@@ -36,7 +30,7 @@ namespace SSAGES
 			auto& grad = cv->GetGradient();
 
 			// Compute dV/dCV.
-			auto D = springDer(_kspring[i], _centers[i], cv->GetValue());
+			auto D = _kspring[i]*(cv->GetDifference(_centers[i]));
 
 			// Update forces.
 			for(size_t j = 0; j < forces.size(); ++j)
