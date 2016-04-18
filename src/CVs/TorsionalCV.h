@@ -94,6 +94,9 @@ namespace SSAGES
 			const auto& pos = snapshot.GetPositions(); 
 			const auto& ids = snapshot.GetAtomIDs();
 
+			int iindex, jindex, kindex, lindex;
+
+			iindex = jindex = kindex = lindex = -1;
 			double ix = 0;
 			double iy = 0;
 			double iz = 0;
@@ -120,6 +123,7 @@ namespace SSAGES
 					ix = pos[i][0];
 					iy = pos[i][1];
 					iz = pos[i][2];
+					iindex = i;
 				}
 				if(ids[i] == _atomid2)
 				{
@@ -127,6 +131,7 @@ namespace SSAGES
 					jx = pos[i][0];
 					jy = pos[i][1];
 					jz = pos[i][2];
+					jindex = i;
 				}
 				if(ids[i] == _atomid3)
 				{
@@ -134,6 +139,7 @@ namespace SSAGES
 					kx = pos[i][0];
 					ky = pos[i][1];
 					kz = pos[i][2];
+					kindex = i;
 				}
 				if(ids[i] == _atomid4)
 				{
@@ -141,8 +147,16 @@ namespace SSAGES
 					lx = pos[i][0];
 					ly = pos[i][1];
 					lz = pos[i][2];
+					lindex = i;
 				}
 			}
+
+			if(iindex < 0 || jindex < 0 || kindex < 0 || lindex <0)
+			{
+				std::cout<<"Out of bounds index, could not locate an ID"<<std::endl;
+				exit(0);
+			}
+
 			//Calculate pertinent vectors
 			Vector3 rij{{
 				ix - jx,
@@ -174,6 +188,8 @@ namespace SSAGES
 
 			_val = acos(DotProduct(rim, rln)/(normrim*normrln));
 			std::cout<<_val<<std::endl;
+			std::cout<<DotProduct(rim,rln)/(normrim*normrln)<<std::endl;
+			std::cout<<DotProduct(rim,rln)<<" "<<normrim<<" "<<normrln<<std::endl;
 				
 			Vector3 d0dri, d0drj, d0drk, d0drl;
 
@@ -183,10 +199,10 @@ namespace SSAGES
 				d0drl[i] = (1.0/normrln)*(rim[i]/normrim-cos(_val)*rln[i]/normrln);
 				d0drj[i] = (DotProduct(rij,rkj)/rkj2 - 1)*d0dri[i] - (DotProduct(rkl, rkj)/rkj2)*d0drl[i];
 				d0drk[i] = (DotProduct(rkl,rkj)/rkj2 - 1)*d0drl[i] - (DotProduct(rij, rkj)/rkj2)*d0dri[i];
-				_grad[_atomid1][i]= -sin(_val)*d0dri[i];
-				_grad[_atomid2][i]= -sin(_val)*d0drj[i];
-				_grad[_atomid3][i]= -sin(_val)*d0drk[i];
-				_grad[_atomid4][i]= -sin(_val)*d0drl[i];
+				_grad[iindex][i]= -d0dri[i]/sin(_val);
+				_grad[jindex][i]= -d0drj[i]/sin(_val);
+				_grad[kindex][i]= -d0drk[i]/sin(_val);
+				_grad[lindex][i]= -d0drl[i]/sin(_val);
 			}
 
 		}

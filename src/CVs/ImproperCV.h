@@ -73,6 +73,8 @@ namespace SSAGES
 			const auto& pos = snapshot.GetPositions(); 
 			const auto& ids = snapshot.GetAtomIDs();
 
+			int iindex, jindex, kindex, lindex;
+			iindex = jindex = kindex = lindex = 0;
 
 			double ix = 0;
 			double iy = 0;
@@ -100,6 +102,7 @@ namespace SSAGES
 					ix = pos[i][0];
 					iy = pos[i][1];
 					iz = pos[i][2];
+					iindex = i;
 				}
 				if(ids[i] == _atomid2)
 				{
@@ -107,6 +110,7 @@ namespace SSAGES
 					jx = pos[i][0];
 					jy = pos[i][1];
 					jz = pos[i][2];
+					jindex = i;
 				}
 				if(ids[i] == _atomid3)
 				{
@@ -114,6 +118,7 @@ namespace SSAGES
 					kx = pos[i][0];
 					ky = pos[i][1];
 					kz = pos[i][2];
+					kindex = i;
 				}
 				if(ids[i] == _atomid4)
 				{
@@ -121,6 +126,7 @@ namespace SSAGES
 					lx = pos[i][0];
 					ly = pos[i][1];
 					lz = pos[i][2];
+					lindex = i;
 				}
 			}
 			//Calculate pertinent vectors
@@ -153,28 +159,30 @@ namespace SSAGES
 			auto theta = atan2(y, x);
 			_val = theta;
 
+			std::cout<<_val<<std::endl;
+
 			//Calculate gradient
 			//atom i
-			_grad[_atomid1][0] = normkj/(normmj*normmj)*rmj[0];
-			_grad[_atomid1][1] = normkj/(normmj*normmj)*rmj[1];
-			_grad[_atomid1][2] = normkj/(normmj*normmj)*rmj[2];
+			_grad[iindex][0] = normkj/(normmj*normmj)*rmj[0];
+			_grad[iindex][1] = normkj/(normmj*normmj)*rmj[1];
+			_grad[iindex][2] = normkj/(normmj*normmj)*rmj[2];
 
 			//atom l
-			_grad[_atomid4][0] = normkj/(normnk*normnk)*rnk[0];
-			_grad[_atomid4][1] = normkj/(normnk*normnk)*rnk[1];
-			_grad[_atomid4][2] = normkj/(normnk*normnk)*rnk[2];
+			_grad[lindex][0] = normkj/(normnk*normnk)*rnk[0];
+			_grad[lindex][1] = normkj/(normnk*normnk)*rnk[1];
+			_grad[lindex][2] = normkj/(normnk*normnk)*rnk[2];
 
 			//atom j
 			auto rkldotrkj = DotProduct(rkl, rkj);
 			auto rijdotrkj = DotProduct(rij, rkj);
-			_grad[_atomid2][0] = (rijdotrkj/(normkj*normkj))*_grad[_atomid1][0]-rkldotrkj/(normkj*normkj)*_grad[_atomid4][0];
-			_grad[_atomid2][1] = (rijdotrkj/(normkj*normkj))*_grad[_atomid1][1]-rkldotrkj/(normkj*normkj)*_grad[_atomid4][1];
-			_grad[_atomid2][2] = (rijdotrkj/(normkj*normkj))*_grad[_atomid1][2]-rkldotrkj/(normkj*normkj)*_grad[_atomid4][2];
+			_grad[jindex][0] = (rijdotrkj/(normkj*normkj))*_grad[iindex][0]-rkldotrkj/(normkj*normkj)*_grad[lindex][0];
+			_grad[jindex][1] = (rijdotrkj/(normkj*normkj))*_grad[iindex][1]-rkldotrkj/(normkj*normkj)*_grad[lindex][1];
+			_grad[jindex][2] = (rijdotrkj/(normkj*normkj))*_grad[iindex][2]-rkldotrkj/(normkj*normkj)*_grad[lindex][2];
 
 			//atom k
-			_grad[_atomid3][0] = (rkldotrkj/(normkj*normkj)-1)*_grad[_atomid4][0]-rijdotrkj/(normkj*normkj)*_grad[_atomid1][0];
-			_grad[_atomid3][1] = (rkldotrkj/(normkj*normkj)-1)*_grad[_atomid4][1]-rijdotrkj/(normkj*normkj)*_grad[_atomid1][1];
-			_grad[_atomid3][2] = (rkldotrkj/(normkj*normkj)-1)*_grad[_atomid4][2]-rijdotrkj/(normkj*normkj)*_grad[_atomid1][2];
+			_grad[kindex][0] = (rkldotrkj/(normkj*normkj)-1)*_grad[lindex][0]-rijdotrkj/(normkj*normkj)*_grad[iindex][0];
+			_grad[kindex][1] = (rkldotrkj/(normkj*normkj)-1)*_grad[lindex][1]-rijdotrkj/(normkj*normkj)*_grad[iindex][1];
+			_grad[kindex][2] = (rkldotrkj/(normkj*normkj)-1)*_grad[lindex][2]-rijdotrkj/(normkj*normkj)*_grad[iindex][2];
 
 		}
 
