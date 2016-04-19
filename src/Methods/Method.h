@@ -3,6 +3,11 @@
 #include "../EventListener.h"
 #include <boost/mpi.hpp>
 
+// Forward declare.
+namespace Json {
+	class Value;
+}
+
 namespace SSAGES
 {
 	// Interface for Method implementations.

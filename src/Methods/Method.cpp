@@ -3,6 +3,7 @@
 #include "schema.h"
 #include "../Validator/ObjectRequirement.h"
 #include "../Validator/ArrayRequirement.h"
+#include "../Drivers/DriverException.h"
 #include "ElasticBand.h"
 #include "FiniteTempString.h"
 #include "Meta.h"
@@ -16,7 +17,7 @@ namespace SSAGES
 						boost::mpi::communicator& world, 
 						boost::mpi::communicator& comm)
 	{
-		return BuildMove(json, world, comm, "#/methods");
+		return BuildMethod(json, world, comm, "#/methods");
 	}
 
 	Method* Method::BuildMethod(const Value &json, 
@@ -48,18 +49,17 @@ namespace SSAGES
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
 
-			std::vector<std::double> ksprings;
+			std::vector<double> ksprings;
 			for(auto& s : json["ksprings"])
 				ksprings.push_back(s.asDouble());
 
-			std::vector<std::double> centers;
+			std::vector<double> centers;
 			for(auto& s : json["centers"])
 				centers.push_back(s.asDouble());
 
 			if(ksprings.size() != centers.size())
 			{
-				std::cout<<"Need to define a spring fro every center or 
-					a center for every spring!"<<std::endl;
+				std::cout<<"Need to define a spring fro every center or a center for every spring!"<<std::endl;
 
 				exit(0);
 			}
@@ -80,7 +80,7 @@ namespace SSAGES
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
 
-			std::vector<std::double> widths;
+			std::vector<double> widths;
 			for(auto& s : json["widths"])
 				widths.push_back(s.asDouble());
 
@@ -102,11 +102,11 @@ namespace SSAGES
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
 
-			std::vector<std::double> ksprings;
+			std::vector<double> ksprings;
 			for(auto& s : json["ksprings"])
 				ksprings.push_back(s.asDouble());
 
-			std::vector<std::double> centers;
+			std::vector<double> centers;
 			for(auto& s : json["centers"])
 				centers.push_back(s.asDouble());
 
@@ -120,13 +120,13 @@ namespace SSAGES
 
 			auto* m = new ElasticBand(world, comm, isteps, eqsteps,
 			 						evsteps, nsamples, centers, ksprings,
-			 						stringspring, timestep, frequency);
+			 						stringspring, timestep, freq);
 
 			method = static_cast<Method*>(m);
 		}
 		else if(type == "FiniteTemperatureString")
 		{
-			reader.parse(JsonSchema::FiniteTemperatureMethod, schema);
+			reader.parse(JsonSchema::FTSMethod, schema);
 			validator.Parse(schema, path);
 
 			// Validate inputs.
@@ -134,20 +134,20 @@ namespace SSAGES
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
 
-			std::vector<std::double> centers;
+			std::vector<double> centers;
 			for(auto& s : json["centers"])
 				centers.push_back(s.asDouble());
 
 			auto isteps = json.get("block iterations", 2000).asInt();
 			auto nsamples = json.get("number samples", 20).asInt();
-			auto stringspring = json.get("kappa", 0.1).asDouble();
-			auto timestep = json.get("time step", 0.1).asDouble();			
+			auto kappa = json.get("kappa", 0.1).asDouble();
+			auto tau = json.get("time step", 0.1).asDouble();			
 			auto freq = json.get("frequency", 1).asInt();			
 
-			NumNodes = comm.size();
-			auto* m = new ElasticBand(world, comm, isteps, 
+			int NumNodes = comm.size();
+			auto* m = new FiniteTempString(world, comm, isteps, 
 									centers, NumNodes, kappa,
-			 						tau, frequency);
+			 						tau, freq);
 
 			method = static_cast<Method*>(m);
 		}
