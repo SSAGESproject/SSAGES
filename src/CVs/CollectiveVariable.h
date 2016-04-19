@@ -3,6 +3,11 @@
 
 #include <vector>
 
+// Forward declare.
+namespace Json {
+	class Value;
+}
+
 namespace SSAGES
 {
 	// Interface for a collective variable.
@@ -53,10 +58,10 @@ namespace SSAGES
 		// If return value is nullptr, 
 		// then an unknown error occurred. It will throw a BuildException on failure. 
 		// Object lifetime is the caller's responsibility. 
-		static Method* BuildCV(const Json::Value& json);
+		static CollectiveVariable* BuildCV(const Json::Value& json);
 
 		// Overloaded function allowing JSON path specification.
-		static Method* BuildCV(const Json::Value& json, 
+		static CollectiveVariable* BuildCV(const Json::Value& json, 
 							   const std::string& path);
 	};
 

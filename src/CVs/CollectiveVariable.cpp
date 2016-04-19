@@ -1,6 +1,7 @@
 #include "CollectiveVariable.h"
 #include "json/json.h"
 #include "schema.h"
+#include "../Drivers/DriverException.h"
 #include "../Validator/ObjectRequirement.h"
 #include "../Validator/ArrayRequirement.h"
 #include "AtomCoordinateCV.h"
@@ -14,7 +15,7 @@ namespace SSAGES
 {
 	CollectiveVariable* CollectiveVariable::BuildCV(const Json::Value &json)
 	{
-		return BuildMove(json, "#/cvs");
+		return BuildCV(json, "#/cvs");
 	}
 
 	CollectiveVariable* CollectiveVariable::BuildCV(const Value &json, 
@@ -34,9 +35,9 @@ namespace SSAGES
 		// Get move type. 
 		std::string type = json.get("type", "none").asString();
 
-		if(type == "Atom Coordinate")
+		if(type == "AtomCoordinate")
 		{
-			reader.parse(JsonSchema::CoordinateCV, schema);
+			reader.parse(JsonSchema::AtomCoordinateCV, schema);
 			validator.Parse(schema, path);
 
 			// Validate inputs.
@@ -65,9 +66,9 @@ namespace SSAGES
 
 			cv = static_cast<CollectiveVariable*>(c);
 		}
-		else if(type == "Atom Position")
+		else if(type == "AtomPosition")
 		{
-			reader.parse(JsonSchema::MetadynamicsMethod, schema);
+			reader.parse(JsonSchema::AtomPositionCV, schema);
 			validator.Parse(schema, path);
 
 			// Validate inputs.
@@ -76,15 +77,15 @@ namespace SSAGES
 				throw BuildException(validator.GetErrors());
 			
 			auto atomid = json.get("atom id", -1).asInt();
-			const Vector3 position;
+			Vector3 position;
 
-			position[0]=json"position"][0].asDouble();
-			position[1]=json"position"][1].asDouble();
-			position[2]=json"position"][2].asDouble();
+			position[0]=json["position"][0].asDouble();
+			position[1]=json["position"][1].asDouble();
+			position[2]=json["position"][2].asDouble();
 
 			auto fixx = json.get("fixx", false).asBool();
-			auto fixx = json.get("fixy", false).asBool();
-			auto fixx = json.get("fixz", false).asBool();
+			auto fixy = json.get("fixy", false).asBool();
+			auto fixz = json.get("fixz", false).asBool();
 
 			auto* c = new AtomPositionCV(atomid, position, fixx, fixy, fixz);
 
@@ -92,7 +93,7 @@ namespace SSAGES
 		}
 		else if(type == "Improper")
 		{
-			reader.parse(JsonSchema::ElasticBandMethod, schema);
+			reader.parse(JsonSchema::ImproperCV, schema);
 			validator.Parse(schema, path);
 
 			// Validate inputs.
@@ -100,7 +101,7 @@ namespace SSAGES
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
 
-			std::vector<std::int> atomids;
+			std::vector<int> atomids;
 			for(auto& s : json["atom ids"])
 				atomids.push_back(s.asInt());
 
@@ -112,7 +113,7 @@ namespace SSAGES
 		}
 		else if(type == "Torsional")
 		{
-			reader.parse(JsonSchema::FiniteTemperatureMethod, schema);
+			reader.parse(JsonSchema::TorsionalCV, schema);
 			validator.Parse(schema, path);
 
 			// Validate inputs.
@@ -120,7 +121,7 @@ namespace SSAGES
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
 
-			std::vector<std::int> atomids;
+			std::vector<int> atomids;
 			for(auto& s : json["atom ids"])
 				atomids.push_back(s.asInt());
 
@@ -135,6 +136,6 @@ namespace SSAGES
 			throw BuildException({path + ": Unknown method type specified."});
 		}
 
-		return method;
+		return cv;
 	}
 }
