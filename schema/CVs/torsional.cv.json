@@ -1,0 +1,23 @@
+{
+	"type" : "object",
+	"varname" : "torsional",
+	"properties" : {
+		"type" : { 
+			"type" : "string",
+			"enum" : ["torsional"]
+		},
+		"atom ids" : {
+			"type" : "array",
+			"minItems" : 4,
+			"maxItems" : 4,
+			"items" : {
+				"type" : "integer"
+			}
+		},
+		"periodic" : {
+			"type" : "bool"
+		}
+	},
+	"required": ["type", "atom ids"],
+	"additionalProperties": false
+}

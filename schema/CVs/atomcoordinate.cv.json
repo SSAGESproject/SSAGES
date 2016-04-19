@@ -1,0 +1,19 @@
+{
+	"type" : "object",
+	"varname" : "atom coordinate",
+	"properties" : {
+		"type" : { 
+			"type" : "string",
+			"enum" : ["atom coordinate"]
+		},
+		"dimension" : {
+			"type" : "string",
+			"enum" : ["x", "y", "z"]
+		},
+		"atom id" : {
+			"type" : "integer"
+		}
+	},
+	"required": ["type", "atom id", "dimension"],
+	"additionalProperties": false
+}

@@ -1,0 +1,23 @@
+{
+	"type" : "object",
+	"varname" : "improper",
+	"properties" : {
+		"type" : { 
+			"type" : "string",
+			"enum" : ["improper"]
+		},
+		"atom ids" : {
+			"type" : "array",
+			"minItems" : 4,
+			"maxItems" : 4,
+			"items" : {
+				"type" : "integer"
+			}
+		},
+		"periodic" : {
+			"type" : "bool"
+		}
+	},
+	"required": ["type", "atom ids"],
+	"additionalProperties": false
+}

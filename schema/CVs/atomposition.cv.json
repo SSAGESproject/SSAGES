@@ -1,0 +1,32 @@
+{
+	"type" : "object",
+	"varname" : "atom position",
+	"properties" : {
+		"type" : { 
+			"type" : "string",
+			"enum" : ["atom position"]
+		},
+		"position" : {
+			"type" : "array",
+			"minItems" : 3,
+			"maxItems" : 3,
+			"items" : {
+				"type" : "number"
+			}
+		},
+		"atom id" : {
+			"type" : "integer"
+		},
+		"fixx" :{
+			"type" : "bool"
+		},
+		"fixy" :{
+			"type" : "bool"
+		},
+		"fixz" :{
+			"type" : "bool"
+		}
+	},
+	"required": ["type", "atom id", "position", "fixx", "fixy", "fixz"],
+	"additionalProperties": false
+}

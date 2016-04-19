@@ -18,8 +18,8 @@ schemah = '../include/schema.h'
 schemac = '../src/JSON/schema.cpp'
 
 folders = [
-	"methods/",
-	"cvs/"
+	"Methods/",
+	"CVs/"
 ]
 
 exclude = [
