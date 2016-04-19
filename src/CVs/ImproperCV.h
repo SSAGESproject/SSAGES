@@ -7,9 +7,23 @@
 
 namespace SSAGES
 {
-	// Collective variable on an atom position. This will 
-	// return the distance of an atom from a particular point 
-	// in (1,2,3)-dimensional space.
+	// Collective variable on an improper dihedral. This will 
+	// return the angle between two planes 
+	// Reference: @article{VANSCHAIK1993751,
+	// title = "A Structure Refinement Method Based on Molecular Dynamics in Four Spatial Dimensions",
+	// journal = "Journal of Molecular Biology",
+	// volume = "234",
+	// number = "3",
+	// pages = "751 - 762",
+	// year = "1993",
+	// note = "",
+	// issn = "0022-2836",
+	// doi = "http://dx.doi.org/10.1006/jmbi.1993.1624",
+	// url = "http://www.sciencedirect.com/science/article/pii/S0022283683716244",
+	// author = "René C. van Schaik and Herman J.C. Berendsen and Andrew E. Torda and Wilfred F. van Gunsteren",
+	// keywords = "structure refinement",
+	// keywords = "molecular dynamics: NOE"
+
 	class ImproperCV : public CollectiveVariable
 	{
 	private:
@@ -21,6 +35,9 @@ namespace SSAGES
 
 		// Current value of the CV.
 		double _val;
+
+		// Use periodic boundary or not
+		bool _periodic;
 
 		// Gradients of the Dihedral CV, dtheta/dri, dtheta/drj, dtheta/drk, dtheta/drl.
 		std::vector<Vector3> _grad;
@@ -53,8 +70,9 @@ namespace SSAGES
 		// Construct an dihedral CV. The atomids specify 
 		// the IDs of the atoms of interest
 		// TODO: bounds needs to be an input and periodic boundary conditions
-		ImproperCV(int atomid1, int atomid2, int atomid3, int atomid4) : 
-		_atomid1(atomid1), _atomid2(atomid2), _atomid3(atomid3), _atomid4(atomid4), _val(0), _grad(0), _bounds{{0,0}}
+		ImproperCV(int atomid1, int atomid2, int atomid3, int atomid4, bool periodic) : 
+		_atomid1(atomid1), _atomid2(atomid2), _atomid3(atomid3), _atomid4(atomid4),
+		_periodic(periodic), _val(0), _grad(0), _bounds{{0,0}}
 		{
 		}
 
@@ -194,6 +212,9 @@ namespace SSAGES
 
 		double GetPeriodicValue(double Location) const override
 		{
+			if(!_periodic)
+				return Location;
+
 			double pi = 3.14159;
 			int n = (int)(Location/(2.0*pi));
 			double PeriodicLocation = Location-2.0*n*pi;
@@ -223,6 +244,10 @@ namespace SSAGES
 		{
 			double pi = 3.14159;
 			double PeriodicDiff = _val - Location;
+
+			if(!_periodic)
+				return PeriodicDiff;
+
 			PeriodicDiff = GetPeriodicValue(PeriodicDiff);
 
 			if(PeriodicDiff > pi)

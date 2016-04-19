@@ -7,9 +7,8 @@
 
 namespace SSAGES
 {
-	// Collective variable on an atom position. This will 
-	// return the distance of an atom from a particular point 
-	// in (1,2,3)-dimensional space.
+	// Collective variable on an proper dihedral. This will 
+	// return the angle between two planes 
 	// Reference: @article{VANSCHAIK1993751,
 	// title = "A Structure Refinement Method Based on Molecular Dynamics in Four Spatial Dimensions",
 	// journal = "Journal of Molecular Biology",
@@ -34,14 +33,11 @@ namespace SSAGES
 		int _atomid3;
 		int _atomid4; 
 
-		// Point in space.
-		//Vector3 _position1, Vector3 _position2, Vector3 _position3, Vector3 _position4;
-
 		// Current value of the CV.
 		double _val;
 
-		// Constraints in x,y,z dimensions.
-		//bool _fixx, _fixy, _fixz;
+		// Use periodic boundary or not
+		bool _periodic;
 
 		// Gradients of the Dihedral CV, dtheta/dri, dtheta/drj, dtheta/drk, dtheta/drl.
 		std::vector<Vector3> _grad;
@@ -74,8 +70,9 @@ namespace SSAGES
 		// Construct an dihedral CV. The atomids specify 
 		// the IDs of the atoms of interest
 		// TODO: bounds needs to be an input and periodic boundary conditions
-		TorsionalCV(int atomid1, int atomid2, int atomid3, int atomid4) : 
-		_atomid1(atomid1), _atomid2(atomid2), _atomid3(atomid3), _atomid4(atomid4), _val(0), _grad(0), _bounds{{0,0}}
+		TorsionalCV(int atomid1, int atomid2, int atomid3, int atomid4, bool periodic) : 
+		_atomid1(atomid1), _atomid2(atomid2), _atomid3(atomid3), _atomid4(atomid4),
+		_periodic(periodic), _val(0), _grad(0), _bounds{{0,0}}
 		{
 		}
 
@@ -220,6 +217,9 @@ namespace SSAGES
 
 		double GetPeriodicValue(double Location) const override
 		{
+			if(!_periodic)
+				return Location;
+
 			double pi = 3.14159;
 			int n = (int)(Location/(2.0*pi));
 			double PeriodicLocation = Location-2.0*n*pi;
@@ -249,6 +249,10 @@ namespace SSAGES
 		{
 			double pi = 3.14159;
 			double PeriodicDiff = _val - Location;
+
+			if(!_periodic)
+				return PeriodicDiff;
+
 			PeriodicDiff = GetPeriodicValue(PeriodicDiff);
 
 			if(PeriodicDiff > pi)

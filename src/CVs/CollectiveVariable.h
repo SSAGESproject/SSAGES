@@ -48,6 +48,16 @@ namespace SSAGES
 		// For example Torsional angle has boundaries at
 		// pi and -pi, in which the difference beteen the angles is 0 not 2pi
 		virtual double GetDifference(const double Location) const = 0;
+
+		// Builds a cv from a JSON node. Returns a pointer to the built cv.
+		// If return value is nullptr, 
+		// then an unknown error occurred. It will throw a BuildException on failure. 
+		// Object lifetime is the caller's responsibility. 
+		static Method* BuildCV(const Json::Value& json);
+
+		// Overloaded function allowing JSON path specification.
+		static Method* BuildCV(const Json::Value& json, 
+							   const std::string& path);
 	};
 
 	// Definitions.
