@@ -1,10 +1,10 @@
 {
 	"type" : "object",
-	"varname" : "improper",
+	"varname" : "ImproperCV",
 	"properties" : {
 		"type" : { 
 			"type" : "string",
-			"enum" : ["improper"]
+			"enum" : ["Improper"]
 		},
 		"atom ids" : {
 			"type" : "array",

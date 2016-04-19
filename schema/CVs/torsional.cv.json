@@ -1,10 +1,10 @@
 {
 	"type" : "object",
-	"varname" : "torsional",
+	"varname" : "TorsionalCV",
 	"properties" : {
 		"type" : { 
 			"type" : "string",
-			"enum" : ["torsional"]
+			"enum" : ["Torsional"]
 		},
 		"atom ids" : {
 			"type" : "array",

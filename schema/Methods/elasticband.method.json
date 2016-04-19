@@ -1,6 +1,6 @@
 {
 	"type" : "object",
-	"varname" : "ElasticBand",
+	"varname" : "ElasticBandMethod",
 	"properties" : {
 		"type" : { 
 			"type" : "string",

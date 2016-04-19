@@ -1,6 +1,6 @@
 {
 	"type" : "object",
-	"varname" : "Umbrella",
+	"varname" : "UmbrellaMethod",
 	"properties" : {
 		"type" : { 
 			"type" : "string",

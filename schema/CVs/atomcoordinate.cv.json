@@ -1,10 +1,10 @@
 {
 	"type" : "object",
-	"varname" : "atom coordinate",
+	"varname" : "AtomCoordinateCV",
 	"properties" : {
 		"type" : { 
 			"type" : "string",
-			"enum" : ["atom coordinate"]
+			"enum" : ["AtomCoordinate"]
 		},
 		"dimension" : {
 			"type" : "string",

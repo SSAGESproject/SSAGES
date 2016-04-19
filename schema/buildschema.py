@@ -104,7 +104,7 @@ def genfiles(folders):
 				i = next(j for j, s in enumerate(hlines) if 'INSERT_DEC_HERE' in s)
 				hlines.insert(i+1, decl)
 
-				defn = 'std::string SAPHRON::JsonSchema::' + varname + ' = '
+				defn = 'std::string SSAGES::JsonSchema::' + varname + ' = '
 				i = next(j for j, s in enumerate(cpplines) if 'INSERT_DEF_HERE' in s)
 				cpplines.insert(
 					i+1,

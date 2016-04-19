@@ -1,6 +1,6 @@
 #include "schema.h"
 
-namespace SAPHRON
+namespace SSAGES
 {
 	//INSERT_DEF_HERE
 	

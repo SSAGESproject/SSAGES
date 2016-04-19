@@ -1,6 +1,6 @@
 {
 	"type" : "object",
-	"varname" : "Metadynamics",
+	"varname" : "MetadynamicsMethod",
 	"properties" : {
 		"type" : { 
 			"type" : "string",

@@ -1,10 +1,10 @@
 {
 	"type" : "object",
-	"varname" : "atom position",
+	"varname" : "AtomPositionCV",
 	"properties" : {
 		"type" : { 
 			"type" : "string",
-			"enum" : ["atom position"]
+			"enum" : ["AtomPosition"]
 		},
 		"position" : {
 			"type" : "array",

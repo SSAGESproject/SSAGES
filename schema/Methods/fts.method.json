@@ -1,6 +1,6 @@
 {
 	"type" : "object",
-	"varname" : "FTS",
+	"varname" : "FTSMethod",
 	"properties" : {
 		"type" : { 
 			"type" : "string",
