@@ -76,7 +76,11 @@ namespace SSAGES
 				throw BuildException(validator.GetErrors());
 			
 			auto atomid = json.get("atom id", -1).asInt();
-			const Vector3 position = stuff;
+			const Vector3 position;
+
+			position[0]=json"position"][0].asDouble();
+			position[1]=json"position"][1].asDouble();
+			position[2]=json"position"][2].asDouble();
 
 			auto fixx = json.get("fixx", false).asBool();
 			auto fixx = json.get("fixy", false).asBool();
@@ -100,7 +104,7 @@ namespace SSAGES
 			for(auto& s : json["atom ids"])
 				atomids.push_back(s.asInt());
 
-			auto periodic = json.get("periodic", true).asBool();
+			auto periodic = json.get("periodic", false).asBool();
 
 			auto* c = new ImproperCV(atomids[0], atomids[1], atomids[2], atomids[3], periodic);
 
@@ -120,7 +124,7 @@ namespace SSAGES
 			for(auto& s : json["atom ids"])
 				atomids.push_back(s.asInt());
 
-			auto periodic = json.get("periodic", true).asBool();
+			auto periodic = json.get("periodic", false).asBool();
 
 			auto* c = new TorsionalCV(atomids[0], atomids[1], atomids[2], atomids[3], periodic);
 

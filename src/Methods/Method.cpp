@@ -56,6 +56,14 @@ namespace SSAGES
 			for(auto& s : json["centers"])
 				centers.push_back(s.asDouble());
 
+			if(ksprings.size() != centers.size())
+			{
+				std::cout<<"Need to define a spring fro every center or 
+					a center for every spring!"<<std::endl;
+
+				exit(0);
+			}
+
 			auto freq = json.get("frequency", 1).asInt();
 
 			auto* m = new Umbrella(world, comm, ksprings, centers, freq);
