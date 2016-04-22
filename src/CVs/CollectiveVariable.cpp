@@ -138,4 +138,29 @@ namespace SSAGES
 
 		return cv;
 	}
+
+	void Move::BuildCV(const Json::Value &json, 
+						  CVList &cvlist)
+	{
+		ArrayRequirement validator;
+		Value schema;
+		Reader reader;
+
+		reader.parse(JsonSchema::CVs, schema);
+		validator.Parse(schema, "#/CVs");
+
+		// Validate high level schema.
+		validator.Validate(json, "#/CVs");
+		if(validator.HasErrors())
+			throw BuildException(validator.GetErrors());
+
+		// Loop through moves.
+		int i = 0;
+		for(auto& m : json)
+		{
+			cvlist.push_back(BuildMove(m, mm, wm, "#/CVs/" + std::to_string(i)));
+			++i;
+		}
+
+	}
 }

@@ -2,7 +2,7 @@
 
 #include "json/json.h"
 
-namespace SAPHRON
+namespace SSAGES
 {
 	class Serializable
 	{

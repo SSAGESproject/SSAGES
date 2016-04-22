@@ -1,6 +1,7 @@
 #pragma once
-#include "../Snapshot.h"
 
+#include "../Snapshot.h"
+#include "../JSON/Serializable.h"
 #include <vector>
 
 // Forward declare.
@@ -10,6 +11,12 @@ namespace Json {
 
 namespace SSAGES
 {
+	// Forward declare.
+	class CollectiveVariable;
+
+	// Typedefs
+	using CVList = std::vector<CollectiveVariable*>;
+
 	// Interface for a collective variable.
 	class CollectiveVariable
 	{
@@ -63,8 +70,14 @@ namespace SSAGES
 		// Overloaded function allowing JSON path specification.
 		static CollectiveVariable* BuildCV(const Json::Value& json, 
 							   const std::string& path);
+
+		// Builds moves from a base tree root["moves"] and adds them to the Move manager. 
+		// It also adds all initialized pointers to the mvlist array passed in. Throws exception
+		// on failure. Object lifetime management is caller's responsibility. 
+		static void BuildMoves(const Json::Value& json, 
+							   CVList& cvlist);
 	};
 
 	// Definitions.
-	using CVList = std::vector<CollectiveVariable*>;
+	
 }

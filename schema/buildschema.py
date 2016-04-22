@@ -23,10 +23,7 @@ folders = [
 ]
 
 exclude = [
-	# "flags.observer.json",
-	# "pack.world.json",
-	# "bonded.forcefield.json",
-	# "nonbonded.forcefield.json"
+
 ]
 
 

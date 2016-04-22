@@ -1,0 +1,15 @@
+{
+	"type": "object",
+	"varname" : "Driver",
+	"properties" : {
+		"MDEngine" : { 
+			"type" : "string",
+			"enum" : ["LAMMPS"]
+		},
+
+		"inputfile" : {
+			"type" : "string",
+		}
+	},
+	"required" : ["MDEngine"]
+}

@@ -1,4 +1,4 @@
-#include "SimBuilder.h"
+#pragma once 
 #include "../JSON/JSONLoader.h"
 #include "config.h"
 #include <boost/mpi.hpp>
@@ -18,30 +18,72 @@ namespace SSAGES
 
 	void DumpNoticesToConsole(const vector<string>& msgs, string prefix, int notw)
 	{
-
+		#ifdef MULTI_WALKER
 		boost::mpi::communicator comm;
 		if(comm.rank() == 0)
 		{
-			cout << setw(notw) << right << "\033[32mOK!\033[0m\n";
-			if(msgs.size() == 0)
-				return;
-			
-			for(auto& msg : msgs)
-				cout << prefix << " * " << msg << "\n";
+		#endif
+		
+		cout << setw(notw) << right << "\033[32mOK!\033[0m\n";
+		if(msgs.size() == 0)
+			return;
+		
+		for(auto& msg : msgs)
+			cout << prefix << " * " << msg << "\n";
+		
+		#ifdef MULTI_WALKER
 		}
+		#endif
 	}
 
 	void PrintBoldNotice(const string& notice, int msgw)
 	{
+		#ifdef MULTI_WALKER
+		boost::mpi::communicator comm;
 		if(comm.rank() == 0)
-			cout << setw(msgw + 8) << left << "\033[1m" + notice + "\033[0m";
+		{
+		#endif
+
+		cout << setw(msgw + 8) << left << "\033[1m" + notice + "\033[0m";
+
+		#ifdef MULTI_WALKER
+		}
+		#endif
 	}
+
+	class SimInitializer
+	{
+
+	private:
+
+		boost::mpi::communicator _world, _comm;
+
+		// The node id that this driver belongs to
+		const int _wid;
+
+		// Driver specific input file (e.g. Lammps.in)
+		Json::Value& _json;
+
+		// Json input file
+		std::string _jinputfile;
+
+		int _ltot, _msgw, _notw;
+
+	public:
+		SimInitializer(std::string jinput) : 
+		_jinputfile(jinput), _ltot(81), _msgw(51), _notw(_ltot - _msgw)
+		{}
+	};
 
 	bool SimBuilder::BuildSimulation(const std::string& filename)
 	{
 		Json::Value root;
 		vector<string> notices;
 		JSONLoader loader;
+		
+		#ifdef MULTI_WALKER
+		boost::mpi::communicator comm;
+		#endif
 
 		// Parse JSON.
 		PrintBoldNotice(" > Validating JSON...", _msgw);
@@ -50,40 +92,89 @@ namespace SSAGES
 			root = loader.LoadFile(filename);
 		} catch(std::exception& e) {
 			
+			#ifdef MULTI_WALKER
 			if(comm.rank() == 0)
-				DumpErrorsToConsole({e.what()}, _notw);
+			#endif
+			DumpErrorsToConsole({e.what()}, _notw);
 			
 			return false;
 		} catch(int& k) { 
 			std::string err = strerror(k);
 			
+			#ifdef MULTI_WALKER
 			if(comm.rank() == 0)
-				DumpErrorsToConsole({"File IO error: " + err}, _notw);
+			#endif
+			DumpErrorsToConsole({"File IO error: " + err}, _notw);
 			return false;
 		}
 
+		#ifdef MULTI_WALKER
 		if(comm.rank() == 0)
-			cout << setw(_notw) << right << "\033[32mOK!\033[0m\n";
+		#endif
+		cout << setw(_notw) << right << "\033[32mOK!\033[0m\n";
 
-		// Build Method.
-		PrintBoldNotice(" > Building method...", _msgw); 
-		try{
-			auto* Method = Method::BuildMethod(root["Method"][0],_world, _comm);
-			_worlds.push_back(world);
+		// Set units. 
+		auto units = root.get("units", "reduced").asString();
+		if(units == "real")
+		{
+			auto& siminfo = SimInfo::Instance();
+			siminfo.SetUnits(SimUnits::real);
+		}
 
-			// Add world to world manager.
-			_wm.AddWorld(world);
+		// Build world(s).
+		PrintBoldNotice(" > Building world(s)...", _msgw); 
+		for(auto& jworld : root["worlds"])
+		{
+			try{
+				auto* world = World::Build(jworld, root["blueprints"]);
+				_worlds.push_back(world);
 
-			// Print notices.
-			notices.push_back("Building world \"" + world->GetStringID() + "\"...");
-			auto dim = world->GetHMatrix();
-							
-		} catch(BuildException& e) {
-			DumpErrorsToConsole(e.GetErrors(), _notw);
-			return false;
-		} catch(exception& e) {
-			DumpErrorsToConsole({e.what()}, _notw);
-			return false;
+				// Add world to world manager.
+				_wm.AddWorld(world);
+
+				// Print notices.
+				notices.push_back("Building world \"" + world->GetStringID() + "\"...");
+				auto dim = world->GetHMatrix();
+
+				notices.push_back("Setting size to [" +  
+					to_string(dim(0,0)) + ", " + 
+					to_string(dim(1,1)) + ", " + 
+					to_string(dim(2,2)) + "] \u212B.");
+				
+				notices.push_back("Setting neighbor list radius to " + 
+					to_string(world->GetNeighborRadius()) + 
+					" \u212B.");
+
+				notices.push_back("Setting skin thickness to " + 
+					to_string(world->GetSkinThickness()) + 
+					" \u212B.");
+
+				notices.push_back("Setting seed to " + 
+					to_string(world->GetSeed()) + ".");
+
+				notices.push_back("Setting temperature to " + 
+					to_string(world->GetTemperature()) + "K.");
+
+				// Make sure some particles were initialized.
+				if(world->GetParticleCount() == 0)
+				{
+					DumpErrorsToConsole({"No particles have been specified."}, _notw);
+					return false;
+				}
+
+				// Write particle species notices.
+				auto& slist = Particle::GetSpeciesList();
+				auto& comp = world->GetComposition();
+				for(size_t i = 0; i < comp.size(); ++i)
+					notices.push_back("Initialized " + to_string(comp[i]) + 
+							  " particle(s) of type \"" + slist[i] + "\".");				
+			} catch(BuildException& e) {
+				DumpErrorsToConsole(e.GetErrors(), _notw);
+				return false;
+			} catch(exception& e) {
+				DumpErrorsToConsole({e.what()}, _notw);
+				return false;
+			}
 		}
 
 		if(_worlds.size() == 0)

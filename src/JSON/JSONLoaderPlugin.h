@@ -1,9 +1,9 @@
 #pragma once 
-#include "../Utils/Helpers.h"
 #include <iostream>
 #include <regex>
+#include "FileContents.h"
 
-namespace SAPHRON
+namespace SSAGES
 {
 	// Abstract class for JSON loader plugins.
 	class JSONLoaderPlugin

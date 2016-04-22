@@ -1,51 +1,43 @@
 #include <boost/mpi.hpp>
 #include <string>
 #include <sstream>
-#include "lammps.h"
+#include "json/json.h"
+#include "JSON/JSONLoader.h"
 #include "input.h"
 #include "modify.h"
 #include "Snapshot.h"
 #include "Hook.h"
 #include "fix.h"
-#include "Methods/MockMethod.h"
-#include "Methods/ElasticBand.h"
-#include "CVs/AtomCoordinateCV.h"
+#include "Validator/ObjectRequirement.h"
+#include "Validator/ArrayRequirement.h"
+#include "schema.h"
+#include "Drivers/Driver.h"
+#include "Utility.h"
 
 namespace mpi = boost::mpi;
-using namespace LAMMPS_NS;
+
 using namespace SSAGES;
-
-// Retrieves the contents of a file and returns them
-// in a string. Throws exception on failure.
-std::string GetFileContents(const char *filename)
-{
-	std::FILE *fp = std::fopen(filename, "rb");
-	if (fp)
-	{
-		std::string contents;
-		std::fseek(fp, 0, SEEK_END);
-		contents.resize(std::ftell(fp));
-		std::rewind(fp);
-
-		// Stupid GCC bug. We do this to hide warnings.
-		if(!std::fread(&contents[0], 1, contents.size(), fp))
-			std::fclose(fp);
-		else
-			std::fclose(fp);
-
-		return(contents);
-	}
-	throw(errno);
-}
+using namespace Json;
 
 int main(int argc, char* argv[])
 {
 	mpi::environment env(argc, argv);
 	mpi::communicator world;
 
+	Value root;
+	ObjectRequirement validator;
+	Reader reader;
+	Driver* MDdriver = nullptr;
+
+	// Read in JSON using head node and broadcast to other nodes
+	// JSON file will include the Engine input file name(s)
+	if(world.rank() == 0)
+		root = ReadJSONFile(argv[1]);
+	mpi::broadcast(world, root, 0);
+
 	// Get requested number of walkers and make 
 	// sure the number of processors is evenly divisible.
-	int nwalkers = std::stoi(argv[1]);
+	int nwalkers = root.get("number walkers", 1).asInt();
 	if(world.size() % nwalkers != 0)
 	{
 		if(world.rank() == 0)
@@ -54,104 +46,77 @@ int main(int argc, char* argv[])
 		world.abort(-1);
 	}
 
+	std::string path = "#/Drivers";
+
 	// Determine walker ID using integer division and split 
 	// communicator accordingly. 
 	int wid = (int)world.rank() / nwalkers;
 	auto walker = world.split(wid);
 
-	// Silence of the lammps.
-	char **largs = (char**) malloc(sizeof(char*) * 5);
-	for(int i = 0; i < 5; ++i)
-		largs[i] = (char*) malloc(sizeof(char) * 1024);
-	sprintf(largs[0], " ");
-	sprintf(largs[1], "-screen");
-	sprintf(largs[2], "none");
-	sprintf(largs[3], "-log");
-	sprintf(largs[4], "log-MPI_ID-%d", wid);
+	reader.parse(JsonSchema::Driver, root);
+	validator.Parse(root, path);
 
-	auto lammps = std::make_shared<LAMMPS>(5, largs, MPI_Comm(walker));
+	// Validate inputs.
+	validator.Validate(root, path);
+	if(validator.HasErrors())
+		throw BuildException(validator.GetErrors());
 
-	// Read file on rank 0 proc, broadcast to all.
-	std::string contents;
-	if(world.rank() == 0)
-		contents = GetFileContents(argv[2]);
-	mpi::broadcast(world, contents, 0);
+	// Get move type. 
+	std::string MDEngine = root.get("MDEngine", "none").asString();
+	std::string inputfile = root.get("inputfile", "none").asString();
 
-	// Go through lammps.
-	std::string token;
-	std::istringstream ss(contents);
-	while(std::getline(ss, token, '\n'))
-		lammps->input->one(token.c_str());
-
-	// Initialize snapshot. 
-	Snapshot snapshot(walker, wid);
-
-	// Get hook from lammps modify.
-	// Horrid, I know.
-	auto fid = lammps->modify->find_fix("ssages");
-	if(auto* hook = dynamic_cast<Hook*>(lammps->modify->fix[fid]))
+	// Use input from JSON to determine MDEngine of choice as well as other parameters
+	if(MDEngine == "LAMMPS")
 	{
-		hook->SetSnapshot(&snapshot);
-
-		// Add methods and CV's here.
-		///////Test Umbrella//////////////////////////////
-		//hook->AddListener(new Umbrella({100.0}, {0}, 1));
-		//hook->AddCV(new AtomCoordinateCV(1, 0));
-		
-		//Mock method
-		//hook->AddListener(new MockMethod(world, walker,1));
-
-		///////Test MetaDynamics//////////////////////////
-		//hook->AddListener(new Meta(0.5, {0.05, 0.05}, 500, 1));
-		//hook->AddCV(new AtomCoordinateCV(1, 0));
-		//hook->AddCV(new AtomCoordinateCV(1, 1));
-
-		///////Test Elastic Band////////////////////////
-		// Set up centers of each node based on toy system
-		if((int)world.size() < 3)
-		  {
-		    if(world.rank() == 0)
-		      std::cerr << "The elastic band method requires "
-				<< "at least 3 walkers." << std::endl;
-		    world.abort(-1);
-		  }
-
-		auto StartPointx = -1.1;
-		auto StartPointy = -1.05;
-		auto EndPointx = 1.1;
-		auto EndPointy = 1.15;
-
-		auto Nodediffxc = StartPointx + (int)world.rank()*(EndPointx - StartPointx)/(world.size()-1);
-		//		auto Nodediffyc = StartPointy + (EndPointy - StartPointy)*((double)world.rank()/(world.size()-1))*((double)world.rank()/(world.size()-1));
-		auto Nodediffyc = StartPointy + (EndPointy - StartPointy)*(int)world.rank()/(world.size()-1);
-
-		if((int)world.rank() + 1 == world.size())
-		  {
-		    Nodediffxc = EndPointx;
-		    Nodediffyc = EndPointy;
-		  }
-
-		hook->AddListener(new ElasticBand(world, walker,
-						  5000, 20000, 1000, 100, {Nodediffxc,Nodediffyc}, {100.0, 100.0}, 100.0, 0.001, 1));
-		hook->AddCV(new AtomCoordinateCV(1, 0));
-		hook->AddCV(new AtomCoordinateCV(1, 1));
-
+		auto* en = new lammpsMD(world, walker, wid, root, inputfile);
+		MDDriver = static_cast<Driver*>(en);
 	}
 	else
 	{
-		if(world.rank() == 0)
-		{
-			std::cerr << "Unable to dynamic cast hook. Error occurred" << std::endl;
-			world.abort(-1);			
-		}
+		throw BuildException({"Unknown MD Engine specified."});
 	}
 
-	// Run!
-	std::string rline = "run " + std::string(argv[3]);
-	lammps->input->one(rline.c_str());
+	if(MDDriver == nullptr)
+	{
+		std::cerr << "Could not create MDDriver object!" << std::endl;
+		world.abort(-1);
+	}
 
-	// Free.
-	for(int i = 0; i < 5; ++i)
-		free(largs[i]);
-	free(largs);
+	MDDriver->BuildDriver(root, "#/Drivers");
+
+	// Read inputfile contents on rank 0 proc, broadcast to all.
+	std::string contents;
+	// All nodes get the same input file
+	if( inputfile != "none")
+	{
+		if(world.rank() == 0)
+			contents = GetFileContents(inputfile.c_str());
+		mpi::broadcast(world, contents, 0);
+	}
+	// Each node reads in specified input file
+	else(inputfile == "none")
+	{
+		if(walker.rank() == 0)
+		{
+			cout<<"No/overloaded global input file, node " <<wid<<" using: "<<MDEngine->GetInputFile()<<std::endl;
+			contents = GetFileContents(MDEngine->GetInputFile())
+		}
+		mpi::broadcast(walker, contents, 0);
+	}
+
+
+	MDDriver->BuildCVs();
+	MDDriver->BuildMethod();
+
+	// Execute Global/local input file and gather the needed hook
+	MDDriver->ExecuteInputFile(contents);
+
+	// Setting up listeners
+	MDDriver->Finalize();
+
+	// Run the MDEngine with Free energy calculations :)
+	MDDriver->Run();
+
+	delete MDDriver;
+
 }

@@ -1,0 +1,14 @@
+{
+	"type": "object",
+	"varname" : "LAMMPSDriver",
+	"properties" : {
+		"MDSteps" : {
+			"type" : "integer",
+			"minimum" : 1
+		},
+		"logfile" : {
+			"type" : "string"
+		}
+	},
+	"required" : ["MDSteps", "logfile"]
+}

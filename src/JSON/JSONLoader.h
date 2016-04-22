@@ -1,12 +1,12 @@
 #pragma once 
 #include "json/json.h"
-#include "../Utils/Helpers.h"
 #include "JSONLoaderPlugin.h"
 #include <fstream>
 #include <memory>
 #include <stdexcept>
+#include "FileContents.h"
 
-namespace SAPHRON
+namespace SSAGES
 {
 
 	// Class for loading JSON content from files.
