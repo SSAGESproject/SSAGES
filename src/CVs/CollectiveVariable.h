@@ -21,6 +21,9 @@ namespace SSAGES
 	class CollectiveVariable
 	{
 	public:
+
+		virtual ~CollectiveVariable(){}
+
 		// Initialization of the CV. This is an optional 
 		// method and is called during the pre-simulation phase
 		// of the hook. It is typically used to allocate/reserve
@@ -71,9 +74,9 @@ namespace SSAGES
 		static CollectiveVariable* BuildCV(const Json::Value& json, 
 							   const std::string& path);
 
-		// Builds moves from a base tree root["moves"] and adds them to the Move manager. 
-		// It also adds all initialized pointers to the mvlist array passed in. Throws exception
-		// on failure. Object lifetime management is caller's responsibility. 
+		// Builds cvs and adds them to the cvlist . 
+		// Throws exception on failure. 
+		// Object lifetime management is caller's responsibility. 
 		static void BuildCV(const Json::Value& json, 
 							   CVList& cvlist);
 	};

@@ -72,7 +72,7 @@ namespace SSAGES
 		// TODO: bounds needs to be an input and periodic boundary conditions
 		TorsionalCV(int atomid1, int atomid2, int atomid3, int atomid4, bool periodic) : 
 		_atomid1(atomid1), _atomid2(atomid2), _atomid3(atomid3), _atomid4(atomid4),
-		_periodic(periodic), _val(0), _grad(0), _bounds{{0,0}}
+		_val(0), _periodic(periodic), _grad(0), _bounds{{0,0}}
 		{
 		}
 
