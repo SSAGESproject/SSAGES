@@ -3,6 +3,7 @@
 #include "Method.h"
 #include "../CVs/CollectiveVariable.h"
 #include <fstream>
+#include <vector>
 
 
 namespace SSAGES

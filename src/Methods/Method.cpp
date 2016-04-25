@@ -15,9 +15,26 @@ namespace SSAGES
 {
 	Method* Method::BuildMethod(const Json::Value &json, 
 						boost::mpi::communicator& world, 
-						boost::mpi::communicator& comm)
+						boost::mpi::communicator& comm,
+						int wid)
 	{
-		return BuildMethod(json, world, comm, "#/methods");
+		ArrayRequirement validator;
+		Value schema;
+		Reader reader;
+
+		reader.parse(JsonSchema::methods, schema);
+		validator.Parse(schema, "#/methods");
+
+		// Validate high level schema.
+		validator.Validate(json, "#/methods");
+		if(validator.HasErrors())
+			throw BuildException(validator.GetErrors());
+
+		// Assign correct method to correct node.
+		if(json.size() == 1)
+			return BuildMethod(json, world, comm, "#/methods/0")
+		else
+			return BuildMethod(json, world, comm, "#/methods/" + std::to_string(wid))
 	}
 
 	Method* Method::BuildMethod(const Value &json, 
@@ -36,6 +53,9 @@ namespace SSAGES
 		// auto maxi = std::numeric_limits<int>::max();
 		// auto seed = json.get("seed", rd() % maxi).asUInt();
 
+		// Get input file
+		_inputfile = json.get("inputfile", "none").asString();
+		
 		// Get move type. 
 		std::string type = json.get("type", "none").asString();
 
@@ -58,11 +78,7 @@ namespace SSAGES
 				centers.push_back(s.asDouble());
 
 			if(ksprings.size() != centers.size())
-			{
-				std::cout<<"Need to define a spring fro every center or a center for every spring!"<<std::endl;
-
-				exit(0);
-			}
+				throw BuildException("Need to define a spring for every center or a center for every spring!");
 
 			auto freq = json.get("frequency", 1).asInt();
 
