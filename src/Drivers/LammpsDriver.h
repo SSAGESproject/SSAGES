@@ -16,7 +16,7 @@ namespace SSAGES
 	private:
 
 		//pointer to this local instance of lammps
-		LAMMPS_NS::LAMMPS* _lammps;
+		std::shared_ptr<LAMMPS_NS::LAMMPS> _lammps;
 
 		// The number of MD engine steps you would like to perform
 		int _MDsteps;
@@ -50,6 +50,7 @@ namespace SSAGES
 				_lammps->input->one(token.c_str());
 
 			auto fid = _lammps->modify->find_fix("ssages");
+			
 			if(!(auto* hook = dynamic_cast<Hook*>(_lammps->modify->fix[fid])))
 			{
 				if(_world.rank() == 0)

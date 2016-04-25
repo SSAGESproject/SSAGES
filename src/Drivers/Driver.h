@@ -55,8 +55,8 @@ namespace SSAGES
 			   boost::mpi::communicator& comm,
 			   int walkerID,
 			   Value root) : 
-		_world(world), _comm(comm), _wid(walkerID), _root(root),
-		_hook(), _snapshot(), _method(), _CVs(),
+		_world(world), _comm(comm), _wid(walkerID),
+		_hook(), _snapshot(), _method(), _CVs(), _root(root),
 		_ltot(81), _msgw(51), _notw(_ltot - _msgw)
 		 {}
 
