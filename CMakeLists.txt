@@ -29,6 +29,7 @@ ExternalProject_Add(
 	CONFIGURE_COMMAND ""
 	BUILD_COMMAND $(MAKE) mpi mode=shlib 
 	CCFLAGS=-I${PROJECT_SOURCE_DIR}/src  
+	CCFLAGS+=-I${PROJECT_SOURCE_DIR}/include  
 	CCFLAGS+=-I${Boost_INCLUDE_DIRS}     
 	CCFLAGS+=-std=c++11                  
 	CCFLAGS+=-L${Boost_LIBRARY_DIRS}      
@@ -71,6 +72,10 @@ set(SOURCE
 	src/Methods/Umbrella.cpp
 	src/Methods/ElasticBand.cpp
 	src/Methods/FiniteTempString.cpp
+	src/Validator/RequirementLoader.cpp
+	src/JSON/jsoncpp.cpp
+	src/JSON/schema.cpp
+	src/CVs/CollectiveVariable.cpp
 )
 
 include_directories(${MPI_CXX_INCLUDE_PATH})
