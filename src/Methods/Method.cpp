@@ -32,9 +32,9 @@ namespace SSAGES
 
 		// Assign correct method to correct node.
 		if(json.size() == 1)
-			return BuildMethod(json, world, comm, "#/methods/0")
+			return BuildMethod(json, world, comm, "#/methods/0");
 		else
-			return BuildMethod(json, world, comm, "#/methods/" + std::to_string(wid))
+			return BuildMethod(json, world, comm, "#/methods/" + std::to_string(wid));
 	}
 
 	Method* Method::BuildMethod(const Value &json, 
@@ -54,7 +54,7 @@ namespace SSAGES
 		// auto seed = json.get("seed", rd() % maxi).asUInt();
 
 		// Get input file
-		_inputfile = json.get("inputfile", "none").asString();
+		method->_inputfile = json.get("inputfile", "none").asString();
 		
 		// Get move type. 
 		std::string type = json.get("type", "none").asString();
@@ -78,7 +78,7 @@ namespace SSAGES
 				centers.push_back(s.asDouble());
 
 			if(ksprings.size() != centers.size())
-				throw BuildException("Need to define a spring for every center or a center for every spring!");
+				throw BuildException({"Need to define a spring for every center or a center for every spring!"});
 
 			auto freq = json.get("frequency", 1).asInt();
 

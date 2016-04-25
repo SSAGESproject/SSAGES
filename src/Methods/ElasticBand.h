@@ -102,6 +102,11 @@ namespace SSAGES
 		// Post-simulation hook.
 		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
 
+		void Serialize(Json::Value& json) const override
+		{
+
+		}
+
 		~ElasticBand() {}
 	};
 }

@@ -46,5 +46,10 @@ namespace SSAGES
 		
 		void PrintUmbrella(const CVList& cvs);
 
+		void Serialize(Json::Value& json) const override
+		{
+
+		}
+
 	};
 }

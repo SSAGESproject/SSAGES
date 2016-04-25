@@ -11,7 +11,7 @@ namespace Json {
 namespace SSAGES
 {
 	// Interface for Method implementations.
-	class Method : public EventListener
+	class Method : public EventListener, public Serializable
 	{
 	protected:
 		boost::mpi::communicator _world, _comm;
