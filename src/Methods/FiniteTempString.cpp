@@ -43,7 +43,6 @@ namespace SSAGES
 	{
 		// Open file for writing.
 		_mpiid = snapshot->GetWalkerID();
-		auto& forces = snapshot->GetForces();
 		auto& positions = snapshot->GetPositions();
 		char file[1024];
 		sprintf(file, "node-%04d.log",_mpiid);
