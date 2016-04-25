@@ -19,7 +19,8 @@ schemac = '../src/JSON/schema.cpp'
 
 folders = [
 	"Methods/",
-	"CVs/"
+	"CVs/",
+	"Drivers/"
 ]
 
 exclude = [

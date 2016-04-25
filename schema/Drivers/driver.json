@@ -6,9 +6,11 @@
 			"type" : "string",
 			"enum" : ["LAMMPS"]
 		},
-
 		"inputfile" : {
-			"type" : "string",
+			"type" : "string"
+		},
+		"number walkers" : {
+			"type" : "integer"
 		}
 	},
 	"required" : ["MDEngine"]
