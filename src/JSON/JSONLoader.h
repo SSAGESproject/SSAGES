@@ -4,6 +4,9 @@
 #include <fstream>
 #include <memory>
 #include <stdexcept>
+#include <boost/mpi.hpp>
+
+namespace mpi = boost::mpi;
 
 namespace SSAGES
 {
@@ -21,10 +24,17 @@ namespace SSAGES
 		}
 
 		// Load file and return JSON tree.
-		Json::Value LoadFile(const std::string& filename)
+		Json::Value LoadFile(const std::string& filename, boost::mpi::communicator& world)
 		{
-			auto contents = GetFileContents(filename.c_str());
-			auto path = GetFilePath(filename);
+			std::string contents, path;
+			if(world.rank() == 0)
+			{
+				contents = GetFileContents(filename.c_str());
+				path = GetFilePath(filename);
+			}
+
+			mpi::broadcast(world, contents, 0);
+			mpi::broadcast(world, path, 0);
 
 			for(auto& plugin : _plugins)
 				plugin->ApplyFilter(contents, path);
