@@ -6,6 +6,7 @@
 #include "json/json.h"
 #include <boost/mpi.hpp>
 #include "../JSON/JSONLoader.h"
+#include "../JSON/Serializable.h"
 #include <exception>
 #include "../Utility/BuildException.h"
 
@@ -15,7 +16,7 @@ namespace SSAGES
 {
 	// Simulation class for creating simulation and a driver object.
 
-	class Simulation
+	class Simulation : public Serializable
 	{
 
 	protected:
@@ -70,7 +71,7 @@ namespace SSAGES
 				PrintBoldNotice(" > Validating JSON...", _msgw, _world);
 
 				try{
-					_root = loader.LoadFile(jfile);
+					_root = loader.LoadFile(jfile, _world);
 				} catch(std::exception& e) {
 					if(_world.rank() == 0)
 						DumpErrorsToConsole({e.what()}, _notw);
@@ -87,8 +88,6 @@ namespace SSAGES
 
 				std::cout << std::setw(_notw) << std::right << "\033[32mOK!\033[0m\n";
 			}
-
-			mpi::broadcast(_world, _root, 0);
 
 			// Get requested number of walkers and make 
 			// sure the number of processors is evenly divisible.
@@ -151,7 +150,7 @@ namespace SSAGES
 			_MDDriver->Run();
 		}
 
-		void Serialize(Json::Value& json) const
+		virtual void Serialize(Json::Value& json) const override
 		{
 			json["number walkers"] = _nwalkers;
 			json["MDEngine"] = _MDEngine;
