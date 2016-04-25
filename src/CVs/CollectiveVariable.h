@@ -74,7 +74,7 @@ namespace SSAGES
 		// Builds moves from a base tree root["moves"] and adds them to the Move manager. 
 		// It also adds all initialized pointers to the mvlist array passed in. Throws exception
 		// on failure. Object lifetime management is caller's responsibility. 
-		static void BuildMoves(const Json::Value& json, 
+		static void BuildCV(const Json::Value& json, 
 							   CVList& cvlist);
 	};
 
