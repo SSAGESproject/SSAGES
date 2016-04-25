@@ -19,7 +19,7 @@ namespace SSAGES
 {
 	// Abstract driver class for creating driver objects.
 
-	class Driver
+	class Driver : public Serializable
 	{
 
 	protected:
