@@ -76,6 +76,7 @@ set(SOURCE
 	src/JSON/jsoncpp.cpp
 	src/JSON/schema.cpp
 	src/CVs/CollectiveVariable.cpp
+	src/Methods/Method.cpp
 )
 
 include_directories(${MPI_CXX_INCLUDE_PATH})
