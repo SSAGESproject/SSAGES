@@ -89,9 +89,9 @@ namespace SSAGES
 				std::cout << std::setw(_notw) << std::right << "\033[32mOK!\033[0m\n";
 			}
 
-			// Get requested number of walkers and make 
+			// Get requested number of processors per walker and make 
 			// sure the number of processors is evenly divisible.
-			_nwalkers = _root.get("number walkers", 1).asInt();
+			_nwalkers = _root.get("number procs", 1).asInt();
 			if(_world.size() % _nwalkers != 0)
 			{
 				if(_world.rank() == 0)
