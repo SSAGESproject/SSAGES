@@ -47,6 +47,7 @@ namespace SSAGES
 
 		Simulation(boost::mpi::communicator& world) : 
 		_world(world), _MDDriver(), _nwalkers(1),
+		_MDEngine(), _GlobalInput(),
 		_ltot(81), _msgw(51), _notw(_ltot - _msgw)
 		{
 
@@ -122,7 +123,7 @@ namespace SSAGES
 			_GlobalInput = json.get("inputfile","none").asString();
 		}
 
-		void BuildDriver(const Json::Value& json, const std::string& path)
+		Value BuildDriver(const Json::Value& json, const std::string& path)
 		{
 
 			ArrayRequirement validator;
@@ -179,11 +180,6 @@ namespace SSAGES
 				_world.abort(-1);
 			}
 
-
-			std::string localInput = JsonDriver.get("inputfile", "none").asString(); 
-			if(localInput != "none")
-				_GlobalInput = localInput;
-
 			// Get the engine. 
 			_MDEngine = JsonDriver.get("type", "none").asString();
 
@@ -199,15 +195,85 @@ namespace SSAGES
 				throw BuildException({"Unknown MD Engine [" + _MDEngine + "] specified."});
 			}
 
+			return JsonDriver;
 			// Build the driver, cv(s), and method(s)
 			_MDDriver->BuildDriver(JsonDriver, path + "/" + std::to_string(wid));
-			_MDDriver->BuildCVs();
-			_MDDriver->BuildMethod();
+		}
 
-			// Read in the global/local input file
-			_MDDriver->ReadInputFile();
+		bool BuildCVs(const Json::Value& json, const std::string& path)
+		{
+			// Build CV(s).
+			PrintBoldNotice(" > Building CV(s)...", _msgw, _world); 
+			try{
+				_MDDriver->BuildCVs(json.get("CVs", Json::arrayValue), _CVs);
+			} catch(BuildException& e) {
+				DumpErrorsToConsole(e.GetErrors(), _notw);
+				return false;
+			} catch(std::exception& e) {
+				DumpErrorsToConsole({e.what()}, _notw);
+				return false;
+			}
+			return true;
+		}
 
-			// Set up listeners and snapshots
+		bool BuildMethod(const Json::Value& json, const std::string& path)
+		{
+			// Build method(s).
+			PrintBoldNotice(" > Building method(s)...", _msgw, _world); 
+			try{
+				_MDDriver->BuildMethod(json.get("method", Json::objectValue), path)
+			} catch(BuildException& e) {
+				DumpErrorsToConsole(e.GetErrors(), _notw);
+				return false;
+			} catch(std::exception& e) {
+				DumpErrorsToConsole({e.what()}, _notw);
+				return false;
+			}
+			
+			return true;
+		}
+
+		void ReadInputFile()
+		{
+
+			std::string contents;
+			std::string localInput = _MDDriver->GetInputFile(); 
+			if(localInput != "none")
+				_GlobalInput = localInput;
+
+			// All nodes get the same input file
+			if( _GlobalInput == "none")
+			{
+				BuildException e({"No input file defined in global scope or methods scope!"});
+				DumpErrorsToConsole(e.GetErrors(), _notw);
+				_world.abort(-1);
+			}
+
+			// Each node reads in specified input file
+			if(localInput != "none")
+			{
+				if(_comm.rank() == 0)
+				{
+					std::cout<<"No/overloaded global input file, node " <<_world.rank()<<" using: "<<localInput<<std::endl;
+					contents = GetFileContents(localInput.c_str());
+				}
+				mpi::broadcast(_comm, contents, 0);
+			}
+			// All nodes get the same input file
+			else
+			{
+				if(_world.rank() == 0)
+					contents = GetFileContents(_GlobalInput.c_str());
+				mpi::broadcast(_world, contents, 0);
+			}
+
+			_MDDriver->ExecuteInputFile(contents);
+
+		}
+
+		// Set up listeners and hook
+		void Finalize()
+		{
 			_MDDriver->Finalize();
 		}
 
@@ -218,8 +284,8 @@ namespace SSAGES
 
 		virtual void Serialize(Json::Value& json) const override
 		{
-			json["number walkers"] = _nwalkers;
-			json["MDEngine"] = _MDEngine;
+			if(_GlobalInput != "none")
+				json["inputfile"] = _GlobalInput;
 		}
 	};
 }
