@@ -1,4 +1,4 @@
 {
-	"type" : "array",
+	"type" : "object",
 	"varname" : "methods"
 }

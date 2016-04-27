@@ -16,14 +16,12 @@ namespace SSAGES
 	protected:
 		boost::mpi::communicator _world, _comm;
 
-		std::string _inputfile;
-
 	public:
 		// Frequency of sampling must be specified by all methods.
 		Method(unsigned int frequency, 
 			boost::mpi::communicator& world, 
 			boost::mpi::communicator& comm) : 
-		EventListener(frequency), _world(world), _comm(comm), _inputfile() {}
+		EventListener(frequency), _world(world), _comm(comm){}
 
 		// Method call prior to simulation initiation.
 		virtual void PreSimulation(Snapshot* snapshot, const CVList& cvs) override = 0;
@@ -38,18 +36,11 @@ namespace SSAGES
 		// If return value is nullptr, 
 		// then an unknown error occurred. It will throw a BuildException on failure. 
 		// Object lifetime is the caller's responsibility. 
-		static Method* BuildMethod(const Json::Value& json,
-						boost::mpi::communicator& world, 
-						boost::mpi::communicator& comm,
-						int wid);
-
-		// Overloaded function allowing JSON path specification.
+		// Function allowing JSON path specification.
 		static Method* BuildMethod(const Json::Value& json,
 								boost::mpi::communicator& world, 
 								boost::mpi::communicator& comm,
 							   	const std::string& path);
-
-		std::string GetInputFile(){return _inputfile;}
 
 		virtual ~Method() {}
 	};
