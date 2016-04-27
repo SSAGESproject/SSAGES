@@ -8,9 +8,6 @@
 #include "../Methods/Method.h"
 #include "../Snapshot.h"
 #include "../JSON/JSONLoader.h"
-#include <exception>
-#include "../Utility/BuildException.h"
-#include "FileContents.h"
 
 
 namespace mpi = boost::mpi;
@@ -40,11 +37,8 @@ namespace SSAGES
 		// The CVs that will be used
 		CVList _CVs;
 
-		//Global input file
+		//local input file
 		std::string _inputfile;
-
-		// For message parsing
-		int _ltot, _msgw, _notw;
 
 	public:
 
@@ -52,8 +46,7 @@ namespace SSAGES
 			   boost::mpi::communicator& comm,
 			   int walkerID) : 
 		_world(world), _comm(comm), _wid(walkerID),
-		_hook(), _snapshot(), _method(), _CVs(),
-		_ltot(81), _msgw(51), _notw(_ltot - _msgw)
+		_hook(), _snapshot(), _method(), _CVs()
 		 {}
 
 		virtual ~Driver()
@@ -79,51 +72,24 @@ namespace SSAGES
 		// Read in driver specific input file (e.g. Lammps.in)
 		virtual void ExecuteInputFile(std::string contents) = 0;
 
-		boost::mpi::communicator GetWorldComm(){return _world;}
-
-		boost::mpi::communicator GetLocalComm(){return _comm;}
-
 		std::string GetInputFile(){return _inputfile;}
 
 		// Build CVs
-		bool BuildCVs()
+		void BuildCVs(const Json::Value& json, const std::string& path)
 		{
 			// Build CV(s).
-			PrintBoldNotice(" > Building CV(s)...", _msgw, _world); 
-			try{
-				CollectiveVariable::BuildCV(
-						_root.get("CVs", Json::arrayValue), 
-						_CVs);
-			} catch(BuildException& e) {
-				DumpErrorsToConsole(e.GetErrors(), _notw);
-				return false;
-			} catch(std::exception& e) {
-				DumpErrorsToConsole({e.what()}, _notw);
-				return false;
-			}
-			return true;
+			CollectiveVariable::BuildCV(json, _CVs);
+
 		}
 
-		bool BuildMethod()
+		void BuildMethod(const Json::Value& json, const std::string& path)
 		{
 			// Build method(s).
-			PrintBoldNotice(" > Building method(s)...", _msgw, _world); 
-			try{
-				_method = Method::BuildMethod(
-						_root.get("methods", Json::arrayValue),
-						_world, _comm, _wid);
-			} catch(BuildException& e) {
-				DumpErrorsToConsole(e.GetErrors(), _notw);
-				return false;
-			} catch(std::exception& e) {
-				DumpErrorsToConsole({e.what()}, _notw);
-				return false;
-			}
-			
-			return true;
+			_method = Method::BuildMethod(json, _world, _comm, path);
 		}
 
 		// Create the snapshot and put all gathered values into the local hook
+		// Set up listeners as well
 		void Finalize()
 		{
 			// Initialize snapshot. 
@@ -135,41 +101,6 @@ namespace SSAGES
 			_hook->AddListener(_method);
 			for(auto&cv : _CVs)
 				_hook->AddCV(cv);
-		}
-
-		void ReadInputFile()
-		{
-
-			_inputfile = _root.get("inputfile", "none").asString();
-			
-			std::string contents;
-
-			// All nodes get the same input file
-			if( _inputfile == "none" && _method->GetInputFile() == "none")
-			{
-				BuildException e({"No input file defined in global scope or methods scope!"});
-				DumpErrorsToConsole(e.GetErrors(), _notw);
-			}
-			// Each node reads in specified input file
-			else if(_method->GetInputFile() != "none")
-			{
-				if(_comm.rank() == 0)
-				{
-					std::cout<<"No/overloaded global input file, node " <<_wid<<" using: "<<_method->GetInputFile()<<std::endl;
-					contents = GetFileContents(_method->GetInputFile().c_str());
-				}
-				mpi::broadcast(_comm, contents, 0);
-			}
-			// All nodes get the same input file
-			else
-			{
-				if(_world.rank() == 0)
-					contents = GetFileContents(_inputfile.c_str());
-				mpi::broadcast(_world, contents, 0);
-			}
-
-			ExecuteInputFile(contents);
-
 		}
 	};
 }

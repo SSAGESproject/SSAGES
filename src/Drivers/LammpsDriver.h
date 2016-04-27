@@ -61,9 +61,9 @@ namespace SSAGES
 			}
 			else
 			{
-				if(_world.rank() == 0)
+				if(_comm.rank() == 0)
 				{
-					std::cerr << "Unable to dynamic cast hook. Error occurred" << std::endl;
+					std::cerr << "Unable to dynamic cast hook on node "<<_wolrd.rank()<<" Error occurred" << std::endl;
 					_world.abort(-1);			
 				}
 			}
