@@ -40,9 +40,6 @@ namespace SSAGES
 		// The CVs that will be used
 		CVList _CVs;
 
-		// JSON value code
-		Value _root;
-
 		//Global input file
 		std::string _inputfile;
 
@@ -53,10 +50,9 @@ namespace SSAGES
 
 		Driver(boost::mpi::communicator& world, 
 			   boost::mpi::communicator& comm,
-			   int walkerID,
-			   Value root) : 
+			   int walkerID) : 
 		_world(world), _comm(comm), _wid(walkerID),
-		_hook(), _snapshot(), _method(), _CVs(), _root(root),
+		_hook(), _snapshot(), _method(), _CVs(),
 		_ltot(81), _msgw(51), _notw(_ltot - _msgw)
 		 {}
 
@@ -75,7 +71,7 @@ namespace SSAGES
 		virtual void Run() = 0;
 
 		// Build the driver, which will create the hook and so forth
-		virtual void BuildDriver() = 0;
+		virtual void BuildDriver(const Json::Value& json, const std::string& path) = 0;
 
 		// Serialize
 		virtual void Serialize(Json::Value& json) const = 0;

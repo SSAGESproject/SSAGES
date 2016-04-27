@@ -1,17 +1,4 @@
 {
-	"type": "object",
-	"varname" : "Driver",
-	"properties" : {
-		"MDEngine" : { 
-			"type" : "string",
-			"enum" : ["LAMMPS"]
-		},
-		"inputfile" : {
-			"type" : "string"
-		},
-		"number walkers" : {
-			"type" : "integer"
-		}
-	},
-	"required" : ["MDEngine"]
+	"type": "array",
+	"varname" : "Driver"
 }

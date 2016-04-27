@@ -1,0 +1,13 @@
+{
+	"type": "object",
+	"varname" : "Simulation",
+	"properties" : {
+		"driver" : { 
+			"type" : "array"
+		},
+		"inputfile" : {
+			"type" : "string"
+		}
+	},
+	"required" : ["driver"]
+}

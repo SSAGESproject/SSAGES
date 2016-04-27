@@ -2,13 +2,30 @@
 	"type": "object",
 	"varname" : "LAMMPSDriver",
 	"properties" : {
+		"type" : {
+			"type" : "string",
+			"enum" : ["LAMMPS"]
+		},
 		"MDSteps" : {
 			"type" : "integer",
 			"minimum" : 1
 		},
 		"logfile" : {
 			"type" : "string"
+		},
+		"inputfile" : {
+			"type" : "string"
+		},
+		"number processors" : {
+			"type" : "integer"
+		},
+		"CVs" : {
+			"type" : "array",
+			"minItems" : 1
+		},
+		"method" : {
+			"type" : "object"
 		}
 	},
-	"required" : ["MDSteps", "logfile"]
+	"required" : ["type", "MDSteps", "logfile", "CVs", "method"]
 }

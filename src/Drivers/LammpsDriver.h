@@ -27,13 +27,15 @@ namespace SSAGES
 		// The lammps logfile
 		std::string _logfile;
 
+		// The lammps inputfile if it exists
+		std::string _inputfile;
+
 	public:
 
 		LammpsDriver(mpi::communicator& world_comm,
 					 mpi::communicator& local_comm,
-					 int walkerID,
-					 Json::Value& jsonfile) : 
-		Driver(world_comm, local_comm, walkerID, jsonfile), _lammps(), _MDsteps(), _logfile() 
+					 int walkerID) : 
+		Driver(world_comm, local_comm, walkerID), _lammps(), _MDsteps(), _logfile() 
 		{
 		};
 
@@ -67,7 +69,7 @@ namespace SSAGES
 			}
 		}
 
-		virtual void BuildDriver() override
+		virtual void BuildDriver(const Json::Value& json, const std::string& path) override
 		{
 
 			Value schema;
@@ -75,14 +77,15 @@ namespace SSAGES
 			Reader reader;
 
 			reader.parse(JsonSchema::LAMMPSDriver, schema);
-			validator.Parse(schema, "#/Drivers");
+			validator.Parse(schema, path);
 
 			// Validate inputs.
-			validator.Validate(_root, "#/Drivers");
+			validator.Validate(json, path);
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
 
-			_MDsteps = _root.get("MDSteps",1).asInt();
+			_MDsteps = json.get("MDSteps",1).asInt();
+			_inputfile = json.get("inputfile","none").asString();
 
 			// Silence of the lammps.
 			char **largs = (char**) malloc(sizeof(char*) * 5);
@@ -92,7 +95,7 @@ namespace SSAGES
 			sprintf(largs[1], "-screen");
 			sprintf(largs[2], "none");
 			sprintf(largs[3], "-log");
-			_logfile = _root.get("logfile", "none").asString();
+			_logfile = json.get("logfile", "none").asString();
 			if(_logfile != "none")
 				sprintf(largs[4], "%s-MPI_ID-%d",_logfile.c_str(), _wid);
 			else
@@ -112,6 +115,14 @@ namespace SSAGES
 		{
 			json["MDSteps"] = _MDsteps;
 			json["logfile"] = _logfile;
+			json["type"] = "LAMMPS";
+			json["number processors"] = _comm.size();
+			if(_inputfile != "none")
+				json["inputfile"] = _inputfile;
+
+			// Need CVs and Methods still
+			
+
 		}
 	};
 }

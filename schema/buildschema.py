@@ -20,7 +20,8 @@ schemac = '../src/JSON/schema.cpp'
 folders = [
 	"Methods/",
 	"CVs/",
-	"Drivers/"
+	"Drivers/",
+	"Simulations/",
 ]
 
 exclude = [

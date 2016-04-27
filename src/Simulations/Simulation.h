@@ -9,6 +9,7 @@
 #include "../JSON/Serializable.h"
 #include <exception>
 #include "../Utility/BuildException.h"
+#include "../Validator/ArrayRequirement.h"
 
 namespace mpi = boost::mpi;
 using namespace Json;
@@ -30,14 +31,14 @@ namespace SSAGES
 		// A pointer to the driver
 		Driver* _MDDriver;
 
-		// JSON value
-		Value _root;
-
 		// Number of walkers
 		int _nwalkers;
 
 		// MDEngine of choice
 		std::string _MDEngine;
+
+		// Global input file
+		std::string _GlobalInput;
 
 		// For message parsing
 		int _ltot, _msgw, _notw;
@@ -45,7 +46,7 @@ namespace SSAGES
 	public:
 
 		Simulation(boost::mpi::communicator& world) : 
-		_world(world), _MDDriver(), _root(), _nwalkers(1),
+		_world(world), _MDDriver(), _nwalkers(1),
 		_ltot(81), _msgw(51), _notw(_ltot - _msgw)
 		{
 
@@ -56,10 +57,9 @@ namespace SSAGES
 			delete _MDDriver;
 		}
 
-		void BuildSimulation(std::string jfile)
+		Json::Value ReadJSON(std::string jfile)
 		{
-			ObjectRequirement validator;
-			Reader reader;
+			Value root;
 			JSONLoader loader;
 
 			// Read in JSON using head node and broadcast to other nodes
@@ -71,57 +71,126 @@ namespace SSAGES
 				PrintBoldNotice(" > Validating JSON...", _msgw, _world);
 
 				try{
-					_root = loader.LoadFile(jfile, _world);
+					root = loader.LoadFile(jfile, _world);
 				} catch(std::exception& e) {
 					if(_world.rank() == 0)
 						DumpErrorsToConsole({e.what()}, _notw);
-					
-					_MDDriver = nullptr;
+					_world.abort(-1);
 				} catch(int& k) { 
 					std::string err = strerror(k);
 					
 					if(_world.rank() == 0)
 						DumpErrorsToConsole({"File IO error: " + err}, _notw);
-					
-					_MDDriver = nullptr;
+					_world.abort(-1);
 				}
 
 				std::cout << std::setw(_notw) << std::right << "\033[32mOK!\033[0m\n";
 			}
 
-			// Get requested number of processors per walker and make 
-			// sure the number of processors is evenly divisible.
-			_nwalkers = _root.get("number procs", 1).asInt();
-			if(_world.size() % _nwalkers != 0)
+			return root;
+
+		}
+		void BuildSimulation(const Json::Value& json, const std::string& path)
+		{
+
+			ObjectRequirement validator;
+			Value schema;
+			Reader reader;
+
+			reader.parse(JsonSchema::Simulation, schema);
+			validator.Parse(schema, path);
+
+			try
 			{
+				// Validate inputs.
+				validator.Validate(json, path);
+				if(validator.HasErrors())
+				{
+					throw BuildException(validator.GetErrors());
+				}
+			} catch(BuildException& e) { 	
 				if(_world.rank() == 0)
-					std::cerr << "The number of processors must be evenly "
-					<< "divisible by the number of walkers." << std::endl;
+					DumpErrorsToConsole(e.GetErrors(), _notw);
+				_world.abort(-1);
+			} catch(std::exception& e) {
+				if(_world.rank() == 0)
+					DumpErrorsToConsole({e.what()}, _notw);
 				_world.abort(-1);
 			}
 
-			std::string path = "#/Drivers";
 
-			// Determine walker ID using integer division and split 
+			_GlobalInput = json.get("inputfile","none").asString();
+		}
+
+		void BuildDriver(const Json::Value& json, const std::string& path)
+		{
+
+			ArrayRequirement validator;
+			Value schema;
+			Value JsonDriver;
+			Reader reader;
+
+			reader.parse(JsonSchema::Driver, schema);
+			validator.Parse(schema, path);
+
+			try
+			{
+				// Validate inputs.
+				validator.Validate(json, path);
+				if(validator.HasErrors())
+				{
+					throw BuildException(validator.GetErrors());
+				}
+			} catch(BuildException& e) { 	
+				if(_world.rank() == 0)
+					DumpErrorsToConsole(e.GetErrors(), _notw);
+				_world.abort(-1);
+			} catch(std::exception& e) {
+				if(_world.rank() == 0)
+					DumpErrorsToConsole({e.what()}, _notw);
+				_world.abort(-1);
+			}
+
+			// Determine walker ID using JSON file and split 
 			// communicator accordingly. 
-			int wid = (int)_world.rank() / _nwalkers;
+			int i = 0;
+			int totalproc = 0;
+			int wid = 0;
+			for(auto& m : json)
+			{
+				int currentnumproc = m.get("number processors", 1).asInt();
+				if ((int)_world.rank() >= totalproc && (int)_world.rank() < currentnumproc + totalproc)
+				{
+					wid = i;
+					JsonDriver = m;
+				}
+				totalproc += currentnumproc;
+				i++;
+			}
+
+			_nwalkers = json.size();
 			_comm = _world.split(wid);
 
-			reader.parse(JsonSchema::Driver, _root);
-			validator.Parse(_root, path);
+			if(_world.size() != totalproc - 1)
+			{
+				if(_world.rank() == 0)
+					std::cerr << "The number of processors for each driver (walker) must sum "
+					<< "to the total processors for the mpi call." << std::endl;
+				_world.abort(-1);
+			}
 
-			// Validate inputs.
-			validator.Validate(_root, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
+
+			std::string localInput = JsonDriver.get("inputfile", "none").asString(); 
+			if(localInput != "none")
+				_GlobalInput = localInput;
 
 			// Get the engine. 
-			_MDEngine = _root.get("MDEngine", "none").asString();
+			_MDEngine = JsonDriver.get("type", "none").asString();
 
 			// Use input from JSON to determine MDEngine of choice as well as other parameters
 			if(_MDEngine == "LAMMPS")
 			{
-				LammpsDriver* en = new LammpsDriver(_world, _comm, wid, _root);
+				LammpsDriver* en = new LammpsDriver(_world, _comm, wid);
 				_MDDriver = static_cast<Driver*>(en);
 			}
 			else
@@ -129,12 +198,9 @@ namespace SSAGES
 				std::cout<<"Errors"<<std::endl;
 				throw BuildException({"Unknown MD Engine [" + _MDEngine + "] specified."});
 			}
-		}
 
-		void BuildDriver()
-		{
 			// Build the driver, cv(s), and method(s)
-			_MDDriver->BuildDriver();
+			_MDDriver->BuildDriver(JsonDriver, path + "/" + std::to_string(wid));
 			_MDDriver->BuildCVs();
 			_MDDriver->BuildMethod();
 

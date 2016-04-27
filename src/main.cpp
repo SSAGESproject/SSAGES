@@ -14,11 +14,16 @@ int main(int argc, char* argv[])
 	mpi::environment env(argc, argv);
 	mpi::communicator world;
 
+	Json::Value root;
+
 	Simulation Sim(world);
 
 	// Perform all the JSON reading and build the correct driver
-	Sim.BuildSimulation(argv[1]);
-	Sim.BuildDriver();
+	root = Sim.ReadJSON(argv[1]);
+	Sim.BuildSimulation(root, "#/Simulations");
+	Sim.BuildDriver(root.get("driver", Json::arrayValue), "#/Drivers");
+	Sim.BuildCVs();
+	Sim.BuildMethod();
 
 	// Run the MDEngine with Free energy calculations :)
 	Sim.Run();
