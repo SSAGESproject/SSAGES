@@ -25,6 +25,6 @@
 			"minimum" : 1
 		}
 	},
-	"required": ["type", "springs", "centers"],
+	"required": ["type", "ksprings", "centers"],
 	"additionalProperties": false
 }

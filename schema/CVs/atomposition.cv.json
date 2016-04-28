@@ -18,13 +18,13 @@
 			"type" : "integer"
 		},
 		"fixx" :{
-			"type" : "bool"
+			"type" : "boolean"
 		},
 		"fixy" :{
-			"type" : "bool"
+			"type" : "boolean"
 		},
 		"fixz" :{
-			"type" : "bool"
+			"type" : "boolean"
 		}
 	},
 	"required": ["type", "atom id", "position", "fixx", "fixy", "fixz"],
