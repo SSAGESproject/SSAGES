@@ -1,0 +1,23 @@
+{
+	"type" : "object",
+	"varname" : "TorsionalCV",
+	"properties" : {
+		"type" : { 
+			"type" : "string",
+			"enum" : ["Torsional"]
+		},
+		"atom ids" : {
+			"type" : "array",
+			"minItems" : 4,
+			"maxItems" : 4,
+			"items" : {
+				"type" : "integer"
+			}
+		},
+		"periodic" : {
+			"type" : "boolean"
+		}
+	},
+	"required": ["type", "atom ids"],
+	"additionalProperties": false
+}

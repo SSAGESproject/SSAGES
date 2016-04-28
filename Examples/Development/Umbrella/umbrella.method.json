@@ -1,0 +1,30 @@
+{
+	"type" : "object",
+	"varname" : "UmbrellaMethod",
+	"properties" : {
+		"type" : { 
+			"type" : "string",
+			"enum" : ["Umbrella"]
+		},
+		"ksprings" : {
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+		"centers" : {
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+		"frequency" : {
+			"type" : "integer",
+			"minimum" : 1
+		}
+	},
+	"required": ["type", "ksprings", "centers"],
+	"additionalProperties": false
+}
