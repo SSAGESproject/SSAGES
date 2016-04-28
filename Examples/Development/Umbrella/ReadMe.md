@@ -15,13 +15,17 @@ When adding a new method or CV there are a few universal steps you must take:
 
 ##CV Development
 Lets take the torsional cv as an example:
+
 1. See TorsionalCV.h on how it is coded
 2. In CollectiveVariable.cpp you need to add the JSON interpreter in the function:
+
 ```C++
 CollectiveVariable* CollectiveVariable::BuildCV(const Value &json, 
 					const std::string& path)
 ```
+
 Using our torsional example:
+
 ```C++
 else if(type == "Torsional")
 {
@@ -48,15 +52,19 @@ else if(type == "Torsional")
 
 ##Method Development
 Similar steps for method development as well:
+
 1. See Umbrella.h on how it is coded
 2. In Method.cpp you need to add the JSON interpreter in the function:
+
 ```C++
 Method* Method::BuildMethod(const Value &json, 
 					boost::mpi::communicator& world, 
 					boost::mpi::communicator& comm,
 					const std::string& path)
 ```
+
 Using our umbrella method example:
+
 ```C++
 if(type == "Umbrella")
 {
@@ -86,4 +94,5 @@ if(type == "Umbrella")
 	method = static_cast<Method*>(m);
 }
 ```
+
 3. Create the required schema (see umbrella.method.json)
