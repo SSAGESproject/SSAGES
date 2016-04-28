@@ -140,17 +140,18 @@ namespace SSAGES
 	}
 
 	void CollectiveVariable::BuildCV(const Json::Value &json, 
-						  CVList &cvlist)
+						  CVList &cvlist,
+						  const std::string &path)
 	{
 		ArrayRequirement validator;
 		Value schema;
 		Reader reader;
 
 		reader.parse(JsonSchema::CVs, schema);
-		validator.Parse(schema, "#/CVs");
+		validator.Parse(schema, path);
 
 		// Validate high level schema.
-		validator.Validate(json, "#/CVs");
+		validator.Validate(json, path);
 		if(validator.HasErrors())
 			throw BuildException(validator.GetErrors());
 
@@ -158,7 +159,7 @@ namespace SSAGES
 		int i = 0;
 		for(auto& m : json)
 		{
-			cvlist.push_back(BuildCV(m, "#/CVs/" + std::to_string(i)));
+			cvlist.push_back(BuildCV(m, path + "/" + std::to_string(i)));
 			++i;
 		}
 	}

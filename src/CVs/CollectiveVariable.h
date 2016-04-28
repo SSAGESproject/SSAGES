@@ -78,7 +78,8 @@ namespace SSAGES
 		// Throws exception on failure. 
 		// Object lifetime management is caller's responsibility. 
 		static void BuildCV(const Json::Value& json, 
-							   CVList& cvlist);
+							   CVList& cvlist,
+							   const std::string& path);
 	};
 
 	// Definitions.

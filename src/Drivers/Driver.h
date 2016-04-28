@@ -78,7 +78,7 @@ namespace SSAGES
 		void BuildCVs(const Json::Value& json, const std::string& path)
 		{
 			// Build CV(s).
-			CollectiveVariable::BuildCV(json, _CVs);
+			CollectiveVariable::BuildCV(json, _CVs, path);
 
 		}
 

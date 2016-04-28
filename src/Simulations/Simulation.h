@@ -46,7 +46,7 @@ namespace SSAGES
 	public:
 
 		Simulation(boost::mpi::communicator& world) : 
-		_world(world), _MDDriver(), _nwalkers(1),
+		_world(world), _comm(), _MDDriver(), _nwalkers(1),
 		_MDEngine(), _GlobalInput(),
 		_ltot(81), _msgw(51), _notw(_ltot - _msgw)
 		{
@@ -67,26 +67,22 @@ namespace SSAGES
 			// JSON file will include the Engine input file name(s)
 
 			if(_world.rank() == 0)
-			{
-				// Parse JSON.
 				PrintBoldNotice(" > Validating JSON...", _msgw, _world);
 
-				try{
-					root = loader.LoadFile(jfile, _world);
-				} catch(std::exception& e) {
-					if(_world.rank() == 0)
-						DumpErrorsToConsole({e.what()}, _notw);
-					_world.abort(-1);
-				} catch(int& k) { 
-					std::string err = strerror(k);
-					
-					if(_world.rank() == 0)
-						DumpErrorsToConsole({"File IO error: " + err}, _notw);
-					_world.abort(-1);
-				}
-
-				std::cout << std::setw(_notw) << std::right << "\033[32mOK!\033[0m\n";
+			try{
+				root = loader.LoadFile(jfile, _world);
+			} catch(std::exception& e) {
+				
+				DumpErrorsToConsole({e.what()}, _notw);
+				_world.abort(-1);
+			} catch(int& k) { 
+				std::string err = strerror(k);
+				DumpErrorsToConsole({"File IO error: " + err}, _notw);
+				_world.abort(-1);
 			}
+
+				if(_world.rank() == 0)
+					std::cout << std::setw(_notw) << std::right << "\033[32mOK!\033[0m\n";
 
 			return root;
 
@@ -101,6 +97,9 @@ namespace SSAGES
 			reader.parse(JsonSchema::Simulation, schema);
 			validator.Parse(schema, path);
 
+			if(_world.rank() == 0)
+				PrintBoldNotice(" >Building Simulation...", _msgw, _world);
+			
 			try
 			{
 				// Validate inputs.
@@ -110,17 +109,18 @@ namespace SSAGES
 					throw BuildException(validator.GetErrors());
 				}
 			} catch(BuildException& e) { 	
-				if(_world.rank() == 0)
-					DumpErrorsToConsole(e.GetErrors(), _notw);
+				DumpErrorsToConsole(e.GetErrors(), _notw);
 				_world.abort(-1);
 			} catch(std::exception& e) {
-				if(_world.rank() == 0)
-					DumpErrorsToConsole({e.what()}, _notw);
+				DumpErrorsToConsole({e.what()}, _notw);
 				_world.abort(-1);
 			}
 
 
 			_GlobalInput = json.get("inputfile","none").asString();
+
+			if(_world.rank() == 0)
+				std::cout << std::setw(_notw) << std::right << "\033[32mOK!\033[0m\n";
 		}
 
 		Value BuildDriver(const Json::Value& json, const std::string& path)
@@ -130,6 +130,9 @@ namespace SSAGES
 			Value schema;
 			Value JsonDriver;
 			Reader reader;
+
+			if(_world.rank() == 0)
+				PrintBoldNotice(" >Building Driver...\n", _msgw, _world);
 
 			reader.parse(JsonSchema::Driver, schema);
 			validator.Parse(schema, path);
@@ -142,13 +145,11 @@ namespace SSAGES
 				{
 					throw BuildException(validator.GetErrors());
 				}
-			} catch(BuildException& e) { 	
-				if(_world.rank() == 0)
-					DumpErrorsToConsole(e.GetErrors(), _notw);
+			} catch(BuildException& e) {
+				DumpErrorsToConsole(e.GetErrors(), _notw);
 				_world.abort(-1);
 			} catch(std::exception& e) {
-				if(_world.rank() == 0)
-					DumpErrorsToConsole({e.what()}, _notw);
+				DumpErrorsToConsole({e.what()}, _notw);
 				_world.abort(-1);
 			}
 
@@ -160,6 +161,7 @@ namespace SSAGES
 			for(auto& m : json)
 			{
 				int currentnumproc = m.get("number processors", 1).asInt();
+
 				if ((int)_world.rank() >= totalproc && (int)_world.rank() < currentnumproc + totalproc)
 				{
 					wid = i;
@@ -172,11 +174,12 @@ namespace SSAGES
 			_nwalkers = json.size();
 			_comm = _world.split(wid);
 
-			if(_world.size() != totalproc - 1)
+			if(_world.size() != totalproc)
 			{
 				if(_world.rank() == 0)
 					std::cerr << "The number of processors for each driver (walker) must sum "
 					<< "to the total processors for the mpi call." << std::endl;
+					std::cerr<<_world.size()<<" vs "<<totalproc<<std::endl;
 				_world.abort(-1);
 			}
 
@@ -187,17 +190,35 @@ namespace SSAGES
 			if(_MDEngine == "LAMMPS")
 			{
 				LammpsDriver* en = new LammpsDriver(_world, _comm, wid);
-				_MDDriver = static_cast<Driver*>(en);
+
+				if(!(_MDDriver = static_cast<Driver*>(en)))
+				{
+						std::cerr << "Unable to dynamic cast engine on node "<<_world.rank()<<" Error occurred" << std::endl;
+						_world.abort(-1);			
+				}
 			}
 			else
 			{
 				std::cout<<"Errors"<<std::endl;
-				throw BuildException({"Unknown MD Engine [" + _MDEngine + "] specified."});
+				DumpErrorsToConsole({"Unknown MD Engine [" + _MDEngine + "] specified."},_notw);
+				_world.abort(-1);
 			}
 
-			return JsonDriver;
-			// Build the driver, cv(s), and method(s)
-			_MDDriver->BuildDriver(JsonDriver, path + "/" + std::to_string(wid));
+			// Build the driver
+			try{
+				_MDDriver->BuildDriver(JsonDriver, path + "/" + std::to_string(wid));
+			} catch(BuildException& e) {
+		        DumpErrorsToConsole(e.GetErrors(), _notw);
+		        _world.abort(-1);
+			} catch(std::exception& e) {
+		        DumpErrorsToConsole({e.what()}, _notw);
+		        _world.abort(-1);
+			}
+
+			if(_world.rank() == 0)
+				std::cout << std::setw(_notw) << std::right << "\033[32mOK!\033[0m\n";
+
+            return JsonDriver;
 		}
 
 		bool BuildCVs(const Json::Value& json, const std::string& path)
@@ -205,7 +226,7 @@ namespace SSAGES
 			// Build CV(s).
 			PrintBoldNotice(" > Building CV(s)...", _msgw, _world); 
 			try{
-				_MDDriver->BuildCVs(json.get("CVs", Json::arrayValue), _CVs);
+				_MDDriver->BuildCVs(json.get("CVs", Json::arrayValue), path);
 			} catch(BuildException& e) {
 				DumpErrorsToConsole(e.GetErrors(), _notw);
 				return false;
@@ -213,6 +234,7 @@ namespace SSAGES
 				DumpErrorsToConsole({e.what()}, _notw);
 				return false;
 			}
+			std::cout << std::setw(_notw) << std::right << "\033[32mChecking...!\033[0m\n";
 			return true;
 		}
 
@@ -221,7 +243,7 @@ namespace SSAGES
 			// Build method(s).
 			PrintBoldNotice(" > Building method(s)...", _msgw, _world); 
 			try{
-				_MDDriver->BuildMethod(json.get("method", Json::objectValue), path)
+				_MDDriver->BuildMethod(json.get("method", Json::objectValue), path);
 			} catch(BuildException& e) {
 				DumpErrorsToConsole(e.GetErrors(), _notw);
 				return false;
@@ -229,7 +251,7 @@ namespace SSAGES
 				DumpErrorsToConsole({e.what()}, _notw);
 				return false;
 			}
-			
+			std::cout << std::setw(_notw) << std::right << "\033[32mChecking...!\033[0m\n";
 			return true;
 		}
 
@@ -237,17 +259,19 @@ namespace SSAGES
 		{
 
 			std::string contents;
-			std::string localInput = _MDDriver->GetInputFile(); 
-			if(localInput != "none")
-				_GlobalInput = localInput;
+			std::string localInput = _MDDriver->GetInputFile();
 
-			// All nodes get the same input file
-			if( _GlobalInput == "none")
+			if(_GlobalInput != "none" && localInput == "none")
 			{
-				BuildException e({"No input file defined in global scope or methods scope!"});
-				DumpErrorsToConsole(e.GetErrors(), _notw);
-				_world.abort(-1);
+				if(_world.rank() == 0)
+				{
+					std::cout<<"Global input file found, first using: "<<_GlobalInput<<std::endl;
+					contents = GetFileContents(_GlobalInput.c_str());
+				}
+				mpi::broadcast(_world, contents, 0);
 			}
+
+			_world.barrier();
 
 			// Each node reads in specified input file
 			if(localInput != "none")
@@ -259,15 +283,16 @@ namespace SSAGES
 				}
 				mpi::broadcast(_comm, contents, 0);
 			}
-			// All nodes get the same input file
-			else
-			{
-				if(_world.rank() == 0)
-					contents = GetFileContents(_GlobalInput.c_str());
-				mpi::broadcast(_world, contents, 0);
-			}
 
-			_MDDriver->ExecuteInputFile(contents);
+			try{
+				_MDDriver->ExecuteInputFile(contents);
+			} catch(BuildException& e) {
+				DumpErrorsToConsole(e.GetErrors(), _notw);
+				_world.abort(-1);
+			} catch(std::exception& e) {
+				DumpErrorsToConsole({e.what()}, _notw);
+				_world.abort(-1);
+			}
 
 		}
 

@@ -15,27 +15,34 @@ int main(int argc, char* argv[])
 	mpi::communicator world;
 
 	Json::Value root;
-	Json::Value JsonDriver;
 
 	Simulation Sim(world);
 
 	// Perform all the JSON reading and build the correct driver
 	root = Sim.ReadJSON(argv[1]);
 	Sim.BuildSimulation(root, "#/Simulations");
-	JsonDriver = Sim.BuildDriver(root.get("driver", Json::arrayValue), "#/Drivers");
-	bool CVCheck = Sim.BuildCVs(JsonDriver, "#/CVs");
-	bool MethodCheck = Sim.BuildMethod(JsonDriver, "#/Methods");
+	root = Sim.BuildDriver(root.get("driver", Json::arrayValue), "#/Drivers");
+	bool CVCheck = Sim.BuildCVs(root, "#/CVs");
+	bool MethodCheck = Sim.BuildMethod(root, "#/Methods");
 
 	if(CVCheck == 0 || MethodCheck == 0)
 	{
-		if(_comm.rank() == 0)
-			std::cout<<"Method and/or CV fail on node "<<_world.rank()<<std::endl;
-		_world.abort(-1);
+		std::cout<<"Method and/or CV fail"<<std::endl;
+		world.abort(-1);
 	}
 
+	std::cout << std::setw(47 + 8) << std::left << "\033[1m > JSON validation and simulation building \033[0m" << std::flush;
+	std::cout << std::setw(34) << std::right << "\033[32mFinished!\033[0m\n";
+	std::cout << std::setw(47 + 8) << std::left << "\033[1m > Reading MD Engine Input file...\033[0m" << std::endl;;	
 	Sim.ReadInputFile();
+	std::cout << std::setw(34) << std::right << "\033[32mFinished!\033[0m\n";
+
+	std::cout << std::setw(47 + 8) << std::left << "\033[1m > Finalizing Objects\033[0m" << std::flush;
 	Sim.Finalize();
+	std::cout << std::setw(34) << std::right << "\033[32mFinished!\033[0m\n";
 
 	// Run the MDEngine with Free energy calculations :)
+	std::cout << std::setw(47 + 8) << std::left << "\033[1m > Running simulation... \033[0m" << std::flush;
 	Sim.Run();
+	std::cout << std::setw(34) << std::right << "\033[32mFinished!\033[0m\n";
 }

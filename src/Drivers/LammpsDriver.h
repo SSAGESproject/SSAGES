@@ -4,6 +4,7 @@
 #include "Drivers/Driver.h"
 #include "../Validator/ObjectRequirement.h"
 #include "../include/schema.h"
+#include "../Utility/BuildException.h"
 #include "input.h"
 #include "modify.h"
 #include "fix.h"
@@ -26,9 +27,6 @@ namespace SSAGES
 
 		// The lammps logfile
 		std::string _logfile;
-
-		// The lammps inputfile if it exists
-		std::string _inputfile;
 
 	public:
 
@@ -54,18 +52,12 @@ namespace SSAGES
 			while(std::getline(ss, token, '\n'))
 				_lammps->input->one(token.c_str());
 
+			std::cout<<token<<std::endl;
+
 			auto fid = _lammps->modify->find_fix("ssages");
-			if(_hook = dynamic_cast<Hook*>(_lammps->modify->fix[fid]))
+			if(!(_hook = dynamic_cast<Hook*>(_lammps->modify->fix[fid])))
 			{
-				return;
-			}
-			else
-			{
-				if(_comm.rank() == 0)
-				{
-					std::cerr << "Unable to dynamic cast hook on node "<<_world.rank()<<" Error occurred" << std::endl;
-					_world.abort(-1);			
-				}
+				throw BuildException({"Unable to dynamic cast hook on node " + std::to_string(_world.rank())});			
 			}
 		}
 
@@ -86,7 +78,7 @@ namespace SSAGES
 
 			_MDsteps = json.get("MDSteps",1).asInt();
 			_inputfile = json.get("inputfile","none").asString();
-
+			
 			// Silence of the lammps.
 			char **largs = (char**) malloc(sizeof(char*) * 5);
 			for(int i = 0; i < 5; ++i)
