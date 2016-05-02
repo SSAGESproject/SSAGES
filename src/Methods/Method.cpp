@@ -113,6 +113,27 @@ namespace SSAGES
 
 			method = static_cast<Method*>(m);
 		}
+		else if(type == "ForwardFlux")
+		{
+			reader.parse(JsonSchema::ForwardFluxMethod, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+
+
+			// Check that no two local dump files have the same name,
+			// If so, this is not thread safe
+
+			// Check to see if any file names were not supplied, if so 
+			// give a default name to them for the constructor
+
+			auto* m = new ForwardFlux();
+
+			method = static_cast<Method*>(m);
+		}
 		else if(type == "FiniteTemperatureString")
 		{
 			reader.parse(JsonSchema::FTSMethod, schema);

@@ -1,0 +1,43 @@
+{
+	"type" : "object",
+	"varname" : "ForwardFluxMethod",
+	"properties" : {
+		"type" : { 
+			"type" : "string",
+			"enum" : ["ForwardFlux"]
+		},
+		"logfile" : {
+			"type" : "string"
+		},
+		"Library File" : {
+			"type" : "string"
+		},
+		"Config Dump File" : {
+			"type" : "string"
+		},
+		"start" : {
+			"type" : "integer"
+		},
+		"inter" : {
+			"type" : "integer"
+		},
+		"attempts" : {
+			"type" : "integer"
+		},
+		"New Library" : {
+			"type" : "boolean"
+		},
+		"steplength" : {
+			"type" : "integer"
+		},
+		"frequency2" : {
+			"type" : "integer"
+		},
+		"frequency" : {
+			"type" : "integer",
+			"minimum" : 1
+		}
+	},
+	"required": ["type", "ksprings", "centers"],
+	"additionalProperties": false
+}
