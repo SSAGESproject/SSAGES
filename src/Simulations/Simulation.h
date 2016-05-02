@@ -304,7 +304,16 @@ namespace SSAGES
 
 		void Run()
 		{
-			_MDDriver->Run();
+			try{
+				_MDDriver->Run();
+			} catch(BuildException& e) {
+				DumpErrorsToConsole(e.GetErrors(), _notw);
+				return false;
+			} catch(std::exception& e) {
+				DumpErrorsToConsole({e.what()}, _notw);
+				return false;
+			}
+			
 		}
 
 		virtual void Serialize(Json::Value& json) const override
