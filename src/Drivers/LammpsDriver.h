@@ -55,6 +55,9 @@ namespace SSAGES
 			std::cout<<token<<std::endl;
 
 			auto fid = _lammps->modify->find_fix("ssages");
+			if(fid < 0)
+				throw BuildException({"Could not find ssages fix in given input file!"});
+
 			if(!(_hook = dynamic_cast<Hook*>(_lammps->modify->fix[fid])))
 			{
 				throw BuildException({"Unable to dynamic cast hook on node " + std::to_string(_world.rank())});			
