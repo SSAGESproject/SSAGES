@@ -3,7 +3,9 @@
 #include "Method.h"
 #include "../CVs/CollectiveVariable.h"
 #include <fstream>
+#include "../FileContents.h"
 
+namespace mpi = boost::mpi;
 namespace SSAGES
 {
 	// ForwardFlux sampling method 
@@ -11,8 +13,11 @@ namespace SSAGES
 	{
 	private:
 
+		std::random_device _rd;
+		std::mt19937 _gen;
+
 		// Output index file for storing information on where everything is.
-		std::string _indexfilename;
+		std::string _indexfilename; //User defined
 		std::ofstream _indexfile;
 		std::string _indexcontents;
 		std::vector<std::vector<std::string> > _startinglibrary;
@@ -20,18 +25,29 @@ namespace SSAGES
 		std::vector<std::vector<std::string> > _indexinformation;
 
 		// Results file for end of simulation.
-		std::string _resultsfilename;
+		std::string _resultsfilename; //User defined
 		std::ofstream _resultsfile;
 		std::string _resultscontents;
 
+		// Dump file contents
+		std::string _dumpfilecontents;
+
 		// Location of the nodes to be used in determining FF interfaces
-		std::vector<std::vector<double> > _centers;
+		std::vector<std::vector<double>> _centers;
+
+		// Number of successes at a given interface
+		std::vector<int> _successes;
 
 		// User defined if we need to create a library of new configs or not
-		bool _NewRun;
+		bool _newrun;
+		bool _restartfromlibrary;
+		bool _restartfrominterface;
 
 		// Current interface FF is shooting from
 		int _currentinterface;
+
+		// The current starting configuration that we are on
+		int _currentstartingpoint;
 
 		// User defined number of starting configs needed per walker before starting FF
 		int _requiredconfigs;
@@ -43,16 +59,35 @@ namespace SSAGES
 		std::string _shootingconfigfile;
 
 		// Flux
-		int _flux;
+		int _fluxout;
+		int _fluxin;
 
 	public:
 		// Create instance of Forward Flux with centers "centers". 
 		ForwardFlux(boost::mpi::communicator& world,
 				 boost::mpi::communicator& comm,
-				 const std::vector<double>& centers,
+				 std::string indexfilename,
+				 std::string resultsfilename,
+				 std::vector<double> centers,
+				 bool newrun,
+				 int requiredconfigs,
 				 unsigned int frequency) : 
-		Method(frequency, world, comm), _centers(centers)
+		Method(frequency, world, comm), _rd(), _gen(_rd()), _indexfilename(indexfilename),
+		_indexfile(), _indexcontents(), _startinglibrary(), _localstartinglibrary(),
+		_indexinformation(), _resultsfilename(resultsfilename), _resultsfile(), _resultscontents(),
+		_dumpfilecontents(), _centers(), _successes(), _newrun(newrun), _restartfromlibrary(),
+		_restartfrominterface(), _currentinterface(),_currentstartingpoint(),
+		_requiredconfigs(requiredconfigs), _currenthash(), _shootingconfigfile(),_fluxout(0), _fluxin(0)
 		{
+			int numnodes = 0;
+			if(_comm.rank() == 0)
+				numnodes = 1;
+
+			mpi::all_reduce(_world, mpi::inplace(numnodes), std::plus<int>());
+
+			// Resize successes
+			mpi::all_gather(_world, centers, _centers);
+			_successes.resize(numnodes);
 		}
 
 		// Pre-simulation hook.
@@ -72,82 +107,37 @@ namespace SSAGES
 		// Extract all indices for a given interface. 
 		// Return true if couldnt locate anything at a given interface
 		bool ExtractInterfaceIndices(int interface, std::vector<std::vector<std::string> >& InterfaceIndices);
-		{
-			//Extract configuration indices for a given interface int
-			std::istringstream f(_indexcontents);
-			std::string line;
-			while (std::getline(f, line))
-			{
-				string buf; // Have a buffer string
-				stringstream ss(line); // Insert the string into a stream
-				vector<string> tokens; // Create vector to hold our words
+		
+		// Return the location of the nearest interface
+		int AtInterface(const CVList& cvs);
 
-				while (ss >> buf)
-				    tokens.push_back(buf);
+		// Write out configuration file, this updates library and index file as well
+		void WriteConfiguration(Snapshot* snapshot);
 
-				if(std::stoi(tokens[0]) == interface)
-					InterfaceIndices.push_back(tokens);
-			}
+		// Read a given configuration and update snapshot
+		void ReadConfiguration(Snapshot* snapshot, std::string dumpfilename);
 
-			if(InterfaceIndices.size() == 0)
-				return true;
+		// Clears everything to make way for a new run. Will overwrite and clear files as well
+		void ClearFiles();
 
-			return false;
-		}
+		// Sets up new library for a new run because previous library had no full successes
+		void SetUpNewRun(Snapshot* snapshot, const CVList& cvs);
 
-		int AtInterface(const CVList& cvs)
-		{
-			std::vector<double> dists;
-			dists.resize(_centers[0].size());
+		// Randomly picks a configuration from a given interface
+		std::string PickConfiguration(int interface);
 
-			// Record the difference between all cvs and all nodes
-			for (size_t i = 0; i < _centers.size(); i++)
-			{
-				dists[i] = 0;
-				for(size_t j = 0; j < cvs.size(); j++)
-					dists[i]+=(cvs[j]->GetValue() - _centers[i][j])*(cvs[j]->GetValue() - _centers[i][j]);
-			}
-
-			return (std::min_element(dists.begin(), dists.end()) - dists.begin());
-		}
-
-		void WriteConfiguration(Snapshot* snapshot)
-		{
-			const auto& positions = snapshot.GetPositions();
-			const auto& velocities = snapshot.GetVelocities();
-			const auto& atomID = snapshot.GetAtomIDs();
-
-			if(_comm.rank() == 0)
-			{	
-	
-				// Update index file of new configuration
-				_indexcontents
-
-				_shootingconfigfile
-				// Write the dump file out
-				std::string dumpfilename = "dump_"+std::to_string(_currentinterface)+"_"+std::to_string(_currenthash)+".dump";
-				std::ofstream dumpfile;
-				sprintf(file, dumpfilename);
-		 		dumpfile.open(file);
-
-		 		for(size_t i = 0; i< atomID.size(); i++)
-		 		{
-		 			dumpfile<<atiomID[i]<<" ";
-		 			dumpfile<<positions[i][0]<<" "<<positions[i][1]<<" "<<positions[i][2]<<" "<<std::endl;
-		 			dumpfile<<velocities[i][0]<<" "<<velocities[i][1]<<" "<<velocities[i][2]<<std::endl;
-				}
-
-		 		// Update starting library 
-		 		if(_currentinterface = 0)
-		 		{
-		 			std::vector<std::string> tmpstr;
-		 			tmpstr.push_back(std::to_string(_currentinterface));
-		 			tmpstr.push_back(dumpfilename);
-		 			tmpstr.push_back("Origin");
-
-		 			_localstartinglibrary.push_back(tmpstr);
-		 		}
-			}
-		}
 	};
 }
+
+
+/*
+File Formats:
+_indexfile
+interface(some integer) dump_file_name(a string that contains interface and trial number)
+example: 1 dump_1_10.xyz
+
+dumpfile
+atomid posx posy posz vx vy vz
+
+
+*/

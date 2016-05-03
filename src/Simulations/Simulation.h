@@ -308,10 +308,8 @@ namespace SSAGES
 				_MDDriver->Run();
 			} catch(BuildException& e) {
 				DumpErrorsToConsole(e.GetErrors(), _notw);
-				return false;
 			} catch(std::exception& e) {
 				DumpErrorsToConsole({e.what()}, _notw);
-				return false;
 			}
 			
 		}

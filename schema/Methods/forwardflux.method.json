@@ -6,38 +6,32 @@
 			"type" : "string",
 			"enum" : ["ForwardFlux"]
 		},
-		"logfile" : {
+		"library file" : {
 			"type" : "string"
 		},
-		"Library File" : {
+		"results file" : {
 			"type" : "string"
 		},
-		"Config Dump File" : {
-			"type" : "string"
+		"centers" : {
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
 		},
-		"start" : {
-			"type" : "integer"
-		},
-		"inter" : {
-			"type" : "integer"
-		},
-		"attempts" : {
-			"type" : "integer"
-		},
-		"New Library" : {
+		"new run" : {
 			"type" : "boolean"
 		},
-		"steplength" : {
-			"type" : "integer"
-		},
-		"frequency2" : {
-			"type" : "integer"
+		"generate configs" : {
+			"type" : "integer",
+			"minimum" : 1
 		},
 		"frequency" : {
 			"type" : "integer",
 			"minimum" : 1
 		}
 	},
-	"required": ["type", "ksprings", "centers"],
+	"required": ["type", "library file", "results file", "centers",
+	"new run", "generate configs", "frequency"],
 	"additionalProperties": false
 }

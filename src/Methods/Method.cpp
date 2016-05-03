@@ -8,6 +8,7 @@
 #include "FiniteTempString.h"
 #include "Meta.h"
 #include "Umbrella.h"
+#include "ForwardFlux.h"
 
 using namespace Json;
 
@@ -123,14 +124,18 @@ namespace SSAGES
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
 
+			std::vector<double> centers;
+			for(auto& s : json["centers"])
+				centers.push_back(s.asDouble());
 
-			// Check that no two local dump files have the same name,
-			// If so, this is not thread safe
+			auto libraryfile = json.get("library file", "none").asString();
+			auto resultsfile = json.get("results file", "none").asString();
+			auto newrun = json.get("new run",true).asBool();
+			auto genconfig = json.get("generate configs",1).asInt();
+			auto freq = json.get("frequency", 1).asInt();
 
-			// Check to see if any file names were not supplied, if so 
-			// give a default name to them for the constructor
-
-			auto* m = new ForwardFlux();
+			auto* m = new ForwardFlux(world, comm, libraryfile, resultsfile, 
+				centers, newrun, genconfig,freq);
 
 			method = static_cast<Method*>(m);
 		}
@@ -149,11 +154,11 @@ namespace SSAGES
 				centers.push_back(s.asDouble());
 
 			auto isteps = json.get("block iterations", 2000).asInt();
-			auto nsamples = json.get("number samples", 20).asInt();
 			auto kappa = json.get("kappa", 0.1).asDouble();
 			auto tau = json.get("time step", 0.1).asDouble();			
 			auto freq = json.get("frequency", 1).asInt();			
 
+			//Todo: Fix how NumNodes is determined! Currently incorrect
 			int NumNodes = comm.size();
 			auto* m = new FiniteTempString(world, comm, isteps, 
 									centers, NumNodes, kappa,
