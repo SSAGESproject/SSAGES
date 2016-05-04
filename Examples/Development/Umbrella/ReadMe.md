@@ -12,6 +12,7 @@ When adding a new method or CV there are a few universal steps you must take:
 1. Code your method or CV
 2. Code in the construction of your method or CV into either Method.cpp or CollectiveVariable.cpp.
 3. Create a schema for your method or CV
+4. Add .cpp file to CMakeLists.txt
 
 ##CV Development
 Lets take the torsional cv as an example:
@@ -96,3 +97,19 @@ if(type == "Umbrella")
 ```
 
 3. Create the required schema (see umbrella.method.json)
+4. Add .cpp file to CMakeLists.txt
+```bash
+# General source files
+set(SOURCE
+        src/Methods/Meta.cpp
+        src/Methods/Umbrella.cpp
+        src/Methods/ElasticBand.cpp
+        src/Methods/FiniteTempString.cpp
+        src/Methods/OSRW.cpp
+        src/Validator/RequirementLoader.cpp
+        src/JSON/jsoncpp.cpp
+        src/JSON/schema.cpp
+        src/CVs/CollectiveVariable.cpp
+        src/Methods/Method.cpp
+)
+```
