@@ -13,6 +13,7 @@ When adding a new method or CV there are a few universal steps you must take:
 2. Code in the construction of your method or CV into either Method.cpp or CollectiveVariable.cpp.
 3. Create a schema for your method or CV
 4. Add .cpp file to CMakeLists.txt
+5. Run python script (this will change in future releases) SSAGES/schema/buildschema.py
 
 ##CV Development
 Lets take the torsional cv as an example:
