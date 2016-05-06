@@ -1,0 +1,77 @@
+{
+    "inputfile" : "in.LAMMPS_FF_Test",
+    "driver" : [
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 100000,
+            "logfile" : "node-1",
+            "CVs" : [
+                {
+                    "type" : "AtomCoordinate",
+                    "atom id" : 1,
+                    "dimension" : "x"
+                }
+            ],
+            "method" : {
+                "type" : "ForwardFlux",
+                "library file" : "library_input.dat", 
+                "results file" : "results.dat",
+                "centers" : [
+                    -1.0
+                ],
+                "new run" : true,
+                "generate configs" : 2,
+                "frequency" : 1
+            }
+        },
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 100000,
+            "logfile" : "node-2",
+            "CVs" : [
+                {
+                    "type" : "AtomCoordinate",
+                    "atom id" : 1,
+                    "dimension" : "x"
+                }
+            ],
+            "method" : {
+                "type" : "ForwardFlux",
+                "library file" : "library_input.dat", 
+                "results file" : "results.dat",
+                "centers" : [
+                    -0.9
+                ],
+                "new run" : true,
+                "generate configs" : 2,
+                "frequency" : 1
+            }
+        },
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 100000,
+            "logfile" : "node-3",
+            "CVs" : [
+                {
+                    "type" : "AtomCoordinate",
+                    "atom id" : 1,
+                    "dimension" : "x"
+                }
+            ],
+            "method" : {
+                "type" : "ForwardFlux",
+                "library file" : "library_input.dat", 
+                "results file" : "results.dat",
+                "centers" : [
+                    -0.8
+                ],
+                "new run" : true,
+                "generate configs" : 2,
+                "frequency" : 1
+            }
+        }
+    ]
+}
