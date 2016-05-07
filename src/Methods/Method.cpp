@@ -131,11 +131,12 @@ namespace SSAGES
 			auto libraryfile = json.get("library file", "none").asString();
 			auto resultsfile = json.get("results file", "none").asString();
 			auto newrun = json.get("new run",true).asBool();
+			auto currentinterface = json.get("starting interface",0).asInt(); 
 			auto genconfig = json.get("generate configs",1).asInt();
 			auto freq = json.get("frequency", 1).asInt();
 
 			auto* m = new ForwardFlux(world, comm, libraryfile, resultsfile, 
-				centers, newrun, genconfig,freq);
+				currentinterface, centers, newrun, genconfig,freq);
 
 			method = static_cast<Method*>(m);
 		}

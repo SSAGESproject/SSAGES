@@ -21,16 +21,12 @@ namespace SSAGES
 		std::ofstream _indexfile;
 		std::string _indexcontents;
 		std::vector<std::vector<std::string> > _startinglibrary;
-		std::vector<std::vector<std::string> > _localstartinglibrary;
 		std::vector<std::vector<std::string> > _indexinformation;
 
 		// Results file for end of simulation.
 		std::string _resultsfilename; //User defined
 		std::ofstream _resultsfile;
 		std::string _resultscontents;
-
-		// Dump file contents
-		std::string _dumpfilecontents;
 
 		// Location of the nodes to be used in determining FF interfaces
 		std::vector<std::vector<double>> _centers;
@@ -68,26 +64,19 @@ namespace SSAGES
 				 boost::mpi::communicator& comm,
 				 std::string indexfilename,
 				 std::string resultsfilename,
-				 std::vector<double> centers,
+				 int currentinterface,
+				 std::vector<std::vector<double> > centers,
 				 bool newrun,
 				 int requiredconfigs,
 				 unsigned int frequency) : 
 		Method(frequency, world, comm), _rd(), _gen(_rd()), _indexfilename(indexfilename),
-		_indexfile(), _indexcontents(), _startinglibrary(), _localstartinglibrary(),
-		_indexinformation(), _resultsfilename(resultsfilename), _resultsfile(), _resultscontents(),
-		_dumpfilecontents(), _centers(), _successes(), _newrun(newrun), _restartfromlibrary(),
-		_restartfrominterface(), _currentinterface(),_currentstartingpoint(),
+		_indexfile(), _indexcontents(), _startinglibrary(), _indexinformation(), 
+		_resultsfilename(resultsfilename), _resultsfile(), _resultscontents(),
+		_dumpfilecontents(), _centers(centers), _successes(), _newrun(newrun), _restartfromlibrary(),
+		_restartfrominterface(), _currentinterface(currentinterface),_currentstartingpoint(),
 		_requiredconfigs(requiredconfigs), _currenthash(), _shootingconfigfile(),_fluxout(0), _fluxin(0)
 		{
-			int numnodes = 0;
-			if(_comm.rank() == 0)
-				numnodes = 1;
-
-			mpi::all_reduce(_world, mpi::inplace(numnodes), std::plus<int>());
-
-			// Resize successes
-			mpi::all_gather(_world, centers, _centers);
-			_successes.resize(numnodes);
+			_successes.resize(_centers.size());
 		}
 
 		// Pre-simulation hook.

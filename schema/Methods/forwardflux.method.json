@@ -16,11 +16,19 @@
 			"type" : "array",
 			"minItems" : 1,
 			"items" : {
-				"type" : "number"
+				"type" : "array",
+				"minItems" : 1,
+				"items" : {
+					"type" : "number"
+				}
 			}
 		},
 		"new run" : {
 			"type" : "boolean"
+		},
+		"starting interface" : {
+			"type" : "integer",
+			"minimum" : 1
 		},
 		"generate configs" : {
 			"type" : "integer",

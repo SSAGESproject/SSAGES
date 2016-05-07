@@ -3,6 +3,9 @@
 #include "../FileContents.h"
 #include <random>
 
+// This method involves a lot of bookkeeping. Typically the world node
+// will hold gather all needed information and pass it along as it occurs.
+
 namespace SSAGES
 {
 	void ForwardFlux::PreSimulation(Snapshot*, const CVList& cvs)
@@ -23,29 +26,28 @@ namespace SSAGES
 
 				_indexfile.open(_indexfilename.c_str(), std::ofstream::out | std::ofstream::app);
 				_resultsfile.open(_resultsfilename.c_str(), std::ofstream::out | std::ofstream::app);
-		 	}
-		}
 
-		if(!_newrun)
-		{
-			mpi::broadcast(_world, _indexcontents, 0);
-			mpi::broadcast(_world, _resultscontents, 0);
-		}
+				_restartfrominterface = true;
 
-		if(!_newrun)
-		{
-			if(ExtractInterfaceIndices(_currentinterface, _startinglibrary))
-			{
-				if(_world.rank() == 0)
+				if(!ExtractInterfaceIndices(_currentinterface, _startinglibrary))
 				{
-					std::cout << "Could not locate an interfaces at " << _currentinterface << " in ";
-					std::cout << _indexfilename << "! New starting configurations will be generated." << std::endl;
+					if(_world.rank() == 0)
+					{
+						std::cout << "Could not locate an interfaces at " << _currentinterface << " in ";
+						std::cout << _indexfilename << "! New starting configurations will be generated." << std::endl;
+					}
+					
+					// Clear and set private variables as if a new run is occuring
+					ClearFiles();
 				}
-				
-				// Clear and set private variables as if a new run is occuring
-				ClearFiles();
 			}
 		}
+		else
+			ClearFiles();
+
+		mpi::broadcast(_world, _startinglibrary, 0);
+		mpi::broadcast(_world, _newrun, 0);
+		mpi::broadcast(_world, _restartfrominterface, 0);
 	}
 
 	void ForwardFlux::PostIntegration(Snapshot* snapshot, const CVList& cvs)
@@ -55,8 +57,7 @@ namespace SSAGES
 			SetUpNewRun(snapshot, cvs);
 			return;
 		}
-
-		if(_restartfromlibrary)
+		else if(_restartfromlibrary)
 		{
 			ReadConfiguration(snapshot, _startinglibrary[_currentstartingpoint][1]);
 			_restartfromlibrary = false;
@@ -82,26 +83,33 @@ namespace SSAGES
 
 			MPI_Barrier(_world);
 			mpi::all_reduce(_world, mpi::inplace(&_successes.front()), _successes.size(), std::plus<int>());
+			// Broadcast the highest interface you have reached.
+			mpi::all_reduce(_world, mpi::inplace(_currentinterface), 1, maximum);
 
-			_restartfromlibrary = true;
-			for(auto& success : _successes)
-				if(success > 0)
-				{
-					_restartfromlibrary = false;
-					_restartfrominterface = true;
-				}
+			if(_successes[_currentinterface] > 0)
+			{
+				_restartfromlibrary = false;
+				_restartfrominterface = true;
+			}
+			else
+			{
+				_restartfromlibrary = true;
+				_restartfrominterface = false;
+			}
 
 			// If you need to start over, start from next starting library config
 			if(_restartfromlibrary == true)
-				_currentstartingpoint++;
-
-			// If you have exhausted initial starting configs, start a new run
-			if(_currentstartingpoint >= _startinglibrary.size())
 			{
-				std::cout<<"Could not locate transition from A->B with generated starting library!"<<std::endl;
-				_world.abort(0);
+				_currentstartingpoint++;
+				// If you have exhausted initial starting configs, abort for now.
+				if(_currentstartingpoint >= _startinglibrary.size())
+				{
+					std::cout<<"Could not locate transition from A->B with generated starting library!"<<std::endl;
+					_world.abort(0);
+				}
 			}
 
+			// If you have reached the final interface you are "done"! Abort for now.
 			if(_currentinterface >= _centers.size()-1)
 			{
 				std::cout<< "Found finishing configuration! "<<std::endl;
@@ -145,9 +153,9 @@ namespace SSAGES
 		}
 
 		if(InterfaceIndices.size() == 0)
-			return true;
+			return false;
 
-		return false;
+		return true;
 	}
 
 	int ForwardFlux::AtInterface(const CVList& cvs)
@@ -168,12 +176,14 @@ namespace SSAGES
 
 	void ForwardFlux::WriteConfiguration(Snapshot* snapshot)
 	{
-		const auto& positions = snapshot->GetPositions();
-		const auto& velocities = snapshot->GetVelocities();
-		const auto& atomID = snapshot->GetAtomIDs();
+		_indexcontents = "";
 
 		if(_comm.rank() == 0)
-		{	
+		{
+			const auto& positions = snapshot->GetPositions();
+			const auto& velocities = snapshot->GetVelocities();
+			const auto& atomID = snapshot->GetAtomIDs();
+
 			// Write the dump file out
 			std::string dumpfilename = "dump_"+std::to_string(_currentinterface)+"_"+std::to_string(_currenthash)+".dump";
 			std::ofstream dumpfile;
@@ -203,6 +213,7 @@ namespace SSAGES
 	 		// Update index file of new configuration
 	 		_indexcontents += tmpstr[0]+" "+tmpstr[1]+"\n";
 	 		_indexfile << tmpstr[0] <<" "<<tmpstr[1]<<" "<<tmpstr[2]<<std::endl;
+	 		dumpfile.close();
 		}
 
 		_currenthash++;
@@ -210,10 +221,12 @@ namespace SSAGES
 
 	void ForwardFlux::ReadConfiguration(Snapshot* snapshot, std::string dumpfilename)
 	{
-		if(_world.rank() == 0)
-			_dumpfilecontents = GetFileContents(dumpfilename.c_str());
+		std::string dumpfilecontents;
 
-		mpi::broadcast(_world, _dumpfilecontents, 0);
+		if(_world.rank() == 0)
+			dumpfilecontents = GetFileContents(dumpfilename.c_str());
+
+		mpi::broadcast(_world, dumpfilecontents, 0);
 
 		auto& positions = snapshot->GetPositions();
 		auto& velocities = snapshot->GetVelocities();
@@ -221,7 +234,7 @@ namespace SSAGES
 		auto& forces = snapshot->GetForces();
 
 		//Extract dump file information
-		std::istringstream f(_dumpfilecontents);
+		std::istringstream f(dumpfilecontents);
 		std::string line;
 		while (std::getline(f, line))
 		{
@@ -276,18 +289,21 @@ namespace SSAGES
 			tstr.clear();
 		}
 
-		_successes.clear();
+		for (auto& success : _successes)
+			success = 0;
 
-		// close files and reopen to overwrite
-		_indexfile.close();
-		_indexfile.open(_indexfilename.c_str());
+		if(_world.rank() == 0)
+		{
+			// close files and reopen to overwrite
+			_indexfile.close();
+			_indexfile.open(_indexfilename.c_str());
+
+			_resultsfile.close();
+			_resultsfile.open(_resultsfilename.c_str());
+		}
+
 		_indexcontents = "";
-			
-		_resultsfile.close();
-		_resultsfile.open(_resultsfilename.c_str());
 		_resultscontents = "";
-
-		_dumpfilecontents = "";
 
 		_currentinterface = 0;
 		_currenthash = 0;
@@ -295,13 +311,15 @@ namespace SSAGES
 		_fluxout = _fluxin = 0;
 
 		_newrun = true;
+		_restartfromlibrary = false;
+		_restartfrominterface = false;
 	}
 
-	// Check if starting a new run, if so generate new library 
+	// Setting up new run, so setup new starting configurations at the first interface
 	void ForwardFlux::SetUpNewRun(Snapshot* snapshot, const CVList& cvs)
 	{
-		int interface = AtInterface(cvs);
 		// Get CV values check if at next interface, if so store configuration
+		int interface = AtInterface(cvs);
 		if(interface == 1 && _currentinterface == 0)
 		{
 			_currentinterface = interface;
