@@ -1,7 +1,8 @@
 {
-    "inputfile" : "Butane_SSAGES.in",
+    "inputfile" : "clowns.in",
     "driver" : [
         {
+            "inputfile" : "Butane_SSAGES.in",
             "number processors" : 1,
             "type" : "LAMMPS",
             "MDSteps" : 100000,
