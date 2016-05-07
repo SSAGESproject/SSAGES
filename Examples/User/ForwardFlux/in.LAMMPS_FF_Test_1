@@ -21,7 +21,7 @@ group solid type 1
 
 #Set up fixes
 fix 1 all nve
-fix 2 all langevin 1.0 1.0 1.0 165876
+fix 2 all langevin 1.0 1.0 1.0 1376
 
 #Put up barriers so atom can't 'escape'
 fix 3 all wall/reflect xlo EDGE xhi EDGE ylo EDGE yhi EDGE 

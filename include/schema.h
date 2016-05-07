@@ -17,6 +17,7 @@ namespace SSAGES
 		static std::string AtomCoordinateCV;
 		static std::string CVs;
 		static std::string ForwardFluxMethod;
+		static std::string OSRWMethod;
 		static std::string UmbrellaMethod;
 		static std::string methods;
 		static std::string MetadynamicsMethod;

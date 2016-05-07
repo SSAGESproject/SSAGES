@@ -124,9 +124,14 @@ namespace SSAGES
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
 
-			std::vector<double> centers;
+			std::vector<std::vector<double> > centers;
 			for(auto& s : json["centers"])
-				centers.push_back(s.asDouble());
+			{
+				std::vector<double> temp;
+				for(auto& c : s["center"])
+					temp.push_back(c.asDouble());
+				centers.push_back(temp);
+			}
 
 			auto libraryfile = json.get("library file", "none").asString();
 			auto resultsfile = json.get("results file", "none").asString();
@@ -136,7 +141,7 @@ namespace SSAGES
 			auto freq = json.get("frequency", 1).asInt();
 
 			auto* m = new ForwardFlux(world, comm, libraryfile, resultsfile, 
-				currentinterface, centers, newrun, genconfig,freq);
+				currentinterface, centers, newrun, genconfig, freq);
 
 			method = static_cast<Method*>(m);
 		}

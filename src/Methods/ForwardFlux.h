@@ -20,8 +20,6 @@ namespace SSAGES
 		std::string _indexfilename; //User defined
 		std::ofstream _indexfile;
 		std::string _indexcontents;
-		std::vector<std::vector<std::string> > _startinglibrary;
-		std::vector<std::vector<std::string> > _indexinformation;
 
 		// Results file for end of simulation.
 		std::string _resultsfilename; //User defined
@@ -70,9 +68,8 @@ namespace SSAGES
 				 int requiredconfigs,
 				 unsigned int frequency) : 
 		Method(frequency, world, comm), _rd(), _gen(_rd()), _indexfilename(indexfilename),
-		_indexfile(), _indexcontents(), _startinglibrary(), _indexinformation(), 
-		_resultsfilename(resultsfilename), _resultsfile(), _resultscontents(),
-		_dumpfilecontents(), _centers(centers), _successes(), _newrun(newrun), _restartfromlibrary(),
+		_indexfile(), _indexcontents(), _resultsfilename(resultsfilename), _resultsfile(),
+		_resultscontents(), _centers(centers), _successes(), _newrun(newrun), _restartfromlibrary(),
 		_restartfrominterface(), _currentinterface(currentinterface),_currentstartingpoint(),
 		_requiredconfigs(requiredconfigs), _currenthash(), _shootingconfigfile(),_fluxout(0), _fluxin(0)
 		{

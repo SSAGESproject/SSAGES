@@ -29,7 +29,8 @@ namespace SSAGES
 
 				_restartfrominterface = true;
 
-				if(!ExtractInterfaceIndices(_currentinterface, _startinglibrary))
+				std::vector<std::vector<std::string> > tmp;
+				if(!ExtractInterfaceIndices(_currentinterface, tmp))
 				{
 					if(_world.rank() == 0)
 					{
@@ -45,7 +46,6 @@ namespace SSAGES
 		else
 			ClearFiles();
 
-		mpi::broadcast(_world, _startinglibrary, 0);
 		mpi::broadcast(_world, _newrun, 0);
 		mpi::broadcast(_world, _restartfrominterface, 0);
 	}
@@ -59,7 +59,9 @@ namespace SSAGES
 		}
 		else if(_restartfromlibrary)
 		{
-			ReadConfiguration(snapshot, _startinglibrary[_currentstartingpoint][1]);
+			std::vector<std::vector<std::string> > tmp;
+			ExtractInterfaceIndices(1, tmp);
+			ReadConfiguration(snapshot, tmp[_currentstartingpoint][1]);
 			_restartfromlibrary = false;
 			return;
 		}
@@ -83,8 +85,10 @@ namespace SSAGES
 
 			MPI_Barrier(_world);
 			mpi::all_reduce(_world, mpi::inplace(&_successes.front()), _successes.size(), std::plus<int>());
+			
+			int ci = _currentinterface;
 			// Broadcast the highest interface you have reached.
-			mpi::all_reduce(_world, mpi::inplace(_currentinterface), 1, maximum);
+			mpi::all_reduce(_world, ci, _currentinterface, mpi::maximum<int>());
 
 			if(_successes[_currentinterface] > 0)
 			{
@@ -102,10 +106,12 @@ namespace SSAGES
 			{
 				_currentstartingpoint++;
 				// If you have exhausted initial starting configs, abort for now.
-				if(_currentstartingpoint >= _startinglibrary.size())
+				std::vector<std::vector<std::string> > tmp;
+				ExtractInterfaceIndices(1, tmp);
+				if(_currentstartingpoint >= tmp.size())
 				{
-					std::cout<<"Could not locate transition from A->B with generated starting library!"<<std::endl;
-					_world.abort(0);
+					std::cout<<"Could not locate transition from A->B with generated starting library! Trying again with new library."<<std::endl;
+					ClearFiles();
 				}
 			}
 
@@ -127,6 +133,7 @@ namespace SSAGES
 		//Close local and global files
 		if(_world.rank() == 0)
 		{
+			_indexfile << _indexcontents<<std::endl;
 			_indexfile.close();
 			_resultsfile.close();
 		}
@@ -161,7 +168,7 @@ namespace SSAGES
 	int ForwardFlux::AtInterface(const CVList& cvs)
 	{
 		std::vector<double> dists;
-		dists.resize(_centers[0].size());
+		dists.resize(_centers.size());
 
 		// Record the difference between all cvs and all nodes
 		for (size_t i = 0; i < _centers.size(); i++)
@@ -176,8 +183,6 @@ namespace SSAGES
 
 	void ForwardFlux::WriteConfiguration(Snapshot* snapshot)
 	{
-		_indexcontents = "";
-
 		if(_comm.rank() == 0)
 		{
 			const auto& positions = snapshot->GetPositions();
@@ -199,20 +204,15 @@ namespace SSAGES
  			std::vector<std::string> tmpstr;
  			tmpstr.push_back(std::to_string(_currentinterface));
  			tmpstr.push_back(dumpfilename);
+
 	 		// Update starting library 
-	 		if(_currentinterface == 0)
-	 		{
-	 			tmpstr.push_back("Origin");
-	 			_localstartinglibrary.push_back(tmpstr);		 			
-	 		}
+	 		if(_currentinterface - 1 == 0)
+	 			tmpstr.push_back("Origin");		 			
 	 		else
-	 		{
 	 			tmpstr.push_back(_shootingconfigfile);
-	 		}
 
 	 		// Update index file of new configuration
-	 		_indexcontents += tmpstr[0]+" "+tmpstr[1]+"\n";
-	 		_indexfile << tmpstr[0] <<" "<<tmpstr[1]<<" "<<tmpstr[2]<<std::endl;
+	 		_indexcontents += tmpstr[0]+" "+tmpstr[1]+" "+tmpstr[2]+"\n";
 	 		dumpfile.close();
 		}
 
@@ -282,12 +282,6 @@ namespace SSAGES
 
 	void ForwardFlux::ClearFiles()
 	{
-		for(auto& tstr : _startinglibrary)
-		{
-			for(auto& tstr2 : tstr)
-				tstr2.clear();
-			tstr.clear();
-		}
 
 		for (auto& success : _successes)
 			success = 0;
@@ -306,7 +300,8 @@ namespace SSAGES
 		_resultscontents = "";
 
 		_currentinterface = 0;
-		_currenthash = 0;
+		_currenthash = 1000*_world.rank();
+		_currentstartingpoint = 0;
 
 		_fluxout = _fluxin = 0;
 
@@ -320,6 +315,8 @@ namespace SSAGES
 	{
 		// Get CV values check if at next interface, if so store configuration
 		int interface = AtInterface(cvs);
+		std::vector<std::vector<std::string> > TempLibrary;
+
 		if(interface == 1 && _currentinterface == 0)
 		{
 			_currentinterface = interface;
@@ -333,12 +330,13 @@ namespace SSAGES
 			_fluxin++;
 		}
 		
+		ExtractInterfaceIndices(1 , TempLibrary);
+
 		// See if found the required starting configs
-		if(_localstartinglibrary.size() >= _requiredconfigs)
+		if(TempLibrary.size() >= _requiredconfigs)
 		{
-			MPI_Barrier(_world);
-			mpi::all_gather(_world, &_localstartinglibrary, _localstartinglibrary.size(), &_startinglibrary);
-			
+			mpi::all_reduce(_world, mpi::inplace(_indexcontents), std::plus<std::string>());
+
 			_newrun = false;
 			_restartfromlibrary = true;
 
