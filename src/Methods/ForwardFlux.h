@@ -16,10 +16,15 @@ namespace SSAGES
 		std::random_device _rd;
 		std::mt19937 _gen;
 
+		enum Restart {NEW, LIBRARY, OLDCONFIG, NEWCONFIG, NONE};
+		Restart _restart;
+
 		// Output index file for storing information on where everything is.
 		std::string _indexfilename; //User defined
 		std::ofstream _indexfile;
 		std::string _indexcontents;
+		std::string _globalcontents;
+		std::string _librarycontents;
 
 		// Results file for end of simulation.
 		std::string _resultsfilename; //User defined
@@ -31,14 +36,11 @@ namespace SSAGES
 
 		// Number of successes at a given interface
 		std::vector<int> _successes;
-
-		// User defined if we need to create a library of new configs or not
-		bool _newrun;
-		bool _restartfromlibrary;
-		bool _restartfrominterface;
+		std::vector<int> _localsuccesses;
+		std::vector<std::vector< int> > _paths;
 
 		// Current interface FF is shooting from
-		int _currentinterface;
+		int _currentnode;
 
 		// The current starting configuration that we are on
 		int _currentstartingpoint;
@@ -52,9 +54,16 @@ namespace SSAGES
 		// Name of file of configuration where shooting from
 		std::string _shootingconfigfile;
 
+		// Number of shots each node takes per interface
+		int _numshots;
+		int _currentshot;
+
 		// Flux
 		int _fluxout;
 		int _fluxin;
+
+		// Probabilities
+		std::vector<double> _weight;
 
 	public:
 		// Create instance of Forward Flux with centers "centers". 
@@ -66,14 +75,28 @@ namespace SSAGES
 				 std::vector<std::vector<double> > centers,
 				 bool newrun,
 				 int requiredconfigs,
+				 int numshots,
 				 unsigned int frequency) : 
-		Method(frequency, world, comm), _rd(), _gen(_rd()), _indexfilename(indexfilename),
-		_indexfile(), _indexcontents(), _resultsfilename(resultsfilename), _resultsfile(),
-		_resultscontents(), _centers(centers), _successes(), _newrun(newrun), _restartfromlibrary(),
-		_restartfrominterface(), _currentinterface(currentinterface),_currentstartingpoint(),
-		_requiredconfigs(requiredconfigs), _currenthash(), _shootingconfigfile(),_fluxout(0), _fluxin(0)
+		Method(frequency, world, comm), _rd(), _gen(_rd()), _restart(LIBRARY),
+		_indexfilename(indexfilename), _indexfile(), _indexcontents(""), _globalcontents(""), 
+		_resultsfilename(resultsfilename), _resultsfile(), _resultscontents(""),
+		_centers(centers), _successes(), _currentnode(currentinterface),
+		_currentstartingpoint(-1), _requiredconfigs(requiredconfigs), _currenthash(10000*world.rank()), 
+		_shootingconfigfile(""), _numshots(numshots), _currentshot(0), _fluxout(0), _fluxin(0)
 		{
 			_successes.resize(_centers.size());
+			_localsuccesses.resize(_centers.size());
+			for(size_t i = 0; i < _successes.size(); i++)
+			{
+				_successes[i] = 0;
+				_localsuccesses[i] = 0;
+			}
+			_weight.resize(_requiredconfigs);
+
+			if(newrun)
+				_restart = NEW;
+			else
+				_restart = LIBRARY;
 		}
 
 		// Pre-simulation hook.
@@ -91,8 +114,9 @@ namespace SSAGES
 		}
 
 		// Extract all indices for a given interface. 
-		// Return true if couldnt locate anything at a given interface
-		bool ExtractInterfaceIndices(int interface, std::vector<std::vector<std::string> >& InterfaceIndices);
+		// Return false if couldnt locate anything at a given interface
+		bool ExtractInterfaceIndices(int interface, const std::string contents,
+									 std::vector<std::vector<std::string> >& InterfaceIndices);
 		
 		// Return the location of the nearest interface
 		int AtInterface(const CVList& cvs);
@@ -103,14 +127,17 @@ namespace SSAGES
 		// Read a given configuration and update snapshot
 		void ReadConfiguration(Snapshot* snapshot, std::string dumpfilename);
 
-		// Clears everything to make way for a new run. Will overwrite and clear files as well
-		void ClearFiles();
+		// Clears everything to make way for a new run.
+		void CleanUp();
 
 		// Sets up new library for a new run because previous library had no full successes
 		void SetUpNewRun(Snapshot* snapshot, const CVList& cvs);
 
+		// Sets up the run from previous configuration
+		bool SetUpRestartRun(Snapshot* snapshot);
+
 		// Randomly picks a configuration from a given interface
-		std::string PickConfiguration(int interface);
+		std::string PickConfiguration(int interface, std::string contents);
 
 	};
 }

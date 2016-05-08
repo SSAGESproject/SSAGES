@@ -35,6 +35,10 @@
 			"type" : "integer",
 			"minimum" : 1
 		},
+		"shots" : {
+			"type" : "integer",
+			"minimum" : 1
+		},
 		"generate configs" : {
 			"type" : "integer",
 			"minimum" : 1

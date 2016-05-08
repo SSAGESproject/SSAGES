@@ -1,30 +1,28 @@
 {
-    "inputfile" : "in.LAMMPS_Meta_Test",
+    "inputfile" : "in.LAMMPS_FF_Test",
     "driver" : [
         {
             "number processors" : 1,
             "type" : "LAMMPS",
-            "MDSteps" : 100000,
+            "MDSteps" : 1000000000,
             "logfile" : "node-1",
             "CVs" : [
                 {
                     "type" : "AtomCoordinate",
-                    "atom id" : 0,
+                    "atom id" : 1,
                     "dimension" : "x"
-                },
-                {
-                    "type" : "AtomCoordinate",
-                    "atom id" : 0,
-                    "dimension" : "y"
                 }
             ],
             "method" : {
-                "type" : "Metadynamics",
-                "widths" : [
-                    10,
-                    10
+                "type" : "ForwardFlux",
+                "library file" : "library_input.dat", 
+                "results file" : "results.dat",
+                "centers" : [
                 ],
-                "height" : 1.0
+                "new run" : true,
+                "shots" : 1,
+                "generate configs" : 20,
+                "frequency" : 1
             }
         }
     ]
