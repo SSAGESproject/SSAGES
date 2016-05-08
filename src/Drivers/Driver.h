@@ -40,13 +40,18 @@ namespace SSAGES
 		//local input file
 		std::string _inputfile;
 
+		// Random number generators for setting seeds
+		std::random_device _rd;
+		std::mt19937 _gen;
+
 	public:
 
 		Driver(boost::mpi::communicator& world, 
 			   boost::mpi::communicator& comm,
 			   int walkerID) : 
 		_world(world), _comm(comm), _wid(walkerID),
-		_hook(), _snapshot(), _method(), _CVs()
+		_hook(), _snapshot(), _method(), _CVs(),
+		_rd(), _gen(_rd())
 		 {}
 
 		virtual ~Driver()

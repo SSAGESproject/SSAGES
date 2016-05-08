@@ -47,12 +47,19 @@ namespace SSAGES
 		virtual void ExecuteInputFile(std::string contents) override
 		{
 			// Go through lammps.
+			std::uniform_int_distribution<> dis(1, 999999);
+
 			std::string token;
 			std::istringstream ss(contents);
-			while(std::getline(ss, token, '\n'))
-				_lammps->input->one(token.c_str());
 
-			std::cout<<token<<std::endl;
+			while(std::getline(ss, token, '\n'))
+			{
+				int seedspot = token.find("SEED");
+				if(seedspot >= 0)
+					token.replace(seedspot, 4, std::to_string(dis(_gen)));
+
+				_lammps->input->one(token.c_str());
+			}
 
 			auto fid = _lammps->modify->find_fix("ssages");
 			if(fid < 0)
