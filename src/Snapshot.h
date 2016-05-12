@@ -20,6 +20,8 @@ namespace SSAGES
 		// Walker ID.
 		unsigned _wid;
 
+		std::string _ID;
+
 		std::vector<Vector3> _positions;
 		std::vector<Vector3> _velocities;
 		std::vector<Vector3> _forces;
@@ -132,6 +134,14 @@ namespace SSAGES
 			_changed = true; 
 			return _types; 
 		}
+
+		const std::string& GetSnapshotID() const { return _ID; }
+		std::string& GetSnapshotID() 
+		{
+			_changed = true; 
+			return _ID; 
+		}
+
 
 		bool HasChanged() const { return _changed; }
 		void Changed(bool state) { _changed = state; }

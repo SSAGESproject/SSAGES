@@ -25,6 +25,7 @@ namespace SSAGES
 		std::string _indexcontents;
 		std::string _globalcontents;
 		std::string _librarycontents;
+		std::vector<Snapshot> _dumpconfigs;
 
 		// Results file for end of simulation.
 		std::string _resultsfilename; //User defined
@@ -119,25 +120,59 @@ namespace SSAGES
 									 std::vector<std::vector<std::string> >& InterfaceIndices);
 		
 		// Return the location of the nearest interface
-		int AtInterface(const CVList& cvs);
+		int AtInterface(const CVList& cvs)
+		{
+			std::vector<double> dists;
+			dists.resize(_centers.size());
+
+			// Record the difference between all cvs and all nodes
+			for (size_t i = 0; i < _centers.size(); i++)
+			{
+				dists[i] = 0;
+				for(size_t j = 0; j < cvs.size(); j++)
+					dists[i]+=(cvs[j]->GetValue() - _centers[i][j])*(cvs[j]->GetValue() - _centers[i][j]);
+			}
+
+			return (std::min_element(dists.begin(), dists.end()) - dists.begin());
+		}
+
+		// store configuration (NEW in _libraryconfig, other in _dumpconfig)
+		void StoreConfiguration(Snapshot* snapshot, int interface)
+		{
+			std::string dumpfilename = "dump_"+std::to_string(interface)+"_"+std::to_string(_currenthash)+".dump";
+			_dumpconfigs.push_back(*snapshot);
+			auto& snapshotID = _dumpconfigs.back().GetSnapshotID();
+			auto& oldsnapshotID = snapshot->GetSnapshotID();
+			
+			snapshotID = dumpfilename;
+			oldsnapshotID = dumpfilename;
+
+			_currenthash++;
+		}
 
 		// Write out configuration file, this updates library and index file as well
 		void WriteConfiguration(Snapshot* snapshot);
 
-		// Read a given configuration and update snapshot
+		// Read a given configuration from file and update snapshot
 		void ReadConfiguration(Snapshot* snapshot, std::string dumpfilename);
+		
+		// Read a given configuration from _dumpcontents and update snapshot
+		void ReadConfiguration(Snapshot* snapshot);
 
 		// Clears everything to make way for a new run.
 		void CleanUp();
 
 		// Sets up new library for a new run because previous library had no full successes
-		void SetUpNewRun(Snapshot* snapshot, const CVList& cvs);
+		void SetUpNewLibrary(Snapshot* snapshot, const CVList& cvs);
 
 		// Sets up the run from previous configuration
 		bool SetUpRestartRun(Snapshot* snapshot);
 
 		// Randomly picks a configuration from a given interface
 		std::string PickConfiguration(int interface, std::string contents);
+
+		// Randomly picks a configuration from list of _dumpconfigs
+		void PickConfiguration();
 
 	};
 }

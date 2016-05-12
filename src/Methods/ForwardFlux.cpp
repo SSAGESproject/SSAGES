@@ -9,69 +9,27 @@
 namespace SSAGES
 {
 	void ForwardFlux::PreSimulation(Snapshot* snap, const CVList& cvs)
-	{	
-		// Before the simulation begins:
-		// Open up files and read if needed
-		if(_world.rank() == 0)
-		{
-			switch(_restart)
-			{
-				case LIBRARY:
-					_globalcontents = GetFileContents(_indexfilename.c_str());
-					_resultscontents = GetFileContents(_resultsfilename.c_str());
+	{
+		_indexfile.open(_indexfilename.c_str());
+		_resultsfile.open(_resultsfilename.c_str());
+		_restart = NEW;
 
-					_indexfile.open(_indexfilename.c_str(), std::ofstream::out | std::ofstream::app);
-					_resultsfile.open(_resultsfilename.c_str(), std::ofstream::out | std::ofstream::app);
-					break;
-				case NEW:
-					_indexfile.open(_indexfilename.c_str());
-					_resultsfile.open(_resultsfilename.c_str());
-				default:
-					std::cout<<"Starting from new config"<<std::endl;
-					break;
-			}
-		}
-
-		switch(_restart)
-		{
-			// Restarting from library
-			case LIBRARY:
-				if(!SetUpRestartRun(snap))
-				{
-					if(_world.rank() == 0)
-					{
-						_indexfile.close();
-						_resultsfile.close();
-						_indexfile.open(_indexfilename.c_str());
-						_resultsfile.open(_indexfilename.c_str());
-					}
-					_restart = NEW;
-					CleanUp();
-				}
-				break;
-			// New simulation
-			case NEW:
-				CleanUp();
-				break;
-			default:
-				std::cout<<"Error starting forward flux"<<std::endl;
-				_world.abort(0);
-		}
+		_currentnode = AtInterface(cvs);
 	}
 
 	void ForwardFlux::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
-		std::vector<std::vector<std::string> > tmp;
 		switch(_restart)
 		{
-			// Create a new library of starting configs
 			case NEW:
-				SetUpNewRun(snapshot, cvs);
+			{
+				SetUpNewLibrary(snapshot, cvs);
 				return;
-			// Run from starting configs
+			}
 			case LIBRARY:
-				_currentstartingpoint++;
-				if(!(ExtractInterfaceIndices(1, _librarycontents, tmp)))
+			{
+				std::vector<std::vector<std::string> > tmp;
+				if(!(ExtractInterfaceIndices(0, _globalcontents, tmp)))
 				{
 					std::cout<< "Could not locate any files";
 					std::cout<< " at first interface!"<<std::endl;
@@ -87,90 +45,22 @@ namespace SSAGES
 					_world.abort(0);
 				}
 
-				ReadConfiguration(snapshot, tmp[_currentstartingpoint][1]);
+				std::string dumpfilecontents;
+				_shootingconfigfile = tmp[_currentstartingpoint][1];
+				if(_world.rank() == 0)
+					dumpfilecontents = GetFileContents(_shootingconfigfile.c_str());
+				mpi::broadcast(_world, dumpfilecontents, 0);
 
+				ReadConfiguration(snapshot, dumpfilecontents);
 				_restart = NONE;
-				_indexcontents = "";
-				_currentshot = 0;
-				_currentnode = 1;
+				_currentstartingpoint++;
 				break;
-			// Run from a new configuration on an interface
-			case NEWCONFIG:
-				ReadConfiguration(snapshot, PickConfiguration(_currentnode, _indexcontents));
-				_indexcontents = "";
-				_currentshot = 0;
-				_restart = NONE;
-				break;
-			// Shoot another trajectory using same walker from old configuration
-			case OLDCONFIG:
-				ReadConfiguration(snapshot, _shootingconfigfile);
-				_restart = NONE;
-				break;
+			}
 			default:
+			{
 				break;
-		}
-
-		int atinter = AtInterface(cvs);
-
-		// Check if at interface or back to start
-		if(atinter == _currentnode + 1 || atinter == 0)
-		{
-			_currentshot++;
-			_currentnode++;
-
-			// Check if you made it to the next one!
-			if(atinter == _currentnode)
-			{
-				_localsuccesses[_currentnode]++;
-				WriteConfiguration(snapshot);
 			}
-
-			// Make sure you made all the shots you need to make for this walker
-			if(_currentshot < _numshots)
-			{
-				_currentnode--;
-				_restart = OLDCONFIG;
-				return;
-			}
-
-			mpi::all_reduce(_world, _localsuccesses[_currentnode], _successes[_currentnode], std::plus<int>());
-			
-			// Did at least one walker make it?
-			if(_successes[_currentnode] > 0)
-			{
-				mpi::all_reduce(_world, mpi::inplace(_indexcontents), std::plus<std::string>());
-				_restart = NEWCONFIG;
-
-				// If you have reached the final interface you are "done" with that path
-				if(_currentnode >= _centers.size()-1)
-				{
-					std::cout<< "Found finishing configuration! "<<std::endl;
-					_restart = LIBRARY;
-				}
-			}
-			else
-			{
-				// Didn't make it so write out this path
-				for(size_t k = 0; k<_successes.size();k++)
-					_paths[_currentstartingpoint][k] = _successes[k];
-
-				for(auto& l : _localsuccesses)
-					l = 0;
-
-				if(_world.rank()==0)
-				{
-					std::cout<<"Did not advance past "<<_currentnode;
-					std::cout<<". Attempting from config "<<_currentstartingpoint<<" on interface 1."<<std::endl;
-					std::cout<<std::flush;
-					std::cout<<"Node location ";
-					for(auto& center : _centers[_currentnode])
-						std::cout<<center<<" ";
-					std::cout<<std::endl;
-				}
-
-				_restart = LIBRARY;
-			}
-		}
+		}	
 	}
 
 	void ForwardFlux::PostSimulation(Snapshot*, const CVList&)
@@ -181,20 +71,79 @@ namespace SSAGES
 		//Close local and global files
 		if(_world.rank() == 0)
 		{
-			_indexfile << _globalcontents<<std::endl;
+			_indexfile<<_indexcontents<<std::endl;
 			_resultsfile<<"flux in: "<<_fluxin<<std::endl;
 			_resultsfile<<"flux out: "<<_fluxout<<std::endl;
-			_resultsfile<<"Shots: "<<_numshots<<std::endl;
-			for(auto& p : _paths)
-			{
-				for(size_t i = 0; i < p.size(); i++)
-					_resultsfile<<p[i]<<" ";
-				_resultsfile<<std::endl;
-			}
 
 			_indexfile.close();
 			_resultsfile.close();
 		}
+	}
+
+	// Setting up new run, so setup new starting configurations at the first interface
+	void ForwardFlux::SetUpNewLibrary(Snapshot* snapshot, const CVList& cvs)
+	{
+		// Get CV values check if at next interface, if so store configuration
+		int interface = AtInterface(cvs);
+		_shootingconfigfile = "Origin";
+
+		// Flux out of A
+		if(interface == 1 && _currentnode == 0)
+		{
+			auto& ID = snapshot->GetSnapshotID();
+			ID = "dump_"+std::to_string(interface)+"_"+std::to_string(_currenthash)+".dump";
+			_currenthash++;
+			if(_comm.rank()==0)
+				WriteConfiguration(snapshot);
+
+			_fluxout++;
+		}
+		// Flux back in towards A
+		else if(interface == 0 && _currentnode == 1)
+			_fluxin++;
+
+		_currentnode = interface;
+
+		std::vector<std::vector<std::string> > TempLibrary;
+		ExtractInterfaceIndices(0, _indexcontents, TempLibrary);
+
+		if(TempLibrary.size() >= _requiredconfigs && _currentnode == 0)
+		{
+			_restart = LIBRARY;
+			mpi::all_reduce(_world, _indexcontents, _globalcontents, std::plus<std::string>());
+			_currentstartingpoint = 0;
+		}
+	}
+
+	void ForwardFlux::WriteConfiguration(Snapshot* snapshot)
+	{
+		const auto& positions = snapshot->GetPositions();
+		const auto& velocities = snapshot->GetVelocities();
+		const auto& atomID = snapshot->GetAtomIDs();
+		const auto& dumpfilename = snapshot->GetSnapshotID();
+		std::cout<<"dump size: "<<_dumpconfigs.size();
+		std::cout<<" dump: "<<dumpfilename <<std::endl;
+		std::cout<<positions[0][0]<<" "<<positions[0][1]<<" "<<positions[0][2]<<std::endl;
+
+		// Write the dump file out
+		std::ofstream dumpfile;
+ 		dumpfile.open(dumpfilename.c_str());
+
+ 		for(size_t i = 0; i< atomID.size(); i++)
+ 		{
+ 			dumpfile<<atomID[i]<<" ";
+ 			dumpfile<<positions[i][0]<<" "<<positions[i][1]<<" "<<positions[i][2]<<" ";
+ 			dumpfile<<velocities[i][0]<<" "<<velocities[i][1]<<" "<<velocities[i][2]<<std::endl;
+		}
+
+		std::vector<std::string> tmpstr;
+		tmpstr.push_back(std::to_string(_currentnode));
+		tmpstr.push_back(dumpfilename);
+ 		tmpstr.push_back(_shootingconfigfile);
+
+ 		// Update index file of new configuration
+ 		_indexcontents += tmpstr[0]+" "+tmpstr[1]+" "+tmpstr[2]+"\n";
+ 		dumpfile.close();
 	}
 
 	// Extract all indices for a given interface and contetns. 
@@ -224,63 +173,18 @@ namespace SSAGES
 		return true;
 	}
 
-	void ForwardFlux::WriteConfiguration(Snapshot* snapshot)
+	void ForwardFlux::ReadConfiguration(Snapshot* snapshot, std::string FileContents)
 	{
-		if(_comm.rank() == 0)
-		{
-			const auto& positions = snapshot->GetPositions();
-			const auto& velocities = snapshot->GetVelocities();
-			const auto& atomID = snapshot->GetAtomIDs();
-
-			// Write the dump file out
-			std::string dumpfilename = "dump_"+std::to_string(_currentnode)+"_"+std::to_string(_currenthash)+".dump";
-			std::ofstream dumpfile;
-	 		dumpfile.open(dumpfilename.c_str());
-
-	 		for(size_t i = 0; i< atomID.size(); i++)
-	 		{
-	 			dumpfile<<atomID[i]<<" ";
-	 			dumpfile<<positions[i][0]<<" "<<positions[i][1]<<" "<<positions[i][2]<<" ";
-	 			dumpfile<<velocities[i][0]<<" "<<velocities[i][1]<<" "<<velocities[i][2]<<std::endl;
-			}
-
- 			std::vector<std::string> tmpstr;
- 			tmpstr.push_back(std::to_string(_currentnode));
- 			tmpstr.push_back(dumpfilename);
-
-	 		// Update starting library 
-	 		if(_currentnode  == 1)
-	 			tmpstr.push_back("Origin");		 			
-	 		else
-	 			tmpstr.push_back(_shootingconfigfile);
-
-	 		// Update index file of new configuration
-	 		_indexcontents += tmpstr[0]+" "+tmpstr[1]+" "+tmpstr[2]+"\n";
-	 		_globalcontents += tmpstr[0]+" "+tmpstr[1]+" "+tmpstr[2]+"\n";
-	 		dumpfile.close();
-		}
-
-		_currenthash++;
-	}
-
-	void ForwardFlux::ReadConfiguration(Snapshot* snapshot, std::string dumpfilename)
-	{
-		std::string dumpfilecontents;
-
-		_shootingconfigfile = dumpfilename;
-
-		if(_world.rank() == 0)
-			dumpfilecontents = GetFileContents(dumpfilename.c_str());
-
-		mpi::broadcast(_world, dumpfilecontents, 0);
-
 		auto& positions = snapshot->GetPositions();
 		auto& velocities = snapshot->GetVelocities();
 		auto& atomID = snapshot->GetAtomIDs();
 		auto& forces = snapshot->GetForces();
+		auto& ID = snapshot->GetSnapshotID();
 
-		//Extract dump file information
-		std::istringstream f(dumpfilecontents);
+		ID = _shootingconfigfile;
+
+		//Extract _currentconfig information
+		std::istringstream f(FileContents);
 		std::string line;
 		while (std::getline(f, line))
 		{
@@ -294,7 +198,7 @@ namespace SSAGES
 
 			if(tokens.size() != 7)
 			{
-				std::cout<<"error, incorrect line format in "<<dumpfilename<<" on line: "<<std::endl;
+				std::cout<<"error, incorrect line format in "<<_shootingconfigfile<<" on line: "<<std::endl;
 				std::cout<<line<<std::endl;
 				_world.abort(-1);	
 			}
@@ -322,145 +226,5 @@ namespace SSAGES
 				for(auto& xyz : force)
 					xyz = 0;
 		}
-	}
-
-	// Pick a random configuration
-	std::string ForwardFlux::PickConfiguration(int interface, std::string contents)
-	{
-		std::string configfilename;
-		if(_world.rank() == 0)
-		{
-			std::vector<std::vector<std::string> > files; 
-			if(!(ExtractInterfaceIndices(interface, contents, files)))
-			{
-				std::cout<< "Could not locate any files at interface ";
-				std::cout<< interface<<" in PickCOnfiguration!"<<std::endl;
-				std::cout<< contents<<std::endl;
-				_world.abort(-1);
-			}
-
-			std::uniform_int_distribution<> dis(0, files.size()-1);
-			int configfile = dis(_gen);
-			configfilename = files[configfile][1];
-		}
-
-		mpi::broadcast(_world, configfilename, 0);
-
-		return configfilename;
-	}
-
-	// Setting up new run, so setup new starting configurations at the first interface
-	void ForwardFlux::SetUpNewRun(Snapshot* snapshot, const CVList& cvs)
-	{
-		// Get CV values check if at next interface, if so store configuration
-		int interface = AtInterface(cvs);
-		std::vector<std::vector<std::string> > TempLibrary;
-
-		// Flux out of A
-		if(interface == 1 && _currentnode == 0)
-		{
-			_currentnode = interface;
-			WriteConfiguration(snapshot);
-			_localsuccesses[_currentnode]++;
-			_fluxout++;
-		}
-		// Flux back in towards A
-		else if(interface == 0 && _currentnode == 1)
-		{
-			_currentnode = interface;
-			_fluxin++;
-		}
-
-		// Get all starting configs for this walker
-		ExtractInterfaceIndices(1, _indexcontents, TempLibrary);
-
-		// See if found the required starting configs
-		if(TempLibrary.size() >= _requiredconfigs && _currentnode == 0)
-		{
-			mpi::all_reduce(_world, _indexcontents, _librarycontents, std::plus<std::string>());
-			
-			_restart = LIBRARY;
-			_indexcontents="";
-
-			int temp=0;
-			if(_comm.rank() == 0)
-				temp = TempLibrary.size();
-
-			mpi::all_reduce(_world,mpi::inplace(temp),std::plus<int>());
-			_paths.resize(temp);
-			for(auto& path : _paths)
-				path.resize(_successes.size());
-
-			//Start at first location
-			_currentstartingpoint = -1;
-			_currentnode = 1;
-		}
-	}
-
-	// Setup for a restart run, currently not implemented
-	bool ForwardFlux::SetUpRestartRun(Snapshot* snapshot)
-	{
-		std::vector<std::vector<std::string> > tmp;
-		std::vector<std::vector<std::string> > tmps;
-		if(!(ExtractInterfaceIndices(_currentnode, _globalcontents, tmp)))
-		{
-			std::cout<< "Could not locate any files";
-			std::cout<< " reading from library, starting new run!"<<std::endl;
-			std::cout<<"Library"<< _globalcontents<<std::endl;
-			std::cout<<"interface" << _currentnode<<std::endl;
-			return false;
-		}
-
-		ReadConfiguration(snapshot, PickConfiguration(_currentnode, _globalcontents));
-		_restart = NONE;
-
-		for (auto& success : _successes)
-			success = 0;
-
-		_indexcontents = "";
-		_librarycontents = "";
-		ExtractInterfaceIndices(1, _globalcontents, tmps);
-		for(auto& t : tmps)
-			_librarycontents += t[0]+" "+t[1]+" "+t[2]+"\n";
-		_resultscontents = "";
-
-		_currenthash = 100000*_world.rank();
-		_currentstartingpoint = -1;
-
-		_fluxout = _fluxin = 0;
-		return true;
-	}
-
-	void ForwardFlux::CleanUp()
-	{
-		for (auto& success : _successes)
-			success = 0;
-
-		_indexcontents = "";
-		_globalcontents = "";
-		_librarycontents = "";
-		_resultscontents = "";
-
-		_currentnode = 0;
-		_currenthash = 100000*_world.rank();
-		_currentstartingpoint = -1;
-
-		_fluxout = _fluxin = 0;
-	}
-
-	int ForwardFlux::AtInterface(const CVList& cvs)
-	{
-		std::vector<double> dists;
-		dists.resize(_centers.size());
-
-		// Record the difference between all cvs and all nodes
-		for (size_t i = 0; i < _centers.size(); i++)
-		{
-			dists[i] = 0;
-			for(size_t j = 0; j < cvs.size(); j++)
-				dists[i]+=(cvs[j]->GetValue() - _centers[i][j])*(cvs[j]->GetValue() - _centers[i][j]);
-		}
-
-		return (std::min_element(dists.begin(), dists.end()) - dists.begin());
 	}
 }
