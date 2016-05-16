@@ -28,6 +28,7 @@ namespace SSAGES
 			}
 			case LIBRARY:
 			{
+				_currenthash = 10000*_world.rank();
 				if(_world.rank() == 0 && _currentstartingpoint != 0)
 				{
 					for(auto& value : _successes)
@@ -38,6 +39,9 @@ namespace SSAGES
 				_indexcontents = "";
 
 				for(auto& s : _localsuccesses)
+					s = 0;
+
+				for(auto& s : _successes)
 					s = 0;
 
 				_currentnode = 0;
@@ -72,6 +76,7 @@ namespace SSAGES
 			}
 			case NEWCONFIG:
 			{
+				_currenthash = 10000*_world.rank();
 				mpi::all_reduce(_world, _indexcontents, _globalcontents, std::plus<std::string>());
 
 				std::string dumpfilecontents;
