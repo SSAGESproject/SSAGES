@@ -14,7 +14,7 @@ root = {}
 with open('Template_Input.json') as f:
 	root = json.load(f)
 
-# Create vector of Torsional angle range. -pi to pi
+# Create vector of interfaces
 centers = np.linspace(1.1, -1.1, num=100)
 
 for i,center in enumerate(centers):

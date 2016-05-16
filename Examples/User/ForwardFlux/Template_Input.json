@@ -20,7 +20,6 @@
                 "centers" : [
                 ],
                 "new run" : true,
-                "shots" : 1,
                 "generate configs" : 20,
                 "frequency" : 1
             }

@@ -16,7 +16,6 @@
                 "generate configs": 20,
                 "library file": "library_input.dat",
                 "frequency": 1,
-                "shots": 1,
                 "results file": "results.dat",
                 "type": "ForwardFlux",
                 "centers": [
@@ -540,7 +539,6 @@
                 "generate configs": 20,
                 "library file": "library_input.dat",
                 "frequency": 1,
-                "shots": 1,
                 "results file": "results.dat",
                 "type": "ForwardFlux",
                 "centers": [
@@ -1064,7 +1062,6 @@
                 "generate configs": 20,
                 "library file": "library_input.dat",
                 "frequency": 1,
-                "shots": 1,
                 "results file": "results.dat",
                 "type": "ForwardFlux",
                 "centers": [
@@ -1588,7 +1585,6 @@
                 "generate configs": 20,
                 "library file": "library_input.dat",
                 "frequency": 1,
-                "shots": 1,
                 "results file": "results.dat",
                 "type": "ForwardFlux",
                 "centers": [
@@ -2112,7 +2108,6 @@
                 "generate configs": 20,
                 "library file": "library_input.dat",
                 "frequency": 1,
-                "shots": 1,
                 "results file": "results.dat",
                 "type": "ForwardFlux",
                 "centers": [
@@ -2636,7 +2631,6 @@
                 "generate configs": 20,
                 "library file": "library_input.dat",
                 "frequency": 1,
-                "shots": 1,
                 "results file": "results.dat",
                 "type": "ForwardFlux",
                 "centers": [
@@ -3160,7 +3154,6 @@
                 "generate configs": 20,
                 "library file": "library_input.dat",
                 "frequency": 1,
-                "shots": 1,
                 "results file": "results.dat",
                 "type": "ForwardFlux",
                 "centers": [
@@ -3684,7 +3677,6 @@
                 "generate configs": 20,
                 "library file": "library_input.dat",
                 "frequency": 1,
-                "shots": 1,
                 "results file": "results.dat",
                 "type": "ForwardFlux",
                 "centers": [
