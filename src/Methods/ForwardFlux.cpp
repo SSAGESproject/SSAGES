@@ -28,8 +28,22 @@ namespace SSAGES
 			}
 			case LIBRARY:
 			{
+				if(_world.rank() == 0 && _currentstartingpoint != 0)
+				{
+					for(auto& value : _successes)
+						_resultsfile<<value<<" ";
+					_resultsfile<<"\n";
+				}
+
+				_indexcontents = "";
+
+				for(auto& s : _localsuccesses)
+					s = 0;
+
+				_currentnode = 0;
+
 				std::vector<std::vector<std::string> > tmp;
-				if(!(ExtractInterfaceIndices(0, _globalcontents, tmp)))
+				if(!(ExtractInterfaceIndices(0, _librarycontents, tmp)))
 				{
 					std::cout<< "Could not locate any files";
 					std::cout<< " at first interface!"<<std::endl;
@@ -54,13 +68,65 @@ namespace SSAGES
 				ReadConfiguration(snapshot, dumpfilecontents);
 				_restart = NONE;
 				_currentstartingpoint++;
-				break;
+				return;
+			}
+			case NEWCONFIG:
+			{
+				mpi::all_reduce(_world, _indexcontents, _globalcontents, std::plus<std::string>());
+
+				std::string dumpfilecontents;
+				_shootingconfigfile = PickConfiguration(_currentnode, _globalcontents);
+
+				if(_world.rank() == 0)
+					dumpfilecontents = GetFileContents(_shootingconfigfile.c_str());
+				
+				mpi::broadcast(_world, dumpfilecontents, 0);
+				ReadConfiguration(snapshot, dumpfilecontents);
+				_restart = NONE;
+
+				return;
 			}
 			default:
 			{
 				break;
 			}
-		}	
+		}
+
+		// Locate the interface you are at and check if:
+		// Returned to origin or at next interface
+		int atinter = AtInterface(cvs);
+		if(atinter == _currentnode + 1 || atinter == 0)
+		{
+			_currentnode++;			
+			// Check if you made it to the next one!
+			if(atinter == _currentnode)
+			{
+				auto& ID = snapshot->GetSnapshotID();
+				ID = "dump_"+std::to_string(_currentnode)+"_"+std::to_string(_currenthash)+".dump";
+				_currenthash++;
+				if(_comm.rank()==0)
+					WriteConfiguration(snapshot);
+				_localsuccesses[_currentnode]++;
+			}
+
+			mpi::all_reduce(_world, _localsuccesses[_currentnode], _successes[_currentnode], std::plus<int>());
+
+			if(_successes[_currentnode] > 0)
+			{
+				_restart = NEWCONFIG;
+
+				// If you have reached the final interface you are "done" with that path
+				if(_currentnode >= _centers.size()-1)
+				{
+					std::cout<< "Found finishing configuration! "<<std::endl;
+					_restart = LIBRARY;
+				}
+			}
+			else
+			{
+				_restart = LIBRARY;
+			}
+		}
 	}
 
 	void ForwardFlux::PostSimulation(Snapshot*, const CVList&)
@@ -96,6 +162,7 @@ namespace SSAGES
 			if(_comm.rank()==0)
 				WriteConfiguration(snapshot);
 
+			_localsuccesses[_currentnode]++;
 			_fluxout++;
 		}
 		// Flux back in towards A
@@ -110,7 +177,7 @@ namespace SSAGES
 		if(TempLibrary.size() >= _requiredconfigs && _currentnode == 0)
 		{
 			_restart = LIBRARY;
-			mpi::all_reduce(_world, _indexcontents, _globalcontents, std::plus<std::string>());
+			mpi::all_reduce(_world, _indexcontents, _librarycontents, std::plus<std::string>());
 			_currentstartingpoint = 0;
 		}
 	}
@@ -121,9 +188,6 @@ namespace SSAGES
 		const auto& velocities = snapshot->GetVelocities();
 		const auto& atomID = snapshot->GetAtomIDs();
 		const auto& dumpfilename = snapshot->GetSnapshotID();
-		std::cout<<"dump size: "<<_dumpconfigs.size();
-		std::cout<<" dump: "<<dumpfilename <<std::endl;
-		std::cout<<positions[0][0]<<" "<<positions[0][1]<<" "<<positions[0][2]<<std::endl;
 
 		// Write the dump file out
 		std::ofstream dumpfile;
@@ -148,7 +212,7 @@ namespace SSAGES
 
 	// Extract all indices for a given interface and contetns. 
 	// Return false if couldnt locate anything at a given interface
-	bool ForwardFlux::ExtractInterfaceIndices(int interface, const std::string contents,
+	bool ForwardFlux::ExtractInterfaceIndices(int interface, const std::string& contents,
 											 std::vector<std::vector<std::string> >& InterfaceIndices)
 	{
 		//Extract configuration indices for a given interface int
@@ -173,7 +237,7 @@ namespace SSAGES
 		return true;
 	}
 
-	void ForwardFlux::ReadConfiguration(Snapshot* snapshot, std::string FileContents)
+	void ForwardFlux::ReadConfiguration(Snapshot* snapshot, const std::string& FileContents)
 	{
 		auto& positions = snapshot->GetPositions();
 		auto& velocities = snapshot->GetVelocities();
@@ -226,5 +290,30 @@ namespace SSAGES
 				for(auto& xyz : force)
 					xyz = 0;
 		}
+	}
+
+	// Pick a random configuration
+	std::string ForwardFlux::PickConfiguration(int interface, const std::string& contents)
+	{
+		std::string configfilename;
+		if(_world.rank() == 0)
+		{
+			std::vector<std::vector<std::string> > files; 
+			if(!(ExtractInterfaceIndices(interface, contents, files)))
+			{
+				std::cout<< "Could not locate any files at interface ";
+				std::cout<< interface<<" in PickCOnfiguration!"<<std::endl;
+				std::cout<< contents<<std::endl;
+				_world.abort(-1);
+			}
+
+			std::uniform_int_distribution<> dis(0, files.size()-1);
+			int configfile = dis(_gen);
+			configfilename = files[configfile][1];
+		}
+
+		mpi::broadcast(_world, configfilename, 0);
+
+		return configfilename;
 	}
 }

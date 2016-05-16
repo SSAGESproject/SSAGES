@@ -116,7 +116,7 @@ namespace SSAGES
 
 		// Extract all indices for a given interface. 
 		// Return false if couldnt locate anything at a given interface
-		bool ExtractInterfaceIndices(int interface, const std::string contents,
+		bool ExtractInterfaceIndices(int interface, const std::string& contents,
 									 std::vector<std::vector<std::string> >& InterfaceIndices);
 		
 		// Return the location of the nearest interface
@@ -154,7 +154,7 @@ namespace SSAGES
 		void WriteConfiguration(Snapshot* snapshot);
 
 		// Read a given configuration from file and update snapshot
-		void ReadConfiguration(Snapshot* snapshot, std::string dumpfilename);
+		void ReadConfiguration(Snapshot* snapshot, const std::string& dumpfilename);
 		
 		// Read a given configuration from _dumpcontents and update snapshot
 		void ReadConfiguration(Snapshot* snapshot);
@@ -169,7 +169,7 @@ namespace SSAGES
 		bool SetUpRestartRun(Snapshot* snapshot);
 
 		// Randomly picks a configuration from a given interface
-		std::string PickConfiguration(int interface, std::string contents);
+		std::string PickConfiguration(int interface, const std::string& contents);
 
 		// Randomly picks a configuration from list of _dumpconfigs
 		void PickConfiguration();
