@@ -8,6 +8,7 @@
 #include "FiniteTempString.h"
 #include "Meta.h"
 #include "Umbrella.h"
+#include "ForwardFlux.h"
 
 using namespace Json;
 
@@ -113,6 +114,38 @@ namespace SSAGES
 
 			method = static_cast<Method*>(m);
 		}
+		else if(type == "ForwardFlux")
+		{
+			reader.parse(JsonSchema::ForwardFluxMethod, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+
+			std::vector<std::vector<double> > centers;
+			for(auto& s : json["centers"])
+			{
+				std::vector<double> temp;
+				for(auto& c : s["center"])
+					temp.push_back(c.asDouble());
+				centers.push_back(temp);
+			}
+
+			auto libraryfile = json.get("library file", "none").asString();
+			auto resultsfile = json.get("results file", "none").asString();
+			auto newrun = json.get("new run",true).asBool();
+			auto currentinterface = json.get("starting interface",0).asInt(); 
+			auto genconfig = json.get("generate configs",1).asInt();
+			auto shots = json.get("shots",1).asInt();
+			auto freq = json.get("frequency", 1).asInt();
+
+			auto* m = new ForwardFlux(world, comm, libraryfile, resultsfile, 
+				currentinterface, centers, newrun, genconfig, shots, freq);
+
+			method = static_cast<Method*>(m);
+		}
 		else if(type == "FiniteTemperatureString")
 		{
 			reader.parse(JsonSchema::FTSMethod, schema);
@@ -128,11 +161,11 @@ namespace SSAGES
 				centers.push_back(s.asDouble());
 
 			auto isteps = json.get("block iterations", 2000).asInt();
-			auto nsamples = json.get("number samples", 20).asInt();
 			auto kappa = json.get("kappa", 0.1).asDouble();
 			auto tau = json.get("time step", 0.1).asDouble();			
 			auto freq = json.get("frequency", 1).asInt();			
 
+			//Todo: Fix how NumNodes is determined! Currently incorrect
 			int NumNodes = comm.size();
 			auto* m = new FiniteTempString(world, comm, isteps, 
 									centers, NumNodes, kappa,

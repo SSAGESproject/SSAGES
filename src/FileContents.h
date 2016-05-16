@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 #include <cstdio>
 #include <cerrno>
@@ -8,7 +9,7 @@ namespace SSAGES
 {
 	// Retrieves the contents of a file and returns them
 	// in a string. Throws exception on failure.
-	std::string GetFileContents(const char *filename)
+	inline std::string GetFileContents(const char *filename)
 	{
 		std::FILE *fp = std::fopen(filename, "rb");
 		if (fp)
