@@ -2,6 +2,8 @@
 #include <vector>
 #include <memory>
 #include <boost/mpi.hpp>
+#include "json/json.h"
+#include "JSON/Serializable.h"
 
 namespace SSAGES
 {
@@ -11,7 +13,7 @@ namespace SSAGES
 	// Class containing a snapshot of the current simulation in time. 
 	// This contains information on the particle positions, velocities, etc.. 
 	// and additional information on the state of the system.
-	class Snapshot
+	class Snapshot : public Serializable
 	{
 	private:
 		// Local snapshot (walker) communicator.
@@ -145,6 +147,32 @@ namespace SSAGES
 
 		bool HasChanged() const { return _changed; }
 		void Changed(bool state) { _changed = state; }
+
+		void Serialize(Json::Value& json) const override
+		{
+			json["walker id"] = _wid;
+			json["id"] = _ID;
+
+			for(int i = 0; i<_atomids.size(); i++)
+			{
+				json["Atom"][i]["ID"] = _atomids[i];
+				json["Atom"][i]["type"] = _types[i];
+				json["Atom"][i]["mass"] = _masses[i];
+				json["Atom"][i]["mass"] = _masses[i];
+				for(int j = 0; j<3; j++)
+				{
+					json["Atom"][i]["positions"][j] = _positions[i][j];
+					json["Atom"][i]["velocities"][j] = _velocities[i][j];
+					json["Atom"][i]["forces"][j] = _forces[i][j];
+				}
+			}
+			
+			json["iteration"] = _iteration; 
+			json["temperature"] = _temperature; 
+			json["pressure"] = _pressure; 
+			json["energy"] = _energy;
+			json["volume"] = _volume;
+		}
 		
 		~Snapshot(){}		
 	};
