@@ -12,7 +12,6 @@ namespace SSAGES
 	{
 		_indexfile.open(_indexfilename.c_str());
 		_resultsfile.open(_resultsfilename.c_str());
-		_restart = NEW;
 
 		_currentnode = AtInterface(cvs);
 	}
@@ -52,6 +51,7 @@ namespace SSAGES
 					std::cout<< "Could not locate any files";
 					std::cout<< " at first interface!"<<std::endl;
 					std::cout<< _librarycontents<<std::endl;
+					PostSimulation(snapshot, cvs);
 					_world.abort(0);
 				}
 
@@ -74,6 +74,21 @@ namespace SSAGES
 				_currentstartingpoint++;
 				return;
 			}
+			case RESTART:
+			{
+				if(_world.rank()==0)
+					std::cout<<"Running from restart "<<_restartfilename<<std::endl;
+				std::string dumpfilecontents;
+				_shootingconfigfile = _restartfilename;
+				if(_world.rank() == 0)
+					dumpfilecontents = GetFileContents(_shootingconfigfile.c_str());
+				mpi::broadcast(_world, dumpfilecontents, 0);
+
+				ReadConfiguration(snapshot, dumpfilecontents);
+				_restart = NONE;
+				return;
+			}
+
 			case NEWCONFIG:
 			{
 				_currenthash = 10000*_world.rank();

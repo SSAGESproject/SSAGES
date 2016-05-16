@@ -16,7 +16,7 @@ namespace SSAGES
 		std::random_device _rd;
 		std::mt19937 _gen;
 
-		enum Restart {NEW, LIBRARY, OLDCONFIG, NEWCONFIG, NONE};
+		enum Restart {NEW, LIBRARY, OLDCONFIG, NEWCONFIG, RESTART, NONE};
 		Restart _restart;
 
 		// Output index file for storing information on where everything is.
@@ -25,6 +25,7 @@ namespace SSAGES
 		std::string _indexcontents;
 		std::string _globalcontents;
 		std::string _librarycontents;
+		std::string _restartfilename;
 		std::vector<Snapshot> _dumpconfigs;
 
 		// Results file for end of simulation.
@@ -72,6 +73,7 @@ namespace SSAGES
 				 boost::mpi::communicator& comm,
 				 std::string indexfilename,
 				 std::string resultsfilename,
+				 std::string restartfilename,
 				 int currentinterface,
 				 std::vector<std::vector<double> > centers,
 				 bool newrun,
@@ -80,8 +82,8 @@ namespace SSAGES
 				 unsigned int frequency) : 
 		Method(frequency, world, comm), _rd(), _gen(_rd()), _restart(LIBRARY),
 		_indexfilename(indexfilename), _indexfile(), _indexcontents(""), _globalcontents(""), 
-		_resultsfilename(resultsfilename), _resultsfile(), _resultscontents(""),
-		_centers(centers), _successes(), _currentnode(currentinterface),
+		_resultsfilename(resultsfilename), _restartfilename(restartfilename),
+		_resultsfile(), _resultscontents(""), _centers(centers), _successes(), _currentnode(currentinterface),
 		_currentstartingpoint(-1), _requiredconfigs(requiredconfigs), _currenthash(10000*world.rank()), 
 		_shootingconfigfile(""), _numshots(numshots), _currentshot(0), _fluxout(0), _fluxin(0)
 		{
@@ -96,6 +98,8 @@ namespace SSAGES
 
 			if(newrun)
 				_restart = NEW;
+			else if(_restartfilename != "none")
+				_restart = RESTART;
 			else
 				_restart = LIBRARY;
 		}
