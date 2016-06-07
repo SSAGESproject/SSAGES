@@ -158,7 +158,6 @@ namespace SSAGES
 				json["Atom"][i]["ID"] = _atomids[i];
 				json["Atom"][i]["type"] = _types[i];
 				json["Atom"][i]["mass"] = _masses[i];
-				json["Atom"][i]["mass"] = _masses[i];
 				for(int j = 0; j<3; j++)
 				{
 					json["Atom"][i]["positions"][j] = _positions[i][j];

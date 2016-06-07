@@ -104,6 +104,7 @@ namespace LAMMPS_NS
 		// Allocate vectors for snapshot.
 		// Here we size to local number of atoms. We will 
 		// resize later.
+
 		auto n = atom->nlocal;
 		auto& pos = _snapshot->GetPositions();
 		pos.resize(n);
@@ -117,6 +118,21 @@ namespace LAMMPS_NS
 		ids.resize(n);
 		auto& types = _snapshot->GetAtomTypes();
 		types.resize(n);
+
+		// Correct mass problems
+		if(!atom->rmass_flag)
+		{
+			atom->rmass = new double[n];
+			for (int itype = 1; itype <= atom->ntypes; itype++) 
+			{
+				for (int atomi = 0; atomi < atom->nlocal; atomi++)
+				{
+					if(atom->type[atomi] == itype)
+						atom->rmass[atomi] = atom->mass[itype];
+				}
+			}
+			atom->rmass_flag = true;
+		}
 
 		SyncToSnapshot();
 		Hook::PreSimulationHook();
@@ -226,7 +242,7 @@ namespace LAMMPS_NS
 			frc[i][1] = _atom->f[i][1]; //force->y
 			frc[i][2] = _atom->f[i][2]; //force->z
 
-			masses[i] = _atom->mass[i];
+			masses[i] = _atom->rmass[i];
 			
 			vel[i][0] = _atom->v[i][0];
 			vel[i][1] = _atom->v[i][1];
@@ -275,7 +291,7 @@ namespace LAMMPS_NS
 			atom->f[i][0] = frc[i][0]; //force->x
 			atom->f[i][1] = frc[i][1]; //force->y
 			atom->f[i][2] = frc[i][2]; //force->z
-			atom->mass[i] = masses[i]; //atom mass
+			atom->rmass[i] = masses[i]; //atom mass
 			atom->v[i][0] = vel[i][0]; //velocity->x
 			atom->v[i][1] = vel[i][1]; //velocity->y
 			atom->v[i][2] = vel[i][2]; //velocity->z
