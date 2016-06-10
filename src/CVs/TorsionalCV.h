@@ -24,6 +24,12 @@ namespace SSAGES
 	// keywords = "structure refinement",
 	// keywords = "molecular dynamics: NOE"
 
+	/*
+	Blondel, A. and Karplus, M. (1996), 
+	New formulation for derivatives of torsion angles and improper torsion angles in molecular mechanics: Elimination of singularities.
+	J. Comput. Chem., 17: 1132–1141. doi:10.1002/(SICI)1096-987X(19960715)17:91132::AID-JCC53.0.CO;2-T
+	*/
+
 	class TorsionalCV : public CollectiveVariable
 	{
 	private:
@@ -49,6 +55,12 @@ namespace SSAGES
 		double norm(const Vector3& v)
 		{
 			return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+		}
+
+		// Helper function to compute the norm of a vector.
+		double norm2(const Vector3& v)
+		{
+			return (v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
 		}
 
 		double DotProduct(const Vector3& v, Vector3& w)
@@ -155,6 +167,19 @@ namespace SSAGES
 			}
 
 			//Calculate pertinent vectors
+			Vector3 F{{
+				ix - jx,
+				iy - jy,
+				iz - jz}};
+			Vector3 G{{
+				jx - kx,
+				jy - ky,
+				jz - kz}};
+			Vector3 H{{
+				lx - kx,
+				ly - ky, 
+				lz - kz}};
+
 			Vector3 rij{{
 				ix - jx,
 				iy - jy,
@@ -164,10 +189,10 @@ namespace SSAGES
 				ky - jy,
 				kz - jz}};
 			Vector3 rkl{{
-				kx - lx,
-				ky - ly, 
-				kz - lz}};
-			
+				lx - kx,
+				ly - ky, 
+				lz - kz}};
+
 			//Calculate dihedral angle
 
 			Vector3 rim, rln;
@@ -193,18 +218,18 @@ namespace SSAGES
 			auto x = DotProduct(rijrkjcross, rkjrklcross);
 			_val = atan2(y, x);
 
-			Vector3 d0dri, d0drj, d0drk, d0drl;
+			Vector3 A = CrossProduct(F, G);
+			Vector3 B = CrossProduct(H, G);
+
+			double Zed = DotProduct(F, G)/(norm2(A)*norm(G));
+			double Ned = DotProduct(H, G)/(norm2(B)*norm(G));
 
 			for(size_t i = 0; i<3; i++)
 			{
-				d0dri[i] = (1.0/normrim)*(rln[i]/normrln-cos(_val)*rim[i]/normrim);
-				d0drl[i] = (1.0/normrln)*(rim[i]/normrim-cos(_val)*rln[i]/normrln);
-				d0drj[i] = (DotProduct(rij,rkj)/rkj2 - 1)*d0dri[i] - (DotProduct(rkl, rkj)/rkj2)*d0drl[i];
-				d0drk[i] = (DotProduct(rkl,rkj)/rkj2 - 1)*d0drl[i] - (DotProduct(rij, rkj)/rkj2)*d0dri[i];
-				_grad[iindex][i]= -d0dri[i]/sin(_val);
-				_grad[jindex][i]= -d0drj[i]/sin(_val);
-				_grad[kindex][i]= -d0drk[i]/sin(_val);
-				_grad[lindex][i]= -d0drl[i]/sin(_val);
+				_grad[iindex][i] = -norm(G)*A[i]/norm2(A);
+				_grad[lindex][i] = norm(G)*B[i]/norm2(B);
+				_grad[jindex][i] = Zed*A[i] - Ned*B[i] - _grad[iindex][i];
+				_grad[kindex][i] = Ned*B[i] - Zed*A[i] - _grad[lindex][i];
 			}
 
 		}

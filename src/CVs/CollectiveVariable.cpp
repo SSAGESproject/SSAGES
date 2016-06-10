@@ -105,7 +105,7 @@ namespace SSAGES
 			for(auto& s : json["atom ids"])
 				atomids.push_back(s.asInt());
 
-			auto periodic = json.get("periodic", false).asBool();
+			auto periodic = json.get("periodic", true).asBool();
 
 			auto* c = new ImproperCV(atomids[0], atomids[1], atomids[2], atomids[3], periodic);
 
@@ -125,7 +125,7 @@ namespace SSAGES
 			for(auto& s : json["atom ids"])
 				atomids.push_back(s.asInt());
 
-			auto periodic = json.get("periodic", false).asBool();
+			auto periodic = json.get("periodic", true).asBool();
 
 			auto* c = new TorsionalCV(atomids[0], atomids[1], atomids[2], atomids[3], periodic);
 
