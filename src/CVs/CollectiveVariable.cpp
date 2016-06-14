@@ -6,7 +6,6 @@
 #include "../Validator/ArrayRequirement.h"
 #include "AtomCoordinateCV.h"
 #include "AtomPositionCV.h"
-#include "ImproperCV.h"
 #include "TorsionalCV.h"
 
 using namespace Json;
