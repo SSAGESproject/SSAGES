@@ -90,26 +90,6 @@ namespace SSAGES
 
 			cv = static_cast<CollectiveVariable*>(c);
 		}
-		else if(type == "Improper")
-		{
-			reader.parse(JsonSchema::ImproperCV, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-
-			std::vector<int> atomids;
-			for(auto& s : json["atom ids"])
-				atomids.push_back(s.asInt());
-
-			auto periodic = json.get("periodic", true).asBool();
-
-			auto* c = new ImproperCV(atomids[0], atomids[1], atomids[2], atomids[3], periodic);
-
-			cv = static_cast<CollectiveVariable*>(c);
-		}
 		else if(type == "Torsional")
 		{
 			reader.parse(JsonSchema::TorsionalCV, schema);
