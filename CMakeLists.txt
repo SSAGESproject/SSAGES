@@ -109,3 +109,6 @@ set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra")
 # Configure flags 
 # - Globals
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -pthread -std=c++11")
+
+# Add doc subdirectory for building the documentation
+add_subdirectory(doc)

@@ -7,33 +7,45 @@
 
 namespace SSAGES
 {
-	// Abstract base class responsible for hooking into simulation engine 
-	// and calling appropriate events.
+	//! Base class for hooks into the simultion engines
+	/*!
+	 * \ingroup core
+	 *
+	 * Abstract base class responsible for hooking into simulation engine
+	 * and calling appropriate events.
+	 */
 	class Hook
 	{
 	private:
-		// Vector of event listeners.
+		//! Vector of event listeners.
 		std::vector<EventListener*> _listeners;
 
-		// Vector of CVs.
+		//! Vector of CVs.
 		CVList _cvs;
 
 	protected:
-		// Local snapshot.
+		//! Local snapshot.
 		Snapshot* _snapshot;
 
-		// Syncronization to engine. A Hook must implement this method 
-		// where data is taken from the snapshot and updated within 
-		// the simulation engine.
+		//! Synchronization to the simulation engine
+		/*!
+		 * A Hook must implement this method. It takes data from the snapshot
+		 * and updates the simulation engine with it.
+		 */
 		virtual void SyncToEngine() = 0;
 
-		// Synchronization to snapshot. A hook must implement this method 
-		// where data is taken from the simulation eingine and updated 
-		// within the snapshot.
+		//! Synchronization to the snapshot
+		/*!
+		 * A Hook must implement this method. It takes data from the simulation
+		 * eingine and updates the snapshot with it.
+		 */
 		virtual void SyncToSnapshot() = 0;
 
-		// Pre-simulation hook. This should be called at the appropriate 
-		// time by the Hook implementation.
+		//! Pre-simulation hook
+		/*!
+		 * This should be called at the appropriate
+		 * time by the Hook implementation.
+		 */
 		void PreSimulationHook()
 		{
 			_snapshot->Changed(false);
@@ -56,9 +68,12 @@ namespace SSAGES
 			_snapshot->Changed(false);
 		}
 
-		// Post-integration hook. This hould be called by the Hook 
-		// implementation within the integration routine such that 
-		// the forces, position, velocities, etc.. can be updated.
+		//! Post-integration hook.
+		/*!
+		 * This function should be called by the Hook implementation within the
+		 * integration routine such that the forces, position, velocities,
+		 * etc.. will be updated.
+		 */
 		void PostIntegrationHook()
 		{
 			_snapshot->Changed(false);
@@ -76,8 +91,11 @@ namespace SSAGES
 			_snapshot->Changed(false);
 		}
 
-		// Post-simulation hook. This should be called by the Hook
-		// implementation at the appropriate time.
+		//! Post-simulation hook.
+		/*!
+		 * This method should be called by the Hook implementation at the
+		 * end of the simulation.
+		 */
 		void PostSimulationHook()
 		{
 			_snapshot->Changed(false);
@@ -95,34 +113,46 @@ namespace SSAGES
 		}
 
 	public:
-		// Initialize a hook with world and walker communicators and corresponding 
-		// walker ID.
+		//! Constructor
+		/*!
+		 * Initialize a hook with world and walker communicators and
+		 * corresponding walker ID.
+		 */
 		Hook() : 
 		_listeners(0), _snapshot(nullptr)
 		{}
 
-		// Sets the active snapshot.
+		//! Sets the active snapshot.
 		void SetSnapshot(Snapshot* snapshot)
 		{
 			_snapshot = snapshot;
 		}
 
-		// Add a listener to the hook. Does nothing 
-		// if the listener is already added.
+		//! Add a listener to the hook.
+		/*!
+		 * \param listener Pointer to the EventListener to be added to the Hook.
+		 *
+		 * Does nothing if the listener is already added.
+		 */
 		void AddListener(EventListener* listener)
 		{
 			if(std::find(_listeners.begin(), _listeners.end(), listener) == _listeners.end())
 				_listeners.push_back(listener);
 		}
 
-		// Adds a CV to the hook. Does nothing if the CV 
-		// is already added.
+		//! Add a CollectiveVariable to the hook.
+		/*!
+		 * \param cv CollectiveVariable to be added to the hook.
+		 *
+		 * Does nothing if the CollectiveVariable is already added.
+		 */
 		void AddCV(CollectiveVariable* cv)
 		{
 			if(std::find(_cvs.begin(), _cvs.end(), cv) == _cvs.end())
 				_cvs.push_back(cv);
 		}
 
+		//! Destructor
 		virtual ~Hook(){}
 	};
 }
