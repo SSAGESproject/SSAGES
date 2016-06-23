@@ -22,15 +22,20 @@ namespace SSAGES
 	{
 		ArrayRequirement validator;
 		Value schema;
+		Value gridjson;
 		Reader reader;
 
+		gridjson = json.get("grid",Json::arrayValue);
 		Grid* grid = nullptr;
 
-		reader.parse(JsonSchema::Grid, schema);
+		if(!json.isMember("grid"))
+			return nullptr;
+
+		reader.parse(JsonSchema::grid, schema);
 		validator.Parse(schema, path);
 
 		// Validate inputs.
-		validator.Validate(json, path);
+		validator.Validate(gridjson, path);
 		if(validator.HasErrors())
 			throw BuildException(validator.GetErrors());
 
@@ -39,7 +44,7 @@ namespace SSAGES
 		std::vector<bool> periodic;
 		std::vector<int> num_points;
 
-		for(auto&m : json)
+		for(auto&m : gridjson)
 		{
 			lower.push_back(m.get("lower",0.0).asDouble());
 			upper.push_back(m.get("upper",0.0).asDouble());
@@ -47,16 +52,13 @@ namespace SSAGES
 			num_points.push_back(m.get("number points",0).asInt());
 		}
 
-
 		if(lower.size() != upper.size() || lower.size() != periodic.size() || 
 			lower.size() != num_points.size())
 			throw BuildException({"Grid variables dimensions not the same!"});
 
-
-
 		if(lower.size() == 1)
 		{
-			auto* g = new Grid1D(lower[0], upper[0], periodic[0], num_points[0]);
+			auto* g = new Grid1D(lower, upper, periodic, num_points);
 			grid = static_cast<Grid*>(g);
 		}
 		else if(lower.size() == 2)

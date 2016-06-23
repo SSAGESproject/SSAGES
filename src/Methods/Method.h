@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../EventListener.h"
+#include "../Grids/Grid.h"
 #include <boost/mpi.hpp>
 
 // Forward declare.
@@ -15,6 +16,8 @@ namespace SSAGES
 	{
 	protected:
 		boost::mpi::communicator _world, _comm;
+
+		Grid* _grid;
 
 	public:
 		// Frequency of sampling must be specified by all methods.
@@ -32,6 +35,11 @@ namespace SSAGES
 		// Method call post simulation.
 		virtual void PostSimulation(Snapshot* snapshot, const CVList& cvs) override = 0;
 
+		void BuildGrid(const Json::Value& json, const std::string& path)
+		{
+			_grid = Grid::BuildGrid(json, path);
+		}
+
 		// Builds a method from a JSON node. Returns a pointer to the built Method.
 		// If return value is nullptr, 
 		// then an unknown error occurred. It will throw a BuildException on failure. 
@@ -42,6 +50,9 @@ namespace SSAGES
 								boost::mpi::communicator& comm,
 							   	const std::string& path);
 
-		virtual ~Method() {}
+		virtual ~Method() 
+		{
+			delete _grid;
+		}
 	};
 }

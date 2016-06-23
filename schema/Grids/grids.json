@@ -2,10 +2,9 @@
 	"type": "array",
 	"minItems" : 1,
 	"maxItems" : 3,
-	"varname" : "Grid",
+	"varname" : "grid",
 	"items" : {
 		"type" : "object",
-		"oneOf" : [{
 			"properties" : {
 				"lower" : {
 					"type" : "number"
@@ -22,24 +21,5 @@
 			},
 			"required" : ["lower", "upper", "number points"],
 			"additionalProperties": false
-		}, {
-			"properties" : {
-				"lower" : {
-					"type" : "number"
-				},
-				"upper" : {
-					"type" : "number"
-				},
-				"spacing" : {
-					"type" : "number"
-				},
-				"periodic" : {
-					"type" : "boolean"
-				}
-			},
-			"required" : ["lower", "upper", "spacing"],
-			"additionalProperties": false
-		}
-	]
 	}
 }

@@ -1,5 +1,26 @@
 {
     "inputfile" : "clowns.in",
+    "CVs" : [
+        {
+            "type" : "Torsional",
+            "atom ids" : [
+                1,
+                5,
+                8,
+                11
+            ],
+            "periodic" : true
+        }
+    ],
+    "method" : {
+        "type" : "Umbrella",
+        "ksprings" : [
+            1000
+        ],
+        "centers" : [
+            1.0
+        ]
+    },
     "driver" : [
         {
             "inputfile" : "Butane_SSAGES.in",
@@ -7,27 +28,6 @@
             "type" : "LAMMPS",
             "MDSteps" : 100000,
             "logfile" : "node-1",
-            "CVs" : [
-                {
-                    "type" : "Torsional",
-                    "atom ids" : [
-                        1,
-                        5,
-                        8,
-                        11
-                    ],
-                    "periodic" : true
-                }
-            ],
-            "method" : {
-                "type" : "Umbrella",
-                "ksprings" : [
-                    1000
-                ],
-                "centers" : [
-                    1.0
-                ]
-            }
         }
     ]
 }

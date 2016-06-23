@@ -1,0 +1,38 @@
+{
+    "inputfile" : "in.LAMMPS_Grid_Test",
+    "CVs" : [
+        {
+            "type" : "AtomCoordinate",
+            "atom id" : 1,
+            "dimension" : "x"
+        },
+        {
+            "type" : "AtomCoordinate",
+            "atom id" : 0,
+            "dimension" : "y"
+        }
+    ],
+    "grid" : [
+        {
+            "lower" : 0,
+            "upper" : 10,
+            "number points" : 11
+        },
+        {
+            "lower" : 0,
+            "upper" : 10,
+            "number points" : 11
+        }
+    ],
+    "method" : {
+        "type" : "GridTest"
+    },
+    "driver" : [
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 100,
+            "logfile" : "node-1"
+        }
+    ]
+}

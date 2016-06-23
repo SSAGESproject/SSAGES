@@ -9,6 +9,7 @@
 #include "Meta.h"
 #include "Umbrella.h"
 #include "ForwardFlux.h"
+#include "GridTest.h"
 
 using namespace Json;
 
@@ -173,6 +174,11 @@ namespace SSAGES
 									centers, NumNodes, kappa,
 			 						tau, freq);
 
+			method = static_cast<Method*>(m);
+		}
+		else if(type == "GridTest")
+		{
+			auto* m = new GridTest(world, comm, 1);
 			method = static_cast<Method*>(m);
 		}
 		else

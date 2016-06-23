@@ -18,6 +18,15 @@ namespace SSAGES
 	class Grid
 	{
 
+	protected:
+
+		std::vector<double> _lower;
+		std::vector<double> _upper;
+		std::vector<bool> _periodic;
+		std::vector<int> _num_points;
+		std::vector<double> _spacing;
+		int _NDim;
+	
 	public:
 
 		virtual ~Grid(){}
@@ -30,6 +39,38 @@ namespace SSAGES
 
 		// Set the value at the current incices
 		virtual void SetValue(const std::vector<int>& indices, float value) = 0;
+
+		virtual void PrintGrid() const = 0;
+
+		std::vector<double> GetLower()
+		{
+			return _lower;
+		}
+
+		std::vector<double> GetUpper()
+		{
+			return _upper;
+		}
+
+		std::vector<bool> GetPeriodic()
+		{
+			return _periodic;
+		}
+
+		std::vector<int> GetNumPoints()
+		{
+			return _num_points;
+		}
+
+		std::vector<double> GetSpacing()
+		{
+			return _spacing;
+		}
+
+		int GetDimension()
+		{
+			return _NDim;
+		}
 
 		// Builds a Grid from a JSON node. Returns a pointer to the built grid.
 		// If return value is nullptr, 

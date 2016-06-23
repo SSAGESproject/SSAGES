@@ -12,19 +12,22 @@ namespace SSAGES
 	{
 	private:
 
-		std::vector<double> _lower;
-		std::vector<double> _upper;
-		std::vector<bool> _periodic;
-		std::vector<int> _num_points;
-		std::vector<double> _spacing;
 		std::vector<std::vector<std::vector<float>>> _values;
 
 	public:
 
 		Grid3D(std::vector<double> lower, std::vector<double> upper,
-			std::vector<bool> periodic, std::vector<int> num_points) : 
-		_lower(lower), _upper(upper), _periodic(periodic), _num_points(num_points) 
+			std::vector<bool> periodic, std::vector<int> num_points)
 		{
+			_NDim = 3;
+			for(size_t i =0; i <lower.size(); i++)
+			{
+				_lower.push_back(lower[i]);
+				_upper.push_back(upper[i]);
+				_periodic.push_back(periodic[i]);
+				_num_points.push_back(num_points[i]);
+				_spacing.push_back(0.0);
+			}
 			//Generate Grid
 			for(size_t i = 0; i < _spacing.size(); i++)
 				_spacing[i] = (_upper[i] - _lower[i])/double(_num_points[i] - 1);
@@ -76,7 +79,7 @@ namespace SSAGES
 		}
 
 		//Currently only for debugging
-		void PrintGrid()
+		void PrintGrid() const override
 		{
 			for(size_t i = 0; i<_values.size(); i++)
 			{

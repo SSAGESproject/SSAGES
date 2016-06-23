@@ -134,7 +134,7 @@ namespace SSAGES
 
 			PrintBoldNotice(" >Building Drivers...\n", _msgw, _world);
 
-			reader.parse(JsonSchema::Driver, schema);
+			reader.parse(JsonSchema::driver, schema);
 			validator.Parse(schema, path);
 
 			try
@@ -260,15 +260,9 @@ namespace SSAGES
 
 		bool BuildGrid(const Json::Value& json, const std::string& path)
 		{
-
-			if(!json.isMember("Grid"))
-				return true;
-			
-			// Build Grid.
-
 			PrintBoldNotice(" > Building grid...", _msgw, _world); 
 			try{
-				_MDDriver->BuildGrid(json.get("Grid", Json::arrayValue), path);
+				_MDDriver->BuildGrid(json, path);
 			} catch(BuildException& e) {
 				DumpErrorsToConsole(e.GetErrors(), _notw);
 				return false;
@@ -278,7 +272,7 @@ namespace SSAGES
 			}
 
 			if(_world.rank() == 0)
-				std::cout << std::setw(_notw) << std::right << "\033[32mCV Pass...!\033[0m\n";
+				std::cout << std::setw(_notw) << std::right << "\033[32mGrid Pass...!\033[0m\n";
 			return true;
 		}
 

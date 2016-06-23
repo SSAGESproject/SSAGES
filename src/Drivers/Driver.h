@@ -8,7 +8,6 @@
 #include "../Methods/Method.h"
 #include "../Snapshot.h"
 #include "../JSON/JSONLoader.h"
-#include "../Grids/Grid.h"
 
 
 namespace mpi = boost::mpi;
@@ -34,9 +33,6 @@ namespace SSAGES
 
 		//The Method that will be used
 		Method* _method;
-
-		//The grid that will be used
-		Grid* _grid;
 
 		// The CVs that will be used
 		CVList _CVs;
@@ -68,8 +64,6 @@ namespace SSAGES
 			delete _snapshot;
 
 			delete _method;
-
-			delete _grid;
 		}
 
 		virtual void Run() = 0;
@@ -102,7 +96,7 @@ namespace SSAGES
 		void BuildGrid(const Json::Value& json, const std::string& path)
 		{
 			// Build the grid.
-			_grid = Grid::BuildGrid(json, path);
+			_method->BuildGrid(json, path);
 		}
 
 		// Create the snapshot and put all gathered values into the local hook

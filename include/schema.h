@@ -8,9 +8,9 @@ namespace SSAGES
 	{
 	public:
 		//INSERT_DEC_HERE
-		static std::string Grid;
+		static std::string grid;
 		static std::string Simulation;
-		static std::string Driver;
+		static std::string driver;
 		static std::string LAMMPSDriver;
 		static std::string TorsionalCV;
 		static std::string ImproperCV;

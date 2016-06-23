@@ -12,26 +12,27 @@ namespace SSAGES
 	{
 	private:
 
-		double _lower;
-		double _upper;
-		bool _periodic;
-		int _num_points;
-		double _spacing;
 		std::vector<float> _values;
 
 	public:
 
-		Grid1D(double lower, double upper,
-			bool periodic, int num_points) : 
-		_lower(lower), _upper(upper), _periodic(periodic), _num_points(num_points) 
+		Grid1D(std::vector<double> lower, std::vector<double> upper,
+			std::vector<bool> periodic, std::vector<int> num_points)
 		{
-
+			_NDim = 1;
+			for(size_t i =0; i <lower.size(); i++)
+			{
+				_lower.push_back(lower[i]);
+				_upper.push_back(upper[i]);
+				_periodic.push_back(periodic[i]);
+				_num_points.push_back(num_points[i]);
+				_spacing.push_back(0.0);
+			}
 			//Generate Grid
-			_spacing = (_upper - _lower)/double(_num_points - 1);
+			for(size_t i = 0; i < _spacing.size(); i++)
+				_spacing[i] = (_upper[i] - _lower[i])/double(_num_points[i] - 1);
 
-			for(int i=0;i<num_points; i++)
-				_values.push_back(0);
-
+			_values.resize(_num_points[0]);
 		}
 	
 		// Return the nearest index for given values.
@@ -42,15 +43,15 @@ namespace SSAGES
 
 			for(size_t i = 0; i < val.size(); i++)
 			{
-				int vertex = int(val[i] - _lower + (_spacing/2.0));
+				int vertex = int(val[i] - _lower[0] + (_spacing[0]/2.0));
 				if(vertex < 0) // out of bounds
 					vertex = 0;
-				else if(vertex > _num_points -1) // out of bounds
+				else if(vertex > _num_points[0] -1) // out of bounds
 				{
-					if(_periodic)
+					if(_periodic[0])
 						vertex = 0;
 					else
-						vertex = _num_points -1;
+						vertex = _num_points[0] -1;
 				}
 				vertices.push_back(vertex);
 			}
@@ -71,7 +72,7 @@ namespace SSAGES
 		}
 
 		//Currently only for debugging
-		void PrintGrid()
+		void PrintGrid() const override
 		{
 			for(size_t i = 0; i<_values.size(); i++)
 			{

@@ -19,5 +19,6 @@
 			"type" : "object"
 		}
 	},
-	"required" : ["driver", "CVs", "method"]
+	"required" : ["driver", "CVs", "method"],
+	"additionalProperties": false
 }
