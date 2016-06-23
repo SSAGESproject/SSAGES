@@ -56,10 +56,7 @@ namespace SSAGES
 			else if(indextype == "z")
 				index = 2;
 			else
-			{
-				std::cout<<"Error getting dimension for Atom Coordinate CV"<<std::endl;
-				exit(0);
-			}
+				throw BuildException({"Could not obtain AtomCoordinate specified."});
 
 			auto* c = new AtomCoordinateCV(atomid, index);
 

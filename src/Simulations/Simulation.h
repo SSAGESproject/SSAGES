@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Drivers/Driver.h"
+#include "Grids/Grid.h"
 #include "Drivers/LammpsDriver.h"
 #include "../JSON/Serializable.h"
 #include "json/json.h"
@@ -87,7 +88,8 @@ namespace SSAGES
 			return root;
 
 		}
-		void BuildSimulation(const Json::Value& json, const std::string& path)
+
+		bool BuildSimulation(const Json::Value& json, const std::string& path)
 		{
 
 			ObjectRequirement validator;
@@ -110,20 +112,19 @@ namespace SSAGES
 				}
 			} catch(BuildException& e) { 	
 				DumpErrorsToConsole(e.GetErrors(), _notw);
-				_world.abort(-1);
+				return false;
 			} catch(std::exception& e) {
 				DumpErrorsToConsole({e.what()}, _notw);
-				_world.abort(-1);
+				return false;
 			}
 
 
 			_GlobalInput = json.get("inputfile","none").asString();
 
-			if(_world.rank() == 0)
-				std::cout << std::setw(_notw) << std::right << "\033[32mOK!\033[0m\n";
+			return true;
 		}
 
-		Value BuildDriver(const Json::Value& json, const std::string& path)
+		bool BuildDriver(const Json::Value& json, const std::string& path)
 		{
 
 			ArrayRequirement validator;
@@ -131,8 +132,7 @@ namespace SSAGES
 			Value JsonDriver;
 			Reader reader;
 
-			if(_world.rank() == 0)
-				PrintBoldNotice(" >Building Driver...\n", _msgw, _world);
+			PrintBoldNotice(" >Building Drivers...\n", _msgw, _world);
 
 			reader.parse(JsonSchema::Driver, schema);
 			validator.Parse(schema, path);
@@ -147,10 +147,10 @@ namespace SSAGES
 				}
 			} catch(BuildException& e) {
 				DumpErrorsToConsole(e.GetErrors(), _notw);
-				_world.abort(-1);
+				return false;
 			} catch(std::exception& e) {
 				DumpErrorsToConsole({e.what()}, _notw);
-				_world.abort(-1);
+				return false;
 			}
 
 			// Determine walker ID using JSON file and split 
@@ -167,6 +167,7 @@ namespace SSAGES
 					wid = i;
 					JsonDriver = m;
 				}
+
 				totalproc += currentnumproc;
 				i++;
 			}
@@ -180,7 +181,7 @@ namespace SSAGES
 					std::cerr << "The number of processors for each driver (walker) must sum "
 					<< "to the total processors for the mpi call." << std::endl;
 					std::cerr<<_world.size()<<" vs "<<totalproc<<std::endl;
-				_world.abort(-1);
+				return false;
 			}
 
 			// Get the engine. 
@@ -194,14 +195,13 @@ namespace SSAGES
 				if(!(_MDDriver = static_cast<Driver*>(en)))
 				{
 						std::cerr << "Unable to dynamic cast engine on node "<<_world.rank()<<" Error occurred" << std::endl;
-						_world.abort(-1);			
+						return false;		
 				}
 			}
 			else
 			{
-				std::cout<<"Errors"<<std::endl;
 				DumpErrorsToConsole({"Unknown MD Engine [" + _MDEngine + "] specified."},_notw);
-				_world.abort(-1);
+				return false;
 			}
 
 			// Build the driver
@@ -209,16 +209,16 @@ namespace SSAGES
 				_MDDriver->BuildDriver(JsonDriver, path + "/" + std::to_string(wid));
 			} catch(BuildException& e) {
 		        DumpErrorsToConsole(e.GetErrors(), _notw);
-		        _world.abort(-1);
+		        return false;
 			} catch(std::exception& e) {
 		        DumpErrorsToConsole({e.what()}, _notw);
-		        _world.abort(-1);
+		        return false;
 			}
 
-			if(_world.rank() == 0)
-				std::cout << std::setw(_notw) << std::right << "\033[32mOK!\033[0m\n";
+			if(_comm.rank()==0)
+				std::cout << std::setw(_notw) << std::right << "\033[32mMEngine " << wid <<  " pass...!\033[0m\n";
 
-            return JsonDriver;
+            return true;
 		}
 
 		bool BuildCVs(const Json::Value& json, const std::string& path)
@@ -234,7 +234,9 @@ namespace SSAGES
 				DumpErrorsToConsole({e.what()}, _notw);
 				return false;
 			}
-			std::cout << std::setw(_notw) << std::right << "\033[32mChecking...!\033[0m\n";
+
+			if(_world.rank() == 0)
+				std::cout << std::setw(_notw) << std::right << "\033[32mCV Pass...!\033[0m\n";
 			return true;
 		}
 
@@ -251,7 +253,32 @@ namespace SSAGES
 				DumpErrorsToConsole({e.what()}, _notw);
 				return false;
 			}
-			std::cout << std::setw(_notw) << std::right << "\033[32mChecking...!\033[0m\n";
+			if(_world.rank() == 0)
+				std::cout << std::setw(_notw) << std::right << "\033[32mMethod Pass...!\033[0m\n";
+			return true;
+		}
+
+		bool BuildGrid(const Json::Value& json, const std::string& path)
+		{
+
+			if(!json.isMember("Grid"))
+				return true;
+			
+			// Build Grid.
+
+			PrintBoldNotice(" > Building grid...", _msgw, _world); 
+			try{
+				_MDDriver->BuildGrid(json.get("Grid", Json::arrayValue), path);
+			} catch(BuildException& e) {
+				DumpErrorsToConsole(e.GetErrors(), _notw);
+				return false;
+			} catch(std::exception& e) {
+				DumpErrorsToConsole({e.what()}, _notw);
+				return false;
+			}
+
+			if(_world.rank() == 0)
+				std::cout << std::setw(_notw) << std::right << "\033[32mCV Pass...!\033[0m\n";
 			return true;
 		}
 

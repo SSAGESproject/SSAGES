@@ -20,6 +20,17 @@ centers = np.linspace(1.1, -1.1, num=100)
 for i,center in enumerate(centers):
 	centers[i] = round(center,4)
 
+for center in centers:
+
+	# Record all interfaces for forward flux
+	key = "center"
+	c = dict()
+	c.setdefault(key,[])
+	center = LessPrecise(round(center, 4))
+	c["center"].append(center)
+
+	root['method']['centers'].append(c)
+
 # Add on the requested number of objects -1 because we are appending
 for i in range(0,Numdrivers):
 	root['driver'].append(copy.deepcopy(root['driver'][0]))
@@ -29,17 +40,6 @@ for i in range(0,Numdrivers):
 	# Change the log file name so each driver uses a different log file
 	root['driver'][i]['logfile'] = "none"
 	
-	for center in centers:
-
-		# Record all interfaces for forward flux
-		key = "center"
-		c = dict()
-		c.setdefault(key,[])
-		center = LessPrecise(round(center, 4))
-		c["center"].append(center)
-
-		root['driver'][i]['method']['centers'].append(c)
-
 # Because appending remove original copy
 root['driver'] = root['driver'][0:-1]
 

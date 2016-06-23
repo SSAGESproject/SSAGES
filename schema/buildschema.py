@@ -22,6 +22,7 @@ folders = [
 	"CVs/",
 	"Drivers/",
 	"Simulations/",
+	"Grids/",
 ]
 
 exclude = [

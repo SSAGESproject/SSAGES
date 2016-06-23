@@ -8,6 +8,7 @@ namespace SSAGES
 	{
 	public:
 		//INSERT_DEC_HERE
+		static std::string Grid;
 		static std::string Simulation;
 		static std::string Driver;
 		static std::string LAMMPSDriver;
