@@ -16,7 +16,7 @@ pair_style lj/cut 3.0
 pair_coeff * * 1.0 1.0 3.0
 
 #Put an atom in the box
-create_atoms 1 single 0 0 0 units box
+create_atoms 1 single -1.0 -1.0 0 units box
 group solid type 1
 
 #Set up fixes
