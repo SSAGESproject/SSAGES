@@ -129,18 +129,22 @@ namespace SSAGES
 
 			ArrayRequirement validator;
 			Value schema;
+			Value JsonDrivers;
 			Value JsonDriver;
 			Reader reader;
+
+			bool success_build = true;
 
 			PrintBoldNotice(" >Building Drivers...\n", _msgw, _world);
 
 			reader.parse(JsonSchema::driver, schema);
 			validator.Parse(schema, path);
 
+			JsonDrivers = json.get("driver",Json::arrayValue);
 			try
 			{
 				// Validate inputs.
-				validator.Validate(json, path);
+				validator.Validate(JsonDrivers, path);
 				if(validator.HasErrors())
 				{
 					throw BuildException(validator.GetErrors());
@@ -158,7 +162,7 @@ namespace SSAGES
 			int i = 0;
 			int totalproc = 0;
 			int wid = 0;
-			for(auto& m : json)
+			for(auto& m : JsonDrivers)
 			{
 				int currentnumproc = m.get("number processors", 1).asInt();
 
@@ -178,9 +182,11 @@ namespace SSAGES
 			if(_world.size() != totalproc)
 			{
 				if(_world.rank() == 0)
+				{
 					std::cerr << "The number of processors for each driver (walker) must sum "
 					<< "to the total processors for the mpi call." << std::endl;
 					std::cerr<<_world.size()<<" vs "<<totalproc<<std::endl;
+				}
 				return false;
 			}
 
@@ -195,13 +201,13 @@ namespace SSAGES
 				if(!(_MDDriver = static_cast<Driver*>(en)))
 				{
 						std::cerr << "Unable to dynamic cast engine on node "<<_world.rank()<<" Error occurred" << std::endl;
-						return false;		
+						success_build = false;		
 				}
 			}
 			else
 			{
 				DumpErrorsToConsole({"Unknown MD Engine [" + _MDEngine + "] specified."},_notw);
-				return false;
+				success_build = false;
 			}
 
 			// Build the driver
@@ -209,10 +215,10 @@ namespace SSAGES
 				_MDDriver->BuildDriver(JsonDriver, path + "/" + std::to_string(wid));
 			} catch(BuildException& e) {
 		        DumpErrorsToConsole(e.GetErrors(), _notw);
-		        return false;
+		        success_build = false;
 			} catch(std::exception& e) {
 		        DumpErrorsToConsole({e.what()}, _notw);
-		        return false;
+		        success_build = false;
 			}
 
 			if(_comm.rank()==0)
@@ -221,26 +227,41 @@ namespace SSAGES
 			if(!json.isMember("CVs") && !JsonDriver.isMember("CVs"))
 			{
 				DumpErrorsToConsole({"Need global CVs or per driver CVs"},_notw);
-				return false;
+				success_build = false;
 			}
 			else if(JsonDriver.isMember("CVs"))
 			{
 				if(!BuildCVs(JsonDriver, "#/CVs"))
-					return false;
+					success_build = false;
+			}
+			else
+			{
+				if(!BuildCVs(json,"#/CVs"))
+					success_build = false;
 			}
 
-			if(!json.isMember("method") && !JsonDriver.isMember("method"))
-			{
+			if(!json.isMember("method") && !JsonDriver.isMember("method"))			{
 				DumpErrorsToConsole({"Need global method or per driver method"},_notw);
-				return false;
+				success_build = false;
 			}
 			else if (JsonDriver.isMember("method"))
 			{
 				if(!BuildMethod(JsonDriver, "#/Methods"))
-					return false;
+					success_build = false;
+			}
+			else
+			{
+				if(!BuildMethod(json,"#/Methods"))
+					success_build = false;
 			}
 
-            return true;
+			if(json.isMember("grid"))
+			{
+				if(!BuildGrid(json,"#/Grids"))
+					success_build = false;
+			}
+
+            return success_build;
 		}
 
 		bool BuildCVs(const Json::Value& json, const std::string& path)

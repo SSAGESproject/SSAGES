@@ -186,6 +186,7 @@ namespace SSAGES
 			throw BuildException({path + ": Unknown method type specified."});
 		}
 
+		method->_grid = nullptr;
 		return method;
 	}
 }

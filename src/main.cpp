@@ -21,12 +21,9 @@ int main(int argc, char* argv[])
 	// Perform all the JSON reading and build the correct driver
 	root = Sim.ReadJSON(argv[1]);
 	bool SimCheck = Sim.BuildSimulation(root, "#/Simulations");
-	bool CVCheck = Sim.BuildCVs(root, "#/CVs");
-	bool MethodCheck = Sim.BuildMethod(root, "#/Methods");
-	bool DriverCheck = Sim.BuildDriver(root.get("driver", Json::arrayValue), "#/Drivers");
-	bool GridCheck = Sim.BuildGrid(root, "#/Grids");
+	bool DriverCheck = Sim.BuildDriver(root, "#/Drivers");
 
-	if(CVCheck == false || MethodCheck == false || DriverCheck == false || SimCheck == false || GridCheck == false)
+	if(DriverCheck == false || SimCheck == false)
 	{
 		std::cout<<"Simulation/Grid/Method/CV/Driver build fail"<<std::endl;
 		world.abort(-1);

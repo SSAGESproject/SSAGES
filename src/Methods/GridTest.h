@@ -23,6 +23,11 @@ namespace SSAGES
 		// Pre-simulation hook.
 		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override
 		{
+			if(!_grid)
+			{
+				throw BuildException({"Method expected a grid but no grid built!"});
+				_world.abort(-1);
+			}
 			_grid->PrintGrid();
 		}
 
