@@ -1,0 +1,98 @@
+{
+	"type" : "object",
+	"varname" : "ABFMethod",
+	"properties" : {
+		"type" : { 
+			"type" : "string",
+			"enum" : ["ABF"]
+		},
+		"CV minimums" : {
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+		"CV maximums" : {
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+
+		"CV bins" : {
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "integer"
+			}
+		},
+		
+		"CV restraint minimums" : {
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+		"CV restraint maximums" : {
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+
+		"CV restraint spring constants" : {
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "integer"
+			}
+		},
+		"timestep" : {
+			"type" : "number",
+			"minimum" : 0
+		},
+		
+		"minimum count" : {
+			"type" : "number",
+			"minimum" : 0
+		},
+
+		"F from file" : {
+			"type" : "string"
+		},
+
+		"Print details" : {
+			"type" : "array",
+			"minItems" : 9,
+			"items" : {
+				"type" : "integer"
+			}
+		},
+		
+		"Backup interval" : {
+			"type" : "integer",
+			"minimum" : 0
+		},
+
+		"Unit conversion" : {
+			"type" : "number",
+			"minimum" : 0
+		},
+
+		"Orthogonalization" : {
+			"type" : "integer",
+			"minimum" : 0
+		},
+
+		"frequency" : {
+			"type" : "integer",
+			"minimum" : 1
+		}
+	},
+	"required": ["type", "CV minimums", "CV maximums", "CV bins", "timestep", "Unit conversion", "Print details"],
+	"additionalProperties": false
+}

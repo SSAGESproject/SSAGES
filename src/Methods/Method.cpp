@@ -10,6 +10,7 @@
 #include "Umbrella.h"
 #include "ForwardFlux.h"
 #include "GridTest.h"
+#include "ABF.h"
 
 using namespace Json;
 
@@ -112,6 +113,82 @@ namespace SSAGES
 			auto* m = new ElasticBand(world, comm, isteps, eqsteps,
 			 						evsteps, nsamples, centers, ksprings,
 			 						stringspring, timestep, freq);
+
+			method = static_cast<Method*>(m);
+		}
+		else if(type == "ABF")
+		{
+			reader.parse(JsonSchema::ABFMethod, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+
+			std::vector<double> minsCV;
+			for(auto& mins : json["CV minimums"])
+				minsCV.push_back(mins.asDouble());
+			
+			std::vector<double> maxsCV;
+			for(auto& maxs : json["CV maximums"])
+				maxsCV.push_back(maxs.asDouble());
+
+			std::vector<double> binsCV;
+			for(auto& bins : json["CV bins"])
+				binsCV.push_back(bins.asDouble());
+
+			std::vector<double> minsrestCV;
+			for(auto& mins : json["CV restraint minimums"])
+				minsrestCV.push_back(mins.asDouble());
+			
+			std::vector<double> maxsrestCV;
+			for(auto& maxs : json["CV restraint maximums"])
+				maxsrestCV.push_back(maxs.asDouble());
+
+			std::vector<double> springkrestCV;
+			for(auto& bins : json["CV restraint spring constants"])
+				springkrestCV.push_back(bins.asDouble());
+
+			std::vector<int> printdetails;
+			for(auto& bins : json["Print details"])
+				printdetails.push_back(bins.asDouble());
+
+			if(printdetails.size()!=9)
+				{
+				std::cout << "Print details not provided, or entered incorrectly. Defaulting to presets.";
+				std::vector<int> preset = {1000, 1, 1, 1, 1, 1, 1, 1, 1};
+				printdetails = preset;
+				}
+
+			int FBackupInterv = json.get("Backup interval", 1000).asInt();
+
+			double unitconv = json.get("Unit conversion", 0).asDouble();
+		
+			int Orthogonalization = json.get("Orthogonalization", 1).asInt();
+
+			double timestep = json.get("timestep",2).asDouble();
+
+			double min = json.get("minimum count",100).asDouble();
+
+			std::vector<std::vector<double>> histdetails;
+			std::vector<std::vector<double>> restraint;
+			std::vector<double> temp1(3);
+			std::vector<double> temp2(3);
+
+			for(size_t i=0; i<minsCV.size(); ++i)
+				{
+				temp1 = {minsCV[i], maxsCV[i], binsCV[i]};
+				temp2 = {minsrestCV[i], maxsrestCV[i], springkrestCV[i]};
+				histdetails.push_back(temp1);
+				restraint.push_back(temp2);
+				}		
+			
+			auto freq = json.get("frequency", 1).asInt();
+
+			std::string readF = json.get("F from file", " ").asString();
+
+			auto* m = new ABF(world, comm, histdetails, restraint, timestep, min, readF, printdetails, FBackupInterv, unitconv, Orthogonalization, freq);
 
 			method = static_cast<Method*>(m);
 		}

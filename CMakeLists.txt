@@ -73,6 +73,7 @@ set(SOURCE
 	src/Methods/ElasticBand.cpp
 	src/Methods/FiniteTempString.cpp
 	src/Methods/ForwardFlux.cpp
+	src/Methods/ABF.cpp
 	src/Validator/RequirementLoader.cpp
 	src/JSON/jsoncpp.cpp
 	src/JSON/schema.cpp

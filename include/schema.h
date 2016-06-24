@@ -16,6 +16,7 @@ namespace SSAGES
 		static std::string ImproperCV;
 		static std::string AtomPositionCV;
 		static std::string AtomCoordinateCV;
+		static std::string AtomSeparationCV;
 		static std::string CVs;
 		static std::string ForwardFluxMethod;
 		static std::string UmbrellaMethod;
@@ -23,6 +24,7 @@ namespace SSAGES
 		static std::string MetadynamicsMethod;
 		static std::string FTSMethod;
 		static std::string ElasticBandMethod;
+		static std::string ABFMethod;
 		
 	};
 }

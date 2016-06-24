@@ -1,0 +1,40 @@
+{
+    "inputfile" : "in.LAMMPS_Meta_Test",
+    "driver" : [
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 2000000,
+            "logfile" : "node-1",
+            "CVs" : [
+                {
+                    "type" : "AtomCoordinate",
+                    "atom id" : 1,
+                    "dimension" : "x"
+                },
+			    {
+                    "type" : "AtomCoordinate",
+                    "atom id" : 1,
+                    "dimension" : "y"
+                }
+            ],
+            "method" : {
+                "type" : "ABF",
+  				"CV minimums" : [ -1.4, -1.4 ],
+                "CV maximums" : [1.9, 1.9],
+				"CV bins" : [40, 40],
+				"CV restraint minimums" : [-1.6, -1.6],
+                "CV restraint maximums" : [2.2, 2.2],
+				"CV restraint spring constants" : [0, 0],
+				"timestep" : 2,
+				"minimum count" : 20,
+				"F from file" : " ",
+				"Print details" : [1000, 1, 1, 1, 1, 1, 1, 1, 1],
+				"Backup interval" : 10000,
+				"Unit conversion" : 2390.06,
+				"Orthogonalization" : 0,
+				"frequency" : 1
+            }
+        }
+    ]
+}
