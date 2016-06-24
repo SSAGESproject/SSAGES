@@ -32,7 +32,7 @@ namespace SSAGES
 		Snapshot* _snapshot;
 
 		//The Method that will be used
-		Method* _method;
+		Method* _method{nullptr};
 
 		// The CVs that will be used
 		CVList _CVs;
@@ -82,14 +82,21 @@ namespace SSAGES
 		// Build CVs
 		void BuildCVs(const Json::Value& json, const std::string& path)
 		{
-			// Build CV(s).
-			CollectiveVariable::BuildCV(json, _CVs, path);
+			// // Build CV(s).
+			// if(_CVs.size()>0)
+			// 	for(auto& cv :_CVs)
+			// 		delete cv;
+			
+			// _CVs.clear();
 
+			CollectiveVariable::BuildCV(json, _CVs, path);
 		}
 
 		void BuildMethod(const Json::Value& json, const std::string& path)
 		{
 			// Build method(s).
+			std::cout << static_cast<void*>(nullptr) << std::endl;
+			delete _method;
 			_method = Method::BuildMethod(json, _world, _comm, path);
 		}
 

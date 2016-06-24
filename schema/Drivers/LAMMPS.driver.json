@@ -18,6 +18,13 @@
 		},
 		"number processors" : {
 			"type" : "integer"
+		},
+		"CVs" : {
+			"type" : "array",
+			"minItems" : 1
+		},
+		"method" : {
+			"type" : "object"
 		}
 	},
 	"required" : ["type", "MDSteps", "logfile"],

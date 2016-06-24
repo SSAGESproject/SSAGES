@@ -218,6 +218,28 @@ namespace SSAGES
 			if(_comm.rank()==0)
 				std::cout << std::setw(_notw) << std::right << "\033[32mMEngine " << wid <<  " pass...!\033[0m\n";
 
+			if(!json.isMember("CVs") && !JsonDriver.isMember("CVs"))
+			{
+				DumpErrorsToConsole({"Need global CVs or per driver CVs"},_notw);
+				return false;
+			}
+			else if(JsonDriver.isMember("CVs"))
+			{
+				if(!BuildCVs(JsonDriver, "#/CVs"))
+					return false;
+			}
+
+			if(!json.isMember("method") && !JsonDriver.isMember("method"))
+			{
+				DumpErrorsToConsole({"Need global method or per driver method"},_notw);
+				return false;
+			}
+			else if (JsonDriver.isMember("method"))
+			{
+				if(!BuildMethod(JsonDriver, "#/Methods"))
+					return false;
+			}
+
             return true;
 		}
 

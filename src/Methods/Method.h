@@ -17,7 +17,7 @@ namespace SSAGES
 	protected:
 		boost::mpi::communicator _world, _comm;
 
-		Grid* _grid;
+		Grid* _grid{nullptr};
 
 	public:
 		// Frequency of sampling must be specified by all methods.
@@ -37,6 +37,8 @@ namespace SSAGES
 
 		void BuildGrid(const Json::Value& json, const std::string& path)
 		{
+			std::cout << static_cast<void*>(_grid) << std::endl;
+			delete _grid;
 			_grid = Grid::BuildGrid(json, path);
 		}
 
