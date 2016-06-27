@@ -36,9 +36,13 @@ namespace SSAGES
 		{
 
 			std::vector<int> Indices;
+			std::vector<float> vals;
 			int NDim = _grid->GetDimension();
 			for(int i=0; i<NDim; i++)
+			{
 				Indices.push_back(2);
+				vals.push_back(0);
+			}
 
 			float val = 10;
 			val += _grid->GetValue(Indices);
@@ -56,7 +60,11 @@ namespace SSAGES
 				std::cout<<spacing[i]<<" "<<upper[i]<<" "<<lower[i]<<" "<<periodic[i]<<" "<<numpoints[i]<<std::endl;
 
 			std::cout<<spacing.size()<<" "<<upper.size()<<" "<<lower.size()<<" "<<periodic.size()<<" "<<numpoints.size()<<std::endl;
-			
+			std::cout<<"Indices at value 0 are: ";
+			Indices = _grid->GetIndices(vals);
+			for(int i = 0; i<NDim; i++)
+				std::cout<<Indices[i]<<" ";
+			std::cout<<std::endl;
 		}
 
 		// Post-simulation hook.

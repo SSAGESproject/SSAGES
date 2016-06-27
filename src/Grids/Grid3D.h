@@ -41,30 +41,6 @@ namespace SSAGES
 				for(size_t j = 0; j < _values[i].size(); j++)
 					_values[i][j].resize(_num_points[2],0);
 		}
-	
-		// Return the nearest index for given values.
-		// Out of bounds will return edge vertex
-		std::vector<int> GetIndices(const std::vector<float> &val) const override
-		{
-			std::vector<int> vertices;
-
-			for(size_t i = 0; i < val.size(); i++)
-			{
-				int vertex = int(val[i] - _lower[i] + (_spacing[i]/2.0));
-				if(vertex < 0) // out of bounds
-					vertex = 0;
-				else if(vertex > _num_points[i] -1) // out of bounds
-				{
-					if(_periodic[i])
-						vertex = 0;
-					else
-						vertex = _num_points[i] -1;
-				}
-				vertices.push_back(vertex);
-			}
-
-			return vertices;
-		}
 
 		// Return a pointer to the grid value allowing user to use it
 		// or modify it.

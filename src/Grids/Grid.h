@@ -32,7 +32,27 @@ namespace SSAGES
 		virtual ~Grid(){}
 
 		// Return the nearest indices for given values.
-		virtual std::vector<int> GetIndices(const std::vector<float> &values) const = 0;
+		std::vector<int> GetIndices(const std::vector<float> &val)
+		{
+			std::vector<int> vertices;
+
+			for(size_t i = 0; i < val.size(); i++)
+			{
+				int vertex = int((val[i] - _lower[i])/_spacing[i] + _spacing[i]);
+				if(vertex < 0) // out of bounds
+					vertex = 0;
+				else if(vertex > _num_points[i] -1) // out of bounds
+				{
+					if(_periodic[i])
+						vertex = 0;
+					else
+						vertex = _num_points[i] -1;
+				}
+				vertices.push_back(vertex);
+			}
+
+			return vertices;
+		}
 
 		// Get the value at the current indices
 		virtual float GetValue(const std::vector<int>& indices) const = 0;
