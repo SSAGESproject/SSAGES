@@ -38,7 +38,7 @@ namespace SSAGES
 
 			for(size_t i = 0; i < val.size(); i++)
 			{
-				int vertex = int((val[i] - _lower[i])/_spacing[i] + _spacing[i]);
+				int vertex = int((val[i] - _lower[i])/_spacing[i] + 0.5);
 				if(vertex < 0) // out of bounds
 					vertex = 0;
 				else if(vertex > _num_points[i] -1) // out of bounds
