@@ -137,7 +137,7 @@ namespace SSAGES
 		}
 		else
 		{
-			throw BuildException({path + ": Unknown method type specified."});
+			throw BuildException({path + ": Unknown CV type specified."+type+" is not a valid type!"});
 		}
 
 		return cv;

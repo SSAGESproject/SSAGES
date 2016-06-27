@@ -50,7 +50,7 @@
 			"minimum" : 1
 		}
 	},
-	"required": ["type", "springs", "centers", "max iterations", "equilibration steps", 
+	"required": ["type", "ksprings", "centers", "max iterations", "equilibration steps", 
 				"evolution steps", "number samples", "kstring", "time step"],
 	"additionalProperties": false
 }
