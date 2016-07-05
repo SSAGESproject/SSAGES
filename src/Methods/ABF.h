@@ -24,15 +24,27 @@ namespace SSAGES
 	private:	
 		//! To store running total. 
 		/*!
-		 *A 1D vector of ND vectors, but will hold N-dimensional data, where N is number of CVs. This will be size (CVbinNr1*CVbinNr2*..).
+		 *A 1D vector, but will hold N-dimensional data, where N is number of CVs +1. This will be size (CVbinNr1*CVbinNr2*..)*3.
 		 */
-		std::vector<std::vector<double>> _F;
+		std::vector<double> _F;
+
+		//! Will hold the global total, synced to every time step. 
+		/*!
+		 *A 1D vector, but will hold N-dimensional data, where N is number of CVs +1. This will be size (CVbinNr1*CVbinNr2*..)*3.
+		 */
+		std::vector<double> _Fworld;
 
 		//! To store number of hits at a given CV bin.
 		/*!
 		 *A 1D vector, but will hold N-dimensional data, where N is number of CVs. This will be size (CVbinNr1*CVbinNr2*..).
 		 */
-		std::vector<double> _N;
+		std::vector<int> _N;
+
+		//! To store number of hits at a given CV bin.
+		/*!
+		 *A 1D vector, but will hold N-dimensional data, where N is number of CVs. This will be size (CVbinNr1*CVbinNr2*..).
+		 */
+		std::vector<int> _Nworld;
 
 		//! Information for a harmonic restraint to keep CV in the region of interest. 
 		/*!
@@ -45,7 +57,7 @@ namespace SSAGES
 		std::vector<std::vector<double>> _restraint;		
 
 		//! The minimum number of hits required before full biasing, bias is _F[i]/max(_N[i],_min).
-		double _min;
+		int _min;
 
 		//! To hold last iterations wdotp value for derivative
 		std::vector<double> _wdotpold;
@@ -64,6 +76,15 @@ namespace SSAGES
 
 		//! Biases.	
 		std::vector<std::vector<double>> _biases;
+
+		//! Number of CVs in system
+		int _dim;
+
+		//! Output stream for string data.
+		std::ofstream _stringout;
+
+		//! The node this belongs to
+		unsigned int _mpiid;
 
 		//! Histogram details. 
 		/*!
@@ -122,7 +143,7 @@ namespace SSAGES
 		ABF(boost::mpi::communicator& world,
 			 boost::mpi::communicator& comm,
 			 const std::vector<std::vector<double>>& histdetails, std::vector<std::vector<double>> restraint, double timestep, double min, std::string readF, std::vector<int> printdetails, int FBackupInterv, double unitconv, int Orthogonalization, unsigned int frequency) : 
-		Method(frequency, world, comm), _biases(0), _wdotpold(0), _Fold(0), _beta(0), _F(0), _N(0), _histdetails(histdetails), _restraint(restraint), _timestep(timestep), _min(min), _readF(readF), _printdetails(printdetails), _FBackupInterv(FBackupInterv), _unitconv(unitconv), _Orthogonalization(Orthogonalization)
+		Method(frequency, world, comm), _biases(0), _wdotpold(0), _mpiid(0), _Fold(0), _beta(0), _dim(0), _F(0), _N(0), _Fworld(0), _Nworld(0), _histdetails(histdetails), _restraint(restraint), _timestep(timestep), _min(min), _readF(readF), _printdetails(printdetails), _FBackupInterv(FBackupInterv), _unitconv(unitconv), _Orthogonalization(Orthogonalization)
 		{
 		}
 
