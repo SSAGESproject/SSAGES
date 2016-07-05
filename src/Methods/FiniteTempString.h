@@ -48,6 +48,9 @@ namespace SSAGES
 		//! String modification parameter
 		double _kappa;
 
+		// Spring constant for umbrella potential for staying within new voronoi cell after each update
+		double _spring;
+
 		//! Previous forces for restarting the position
 		std::vector<Vector3> _prev_positions;
 
@@ -95,9 +98,10 @@ namespace SSAGES
 					unsigned int NumNodes,
 					double kappa,
 					double tau,
+					double spring,
 			 		unsigned int frequency) : 
 		Method(frequency, world, com), _blockiterations(isteps), _centers(centers), _cv_prev(), _alpha(),
-		_mpiid(0), _worldstring(), _tau(tau), _kappa(kappa), _prev_positions(), _numnodes(NumNodes), _currentiter(0),
+		_mpiid(0), _worldstring(), _tau(tau), _kappa(kappa), _spring(spring), _prev_positions(), _numnodes(NumNodes), _currentiter(0),
 		_run_SMD(true), _cv_inside_iterator(0)
 		{
 		}

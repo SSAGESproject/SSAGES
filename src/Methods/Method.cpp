@@ -226,7 +226,7 @@ namespace SSAGES
 
 			method = static_cast<Method*>(m);
 		}
-		else if(type == "FiniteTemperatureString")
+		else if(type == "FTS")
 		{
 			reader.parse(JsonSchema::FTSMethod, schema);
 			validator.Parse(schema, path);
@@ -241,15 +241,15 @@ namespace SSAGES
 				centers.push_back(s.asDouble());
 
 			auto isteps = json.get("block iterations", 2000).asInt();
+			auto nsamples = json.get("number samples", 20).asInt();
 			auto kappa = json.get("kappa", 0.1).asDouble();
 			auto tau = json.get("time step", 0.1).asDouble();			
 			auto freq = json.get("frequency", 1).asInt();			
+			auto spring = json.get("spring", 100).asDouble();
 
-			//Todo: Fix how NumNodes is determined! Currently incorrect
-			int NumNodes = comm.size();
 			auto* m = new FiniteTempString(world, comm, isteps, 
-									centers, NumNodes, kappa,
-			 						tau, freq);
+									centers, nsamples, kappa,
+									tau, spring, freq);
 
 			method = static_cast<Method*>(m);
 		}
