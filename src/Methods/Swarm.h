@@ -21,5 +21,14 @@ namespace SSAGES
 
             //! Number of nodes on a string
             unsigned int _numnodes;
+
+            //! Length of restrained sampling 
+            unsigned int _restrained_steps; 
+
+            //! Number of trajectories per swarm
+            unsigned int _number_trajectories;
+
+            //! Length of unrestrained trajectories
+            unsigned int _unrestrained_steps;
     }
 }

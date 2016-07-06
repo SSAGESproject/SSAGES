@@ -1,2 +1,2 @@
-#include "swarm.h"
+#include "Swarm.h"
 #include "../spline.h"
