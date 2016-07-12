@@ -254,32 +254,32 @@ namespace SSAGES
 
 			method = static_cast<Method*>(m);
 		}
-        else if(type == "Swarm")
-        {
-            reader.parse(JsonScheme::SwarmMethod, schema);
-            validator.Parse(schema, path);
+        	else if(type == "Swarm")
+        	{
+        	    reader.parse(JsonScheme::SwarmMethod, schema);
+        	    validator.Parse(schema, path);
 
-            //Validate inputs
-            validator.Validate(json, path);
-            if(validator.HasErrors())
-                throw BuildException(validator.GetErrors());
+        	    //Validate inputs
+        	    validator.Validate(json, path);
+        	    if(validator.HasErrors())
+        	        throw BuildException(validator.GetErrors());
 
-            std::vector<double> centers;
-            for(auto& s: json["centers"])
-                centers.push_back(s.asDouble());
+        	    std::vector<double> centers;
+        	    for(auto& s: json["centers"])
+        	        centers.push_back(s.asDouble());
 
-            auto NumNodes = json.get("number of nodes").asInt();
-            auto spring = json.get("spring").asDouble();
-            auto freq = json.get("frequency", 1).asInt();
+        	    auto NumNodes = json.get("number of nodes").asInt();
+        	    auto spring = json.get("spring").asDouble();
+        	    auto freq = json.get("frequency", 1).asInt();
 
-            auto InitialSteps = json.get("initial steps", 2500).asInt();
-            auto HarvestLength = json.get("harvest length", 10).asInt();
-            auto NumberTrajectories = json.get("number of trajectories", 250).asInt();
-            auto SwarmLength = json.get("swarm length", 20).asInt();
+        	    auto InitialSteps = json.get("initial steps", 2500).asInt();
+        	    auto HarvestLength = json.get("harvest length", 10).asInt();
+        	    auto NumberTrajectories = json.get("number of trajectories", 250).asInt();
+        	    auto SwarmLength = json.get("swarm length", 20).asInt();
 
-            auto* m = new Swarm(world, comm, centers, NumNodes, spring, freq, InitialSteps, HarvestLength, NumberTrajectories, SwarmLength); 
-            method = static_cast<Method*>(m);
-        }
+        	    auto* m = new Swarm(world, comm, centers, NumNodes, spring, freq, InitialSteps, HarvestLength, NumberTrajectories, SwarmLength); 
+        	    method = static_cast<Method*>(m);
+        	}
 		else if(type == "GridTest")
 		{
 			auto* m = new GridTest(world, comm, 1);
