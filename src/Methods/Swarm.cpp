@@ -197,9 +197,19 @@ namespace SSAGES
         MPI_Status status;
 
         //Vectors for lower and upper neighbor on the string
-        std::vector<double> lower_cv_neighbor, upper_cv_neighbor;
-        lower_cv_neighbor.resize(centerssize);
-        upper_cv_neighbor.resize(centerssize);
+        std::vector<double> lower_cv_neighbor;
+        lower_cv_neighbor.resize(centerssize); 
+
+        //For reparametrization
+        cvs_new.resize(centersize); //All CVs for a particular nodes
+        alpha_star_vector.resize(_numnodes);
+        cvs_new_vector.resize(_numnodes); //Eventually, all CVs of one dimension from each node
+
+        //Evolve CVs with average drift
+        for(i = 0; i < cvs_new.size(); i++)
+        {
+            cvs_new[i] = _centers[i] + _cv_drift[i];
+        }
 
         //Set up nodes to receive from their backward neighbor and send to their forward neighbor, wrapping around at the string ends
         if(_mpiid == 0)
@@ -219,17 +229,7 @@ namespace SSAGES
         }
 
         //Copy centers from lower neighbor into lower_cv_neighbor
-        MPI_Sendrecv(&_centers[0], centersize, MPI_DOUBLE, sendneighbor, 1234, &lower_cv_neighbor[0], centersize, MPI_DOUBLE, recvneighbor, 1234, _world, &status);
-
-        cvs_new.resize(centersize);
-        alpha_star_vector.resize(_numnodes);
-        cvs_new_vector.resize(_numnodes);
-
-        //Evolve CVs with average drift
-        for(i = 0; i < cvs_new.size(); i++)
-        {
-            cvs_new[i] = _centers[i] + _cv_drift[i];
-        }
+        MPI_Sendrecv(&_cvs_new[0], centersize, MPI_DOUBLE, sendneighbor, 1234, &lower_cv_neighbor[0], centersize, MPI_DOUBLE, recvneighbor, 1234, _world, &status);
 
         //Reparameterization
         //Alpha star is the uneven mesh, approximated as linear distance between points
@@ -239,7 +239,7 @@ namespace SSAGES
         }
         else
         {
-            alpha_star = distance(_centers, lower_cv_neighbor);
+            alpha_star = distance(_cvs_new, lower_cv_neighbor);
         }
 
         //Gather each alpha_star into a vector 
@@ -265,7 +265,7 @@ namespace SSAGES
             //cvs_new_vector is thus the CV value in one dimension at each node
             mpi::all_gather(_world, cvs_new[i], cvs_new_vector);
             //spl.setpoints(alpha_star_vector, vector of all new points in one particular dimension)
-            spl.set_points(alpha_star_vector, cvs_newv); //Spline initialized with points on uneven mesh
+            spl.set_points(alpha_star_vector, cvs_new_vector); //Spline initialized with points on uneven mesh
             //Update CV values to lie on a regular mesh
             _centers[i] = spl(_alpha); 
         }
