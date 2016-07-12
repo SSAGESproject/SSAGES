@@ -256,7 +256,7 @@ namespace SSAGES
 		}
         	else if(type == "Swarm")
         	{
-        	    reader.parse(JsonScheme::SwarmMethod, schema);
+        	    reader.parse(JsonSchema::SwarmMethod, schema);
         	    validator.Parse(schema, path);
 
         	    //Validate inputs
