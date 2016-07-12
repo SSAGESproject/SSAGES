@@ -22,17 +22,23 @@ namespace SSAGES
             //! Number of nodes on a string
             unsigned int _numnodes;
 
-            //! Length of initialization
+            //! Total number of MD steps for initialization for one iteration
             unsigned int _initialize_steps; 
 
-            //! Length of restrained sampling 
+            //! Length to run before harvesting a trajectory for unrestrained sampling
+            unsigned int _harvest_length;
+
+            //! Total number of restrained MD steps for one iteration
             unsigned int _restrained_steps; 
 
             //! Number of trajectories per swarm
             unsigned int _number_trajectories;
 
             //! Length of unrestrained trajectories
-            unsigned int _unrestrained_steps; 
+            unsigned int _swarm_length;
+
+            //! Total number of unrestrained MD steps for one iteration
+            unsigned int _unrestrained_steps;
 
             //! The local method iterator
             unsigned int _iterator;
@@ -73,7 +79,7 @@ namespace SSAGES
             /*!
              * Constructs an instance of the swarm of trajectories method.
              */
-            Swarm(boost::mpi::communicator& world, boost::mpi::communicator& com, const std::vector<double>& centers, unsigned int NumNodes, double spring, unsigned int frequency, unsigned int InitialSteps, unsigned int RestrainedSteps, unsigned int NumberTrajectories, unsigned int UnrestrainedSteps) : Method(frequency, world, com) _centers(centers), _cv_prev(), alpha(), _mpiid(0), _worldstring(), _currentiter(0), _initiaize_steps(InitialSteps), _restrained_steps(RestrainedSteps), _number_trajectories(NumberTrajectories), _unrestrained_steps(UnrestrainedSteps), _iterator(0); 
+            Swarm(boost::mpi::communicator& world, boost::mpi::communicator& com, const std::vector<double>& centers, unsigned int NumNodes, double spring, unsigned int frequency, unsigned int InitialSteps, unsigned int HarvestLength, unsigned int NumberTrajectories, unsigned int SwarmLength) : Method(frequency, world, com) _centers(centers), _cv_prev(), alpha(), _mpiid(0), _worldstring(), _currentiter(0), _initiaize_steps(InitialSteps), _harvest_length(HarvestLength), _number_trajectories(NumberTrajectories), _swarm_length(SwarmLength), _iterator(0); 
 
             //! Pre-simulation hook
             void PreSimulation(Snapshot* snapshot, const CVList& cvs) override;
