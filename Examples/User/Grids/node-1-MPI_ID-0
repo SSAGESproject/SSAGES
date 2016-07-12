@@ -1,0 +1,7 @@
+LAMMPS (14 May 2016)
+echo screen
+Created orthogonal box = (-1.5 -1.5 -1) to (2 2 1)
+  1 by 1 by 1 MPI processor grid
+Created 1 atoms
+1 atoms in group solid
+ERROR: Unknown fix style (../modify.cpp:793)
