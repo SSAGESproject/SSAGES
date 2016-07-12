@@ -7,38 +7,36 @@
 namespace mpi = boost::mpi;
 namespace SSAGES
 { 
-	// need helper function for calculating distances 
+	// Helper function for calculating distances
 	double sqdist(std::vector<double>& x, std::vector<double>& y)
 	{
 		double distance = 0;
-		for (size_t i = 0; i < x.size(); i++)
-		{
+		for (size_t i = 0; i < x.size(); i++){
 			distance += (x[i] - y[i]) * (x[i] - y[i]);	
 		}
-		
 		return distance;
 	}
 
+	// Check whether CV values are within their respective Voronoi cell in CV space
 	bool FiniteTempString::InCell(const CVList& cvs)
 	{
 		std::vector<double> dists;
-		dists.resize(_worldstring[0].size());
 		// Record the difference between all cvs and all nodes
-		for (size_t i = 0; i < _numnodes; i++)
-		{
+		dists.resize(_numnodes);
+		for (size_t i = 0; i < _numnodes; i++){
 			dists[i] = 0;
 			for(size_t j = 0; j < cvs.size(); j++)
 				dists[i]+=(cvs[j]->GetValue() - _worldstring[j][i])*(cvs[j]->GetValue() - _worldstring[j][i]);
 		}
-
-		if(std::min_element(dists.begin(), dists.end()) - dists.begin() != _mpiid)
+		
+		if(std::min_element(dists.begin(), dists.end()) - dists.begin() != _mpiid){
 			return false;
-		else
+		} else {
 			return true;
-
+		}
 	}
 
-	// Pre-simulation hook.
+	// Pre-simulation hook
 	void FiniteTempString::PreSimulation(Snapshot* snapshot, const CVList& cvs)
 	{
 		// Open file for writing.
@@ -56,25 +54,27 @@ namespace SSAGES
 
 	 	_iterator = 0;
 
-	 	for(size_t i=0; i<positions.size();i++)
-	 	{
+		for(size_t i=0; i<positions.size();i++){
 	 		for(size_t j=0; j<positions[i].size();j++)
 	 			_prev_positions[i][j] = positions[i][j];
 	 	}
 
+		// Used for reparameterization
 	 	_alpha = _mpiid / (_numnodes - 1.0);
 
-		// initialize running averages
+		// Initialize running averages
 		for(size_t i = 0; i< _centers.size(); ++i){
 			_worldstring[i].resize(_numnodes);
 			_runavgs[i] = 0;
 			_cv_prev[i] = cvs[i]->GetValue();
 
-			// gathers into _worldstring, where it is cv followed by node
+			// Gathers into _worldstring, where it is cv index followed by node index
 			mpi::all_gather(_world, _centers[i], _worldstring[i]);
 		}
 
+		// If initial config. is not in Voronoi cell, apply umbrella potential to move into the cell
 		_run_SMD = !InCell(cvs);
+
 	}
 
 	// Post-integration hook.
@@ -84,78 +84,44 @@ namespace SSAGES
 		auto& forces = snapshot->GetForces();
 		auto& positions = snapshot->GetPositions();
 
-
-		// Check to see if cv is still in the correct voronio cell, if not reverse the move
-		// Hard voronoi walls.
-		// Reverse move by moving everything back, and setting force to zero
-		// This should also 'Raondomize' the velocity, given the velocity will be that of the
-		// unaccepted move. Does this follow detailed balance?
-		if(_run_SMD)
-		{
-			double dist = 0;
-			double length = 0;
-			for(size_t i = 0; i < cvs.size(); ++i)
-			{
-				auto& cv = cvs[i];
-				auto& center = _centers[i];
-
-				dist += (center - cv->GetValue())*(center - cv->GetValue());
-				length += _SMD_lengths[i]*_SMD_lengths[i]; 
-			}
-
-			if(sqrt(dist) < 2*sqrt(length))
+		// Apply umbrella potential in increments of 2000 time steps
+		// this value should probably be modifiable by the user?
+		if(_run_SMD && _cv_inside_iterator == 2000){
+			if(InCell(cvs)){
 				_run_SMD = false;
-		}
-		if(_run_SMD)
-		{
-			// Run some SMD code
-			double spring = 10;
-
-			// Set up vector for SMD
-			if(_cv_inside_iterator == 0)
-			{
-				for(size_t i = 0; i < cvs.size(); ++i)
-				{
-					auto& cv = cvs[i];
-					auto& center = _centers[i];
-
-					_SMD_lengths[i] = (center - cv->GetValue())/2000.0;
-					_SMD_centers[i] = cv->GetValue() + _SMD_lengths[i];
+				for(auto& force : forces){
+					for(auto& xyz : force){
+						xyz = 0.0;
+					}
 				}
+			} else {
+				_cv_inside_iterator = 0;
 			}
-			else if(_cv_inside_iterator < 2000)
-			{
-				for(size_t i = 0; i < _SMD_centers.size(); ++i)
-					_SMD_centers[i]+=_SMD_lengths[i];
-			}
-			else
-			{
-				spring += _cv_inside_iterator - 2000;
-			}
-
-			// Typical harmonic spring to adjust forces
-			for(size_t i = 0; i < cvs.size(); ++i)
-			{
-				// Get current CV and gradient.
+		}
+		if(_run_SMD){
+			for(size_t i = 0; i < cvs.size(); i++){
+				// Get current cv and gradient
 				auto& cv = cvs[i];
 				auto& grad = cv->GetGradient();
 
-				// Compute dV/dCV.
-				auto D = spring*(cv->GetValue() - _SMD_centers[i]);
+				// Compute dV/dCV
+				auto D = _spring*(cv->GetDifference(_centers[i]));
 
-				// Update forces.
-				for(size_t j = 0; j < forces.size(); ++j)
-					for(size_t k = 0; k < forces[j].size(); ++k)
+				// Update forces
+				for(size_t j = 0; j < forces.size(); j++){
+					for(size_t k = 0; k < forces[j].size(); k++){
 						forces[j][k] -= D*grad[j][k];
+					}
+				}
 			}
+			
 			_cv_inside_iterator++;
 		}
 		else
 		{
 			auto inside = InCell(cvs);
-			// Do everything else
-			if(!inside)
-			{
+			// If previous step is already within the Voronoi cell, continue with FTS sampling
+			if(!inside){
 				for(auto& force : forces)
 					for(auto& xyz : force)
 						xyz = 0.0;
@@ -164,8 +130,7 @@ namespace SSAGES
 					for(size_t j = 0; j < positions[i].size(); j++)
 						positions[i][j] = _prev_positions[i][j];	
 			}
-			else
-			{
+			else{
 				for(size_t i = 0; i < positions.size(); i++)
 					for(size_t j = 0; j < positions[i].size(); j++)
 						_prev_positions[i][j] = positions[i][j];
@@ -174,40 +139,35 @@ namespace SSAGES
 					_cv_prev[i] = cvs[i]->GetValue();
 			}
 
-			// calculate running averages
-			for (size_t i = 0; i < _runavgs.size(); i++)
-			{
-				// calculate running average for each node
+			// Calculate running averages for each CV at each node 
+			for (size_t i = 0; i < _runavgs.size(); i++){
 				_runavgs[i] = _runavgs[i] * _iterator + _cv_prev[i];
 				_runavgs[i] /= (_iterator + 1);
 			}
 
-			if(_iterator > _blockiterations)
-			{
-
+			if(_iterator > _blockiterations){
 				// Write out the string to file
 				PrintString(cvs);
 
 				// Update the string and reparameterize 
 				StringUpdate();
 
-				_iterator = 0;
-				for (auto &cvavg : _runavgs)
-						cvavg = 0;
+				_iterator++;
 
-				for(size_t ii = 0; ii < _centers.size(); ii++)
-					mpi::all_gather(_world, _centers[ii], _worldstring[ii]);
+				for(size_t i = 0; i < _centers.size(); i++)
+					mpi::all_gather(_world, _centers[i], _worldstring[i]);
 
 				_currentiter++;
+				
+				// if tolerance criteria is added in: 
+				//if(_tol != 0.0) ... 
 
-				if(!InCell(cvs))
-				{
+				if(!InCell(cvs)){
 					_run_SMD = true;
 					_cv_inside_iterator = 0;
 				}
 			} 
-			else 
-			{
+			else{
 				_iterator++;
 				_run_SMD = false;
 			}
@@ -225,15 +185,15 @@ namespace SSAGES
 		_stringout.precision(8);
 		_stringout << _mpiid << " "<< _currentiter << " ";
 
-		for(size_t jj = 0; jj < _centers.size(); jj++)
-			_stringout<< _centers[jj] << " " << CV[jj]->GetValue()<< " "; 
+		for(size_t i = 0; i < _centers.size(); i++)
+			_stringout<< _centers[i] << " " << CV[i]->GetValue()<< " "; 
 
 		_stringout<<std::endl;
 
 		std::cout << _mpiid << " "<< _currentiter << " ";
 
-		for(size_t jj = 0; jj < _centers.size(); jj++)
-			std::cout<< _centers[jj] << " " << _runavgs[jj]<< " "; 
+		for(size_t i = 0; i < _centers.size(); i++)
+			std::cout<< _centers[i] << " " << _runavgs[i]<< " "; 
 
 		std::cout<<std::endl;
 
@@ -241,7 +201,7 @@ namespace SSAGES
 
 	void FiniteTempString::StringUpdate()
 	{
-		size_t jj;
+		size_t i;
 		int centersize = _centers.size();
 		double alpha_star;
 		std::vector<double> alpha_starv;
@@ -255,18 +215,15 @@ namespace SSAGES
 		int sendneighbor, recvneighbor;
 		MPI_Status status;
 
-		if(_mpiid == 0)
-		{
+		if(_mpiid == 0){
 			sendneighbor = 1;
 			recvneighbor = _world.size()-1;
 		} 
-		else if (_mpiid == _world.size()-1)
-		{
+		else if (_mpiid == _world.size()-1){
 			sendneighbor = 0;
 			recvneighbor = _world.size() - 2;
 		} 
-		else 
-		{
+		else{
 			sendneighbor = _mpiid + 1;
 			recvneighbor = _mpiid - 1;
 		}
@@ -283,16 +240,18 @@ namespace SSAGES
 		alpha_starv.resize(_numnodes);
 		cvs_newv.resize(_numnodes);
 
-		for(jj = 0; jj < cvs_new.size(); jj++)
-		{
+		// Update node locations toward running averages:
+		for(i = 0; i < cvs_new.size(); i++){
 			if(_mpiid == 0 || _mpiid == _numnodes - 1)
-				cvs_new[jj] = _centers[jj] - _tau * (_centers[jj] - _runavgs[jj]);
+				cvs_new[i] = _centers[i] - _tau * (_centers[i] - _runavgs[i]);
 			else
-				cvs_new[jj] = _centers[jj] - _tau * (_centers[jj] - _runavgs[jj]) + 
+				cvs_new[i] = _centers[i] - _tau * (_centers[i] - _runavgs[i]) + 
 					(_kappa * _numnodes * _tau * 
-					(ucv0[jj] + lcv0[jj] - 2 * _centers[jj]));
+					(ucv0[i] + lcv0[i] - 2 * _centers[i]));
 		}
 
+		// Reparameterization:
+		// alpha_star ranges from 0 to 1 from one end of string to other
 		if(_mpiid == 0)
 			alpha_star = 0;
 		else
@@ -300,23 +259,22 @@ namespace SSAGES
 
 		mpi::all_gather(_world, alpha_star, alpha_starv);
 
-		for(jj = 1; jj < alpha_starv.size(); jj++)
-		{
-			alpha_starv[jj] = alpha_starv[jj-1] + alpha_starv[jj];
+		for(i = 1; i < alpha_starv.size(); i++){
+			alpha_starv[i] = alpha_starv[i-1] + alpha_starv[i];
 		}
 
-		for(jj = 1; jj < alpha_starv.size(); jj++){
-			alpha_starv[jj] /= alpha_starv[_numnodes - 1];
+		for(i = 1; i < alpha_starv.size(); i++){
+			alpha_starv[i] /= alpha_starv[_numnodes - 1];
 		}
 
 		tk::spline spl;
 
-		for(jj = 0; jj < centersize; jj++)
-		{
-			mpi::all_gather(_world, cvs_new[jj], cvs_newv);
-			//spl.setpoints(alpha_starv, vector of all new points **in one particular dimension**);
+		for(i = 0; i < centersize; i++){
+			mpi::all_gather(_world, cvs_new[i], cvs_newv);
+			// spl.setpoints(alpha_starv, vector of all new points **in one particular dimension**);
 			spl.set_points(alpha_starv, cvs_newv);
-			_centers[jj] = spl(_alpha);
+			// Node locations are updated with post-reparameterization values
+			_centers[i] = spl(_alpha);
 		}
 	}
 }

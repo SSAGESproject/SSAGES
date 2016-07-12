@@ -134,6 +134,8 @@ namespace SSAGES
 			boxsize[2] = boxsize3;
 
 			auto* c = new AtomSeparationCV(atomid1, atomid2,boxsize);
+
+			cv = static_cast<CollectiveVariable*>(c);
 		}
 		else
 		{

@@ -33,6 +33,10 @@
 		"frequency" : {
 			"type" : "integer",
 			"minimum" : 1
+		},
+		"spring" : {
+			"type" : "number",
+			"minimum" : 0
 		}
 	},
 	"required": ["type", "centers", "block iterations", "number samples", 
