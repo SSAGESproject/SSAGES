@@ -10,5 +10,5 @@
 #SBATCH --mail-user=bezik@uchicago.edu
 #SBATCH --mail-type=ALL
 
-mpiexec -np 12 ./ssages Umbrella.json
+mpiexec -np 12 ./ssages FTS.json
 
