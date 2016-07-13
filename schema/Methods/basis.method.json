@@ -1,0 +1,72 @@
+{
+	"type" : "object",
+	"varname" : "BFSMethod",
+	"properties" : {
+		"type" : { 
+			"type" : "string",
+			"enum" : ["Basis"]
+		},
+		"cycle frequency" : {
+			"type" : "integer",
+			"minimum" : 1
+		},
+		"frequency" : {
+			"type" : "integer",
+			"minimum" : 1
+		},
+        "CV coefficients" : {
+            "type" : "array",
+            "minItems" : 1,
+            "items" : {
+                "type" : "integer"
+            }
+        },
+        "CV springs" : {
+            "type" : "array",
+            "minItems" : 1,
+            "items" : {
+                "type" : "number"
+            }
+        },
+        "CV upper bounds" : {
+            "type" : "array",
+            "minItems" : 1,
+            "items" : {
+                "type" : "number"
+            }
+        },
+        "CV lower bounds" : {
+            "type" : "array",
+            "minItems" : 1,
+            "items" : {
+                "type" : "number"
+            }
+        },
+        "basis file" : {
+            "type" : "string"
+        },
+        "coeff file" : {
+            "type" : "string"
+        },
+        "weight" : {
+            "type" : "number",
+            "minimum" : 0
+        },
+        "temperature" : {
+            "type" : "number",
+            "minimum" : 0
+        },
+        "tolerance" : {
+            "type" : "number",
+            "minimum" : 1e-20
+        },
+        "read" : {
+            "type" : "boolean"
+        },
+        "convergence exit" : {
+            "type" : "boolean"
+        }
+	},
+	"required": ["type", "CV coefficients", "cycle frequency"],
+	"additionalProperties": false
+}

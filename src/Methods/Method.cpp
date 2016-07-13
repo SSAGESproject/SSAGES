@@ -11,6 +11,7 @@
 #include "ForwardFlux.h"
 #include "GridTest.h"
 #include "ABF.h"
+#include "BasisFunc.h"
 
 using namespace Json;
 
@@ -226,7 +227,7 @@ namespace SSAGES
 
 			method = static_cast<Method*>(m);
 		}
-		else if(type == "FTS")
+		else if(type == "FiniteTemperatureString")
 		{
 			reader.parse(JsonSchema::FTSMethod, schema);
 			validator.Parse(schema, path);
@@ -241,18 +242,61 @@ namespace SSAGES
 				centers.push_back(s.asDouble());
 
 			auto isteps = json.get("block iterations", 2000).asInt();
-			auto nsamples = json.get("number samples", 20).asInt();
 			auto kappa = json.get("kappa", 0.1).asDouble();
 			auto tau = json.get("time step", 0.1).asDouble();			
-			auto freq = json.get("frequency", 1).asInt();			
-			auto spring = json.get("spring", 100).asDouble();
+			auto freq = json.get("frequency", 1).asInt();
+			auto spring = json.get("spring", 100).asDouble();		
 
+			//Todo: Fix how NumNodes is determined! Currently incorrect
+			int NumNodes = comm.size();
 			auto* m = new FiniteTempString(world, comm, isteps, 
-									centers, nsamples, kappa,
-									tau, spring, freq);
+									centers, NumNodes, kappa,
+			 						tau, spring, freq);
 
 			method = static_cast<Method*>(m);
 		}
+
+        else if(type == "Basis")
+        {
+            reader.parse(JsonSchema::BFSMethod, schema);
+            validator.Parse(schema, path);
+
+            //Validate Inputs
+            validator.Validate(json, path);
+            if(validator.HasErrors())
+                throw BuildException(validator.GetErrors());
+
+			std::vector<unsigned int> coefsCV(0);
+			for(auto& coefs : json["CV coefficients"])
+				coefsCV.push_back(coefs.asInt());
+
+            std::vector<double> restrCV(0);
+            for(auto& restr : json["CV springs"])
+                restrCV.push_back(restr.asDouble());
+
+            std::vector<double> boundLow(0);
+            for(auto& bndl : json["CV upper bounds"])
+                boundLow.push_back(bndl.asDouble());
+        
+            std::vector<double> boundUp(0);
+            for(auto& bndu : json["CV upper bounds"])
+                boundUp.push_back(bndu.asDouble());
+
+            auto cyclefreq = json.get("cycle frequency", 100000).asInt();
+            auto freq = json.get("frequency", 1).asInt();
+            auto wght = json.get("weight", 1.0).asDouble();
+            auto read = json.get("read", false).asBool();
+            auto bnme = json.get("basis file", "").asString();
+            auto cnme = json.get("coeff file", "").asString();
+            auto temp = json.get("temperature", 0.0).asDouble();
+            auto tol  = json.get("tolerance", 1e-6).asDouble();
+            auto conv = json.get("convergence exit", false).asBool();
+ 
+            auto* m = new Basis(world, comm, coefsCV, restrCV, boundUp, boundLow, cyclefreq, freq, bnme, cnme, temp, tol, wght, read, conv);
+
+            method = static_cast<Method*>(m);
+        }
+
 		else if(type == "GridTest")
 		{
 			auto* m = new GridTest(world, comm, 1);
