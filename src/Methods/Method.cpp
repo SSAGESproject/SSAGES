@@ -11,6 +11,7 @@
 #include "ForwardFlux.h"
 #include "GridTest.h"
 #include "ABF.h"
+#include "BasisFunc.h"
 #include "Swarm.h"
 
 using namespace Json;
@@ -254,32 +255,48 @@ namespace SSAGES
 
 			method = static_cast<Method*>(m);
 		}
-        	else if(type == "Swarm")
-        	{
-        	    reader.parse(JsonSchema::SwarmMethod, schema);
-        	    validator.Parse(schema, path);
+		
+        else if(type == "Basis")
+        {
+            reader.parse(JsonSchema::BFSMethod, schema);
+            validator.Parse(schema, path);
 
-        	    //Validate inputs
-        	    validator.Validate(json, path);
-        	    if(validator.HasErrors())
-        	        throw BuildException(validator.GetErrors());
+            //Validate Inputs
+            validator.Validate(json, path);
+            if(validator.HasErrors())
+                throw BuildException(validator.GetErrors());
 
-        	    std::vector<double> centers;
-        	    for(auto& s: json["centers"])
-        	        centers.push_back(s.asDouble());
+			std::vector<unsigned int> coefsCV(0);
+			for(auto& coefs : json["CV coefficients"])
+				coefsCV.push_back(coefs.asInt());
 
-        	    auto NumNodes = json.get("number of nodes", 20).asInt();
-        	    auto spring = json.get("spring", 10).asDouble();
-        	    auto freq = json.get("frequency", 1).asInt();
+            std::vector<double> restrCV(0);
+            for(auto& restr : json["CV springs"])
+                restrCV.push_back(restr.asDouble());
 
-        	    auto InitialSteps = json.get("initial steps", 2500).asInt();
-        	    auto HarvestLength = json.get("harvest length", 10).asInt();
-        	    auto NumberTrajectories = json.get("number of trajectories", 250).asInt();
-        	    auto SwarmLength = json.get("swarm length", 20).asInt();
+            std::vector<double> boundLow(0);
+            for(auto& bndl : json["CV upper bounds"])
+                boundLow.push_back(bndl.asDouble());
+        
+            std::vector<double> boundUp(0);
+            for(auto& bndu : json["CV upper bounds"])
+                boundUp.push_back(bndu.asDouble());
 
-        	    auto* m = new Swarm(world, comm, centers, NumNodes, spring, freq, InitialSteps, HarvestLength, NumberTrajectories, SwarmLength); 
-        	    method = static_cast<Method*>(m);
-        	}
+            auto cyclefreq = json.get("cycle frequency", 100000).asInt();
+            auto freq = json.get("frequency", 1).asInt();
+            auto wght = json.get("weight", 1.0).asDouble();
+            auto read = json.get("read", false).asBool();
+            auto bnme = json.get("basis file", "").asString();
+            auto cnme = json.get("coeff file", "").asString();
+            auto temp = json.get("temperature", 0.0).asDouble();
+            auto tol  = json.get("tolerance", 1e-6).asDouble();
+            auto conv = json.get("convergence exit", false).asBool();
+ 
+            auto* m = new Basis(world, comm, coefsCV, restrCV, boundUp, boundLow, cyclefreq, freq, bnme, cnme, temp, tol, wght, read, conv);
+
+            method = static_cast<Method*>(m);
+        }
+
 		else if(type == "GridTest")
 		{
 			auto* m = new GridTest(world, comm, 1);
@@ -293,4 +310,30 @@ namespace SSAGES
 		method->_grid = nullptr;
 		return method;
 	}
+	else if(type == "Swarm")
+        {
+        	reader.parse(JsonSchema::SwarmMethod, schema);
+        	validator.Parse(schema, path);
+
+        	//Validate inputs
+        	validator.Validate(json, path);
+        	if(validator.HasErrors())
+        	throw BuildException(validator.GetErrors());
+
+        	std::vector<double> centers;
+        	for(auto& s: json["centers"])
+        	    centers.push_back(s.asDouble());
+        	    
+        	auto NumNodes = json.get("number of nodes", 20).asInt();
+        	auto spring = json.get("spring", 10).asDouble();
+        	auto freq = json.get("frequency", 1).asInt();
+
+        	auto InitialSteps = json.get("initial steps", 2500).asInt();
+        	auto HarvestLength = json.get("harvest length", 10).asInt();
+        	auto NumberTrajectories = json.get("number of trajectories", 250).asInt();
+        	auto SwarmLength = json.get("swarm length", 20).asInt();
+
+        	auto* m = new Swarm(world, comm, centers, NumNodes, spring, freq, InitialSteps, HarvestLength, NumberTrajectories, SwarmLength); 
+        	method = static_cast<Method*>(m);
+        	}
 }
