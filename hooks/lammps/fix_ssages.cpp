@@ -1,4 +1,5 @@
 #include <iostream>
+#include <numeric>
 #include "fix_ssages.h"
 #include "atom.h"
 #include "compute.h"
