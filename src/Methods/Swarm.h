@@ -1,5 +1,6 @@
 #include "Method.h"
 #include "../CVs/CollectiveVariable.h"
+#include <fstream>
 
 namespace SSAGES
 {
@@ -65,7 +66,13 @@ namespace SSAGES
             int _index; 
 
             //! Output stream for string data
-            std::ofstream _stringout; 
+            std::ofstream _stringout;
+
+            //! Store positions for starting trajectories
+            std::vector<std::vector<Vector3>> _traj_positions;
+
+            //! Store forces for starting trajectories
+            std::vector<std::vector<Vector3>> _traj_forces;
 
             //! Updates the positions of the string
             void StringUpdate();
@@ -79,7 +86,9 @@ namespace SSAGES
             /*!
              * Constructs an instance of the swarm of trajectories method.
              */
-            Swarm(boost::mpi::communicator& world, boost::mpi::communicator& com, const std::vector<double>& centers, unsigned int NumNodes, double spring, unsigned int frequency, unsigned int InitialSteps, unsigned int HarvestLength, unsigned int NumberTrajectories, unsigned int SwarmLength) : Method(frequency, world, com) _centers(centers), _cv_prev(), alpha(), _mpiid(0), _worldstring(), _currentiter(0), _initiaize_steps(InitialSteps), _harvest_length(HarvestLength), _number_trajectories(NumberTrajectories), _swarm_length(SwarmLength), _iterator(0); 
+            Swarm(boost::mpi::communicator& world, boost::mpi::communicator& com, const std::vector<double>& centers, unsigned int NumNodes, double spring, unsigned int frequency, unsigned int InitialSteps, unsigned int HarvestLength, unsigned int NumberTrajectories, unsigned int SwarmLength) : Method(frequency, world, com), _centers(centers), _cv_drift(), _cv_start(), _alpha(), _mpiid(0), _worldstring(), _currentiter(0), _initialize_steps(InitialSteps), _harvest_length(HarvestLength), _number_trajectories(NumberTrajectories), _swarm_length(SwarmLength), _iterator(0), _spring(spring), _numnodes(NumNodes)
+        {
+        }
 
             //! Pre-simulation hook
             void PreSimulation(Snapshot* snapshot, const CVList& cvs) override;
@@ -90,7 +99,7 @@ namespace SSAGES
             //! Post-simulation hook
             void PostSimulation(Snapshot* snapshot, const CVList& cvs) override; 
 
-            void Serialize(Json::Value& json) const override; 
+            void Serialize(Json::Value& json) const override
             {
 
             }

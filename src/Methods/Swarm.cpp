@@ -21,7 +21,7 @@ namespace SSAGES
     }
 
     //Pre-simulation hook
-    void Swarm::PreSimuation(Snapshot* snapshot, const CVList& cvs)
+    void Swarm::PreSimulation(Snapshot* snapshot, const CVList& cvs)
     {
         //Open file for writing
         _mpiid = snapshot->GetWalkerID();
@@ -32,7 +32,7 @@ namespace SSAGES
 
         //Sizing vectors
         _worldstring.resize(_centers.size()); 
-        _cv_start.resize(_centers.size();
+        _cv_start.resize(_centers.size());
         _cv_drift.resize(_centers.size());
         _traj_positions.resize(_number_trajectories);
         _traj_forces.resize(_number_trajectories);
@@ -40,8 +40,7 @@ namespace SSAGES
         //Initialize vector values
         for(size_t i = 0; i < _centers.size(); i++)
         {
-            _worldstring[i].resize(_numnodes);
-            _cv_prev[i] = cvs[i]->GetValue();
+            _worldstring[i].resize(_numnodes); 
 
             //_worldstring is indexed as cv followed by node
             mpi::all_gather(_world, _centers[i], _worldstring[i]);
@@ -51,16 +50,16 @@ namespace SSAGES
         }
 
         //Additional initializing
-        index = 0;  
+        _index = 0;  
         _restrained_steps = _harvest_length*_number_trajectories; 
-        _unrestrained_steps = _swarm_length*number_trajectories;
+        _unrestrained_steps = _swarm_length*_number_trajectories;
     }
 
     void Swarm::PostIntegration(Snapshot* snapshot, const CVList& cvs)
     {
         auto& forces = snapshot->GetForces();
         auto& positions = snapshot->GetPositions();
-        int index; //For building the trajectory vectors
+        int index = _index;
 
         if(_iterator <= _initialize_steps + _restrained_steps)
         {
@@ -73,15 +72,15 @@ namespace SSAGES
                 }
                 //Get current CV and gradient
                 auto& cv = cvs[i];
-                auto& grad  cv->GetGradient();
+                auto& grad = cv->GetGradient();
 
                 //Compute dV/dCV
                 auto D = _spring*(cv->GetDifference(_centers[i]));
 
                 //Update forces
-                for(size_t j = 0; j < forces.size(), j++)
+                for(size_t j = 0; j < forces.size(); j++)
                 {
-                    for(size_t k = 0; k < forces[j].size(), k++)
+                    for(size_t k = 0; k < forces[j].size(); k++)
                     {
                         forces[j][k] -= D*grad[j][k]; 
 
@@ -107,7 +106,7 @@ namespace SSAGES
             {
                 index = 0; //Reset index when starting unrestrained trajectories
             }
-            if((iterator - _initialize_steps - restrained_steps) % swarm_length == 1)
+            if((_iterator - _initialize_steps - _restrained_steps) % _swarm_length == 1)
             {
                 //Start of trajectory, reset positions and forces
                 forces = _traj_forces[index];
@@ -117,7 +116,7 @@ namespace SSAGES
                 //Record CV starting values
                 for(size_t i = 0; i < _cv_start.size(); i++)
                 {
-                    _cv_start[i] = cvs[i]; 
+                    _cv_start[i] = cvs[i]->GetValue(); 
                 }
             }
 
@@ -126,7 +125,7 @@ namespace SSAGES
                 //End of trajectory, harvest drift
                 for(size_t i = 0; i < _cv_drift.size(); i++)
                 {
-                    _cv_drift[i] += cvs[i] - _cv_start[i]; //Add up drifts, average later
+                    _cv_drift[i] += cvs[i]->GetValue() - _cv_start[i]; //Add up drifts, average later
                 }
             }
             _iterator++;
@@ -174,7 +173,7 @@ namespace SSAGES
         _stringout << std::endl;
 
         //Write same info to terminal, omit current CV value
-        std::cout << _mpiid < " " << _currentiter << " ";
+        std::cout << _mpiid << " " << _currentiter << " ";
         for(size_t i = 0; i < _centers.size(); i++)
         {
             std::cout << _centers[i] << " ";
@@ -198,7 +197,7 @@ namespace SSAGES
 
         //Vectors for lower and upper neighbor on the string
         std::vector<double> lower_cv_neighbor;
-        lower_cv_neighbor.resize(centerssize); 
+        lower_cv_neighbor.resize(centersize); 
 
         //For reparametrization
         cvs_new.resize(centersize); //All CVs for a particular nodes
@@ -229,7 +228,7 @@ namespace SSAGES
         }
 
         //Copy centers from lower neighbor into lower_cv_neighbor
-        MPI_Sendrecv(&_cvs_new[0], centersize, MPI_DOUBLE, sendneighbor, 1234, &lower_cv_neighbor[0], centersize, MPI_DOUBLE, recvneighbor, 1234, _world, &status);
+        MPI_Sendrecv(&cvs_new[0], centersize, MPI_DOUBLE, sendneighbor, 1234, &lower_cv_neighbor[0], centersize, MPI_DOUBLE, recvneighbor, 1234, _world, &status);
 
         //Reparameterization
         //Alpha star is the uneven mesh, approximated as linear distance between points
@@ -239,7 +238,7 @@ namespace SSAGES
         }
         else
         {
-            alpha_star = distance(_cvs_new, lower_cv_neighbor);
+            alpha_star = distance(cvs_new, lower_cv_neighbor);
         }
 
         //Gather each alpha_star into a vector 
@@ -259,7 +258,7 @@ namespace SSAGES
 
         tk::spline spl; //Cubic spline interpolation
 
-        for(i = 0; i < centerssize, i++)
+        for(i = 0; i < centersize; i++)
         {
             //Take from new CV values in one dimension into a vector
             //cvs_new_vector is thus the CV value in one dimension at each node

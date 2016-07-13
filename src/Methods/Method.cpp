@@ -268,8 +268,8 @@ namespace SSAGES
         	    for(auto& s: json["centers"])
         	        centers.push_back(s.asDouble());
 
-        	    auto NumNodes = json.get("number of nodes").asInt();
-        	    auto spring = json.get("spring").asDouble();
+        	    auto NumNodes = json.get("number of nodes", 20).asInt();
+        	    auto spring = json.get("spring", 10).asDouble();
         	    auto freq = json.get("frequency", 1).asInt();
 
         	    auto InitialSteps = json.get("initial steps", 2500).asInt();
