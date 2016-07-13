@@ -1,0 +1,46 @@
+{
+	"inputfile" : "in.ADP_FTS_Test",
+	"driver" : [
+		{
+			"number processors" : 1,
+			"type" : "LAMMPS",
+			"MDSteps" : 10000000,
+			"logfile" : "node-1",
+			"CVs" : [
+				{
+					"type" : "Torsional",
+					"atom ids" : [
+						5,
+						7,
+						9,
+						15
+					],
+					"periodic" : true 
+				},
+				{
+					"type": "Torsional",
+					"atom ids" : [
+						7,
+						9,
+						15,
+						17
+					],
+					"periodic" : true
+				}
+			],
+			"method" : {
+				"type" : "FTS",
+				"centers" : [
+						-3.0,
+						3.0
+				],
+				"block iterations" : 50,
+				"number samples" : 22,
+				"kappa" : 0.1,
+				"time step" : 0.1,
+				"frequency" : 1,
+				"spring" : 500
+			}
+		}
+	]
+}
