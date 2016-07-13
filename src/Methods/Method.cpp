@@ -297,7 +297,6 @@ namespace SSAGES
 
             method = static_cast<Method*>(m);
         }
-		
 		else if(type == "GridTest")
 		{
 			auto* m = new GridTest(world, comm, 1);
