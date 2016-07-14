@@ -3,7 +3,7 @@
 #SBATCH --output=test.out
 #SBATCH --error=test.err
 #SBATCH --time=00:15:00
-#SBATCH --partition=sandyb
+#SBATCH --partition=boltzmann
 #SBATCH --qos=debug
 #SBATCH --ntasks=12
 #SBATCH --share

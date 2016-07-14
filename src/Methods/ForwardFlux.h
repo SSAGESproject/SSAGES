@@ -3,6 +3,7 @@
 #include "Method.h"
 #include "../CVs/CollectiveVariable.h"
 #include <fstream>
+#include <random>
 #include "../FileContents.h"
 
 namespace mpi = boost::mpi;

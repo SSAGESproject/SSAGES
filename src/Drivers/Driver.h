@@ -4,6 +4,7 @@
 #include "json/json.h"
 #include <vector>
 #include <boost/mpi.hpp>
+#include <random>
 #include "../Hook.h"
 #include "../Methods/Method.h"
 #include "../Snapshot.h"

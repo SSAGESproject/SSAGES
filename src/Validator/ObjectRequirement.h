@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <list>
 #include <map>
+#include <numeric>
 #include "Requirement.h"
 #include "StringRequirement.h"
 #include "IntegerRequirement.h"

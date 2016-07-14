@@ -1,0 +1,509 @@
+{
+    "driver": [
+        {
+            "MDSteps": 10000000,
+            "number processors": 1,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 12,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    -3.0,
+                    3.0
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 12,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    -2.455,
+                    2.455
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 12,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    -1.909,
+                    1.909
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 12,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    -1.364,
+                    1.364
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 12,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    -0.818,
+                    0.818
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 12,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    -0.273,
+                    0.273
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 12,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    0.273,
+                    -0.273
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 12,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    0.818,
+                    -0.818
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 12,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    1.364,
+                    -1.364
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 12,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    1.909,
+                    -1.909
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 12,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    2.455,
+                    -2.455
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 12,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    3.0,
+                    -3.0
+                ]
+            }
+        }
+    ],
+    "inputfile": "in.ADP_FTS_Test"
+}

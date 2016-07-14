@@ -75,6 +75,7 @@ set(SOURCE
     	src/Methods/Swarm.cpp
 	src/Methods/ForwardFlux.cpp
 	src/Methods/ABF.cpp
+    src/Methods/BasisFunc.cpp
 	src/Validator/RequirementLoader.cpp
 	src/JSON/jsoncpp.cpp
 	src/JSON/schema.cpp
