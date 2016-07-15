@@ -34,7 +34,7 @@
                 "spring": 500,
                 "number of nodes": 12,
                 "frequency": 1,
-                "number of trajectories": 250,
+                "number of trajectories": 20,
                 "type": "Swarm",
                 "centers": [
                     -3.0,
@@ -76,7 +76,7 @@
                 "spring": 500,
                 "number of nodes": 12,
                 "frequency": 1,
-                "number of trajectories": 250,
+                "number of trajectories": 20,
                 "type": "Swarm",
                 "centers": [
                     -2.455,
@@ -118,7 +118,7 @@
                 "spring": 500,
                 "number of nodes": 12,
                 "frequency": 1,
-                "number of trajectories": 250,
+                "number of trajectories": 20,
                 "type": "Swarm",
                 "centers": [
                     -1.909,
@@ -160,7 +160,7 @@
                 "spring": 500,
                 "number of nodes": 12,
                 "frequency": 1,
-                "number of trajectories": 250,
+                "number of trajectories": 20,
                 "type": "Swarm",
                 "centers": [
                     -1.364,
@@ -202,7 +202,7 @@
                 "spring": 500,
                 "number of nodes": 12,
                 "frequency": 1,
-                "number of trajectories": 250,
+                "number of trajectories": 20,
                 "type": "Swarm",
                 "centers": [
                     -0.818,
@@ -244,7 +244,7 @@
                 "spring": 500,
                 "number of nodes": 12,
                 "frequency": 1,
-                "number of trajectories": 250,
+                "number of trajectories": 20,
                 "type": "Swarm",
                 "centers": [
                     -0.273,
@@ -286,7 +286,7 @@
                 "spring": 500,
                 "number of nodes": 12,
                 "frequency": 1,
-                "number of trajectories": 250,
+                "number of trajectories": 20,
                 "type": "Swarm",
                 "centers": [
                     0.273,
@@ -328,7 +328,7 @@
                 "spring": 500,
                 "number of nodes": 12,
                 "frequency": 1,
-                "number of trajectories": 250,
+                "number of trajectories": 20,
                 "type": "Swarm",
                 "centers": [
                     0.818,
@@ -370,7 +370,7 @@
                 "spring": 500,
                 "number of nodes": 12,
                 "frequency": 1,
-                "number of trajectories": 250,
+                "number of trajectories": 20,
                 "type": "Swarm",
                 "centers": [
                     1.364,
@@ -412,7 +412,7 @@
                 "spring": 500,
                 "number of nodes": 12,
                 "frequency": 1,
-                "number of trajectories": 250,
+                "number of trajectories": 20,
                 "type": "Swarm",
                 "centers": [
                     1.909,
@@ -454,7 +454,7 @@
                 "spring": 500,
                 "number of nodes": 12,
                 "frequency": 1,
-                "number of trajectories": 250,
+                "number of trajectories": 20,
                 "type": "Swarm",
                 "centers": [
                     2.455,
@@ -496,7 +496,7 @@
                 "spring": 500,
                 "number of nodes": 12,
                 "frequency": 1,
-                "number of trajectories": 250,
+                "number of trajectories": 20,
                 "type": "Swarm",
                 "centers": [
                     3.0,

@@ -39,7 +39,7 @@
 				"frequency" : 1,
 				"initial steps" : 2500,
 				"harvest length" : 10,
-				"number of trajectories" : 250,
+				"number of trajectories" : 20,
                 "swarm length" : 20
 			}
 		}
