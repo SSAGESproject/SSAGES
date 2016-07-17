@@ -372,8 +372,10 @@ namespace SSAGES
 				_MDDriver->Run();
 			} catch(BuildException& e) {
 				DumpErrorsToConsole(e.GetErrors(), _notw);
+                std::cout << "Line 375" << std::endl; //Debugging
 			} catch(std::exception& e) {
 				DumpErrorsToConsole({e.what()}, _notw);
+                std::cout << "Line 378" << std::endl; //Debugging
 			}
 			
 		}

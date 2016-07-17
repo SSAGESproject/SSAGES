@@ -31,15 +31,15 @@
 			"method" : {
 				"type" : "Swarm",
 				"centers" : [
-						-3.0,
-						3.0
+						-80,
+						75
 				],
 				"number of nodes": 12,
 				"spring" : 500,
 				"frequency" : 1,
 				"initial steps" : 2500,
 				"harvest length" : 10,
-				"number of trajectories" : 20,
+				"number of trajectories" : 250,
                 "swarm length" : 20
 			}
 		}
