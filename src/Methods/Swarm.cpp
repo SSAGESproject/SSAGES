@@ -123,8 +123,8 @@ namespace SSAGES
                 {
                     for(size_t k = 0; k < forces[j].size(); k++)
                     {
-                        //forces[j][k] -= (double)D*grad[j][k]; 
-                        forces[j][k] -= 0.0; //Debugging
+                        forces[j][k] -= (double)D*grad[j][k]; 
+                        //forces[j][k] -= 0.0; //Debugging
 
                     }
                 }
@@ -199,8 +199,8 @@ namespace SSAGES
                 for(size_t i = 0; i < _cv_drift.size(); i++)
                 {
                     //Drift scaled down for debugging
-                    //_cv_drift[i] = ((double)_cv_drift[i]*_index + ((double)cvs[i]->GetValue() / _drift_scale) - (double)_cv_start[i]) / (double)((_index+1)); //Calculate running average of drifts
-                    _cv_drift[i] += 0; //Debugging
+                    _cv_drift[i] = ((double)_cv_drift[i]*_index + ((double)cvs[i]->GetValue() / _drift_scale) - (double)_cv_start[i]) / (double)((_index+1)); //Calculate running average of drifts
+                    //_cv_drift[i] += 0; //Debugging
                     std::cout << _mpiid << " CV Drift = " << _cv_drift[i] << " " << std::endl; //Debugging
                 }
                 //Set up for next trajectory

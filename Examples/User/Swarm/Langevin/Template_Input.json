@@ -1,5 +1,5 @@
 {
-	"inputfile" : "in.ADP_FTS_Test",
+	"inputfile" : "in.LAMMPS_Meta_Test",
 	"driver" : [
 		{
 			"number processors" : 1,
@@ -8,31 +8,21 @@
 			"logfile" : "node-1",
 			"CVs" : [
 				{
-					"type" : "Torsional",
-					"atom ids" : [
-						5,
-						7,
-						9,
-						15
-					],
-					"periodic" : true 
+					"type" : "AtomCoordinate",
+					"atom id" : 1,
+					"dimension" : "x"
 				},
 				{
-					"type": "Torsional",
-					"atom ids" : [
-						7,
-						9,
-						15,
-						17
-					],
-					"periodic" : true
+					"type": "AtomCoordinate",
+					"atom id" : 1,
+                    "dimension" : "y"
 				}
 			],
 			"method" : {
 				"type" : "Swarm",
 				"centers" : [
-						-3,
-					    3
+						-0.98,
+					    -0.98
 				],
 				"number of nodes": 12,
 				"spring" : 500,

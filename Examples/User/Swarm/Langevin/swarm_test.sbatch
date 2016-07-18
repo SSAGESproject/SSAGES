@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=ssages_test
+#SBATCH --job-name=swarm_test
 #SBATCH --output=test.out
 #SBATCH --error=test.err
 #SBATCH --time=00:15:00
@@ -10,5 +10,5 @@
 #SBATCH --mail-user=bezik@uchicago.edu
 #SBATCH --mail-type=ALL
 
-mpiexec -np 12 ./ssages FTS.json
+mpiexec -np 12 ./ssages Swarm.json
 

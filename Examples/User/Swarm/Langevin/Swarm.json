@@ -5,24 +5,14 @@
             "number processors": 1,
             "CVs": [
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
                 },
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
                 }
             ],
             "logfile": "log",
@@ -37,8 +27,8 @@
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    -3.0,
-                    3.0
+                    -0.98,
+                    -0.98
                 ]
             }
         },
@@ -47,24 +37,14 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
                 },
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
                 }
             ],
             "logfile": "log",
@@ -79,8 +59,8 @@
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    -2.455,
-                    2.455
+                    -0.802,
+                    -0.802
                 ]
             }
         },
@@ -89,24 +69,14 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
                 },
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
                 }
             ],
             "logfile": "log",
@@ -121,8 +91,8 @@
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    -1.909,
-                    1.909
+                    -0.624,
+                    -0.624
                 ]
             }
         },
@@ -131,24 +101,14 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
                 },
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
                 }
             ],
             "logfile": "log",
@@ -163,8 +123,8 @@
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    -1.364,
-                    1.364
+                    -0.445,
+                    -0.445
                 ]
             }
         },
@@ -173,24 +133,14 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
                 },
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
                 }
             ],
             "logfile": "log",
@@ -205,8 +155,8 @@
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    -0.818,
-                    0.818
+                    -0.267,
+                    -0.267
                 ]
             }
         },
@@ -215,24 +165,14 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
                 },
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
                 }
             ],
             "logfile": "log",
@@ -247,8 +187,8 @@
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    -0.273,
-                    0.273
+                    -0.089,
+                    -0.089
                 ]
             }
         },
@@ -257,24 +197,14 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
                 },
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
                 }
             ],
             "logfile": "log",
@@ -289,8 +219,8 @@
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    0.273,
-                    -0.273
+                    0.089,
+                    0.089
                 ]
             }
         },
@@ -299,24 +229,14 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
                 },
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
                 }
             ],
             "logfile": "log",
@@ -331,8 +251,8 @@
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    0.818,
-                    -0.818
+                    0.267,
+                    0.267
                 ]
             }
         },
@@ -341,24 +261,14 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
                 },
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
                 }
             ],
             "logfile": "log",
@@ -373,8 +283,8 @@
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    1.364,
-                    -1.364
+                    0.445,
+                    0.445
                 ]
             }
         },
@@ -383,24 +293,14 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
                 },
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
                 }
             ],
             "logfile": "log",
@@ -415,8 +315,8 @@
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    1.909,
-                    -1.909
+                    0.624,
+                    0.624
                 ]
             }
         },
@@ -425,24 +325,14 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
                 },
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
                 }
             ],
             "logfile": "log",
@@ -457,8 +347,8 @@
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    2.455,
-                    -2.455
+                    0.802,
+                    0.802
                 ]
             }
         },
@@ -467,24 +357,14 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
                 },
                 {
-                    "periodic": true,
-                    "type": "Torsional",
-                    "atom ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
                 }
             ],
             "logfile": "log",
@@ -499,11 +379,11 @@
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    3.0,
-                    -3.0
+                    0.98,
+                    0.98
                 ]
             }
         }
     ],
-    "inputfile": "in.ADP_FTS_Test"
+    "inputfile": "in.LAMMPS_Meta_Test"
 }

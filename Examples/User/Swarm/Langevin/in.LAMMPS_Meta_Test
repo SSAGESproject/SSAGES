@@ -92,7 +92,7 @@ compute fya all property/atom fy
 compute fy all reduce sum c_fya
 
 
-timestep 2
+timestep 0.01
 thermo_style custom step c_xx c_yy c_vx c_vy c_fx c_fy c_ffx c_ffy press
 
 
