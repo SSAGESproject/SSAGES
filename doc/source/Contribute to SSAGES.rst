@@ -334,10 +334,39 @@ should include
 
 .. _add_your_method:
 
-Add your own method to SSAGES
------------------------------
+Add your method to SSAGES
+-------------------------
 
-How to get your method or CV added to SSAGES.
+.. seealso::
+
+    See :ref:`here <Write-your-own-method>` for an introduction to how to
+    develop your own method.
+
+You have developed a new Metadynamics method or a new collective variable (CV)?
+Great! We would love to add it to SSAGES. But before we do this, let us check
+the following boxes:
+
+* Your code needs to compile and run (obviously).
+
+* If you have implemented a new method, this method should have been published
+  in a peer reviewed journal and the publication should be cited in the
+  documentation of the method (see next point). If you have implemented a CV,
+  please give a small example of usage. In which case does the new CV come in
+  handy?
+
+* Your method needs to come with the necessary documentation. For others to
+  be able to use your method, you will have to explain how to do it. You can
+  take a look at the section :ref:`"How to improve the documentation"
+  <improve_documentation>` for a starter on how to write good documentation.
+
+* Please provide an example system. This could be the folding of an
+  Alanine Dipeptide molecule, a NaCl system or just a toy model with a simple
+  energy landscape. As long as the system is small and the method can easily
+  complete within a few hours, it will be fine.
+
+Once these boxes have been checked, our team of friendly code-reviewers will
+take a look at your source code and help you meet the high standard of the
+SSAGES code.
 
 .. _work_on_core_ssages:
 
