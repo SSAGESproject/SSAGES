@@ -36,6 +36,27 @@ namespace SSAGES
 		}
 	}
 
+	// Check whether tolerance criteria has been met
+	bool FiniteTempString::TolCheck()
+	{
+		std::vector<double> toldists;
+		double centersize = _centers.size();
+		toldists.resize(centersize * _numnodes);
+
+		for(size_t i = 0; i < _numnodes; i++){
+			for(size_t j = 0; j < _centers.size(); j++){
+					toldists[centersize * i + j] = fabs(_tolcheck[j][i] - _worldstring[j][i]);
+			}
+		}
+
+		if(*std::max_element(toldists.begin(), toldists.end()) < _tol){
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
 	// Pre-simulation hook
 	void FiniteTempString::PreSimulation(Snapshot* snapshot, const CVList& cvs)
 	{
@@ -50,14 +71,8 @@ namespace SSAGES
 	 	_runavgs.resize(_centers.size());
 	 	_cv_prev.resize(_centers.size());
 	 	_SMD_centers.resize(_centers.size());
-	 	_SMD_lengths.resize(_centers.size());
 
-	 	_iterator = 0;
-
-		for(size_t i=0; i<positions.size();i++){
-	 		for(size_t j=0; j<positions[i].size();j++)
-	 			_prev_positions[i][j] = positions[i][j];
-	 	}
+		_iterator = 0;
 
 		// Used for reparameterization
 	 	_alpha = _mpiid / (_numnodes - 1.0);
@@ -70,6 +85,45 @@ namespace SSAGES
 
 			// Gathers into _worldstring, where it is cv index followed by node index
 			mpi::all_gather(_world, _centers[i], _worldstring[i]);
+		}
+
+		if(_restart){
+			_currentiter = _restartiter + 1;
+			for(size_t i = 0; i < _centers.size(); i++){
+				_runavgs[i] = _restartavgs[i];
+			}
+			_stringout << "#! Restarting FTS from previous run";
+		} else {
+			_stringout << "#! Beginning new FTS run";
+		}
+
+		_stringout << " with " << _numnodes << " nodes starting at iteration " << _currentiter << std::endl;
+
+		if(_tol){
+			_stringout << "#! Tolerance criteria is ON: " << _tol << std::endl;
+			_tolcheck.resize(_centers.size());
+			for(size_t i = 0; i < _centers.size(); i++){
+				_tolcheck[i].resize(_numnodes);
+			}
+		} else {
+			_stringout << "#! Tolerance criteria is OFF" << std::endl;
+		}
+
+		if(_maxiterator){
+			_stringout << "#! Max iterations is ON: " << _maxiterator << std::endl;
+		} else {
+			_stringout << "#! Max iterations is OFF" << std::endl;
+		}
+
+		_stringout << "#! Walker# Iteration#";
+		for(size_t i = 0; i < _centers.size(); i++){
+			_stringout << " NodeCV" << i << " CurrentValueCV" << i << " RunningAvgCV" << i;
+		}
+		_stringout << std::endl;
+
+		for(size_t i=0; i<positions.size();i++){
+			for(size_t j=0; j<positions[i].size();j++)
+				_prev_positions[i][j] = positions[i][j];
 		}
 
 		// If initial config. is not in Voronoi cell, apply umbrella potential to move into the cell
@@ -85,7 +139,6 @@ namespace SSAGES
 		auto& positions = snapshot->GetPositions();
 
 		// Apply umbrella potential in increments of 2000 time steps
-		// this value should probably be modifiable by the user?
 		if(_run_SMD && _cv_inside_iterator == 2000){
 			if(InCell(cvs)){
 				_run_SMD = false;
@@ -120,7 +173,8 @@ namespace SSAGES
 		else
 		{
 			auto inside = InCell(cvs);
-			// If previous step is already within the Voronoi cell, continue with FTS sampling
+			// If new step is within the Voronoi cell, continue with FTS sampling
+			// Otherwise, reset system back to previous step  
 			if(!inside){
 				for(auto& force : forces)
 					for(auto& xyz : force)
@@ -140,36 +194,47 @@ namespace SSAGES
 			}
 
 			// Calculate running averages for each CV at each node 
-			for (size_t i = 0; i < _runavgs.size(); i++){
-				_runavgs[i] = _runavgs[i] * _iterator + _cv_prev[i];
-				_runavgs[i] /= (_iterator + 1);
+			for(size_t i = 0; i < _runavgs.size(); i++){
+				_runavgs[i] = _runavgs[i] * (_currentiter * _blockiterations + _iterator) + _cv_prev[i];
+				_runavgs[i] /= (_currentiter * _blockiterations + _iterator + 1);
 			}
 
+			// Update the string, every _blockiterations string method iterations
 			if(_iterator > _blockiterations){
+
 				// Write out the string to file
 				PrintString(cvs);
 
 				// Update the string and reparameterize 
 				StringUpdate();
 
-				_iterator++;
+				_iterator = 0;
+				_currentiter++;
+
+				if(_maxiterator && _currentiter > _maxiterator){
+					std::cout << "System has reached max string method iterations (" << _maxiterator << ") as specified in the input file(s)." << std::endl;
+					std::cout << "Exiting now" << std::endl;
+					_world.abort(-1);
+				}
 
 				for(size_t i = 0; i < _centers.size(); i++)
 					mpi::all_gather(_world, _centers[i], _worldstring[i]);
 
-				_currentiter++;
-				
-				// if tolerance criteria is added in: 
-				//if(_tol != 0.0) ... 
+				if(_tol){
+					// check whether max distance moved in any CV is below tolerance criteria _tol
+					if(TolCheck()){
+						std::cout << "System has converged within tolerance criteria of " << _tol << std::endl;
+						std::cout << "Exiting now" <<std::endl;
+						_world.abort(-1);
+					}
+				}
 
 				if(!InCell(cvs)){
 					_run_SMD = true;
 					_cv_inside_iterator = 0;
 				}
-			} 
-			else{
+			} else {
 				_iterator++;
-				_run_SMD = false;
 			}
 		}
 	}
@@ -178,25 +243,21 @@ namespace SSAGES
 	void FiniteTempString::PostSimulation(Snapshot*, const CVList&)
 	{
 		_stringout.close();
+		std::cout << "Walker " << _mpiid << " has reached max MD steps as specified in the input file(s)." << std::endl;
+		std::cout << "Completed iterations: " << _currentiter << std::endl;
+		std::cout << "Exiting now" << std::endl;
+		_world.abort(-1);
+
 	}
 
 	void FiniteTempString::PrintString(const CVList& CV)
 	{
 		_stringout.precision(8);
-		_stringout << _mpiid << " "<< _currentiter << " ";
-
-		for(size_t i = 0; i < _centers.size(); i++)
-			_stringout<< _centers[i] << " " << CV[i]->GetValue()<< " "; 
-
-		_stringout<<std::endl;
-
-		std::cout << _mpiid << " "<< _currentiter << " ";
-
-		for(size_t i = 0; i < _centers.size(); i++)
-			std::cout<< _centers[i] << " " << _runavgs[i]<< " "; 
-
-		std::cout<<std::endl;
-
+		_stringout << _mpiid << " " << _currentiter << " ";
+		for(size_t i = 0; i < _centers.size(); i++){
+			_stringout << _centers[i] << " " << CV[i]->GetValue() << " " << _runavgs[i] << " ";
+		}
+		_stringout << std::endl;
 	}
 
 	void FiniteTempString::StringUpdate()
@@ -269,6 +330,12 @@ namespace SSAGES
 
 		tk::spline spl;
 
+		if(_tol){
+			for(i = 0; i < _centers.size(); i++){
+				mpi::all_gather(_world, _centers[i],_tolcheck[i]);
+			}
+		}
+
 		for(i = 0; i < centersize; i++){
 			mpi::all_gather(_world, cvs_new[i], cvs_newv);
 			// spl.setpoints(alpha_starv, vector of all new points **in one particular dimension**);
@@ -276,5 +343,6 @@ namespace SSAGES
 			// Node locations are updated with post-reparameterization values
 			_centers[i] = spl(_alpha);
 		}
+
 	}
 }
