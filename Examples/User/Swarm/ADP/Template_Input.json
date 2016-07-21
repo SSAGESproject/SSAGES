@@ -1,0 +1,47 @@
+{
+	"inputfile" : "in.ADP_FTS_Test",
+	"driver" : [
+		{
+			"number processors" : 1,
+			"type" : "LAMMPS",
+			"MDSteps" : 10000000,
+			"logfile" : "node-1",
+			"CVs" : [
+				{
+					"type" : "Torsional",
+					"atom ids" : [
+						5,
+						7,
+						9,
+						15
+					],
+					"periodic" : true 
+				},
+				{
+					"type": "Torsional",
+					"atom ids" : [
+						7,
+						9,
+						15,
+						17
+					],
+					"periodic" : true
+				}
+			],
+			"method" : {
+				"type" : "Swarm",
+				"centers" : [
+						-3,
+					    3
+				],
+				"number of nodes": 12,
+				"spring" : 500,
+				"frequency" : 1,
+				"initial steps" : 2500,
+				"harvest length" : 10,
+				"number of trajectories" : 250,
+                "swarm length" : 20
+			}
+		}
+	]
+}
