@@ -72,6 +72,9 @@ namespace SSAGES
             //! Store forces for starting trajectories
             std::vector<std::vector<Vector3>> _traj_forces;
 
+            //! Store velocities for starting trajectories
+            std::vector<std::vector<Vector3>> _traj_velocities;
+
             //! Number of nodes on a string
             unsigned int _numnodes;
 

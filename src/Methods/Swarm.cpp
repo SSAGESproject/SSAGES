@@ -49,6 +49,7 @@ namespace SSAGES
     {
         auto& forces = snapshot->GetForces();
         auto& positions = snapshot->GetPositions();
+        auto& velocities = snapshot->GetVelocities();
 
         //Open file for writing
         _mpiid = snapshot->GetWalkerID();
@@ -61,10 +62,12 @@ namespace SSAGES
         _cv_drift.resize(_centers.size());
         _traj_positions.resize(_number_trajectories);
         _traj_forces.resize(_number_trajectories);
+        _traj_velocities.resize(_number_trajectories);
 
         //std::cout << _mpiid <<  " Reserving size..." << std::endl; //Debugging
         _traj_positions.reserve(_number_trajectories * positions.size());
         _traj_forces.reserve(_number_trajectories * forces.size());
+        _traj_velocities.reserve(_number_trajectories * velocities.size());
         
         for(size_t k = 0; k < _traj_positions.size(); k++)
         {
@@ -75,6 +78,11 @@ namespace SSAGES
         {
             _traj_forces[k].resize(forces.size());
             _traj_forces[k].reserve(forces.size());
+        }
+        for(size_t k = 0; k < _traj_velocities.size(); k++)
+        {
+            _traj_velocities[k].resize(velocities.size());
+            _traj_velocities[k].reserve(velocities.size());
         }
 
         //Initialize vector values
@@ -124,6 +132,7 @@ namespace SSAGES
     {
         auto& forces = snapshot->GetForces();
         auto& positions = snapshot->GetPositions();
+        auto& velocities = snapshot->GetVelocities();
 
         bool initialize; //Whether to initialize or not
 
@@ -214,6 +223,13 @@ namespace SSAGES
                                 _traj_forces[_index][k][l] = forces[k][l];
                             }
                         }
+                        for(size_t k = 0; k < velocities.size(); k++)
+                        {
+                            for(size_t l = 0; l < velocities[k].size(); l++)
+                            {
+                                _traj_velocities[_index][k][l] = velocities[k][l];
+                            }
+                        }
                         _index++;
                     }
                 }
@@ -221,42 +237,75 @@ namespace SSAGES
                 {
                     //Reset positions and forces before first call to unrestrained sampling
                     _index = 0;
-                    for(size_t k = 0; k < positions.size(); k++)
-                    {
-                        for(size_t l = 0; l < positions[k].size(); l++)
+                    //Before resetting, restrain - debugging
+                    if(CVInitialized(cvs))
+                    {//Before going any further, restrain the trajectories
+                        //std::cout << _mpiid << " Initializing on first pass..." << std::endl; //Debugging
+                        //Do restrained sampling, and do not harvest trajectories
+                        for(size_t i = 0; i < cvs.size(); i++)
                         {
-                            positions[k][l] = _traj_positions[_index][k][l];
+                            //std::cout << _mpiid << " Restraining..." << std::endl; //Debugging
+                            //Get current CV and gradient
+                            auto& cv = cvs[i];
+                            auto& grad = cv->GetGradient();
+
+                            //Compute dV/dCV
+                            auto D = _spring*(cv->GetDifference(_centers[i]));
+
+                            //Update forces
+                            for(size_t j = 0; j < forces.size(); j++)
+                            {
+                                for(size_t k = 0; k < forces[j].size(); k++)
+                                {
+                                    forces[j][k] -= (double)D*grad[j][k]; 
+                                    //forces[j][k] -= 0.0; //Debugging
+                                }
+                            }
                         }
                     }
-                    for(size_t k = 0; k < forces.size(); k++)
+                    else
                     {
-                        for(size_t l = 0; l < forces[k].size(); l++)
+                        //Zero forces
+                        for(auto& force: forces)
+                            for(auto& xyz : force)
+                                xyz = 0.0;
+                        //Then set positions
+                        for(size_t k = 0; k < positions.size(); k++)
                         {
-                            forces[k][l] = _traj_forces[_index][k][l];
-                            //forces[k][l] = 0.0;
+                            for(size_t l = 0; l < positions[k].size(); l++)
+                            {
+                                //positions[k][l] = _traj_positions[_index][k][l];
+                            }
                         }
+                        //Then set forces
+                        for(size_t k = 0; k < forces.size(); k++)
+                        {
+                            for(size_t l = 0; l < forces[k].size(); l++)
+                            {
+                                //forces[k][l] = _traj_forces[_index][k][l];
+                                //forces[k][l] = 0.0;
+                            }
+                        }
+                        //Velocities
+                        for(size_t k = 0; k < velocities.size(); k++)
+                        {
+                            for(size_t l = 0; l < velocities[k].size(); l++)
+                            {
+                                //velocities[k][l] = _traj_velocities[_index][k][l];
+                            }
+                        }
+                        _iterator++; //Only allow progress if the trajectory was appropriately restrained
                     }
                 }
-                _iterator++;
+                if(_iterator != _initialize_steps + _restrained_steps)
+                {
+                    _iterator++;
+                }
             }
             else if(_iterator <= _initialize_steps + _restrained_steps + _unrestrained_steps)
             {
                 //Launch unrestrained trajectories
                 //std::cout << _mpiid <<  " Running swarm...Iteration number = " << _iterator << std::endl; //Debugging  
-                if((_iterator - _initialize_steps - _restrained_steps) % _swarm_length == 1)
-                {
-                    //std::cout << _mpiid << " Recording cv start..." << std::endl; //Debugging
-                    //Record CV starting values
-                    for(size_t i = 0; i < _cv_start.size(); i++)
-                    {
-                        //_cv_start[i] = cvs[i]->GetValue() / _drift_scale;
-                        //std::cout << _cv_start[i] << " "; //Debugging
-                        if(i == _cv_start.size() - 1)
-                        {
-                            //std::cout << std::endl; //Debugging
-                        }
-                    }
-                }
                 if((_iterator - _initialize_steps - _restrained_steps) % _swarm_length == 0)
                 {
                     //std::cout << _mpiid << " End of trajectory..." << std::endl; //Debugging
@@ -275,30 +324,71 @@ namespace SSAGES
                         //std::cout << _mpiid << " Starting trajectory...Index == " << _index << std::endl; //Debugging
                         //std::cout << _mpiid << " Current size of forces and positions " << _traj_forces.size() << " " << _traj_positions.size() << std::endl;
                         //Start of trajectory, reset positions and forces
-                        for(size_t k = 0; k < positions.size(); k++)
-                        {
-                            for(size_t l = 0; l < positions[k].size(); l++)
+                        //Before resetting, restrain - debugging
+                        if(CVInitialized(cvs))
+                        {//Before going any further, restrain the trajectories
+                            //std::cout << _mpiid << " Initializing on first pass..." << std::endl; //Debugging
+                            //Do restrained sampling, and do not harvest trajectories
+                            for(size_t i = 0; i < cvs.size(); i++)
                             {
-                                positions[k][l] = _traj_positions[_index][k][l];
+                                //std::cout << _mpiid << " Restraining..." << std::endl; //Debugging
+                                //Get current CV and gradient
+                                auto& cv = cvs[i];
+                                auto& grad = cv->GetGradient();
+
+                                //Compute dV/dCV
+                                auto D = _spring*(cv->GetDifference(_centers[i]));
+
+                                //Update forces
+                                for(size_t j = 0; j < forces.size(); j++)
+                                {
+                                    for(size_t k = 0; k < forces[j].size(); k++)
+                                    {
+                                        forces[j][k] -= (double)D*grad[j][k]; 
+                                        //forces[j][k] -= 0.0; //Debugging
+                                    }
+                                }
                             }
                         }
-                        for(size_t k = 0; k < forces.size(); k++)
+                        else
                         {
-                            for(size_t l = 0; l < forces[k].size(); l++)
+                            //Debugging?  Start be zeroing
+                            for(auto& force : forces)
+                                for(auto& xyz : force)
+                                    xyz = 0.0;
+                            //Then set positions
+                            for(size_t k = 0; k < positions.size(); k++)
                             {
-                                //forces[k][l] = 0.0;
-                                forces[k][l] = _traj_forces[_index][k][l];
+                                for(size_t l = 0; l < positions[k].size(); l++)
+                                {
+                                    //positions[k][l] = _traj_positions[_index][k][l];
+                                }
                             }
+                            //Then set forces
+                            for(size_t k = 0; k < forces.size(); k++)
+                            {
+                                for(size_t l = 0; l < forces[k].size(); l++)
+                                {
+                                    //forces[k][l] = 0.0;
+                                    //forces[k][l] = _traj_forces[_index][k][l];
+                                }
+                            }
+                            //Velocities
+                            for(size_t k = 0; k < velocities.size(); k++)
+                            {
+                                for(size_t l = 0; l < velocities[k].size(); l++)
+                                {
+                                    //velocities[k][l] = _traj_velocities[_index][k][l];
+                                }
+                            }   
+                            _iterator++; //Only allow progress if the trajectory was restrained appropriately
                         }
-                        //std::cout << _mpiid << " Recording cv start..." << std::endl; //Debugging
-                        //Record CV starting values
-                        /*for(size_t i = 0; i < _cv_start.size(); i++)
-                        {
-                            _cv_start[i] = cvs[i]->GetValue();
-                        }*/      
                     }
                 }
-                _iterator++;
+                if((_iterator - _initialize_steps - _restrained_steps) % _swarm_length != 0)
+                {
+                    _iterator++;
+                }
                 if(_iterator == _initialize_steps + _restrained_steps + _unrestrained_steps + 1)
                 {
                     //std::cout << _mpiid << " Last trajectory call" << std::endl; //Debugging
@@ -319,9 +409,9 @@ namespace SSAGES
                 _currentiter++;
                 //std::cout << _mpiid << " Reached string iteration " << _currentiter << std::endl; //Debugging
 
-                _world.barrier(); //Wait for all nodes before attempting string update
+                //_world.barrier(); //Wait for all nodes before attempting string update
                 StringUpdate();
-                _world.barrier(); //Wait for all CVs to be updated
+                //_world.barrier(); //Wait for all CVs to be updated
                 PrintString(cvs);
 
                 _iterator = 0;
