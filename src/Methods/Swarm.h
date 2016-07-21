@@ -84,6 +84,15 @@ namespace SSAGES
             //! Prints the string to a file
             void PrintString(const CVList& CV);
 
+            //! Helper function to calculate distance
+            double distance(std::vector<double>& x, std::vector<double>& y);
+
+            //! Helper function check if CVs are initialized correctly
+            bool CVInitialized(const CVList& cvs);
+
+            //! Flag for determing whether to perform initialization or not
+            bool sampling_started;
+
         public:
 
             //! Constructor

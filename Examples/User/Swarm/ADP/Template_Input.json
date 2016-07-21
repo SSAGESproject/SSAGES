@@ -4,7 +4,7 @@
 		{
 			"number processors" : 1,
 			"type" : "LAMMPS",
-			"MDSteps" : 10000000,
+			"MDSteps" : 20000000,
 			"logfile" : "node-1",
 			"CVs" : [
 				{
@@ -31,15 +31,15 @@
 			"method" : {
 				"type" : "Swarm",
 				"centers" : [
-						-3,
-					    3
+						-1.39,
+                        1.31
 				],
-				"number of nodes": 12,
-				"spring" : 500,
+				"number of nodes": 22,
+				"spring" : 1000,
 				"frequency" : 1,
-				"initial steps" : 2500,
+				"initial steps" : 10000,
 				"harvest length" : 10,
-				"number of trajectories" : 250,
+				"number of trajectories" : 100,
                 "swarm length" : 20
 			}
 		}

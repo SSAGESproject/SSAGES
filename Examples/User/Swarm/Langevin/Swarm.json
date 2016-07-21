@@ -22,7 +22,7 @@
                 "swarm length": 20,
                 "harvest length": 10,
                 "spring": 500,
-                "number of nodes": 12,
+                "number of nodes": 22,
                 "frequency": 1,
                 "number of trajectories": 250,
                 "type": "Swarm",
@@ -54,13 +54,13 @@
                 "swarm length": 20,
                 "harvest length": 10,
                 "spring": 500,
-                "number of nodes": 12,
+                "number of nodes": 22,
                 "frequency": 1,
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    -0.802,
-                    -0.802
+                    -0.887,
+                    -0.887
                 ]
             }
         },
@@ -86,13 +86,13 @@
                 "swarm length": 20,
                 "harvest length": 10,
                 "spring": 500,
-                "number of nodes": 12,
+                "number of nodes": 22,
                 "frequency": 1,
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    -0.624,
-                    -0.624
+                    -0.793,
+                    -0.793
                 ]
             }
         },
@@ -118,13 +118,13 @@
                 "swarm length": 20,
                 "harvest length": 10,
                 "spring": 500,
-                "number of nodes": 12,
+                "number of nodes": 22,
                 "frequency": 1,
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    -0.445,
-                    -0.445
+                    -0.7,
+                    -0.7
                 ]
             }
         },
@@ -150,13 +150,13 @@
                 "swarm length": 20,
                 "harvest length": 10,
                 "spring": 500,
-                "number of nodes": 12,
+                "number of nodes": 22,
                 "frequency": 1,
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    -0.267,
-                    -0.267
+                    -0.607,
+                    -0.607
                 ]
             }
         },
@@ -182,13 +182,13 @@
                 "swarm length": 20,
                 "harvest length": 10,
                 "spring": 500,
-                "number of nodes": 12,
+                "number of nodes": 22,
                 "frequency": 1,
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    -0.089,
-                    -0.089
+                    -0.513,
+                    -0.513
                 ]
             }
         },
@@ -214,13 +214,13 @@
                 "swarm length": 20,
                 "harvest length": 10,
                 "spring": 500,
-                "number of nodes": 12,
+                "number of nodes": 22,
                 "frequency": 1,
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    0.089,
-                    0.089
+                    -0.42,
+                    -0.42
                 ]
             }
         },
@@ -246,13 +246,13 @@
                 "swarm length": 20,
                 "harvest length": 10,
                 "spring": 500,
-                "number of nodes": 12,
+                "number of nodes": 22,
                 "frequency": 1,
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    0.267,
-                    0.267
+                    -0.327,
+                    -0.327
                 ]
             }
         },
@@ -278,13 +278,13 @@
                 "swarm length": 20,
                 "harvest length": 10,
                 "spring": 500,
-                "number of nodes": 12,
+                "number of nodes": 22,
                 "frequency": 1,
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    0.445,
-                    0.445
+                    -0.233,
+                    -0.233
                 ]
             }
         },
@@ -310,13 +310,13 @@
                 "swarm length": 20,
                 "harvest length": 10,
                 "spring": 500,
-                "number of nodes": 12,
+                "number of nodes": 22,
                 "frequency": 1,
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    0.624,
-                    0.624
+                    -0.14,
+                    -0.14
                 ]
             }
         },
@@ -342,13 +342,13 @@
                 "swarm length": 20,
                 "harvest length": 10,
                 "spring": 500,
-                "number of nodes": 12,
+                "number of nodes": 22,
                 "frequency": 1,
                 "number of trajectories": 250,
                 "type": "Swarm",
                 "centers": [
-                    0.802,
-                    0.802
+                    -0.047,
+                    -0.047
                 ]
             }
         },
@@ -374,7 +374,327 @@
                 "swarm length": 20,
                 "harvest length": 10,
                 "spring": 500,
-                "number of nodes": 12,
+                "number of nodes": 22,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    0.047,
+                    0.047
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 22,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    0.14,
+                    0.14
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 22,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    0.233,
+                    0.233
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 22,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    0.327,
+                    0.327
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 22,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    0.42,
+                    0.42
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 22,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    0.513,
+                    0.513
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 22,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    0.607,
+                    0.607
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 22,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    0.7,
+                    0.7
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 22,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    0.793,
+                    0.793
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 22,
+                "frequency": 1,
+                "number of trajectories": 250,
+                "type": "Swarm",
+                "centers": [
+                    0.887,
+                    0.887
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial steps": 2500,
+                "swarm length": 20,
+                "harvest length": 10,
+                "spring": 500,
+                "number of nodes": 22,
                 "frequency": 1,
                 "number of trajectories": 250,
                 "type": "Swarm",

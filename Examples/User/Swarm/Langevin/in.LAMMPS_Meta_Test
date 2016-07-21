@@ -5,7 +5,7 @@ units real
 atom_style atomic
 
 #specify the box for the simulation.
-region box block -1.5 2.0 -1.5 2.0 -1 1 units box
+region box block -3 3 -3 3 -1 1 units box
 create_box        1 box
 
 #Set mass of all particles
@@ -42,7 +42,7 @@ fix 3 all wall/reflect xlo EDGE xhi EDGE ylo EDGE yhi EDGE
 		variable fy_01 atom "v__w01*((y-v__c01)/(v__s01^2))*exp(-((x-v__c01)^2+(y-v__c01)^2)/(2*v__s01^2))"
 		##################################################
 		
-		###Second potential information (gaussian/barrier))#
+		###Second potential information (gaussian/well))#
 		variable _w02 equal -39.8889505555
 		variable _s02 equal 0.2420191493
 		variable _c02 equal 0.9790631338
@@ -52,7 +52,7 @@ fix 3 all wall/reflect xlo EDGE xhi EDGE ylo EDGE yhi EDGE
 		variable fy_02 atom "v__w02*((y-v__c02)/(v__s02^2))*exp(-((x-v__c02)^2+(y-v__c02)^2)/(2*v__s02^2))"
 		##################################################
 
-		#####Third potential information (gaussian/well))###
+		#####Third potential information (gaussian/barrier))###
 		variable _w03 equal 9.8889505555
 		variable _s03 equal 0.5
 		variable _c03 equal 0.
@@ -92,7 +92,7 @@ compute fya all property/atom fy
 compute fy all reduce sum c_fya
 
 
-timestep 0.01
+timestep 0.1
 thermo_style custom step c_xx c_yy c_vx c_vy c_fx c_fy c_ffx c_ffy press
 
 
