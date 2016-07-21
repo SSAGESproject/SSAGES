@@ -66,6 +66,12 @@ set(HOOKSRC
 	hooks/lammps/fix_ssages.cpp
 )
 
+set (SCHEMA_CPP ${CMAKE_CURRENT_BINARY_DIR}/schema/schema.cpp)
+add_subdirectory (schema)
+
+# Include the directory with the newly generated schema header file
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/schema/)
+
 # General source files
 set(SOURCE
 	src/Methods/Meta.cpp
@@ -78,7 +84,7 @@ set(SOURCE
     src/Methods/BasisFunc.cpp
 	src/Validator/RequirementLoader.cpp
 	src/JSON/jsoncpp.cpp
-	src/JSON/schema.cpp
+	${SCHEMA_CPP}
 	src/CVs/CollectiveVariable.cpp
 	src/Methods/Method.cpp
 	src/Grids/Grid.cpp

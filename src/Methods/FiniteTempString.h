@@ -48,8 +48,14 @@ namespace SSAGES
 		//! String modification parameter
 		double _kappa;
 
-		// Spring constant for umbrella potential for staying within new voronoi cell after each update
+		//! Spring constant for umbrella potential for staying within new voronoi cell after each update
 		double _spring;
+
+		//! Tolerance criteria for determining when to stop string (default 0 if no tolerance criteria)
+		double _tol;
+
+		//! Previous iteration's CV centers for checking tolerance criteria
+		std::vector<std::vector<double> > _tolcheck;
 
 		//! Previous forces for restarting the position
 		std::vector<Vector3> _prev_positions;
@@ -72,9 +78,6 @@ namespace SSAGES
 		//! Steered MD centers
 		std::vector<double> _SMD_centers;
 
-		//! length to move the steered MD every time step
-		std::vector<double> _SMD_lengths;
-
 		//! Updates the position of the string.
 		void StringUpdate();
 
@@ -83,6 +86,17 @@ namespace SSAGES
 
 		//! Check if current cv values are in the nodes voronoi cell
 		bool InCell(const CVList& CV);
+
+		//! Check whether tolerance criteria has been met
+		bool TolCheck();
+
+		//! Maximum cap on number of string method iterations performed
+		unsigned int _maxiterator;
+
+		//! Options for restarting string
+		bool _restart;
+		unsigned int _restartiter;
+		std::vector<double> _restartavgs;
 
 	public:
 		//! Constructor
@@ -99,9 +113,14 @@ namespace SSAGES
 					double kappa,
 					double tau,
 					double spring,
+					double tol,
+					unsigned int maxiterator,
+					bool restart,
+					unsigned int restartiter,
+					const std::vector<double>& restartavgs,
 			 		unsigned int frequency) : 
 		Method(frequency, world, com), _blockiterations(isteps), _centers(centers), _cv_prev(), _alpha(),
-		_mpiid(0), _worldstring(), _tau(tau), _kappa(kappa), _spring(spring), _prev_positions(), _numnodes(NumNodes), _currentiter(0),
+		_mpiid(0), _worldstring(), _tau(tau), _kappa(kappa), _spring(spring), _tol(tol), _maxiterator(maxiterator), _restart(restart), _restartiter(restartiter), _restartavgs(restartavgs), _prev_positions(), _numnodes(NumNodes), _currentiter(0),
 		_run_SMD(true), _cv_inside_iterator(0)
 		{
 		}

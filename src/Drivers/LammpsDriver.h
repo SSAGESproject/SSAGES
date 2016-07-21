@@ -3,7 +3,7 @@
 #include "lammps.h"
 #include "Drivers/Driver.h"
 #include "../Validator/ObjectRequirement.h"
-#include "../include/schema.h"
+#include "schema.h"
 #include "../Utility/BuildException.h"
 #include "input.h"
 #include "modify.h"

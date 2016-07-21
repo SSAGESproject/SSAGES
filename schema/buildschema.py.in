@@ -14,15 +14,15 @@ import json
 
 # Definitions
 currd = path.dirname(path.abspath(__file__))
-schemah = '../include/schema.h'
-schemac = '../src/JSON/schema.cpp'
+schemah = "${SCHEMA_H}"
+schemac = "${SCHEMA_CPP}"
 
 folders = [
-	"Methods/",
-	"CVs/",
-	"Drivers/",
-	"Simulations/",
-	"Grids/",
+	"${CMAKE_CURRENT_SOURCE_DIR}/Methods/",
+	"${CMAKE_CURRENT_SOURCE_DIR}/CVs/",
+	"${CMAKE_CURRENT_SOURCE_DIR}/Drivers/",
+	"${CMAKE_CURRENT_SOURCE_DIR}/Simulations/",
+	"${CMAKE_CURRENT_SOURCE_DIR}/Grids/",
 ]
 
 exclude = [
@@ -77,8 +77,8 @@ def genfiles(folders):
 	if path.isfile(path.join(currd, schemac)):
 		os.remove(path.join(currd, schemac))
 
-	fheader = path.join(currd, "headertemplate.h")
-	fcpp = path.join(currd, "sourcetemplate.cpp")
+	fheader = path.join(currd, "${CMAKE_CURRENT_SOURCE_DIR}/headertemplate.h")
+	fcpp = path.join(currd, "${CMAKE_CURRENT_SOURCE_DIR}/sourcetemplate.cpp")
 
 	hlines = []
 	cpplines = []

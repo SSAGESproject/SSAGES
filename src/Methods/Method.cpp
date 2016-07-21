@@ -245,13 +245,22 @@ namespace SSAGES
 			auto isteps = json.get("block iterations", 2000).asInt();
 			auto nsamples = json.get("number samples", 20).asInt();
 			auto kappa = json.get("kappa", 0.1).asDouble();
-			auto tau = json.get("time step", 0.1).asDouble();			
-			auto freq = json.get("frequency", 1).asInt();			
+			auto tau = json.get("time step", 0.1).asDouble();
+			auto freq = json.get("frequency", 1).asInt();
 			auto spring = json.get("spring", 100).asDouble();
+			auto tol = json.get("tol", 0).asDouble();
+			auto maxiterator = json.get("max iterations", 0).asInt();
+			auto restart = json.get("restart", 0).asBool();
+			auto restartiter = json.get("previous iteration", 0).asInt();
+
+			std::vector<double> restartavgs;
+			for(auto& s : json["previous avgs"])
+				restartavgs.push_back(s.asDouble());
 
 			auto* m = new FiniteTempString(world, comm, isteps, 
 									centers, nsamples, kappa,
-									tau, spring, freq);
+									tau, spring, tol, maxiterator, restart,
+									restartiter, restartavgs, freq);
 
 			method = static_cast<Method*>(m);
 		}

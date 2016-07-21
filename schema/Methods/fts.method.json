@@ -37,9 +37,31 @@
 		"spring" : {
 			"type" : "number",
 			"minimum" : 0
+		},
+		"tol" : {
+			"type" : "number",
+			"minimum" : 0
+		},
+		"max iterations" : {
+			"type" : "integer",
+			"minimum" : 1
+		},
+		"restart" : {
+			"type" : "boolean"
+		},
+		"previous iteration" : {
+			"type" : "integer",
+			"minimum" : 0
+		},
+		"previous avgs" : {
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
 		}
 	},
 	"required": ["type", "centers", "block iterations", "number samples", 
-	"kappa", "time step"],
+	"kappa", "time step", "spring"],
 	"additionalProperties": false
 }
