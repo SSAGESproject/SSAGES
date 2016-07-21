@@ -41,6 +41,7 @@ namespace SSAGES
 		double _pressure; //!< System pressure
 		double _energy; //!< Average per-particle energy
 		double _volume; //!< Volume of Simultion box
+		double _kb; //!< Kb from the MD driver
 
 		bool _changed; //!< \c TRUE is Simulation state changed
 
@@ -57,7 +58,7 @@ namespace SSAGES
 		_comm(comm), _wid(wid), _positions(0), _velocities(0), 
 		_forces(0), _atomids(0), _types(0), 
 		_iteration(0), _temperature(0), _pressure(0), 
-		_energy(0), _volume(0)
+		_energy(0), _volume(0), _kb(0)
 		{}
 
 		//! Get the current iteration
@@ -89,6 +90,12 @@ namespace SSAGES
 		 * \return Volume of the current simulation box
 		 */
 		double GetVolume() const { return _volume; }
+
+		//! Get system Kb
+		/*!
+		 * \return Kb of the current simulation box
+		 */
+		double GetKb() const { return _kb; }
 		
 		//! Get communicator for group (walker).
 		/*!
@@ -158,6 +165,16 @@ namespace SSAGES
 			_changed = true;
 		}
 
+		//! Change the kb
+		/*!
+		 * \param kb New value for the kb
+		 */
+		void SetKb(double kb) 
+		{
+			_kb = kb;
+			_changed = true;
+		}
+		
 		//! Access the particle positions
 		/*!
 		 * \return List of particle positions
@@ -303,6 +320,7 @@ namespace SSAGES
 			json["pressure"] = _pressure; 
 			json["energy"] = _energy;
 			json["volume"] = _volume;
+			json["kb"] = _kb;
 		}
 		
 		//! Destructor

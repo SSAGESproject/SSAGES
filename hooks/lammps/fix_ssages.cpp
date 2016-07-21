@@ -216,6 +216,8 @@ namespace LAMMPS_NS
 			vol = domain->xprd * domain->yprd;
 		_snapshot->SetVolume(vol);
 
+		_snapshot->SetKb(force->boltz);
+
 		double lx = domain->boxhi[0] - domain->boxlo[0];
 		double ly = domain->boxhi[1] - domain->boxlo[1];
 		double lz = domain->boxhi[2] - domain->boxlo[2];
