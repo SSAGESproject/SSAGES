@@ -24,7 +24,7 @@
 						-0.98,
 					    -0.98
 				],
-				"number of nodes": 12,
+				"number of nodes": 22,
 				"spring" : 500,
 				"frequency" : 1,
 				"initial steps" : 2500,

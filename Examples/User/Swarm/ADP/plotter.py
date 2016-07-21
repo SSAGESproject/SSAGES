@@ -16,11 +16,16 @@ fig = plt.figure()
 
 ax1 = fig.add_subplot(111)
 
+#Convert to degrees
+converter = 57.295779513
+xdegree = converter*np.array(x, dtype=float)
+ydegree = converter*np.array(y, dtype=float)
+
 ax1.set_title("ADP Isomerization")
 ax1.set_xlabel('X')
 ax1.set_ylabel('Y')
 
-ax1.plot(x,y, 'ro-', label='Images')
+ax1.plot(xdegree,ydegree, 'ro-', label='Images')
 
 leg = ax1.legend()
 
