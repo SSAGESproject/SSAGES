@@ -27,6 +27,7 @@ namespace SSAGES
 		std::string _globalcontents;
 		std::string _librarycontents;
 		std::string _restartfilename;
+		std::string _currentconfig;
 		std::vector<Snapshot> _dumpconfigs;
 
 		// Results file for end of simulation.

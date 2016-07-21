@@ -63,13 +63,12 @@ namespace SSAGES
 					_world.abort(0);
 				}
 
-				std::string dumpfilecontents;
 				_shootingconfigfile = tmp[_currentstartingpoint][1];
 				if(_world.rank() == 0)
-					dumpfilecontents = GetFileContents(_shootingconfigfile.c_str());
-				mpi::broadcast(_world, dumpfilecontents, 0);
+					_currentconfig = GetFileContents(_shootingconfigfile.c_str());
+				mpi::broadcast(_world, _currentconfig, 0);
 
-				ReadConfiguration(snapshot, dumpfilecontents);
+				ReadConfiguration(snapshot, _currentconfig);
 				_restart = NONE;
 				_currentstartingpoint++;
 				return;
@@ -78,13 +77,12 @@ namespace SSAGES
 			{
 				if(_world.rank()==0)
 					std::cout<<"Running from restart "<<_restartfilename<<std::endl;
-				std::string dumpfilecontents;
 				_shootingconfigfile = _restartfilename;
 				if(_world.rank() == 0)
-					dumpfilecontents = GetFileContents(_shootingconfigfile.c_str());
-				mpi::broadcast(_world, dumpfilecontents, 0);
+					_currentconfig = GetFileContents(_shootingconfigfile.c_str());
+				mpi::broadcast(_world, _currentconfig, 0);
 
-				ReadConfiguration(snapshot, dumpfilecontents);
+				ReadConfiguration(snapshot, _currentconfig);
 				_restart = NONE;
 				return;
 			}
@@ -92,16 +90,16 @@ namespace SSAGES
 			case NEWCONFIG:
 			{
 				_currenthash = 10000*_world.rank();
+				_currentshot = 0;
 				mpi::all_reduce(_world, _indexcontents, _globalcontents, std::plus<std::string>());
 
-				std::string dumpfilecontents;
 				_shootingconfigfile = PickConfiguration(_currentnode, _globalcontents);
 
 				if(_world.rank() == 0)
-					dumpfilecontents = GetFileContents(_shootingconfigfile.c_str());
+					_currentconfig = GetFileContents(_shootingconfigfile.c_str());
 				
-				mpi::broadcast(_world, dumpfilecontents, 0);
-				ReadConfiguration(snapshot, dumpfilecontents);
+				mpi::broadcast(_world, _currentconfig, 0);
+				ReadConfiguration(snapshot, _currentconfig);
 				_restart = NONE;
 
 				return;
@@ -127,6 +125,14 @@ namespace SSAGES
 				if(_comm.rank()==0)
 					WriteConfiguration(snapshot);
 				_localsuccesses[_currentnode]++;
+			}
+
+			if(_currentshot < _numshots)
+			{
+				_currentshot++;
+				ReadConfiguration(snapshot, _currentconfig);
+				_currentnode--;
+				return;
 			}
 
 			mpi::all_reduce(_world, _localsuccesses[_currentnode], _successes[_currentnode], std::plus<int>());
@@ -157,7 +163,7 @@ namespace SSAGES
 		//Close local and global files
 		if(_world.rank() == 0)
 		{
-			_indexfile<<_indexcontents<<std::endl;
+			_indexfile<<_globalcontents<<std::endl;
 			_resultsfile<<"flux in: "<<_fluxin<<std::endl;
 			_resultsfile<<"flux out: "<<_fluxout<<std::endl;
 
@@ -267,7 +273,7 @@ namespace SSAGES
 
 		ID = _shootingconfigfile;
 
-		//Extract _currentconfig information
+		//Extract currentconfig information
 		std::istringstream f(FileContents);
 		std::string line;
 		while (std::getline(f, line))
@@ -337,3 +343,4 @@ namespace SSAGES
 		return configfilename;
 	}
 }
+

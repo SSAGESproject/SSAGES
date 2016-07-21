@@ -55,8 +55,12 @@ namespace SSAGES
 			while(std::getline(ss, token, '\n'))
 			{
 				int seedspot = token.find("SEED");
+				int driverspot = token.find("DRIVER");
 				if(seedspot >= 0)
 					token.replace(seedspot, 4, std::to_string(dis(_gen)));
+
+				if(driverspot >= 0)
+					token.replace(driverspot, 6, std::to_string(_wid));
 
 				_lammps->input->one(token.c_str());
 			}

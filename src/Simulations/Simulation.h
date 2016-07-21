@@ -98,9 +98,6 @@ namespace SSAGES
 
 			reader.parse(JsonSchema::Simulation, schema);
 			validator.Parse(schema, path);
-
-			if(_world.rank() == 0)
-				PrintBoldNotice(" >Building Simulation...", _msgw, _world);
 			
 			try
 			{
@@ -134,8 +131,6 @@ namespace SSAGES
 			Reader reader;
 
 			bool success_build = true;
-
-			PrintBoldNotice(" >Building Drivers...\n", _msgw, _world);
 
 			reader.parse(JsonSchema::driver, schema);
 			validator.Parse(schema, path);
@@ -221,9 +216,6 @@ namespace SSAGES
 		        success_build = false;
 			}
 
-			if(_comm.rank()==0)
-				std::cout << std::setw(_notw) << std::right << "\033[32mMEngine " << wid <<  " pass...!\033[0m\n";
-
 			if(!json.isMember("CVs") && !JsonDriver.isMember("CVs"))
 			{
 				DumpErrorsToConsole({"Need global CVs or per driver CVs"},_notw);
@@ -255,10 +247,23 @@ namespace SSAGES
 					success_build = false;
 			}
 
-			if(json.isMember("grid"))
+			if(JsonDriver.isMember("grid"))
+			{
+				if(!BuildGrid(JsonDriver,"#/Grids"))
+					success_build = false;
+			}
+			else if (json.isMember("grid"))
 			{
 				if(!BuildGrid(json,"#/Grids"))
 					success_build = false;
+			}
+
+			if(_comm.rank()==0)
+			{
+				if(success_build)
+					std::cout << std::setw(_notw) << std::right << "\033[32mMDEngine " << wid <<  " pass!\033[0m\n";
+				else
+					std::cout << std::setw(_notw) << std::right << "\033[32mMDEngine " << wid <<  " FAIL!\033[0m\n";
 			}
 
             return success_build;
@@ -267,7 +272,6 @@ namespace SSAGES
 		bool BuildCVs(const Json::Value& json, const std::string& path)
 		{
 			// Build CV(s).
-			PrintBoldNotice(" > Building CV(s)...", _msgw, _world); 
 			try{
 				_MDDriver->BuildCVs(json.get("CVs", Json::arrayValue), path);
 			} catch(BuildException& e) {
@@ -278,15 +282,12 @@ namespace SSAGES
 				return false;
 			}
 
-			if(_world.rank() == 0)
-				std::cout << std::setw(_notw) << std::right << "\033[32mCV Pass...!\033[0m\n";
 			return true;
 		}
 
 		bool BuildMethod(const Json::Value& json, const std::string& path)
 		{
 			// Build method(s).
-			PrintBoldNotice(" > Building method(s)...", _msgw, _world); 
 			try{
 				_MDDriver->BuildMethod(json.get("method", Json::objectValue), path);
 			} catch(BuildException& e) {
@@ -296,14 +297,12 @@ namespace SSAGES
 				DumpErrorsToConsole({e.what()}, _notw);
 				return false;
 			}
-			if(_world.rank() == 0)
-				std::cout << std::setw(_notw) << std::right << "\033[32mMethod Pass...!\033[0m\n";
+
 			return true;
 		}
 
 		bool BuildGrid(const Json::Value& json, const std::string& path)
 		{
-			PrintBoldNotice(" > Building grid...", _msgw, _world); 
 			try{
 				_MDDriver->BuildGrid(json, path);
 			} catch(BuildException& e) {
@@ -314,15 +313,13 @@ namespace SSAGES
 				return false;
 			}
 
-			if(_world.rank() == 0)
-				std::cout << std::setw(_notw) << std::right << "\033[32mGrid Pass...!\033[0m\n";
 			return true;
 		}
 
 		void ReadInputFile()
 		{
 
-			std::string contents;
+			std::string contents ="";
 			std::string localInput = _MDDriver->GetInputFile();
 
 			if(_GlobalInput != "none" && localInput == "none")
@@ -332,10 +329,9 @@ namespace SSAGES
 					std::cout<<"Global input file found, first using: "<<_GlobalInput<<std::endl;
 					contents = GetFileContents(_GlobalInput.c_str());
 				}
-				mpi::broadcast(_world, contents, 0);
 			}
 
-			_world.barrier();
+			mpi::broadcast(_world, contents, 0);
 
 			// Each node reads in specified input file
 			if(localInput != "none")
@@ -348,15 +344,7 @@ namespace SSAGES
 				mpi::broadcast(_comm, contents, 0);
 			}
 
-			try{
-				_MDDriver->ExecuteInputFile(contents);
-			} catch(BuildException& e) {
-				DumpErrorsToConsole(e.GetErrors(), _notw);
-				_world.abort(-1);
-			} catch(std::exception& e) {
-				DumpErrorsToConsole({e.what()}, _notw);
-				_world.abort(-1);
-			}
+			_MDDriver->ExecuteInputFile(contents);
 
 		}
 
@@ -368,14 +356,7 @@ namespace SSAGES
 
 		void Run()
 		{
-			try{
-				_MDDriver->Run();
-			} catch(BuildException& e) {
-				DumpErrorsToConsole(e.GetErrors(), _notw);
-			} catch(std::exception& e) {
-				DumpErrorsToConsole({e.what()}, _notw);
-			}
-			
+			_MDDriver->Run();
 		}
 
 		virtual void Serialize(Json::Value& json) const override

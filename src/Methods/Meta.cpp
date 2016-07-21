@@ -106,7 +106,7 @@ namespace SSAGES
 			// Initialize dx and tbias.
 			for(size_t i = 0; i < n; ++i)
 			{
-				dx[i] = cvs[i]->GetValue() - hill.center[i];
+				dx[i] = cvs[i]->GetDifference(hill.center[i]);
 				tbias *= gaussian(dx[i], hill.width[i]);
 			}
 

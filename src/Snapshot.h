@@ -28,9 +28,11 @@ namespace SSAGES
 		std::string _ID; //!< ID string
 
 		std::vector<Vector3> _positions; //!< Positions
+		std::vector<Vector3> _images; //!< Unwrapped positions
 		std::vector<Vector3> _velocities; //!< Velocities
 		std::vector<Vector3> _forces; //!< Forces
 		std::vector<double> _masses; //!< Masses
+		std::array<Vector3, 4> _ucvectors; //!<UC vectors (ax, bx, cx), (ay, by, cy), (cx, cy, cz), (alpha, beta, gamma)
 		Label _atomids; //!< List of Atom IDs
 		Label _types; //!< List of Atom types
 
@@ -167,6 +169,17 @@ namespace SSAGES
 			return _positions; 
 		}
 
+		//! Access the particles image flags
+		/*!
+		 * \return List of particle image flags
+		 */
+		const std::vector<Vector3>& GetImageFlags() const { return _positions; }
+		std::vector<Vector3>& GetImageFlags() 
+		{ 
+			_changed = true;
+			return _images; 
+		}
+
 		//! Access the particle velocities
 		/*!
 		 * \return List of particle velocities
@@ -201,6 +214,21 @@ namespace SSAGES
 		{
 			_changed = true; 
 			return _masses; 
+		}
+
+		//! Access the UC vectors
+		/*!
+		 * \return List of UC vectors
+		 * ax, ay, az
+		 * bx, by, bz
+		 * cx, cy, cz
+		 * alpha, beta, gamma
+		 */
+		const std::array<Vector3, 4>& GetUCVectors() const { return _ucvectors; }
+		std::array<Vector3, 4>& GetUCVectors()
+		{
+			_changed = true; 
+			return _ucvectors; 
 		}
 
 		//! Access the atom IDs
