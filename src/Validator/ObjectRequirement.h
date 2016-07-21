@@ -14,24 +14,40 @@
 
 namespace Json
 {
+	//! Requirements on an object
+	/*!
+	 * \ingroup Json
+	 */
 	class ObjectRequirement : public Requirement
 	{
 	private:
+		//! Map of properties the object needs to have.
 		std::map<std::string, std::unique_ptr<Requirement>> _properties;
+
+		//! Map of patterns the object needs to match.
 		std::map<std::string, std::unique_ptr<Requirement>> _patternProps;
+
+		//! List of requirements.
 		RequireList _extended;
+
+		//! Dependency requirement.
 		std::unique_ptr<DependencyRequirement> _dependency;
 
-		std::vector<std::string> _required;
-		bool _moreProps, _setMin, _setMax;
-		unsigned int _min, _max;
+		std::vector<std::string> _required; //!< List of requirements.
+		bool _moreProps; //!< If \c True, more properties need to be set.
+		bool _setMin; //!< If \c True lower bound is active.
+		bool _setMax; //!< If \c True upper bound is active.
+		unsigned int _min; //!< Lower bound.
+		unsigned int _max; //!< Upper bound.
 
 	public:
+		//! Constructor.
 		ObjectRequirement() : 
 		_properties(), _patternProps(), _extended(0), _dependency(nullptr), _required(),
 		_moreProps(true), _setMin(false), _setMax(false), _min(0), _max(0)
 		{}
 
+		//! Destructor.
 		~ObjectRequirement()
 		{
 			_properties.clear();
@@ -41,6 +57,7 @@ namespace Json
 			_extended.clear();
 		}
 
+		//! Clear errors on all Requirements.
 		virtual void ClearErrors() override
 		{
 			for(auto& c : _properties)
@@ -58,6 +75,7 @@ namespace Json
 			Requirement::ClearErrors();
 		}
 
+		//! Clear notices on all Requirements.
 		virtual void ClearNotices() override
 		{
 			for(auto& c : _properties)
@@ -75,6 +93,7 @@ namespace Json
 			Requirement::ClearNotices();
 		} 
 
+		//! Reset Requirement.
 		virtual void Reset() override
 		{
 			ClearErrors();
@@ -90,6 +109,11 @@ namespace Json
 			_dependency.reset();
 		}
 
+		//! Parse JSON value to generate Requirement(s).
+		/*!
+		 * \param json JSON input value.
+		 * \param path Path for JSON path specification.
+		 */
 		virtual void Parse(Value json, const std::string& path) override
 		{
 			Reset();
@@ -182,6 +206,11 @@ namespace Json
 			}
 		}
 
+		//! Validate JSON value.
+		/*!
+		 * \param json JSON value to be validated.
+		 * \param path Path for JSON path specification.
+		 */
 		virtual void Validate(const Value& json, const std::string& path) override
 		{
 			if(!json.isObject())

@@ -4,14 +4,24 @@
 
 namespace SSAGES
 {
-	// Evlauate Gaussian. Helper function.
+	//! Evlauate Gaussian. Helper function.
+	/*!
+	 * \param dx x-value.
+	 * \param sigma Width of Gaussian
+	 * \return Value at x of Gaussian with center at zero and width sigma.
+	 */
 	double gaussian(double dx, double sigma)
 	{
 		double arg = (dx * dx) / (2. * sigma * sigma);
 		return exp(-arg);
 	}
 
-	// Evaluate Gaussian derivative. Helper function.
+	//! Evaluate Gaussian derivative. Helper function.
+	/*!
+	 * \param dx Value of x.
+	 * \param sigma Width of Gaussian.
+	 * \return Derivative at x of Gaussian with center at zero and width sigma.
+	 */
 	double gaussianDerv(double dx, double sigma)
 	{
 		double arg =  (dx * dx) / (2. * sigma * sigma);

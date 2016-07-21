@@ -15,21 +15,28 @@ using namespace Json;
 
 namespace SSAGES
 {
+	//! Driver for LAMMPS simulations
 	class LammpsDriver : public Driver 
 	{
 	private:
 
-		//pointer to this local instance of lammps
+		//! Pointer to the local instance of lammps
 		std::shared_ptr<LAMMPS> _lammps;
 
-		// The number of MD engine steps you would like to perform
+		//! The number of MD engine steps you would like to perform
 		int _MDsteps;
 
-		// The lammps logfile
+		//! The lammps logfile
 		std::string _logfile;
 
 	public:
 
+		//! Constructor
+		/*!
+		 * \param world_comm MPI global communicator.
+		 * \param local_comm MPI local communicator.
+		 * \param walkerID ID of the walker assigned to this driver.
+		 */
 		LammpsDriver(mpi::communicator& world_comm,
 					 mpi::communicator& local_comm,
 					 int walkerID) : 
@@ -37,13 +44,20 @@ namespace SSAGES
 		{
 		};
 
+		//! Run simulation
 		virtual void Run() override
 		{
 			std::string rline = "run " + std::to_string(_MDsteps);
 			_lammps->input->one(rline.c_str());
 		}
 
-		// Run LAMMPS input file line by line and gather the fix/hook
+		//! Run LAMMPS input file
+		/*!
+		 * \param contents Content of the LAMMPS input file.
+		 *
+		 * This function exectures the contents of the given LAMMPS input file
+		 * line by line and gathers the fix/hook.
+		 */
 		virtual void ExecuteInputFile(std::string contents) override
 		{
 			// Go through lammps.
@@ -75,6 +89,11 @@ namespace SSAGES
 			}
 		}
 
+		//! Set up the driver
+		/*!
+		 * \param json JSON value containing input information.
+		 * \param path Path for JSON path specification.
+		 */
 		virtual void BuildDriver(const Json::Value& json, const std::string& path) override
 		{
 
@@ -116,7 +135,7 @@ namespace SSAGES
 
 		}
 
-		// Serialize
+		//! \copydoc Serializable::Serialize()
 		virtual void Serialize(Json::Value& json) const override
 		{
 			json["MDSteps"] = _MDsteps;

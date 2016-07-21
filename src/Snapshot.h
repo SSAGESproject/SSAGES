@@ -7,7 +7,10 @@
 
 namespace SSAGES
 {
+    //! Three-dimensional vector.
 	using Vector3 = std::array<double, 3>;
+
+    //! List of integers.
 	using Label = std::vector<int>;
 	
 	//! Class containing a snapshot of the current simulation in time.
@@ -180,6 +183,8 @@ namespace SSAGES
 		 * \return List of particle positions
 		 */
 		const std::vector<Vector3>& GetPositions() const { return _positions; }
+
+		/*! \copydoc Snapshot::GetPositions() const */
 		std::vector<Vector3>& GetPositions() 
 		{ 
 			_changed = true;
@@ -191,6 +196,8 @@ namespace SSAGES
 		 * \return List of particle image flags
 		 */
 		const std::vector<Vector3>& GetImageFlags() const { return _positions; }
+
+		//! \copydoc Snapshot::GetImageFlags() const
 		std::vector<Vector3>& GetImageFlags() 
 		{ 
 			_changed = true;
@@ -202,6 +209,8 @@ namespace SSAGES
 		 * \return List of particle velocities
 		 */
 		const std::vector<Vector3>& GetVelocities() const { return _velocities; }
+
+		/*! \copydoc Snapshot::GetVelocities() const */
 		std::vector<Vector3>& GetVelocities() 
 		{
 			_changed = true;
@@ -213,13 +222,15 @@ namespace SSAGES
 		 * \return List of per-particle forces
 		 */
 		const std::vector<Vector3>& GetForces() const { return _forces; }
+
+		/*! \copydoc Snapshot::GetForces() const */
 		std::vector<Vector3>& GetForces() 
 		{
 			_changed = true; 
 			return _forces; 
 		}
 
-		//! Access the particle masses
+		//! Const access to the particle masses
 		/*!
 		 * \return List of Masses
 		 *
@@ -227,6 +238,8 @@ namespace SSAGES
 		 * depending on the Lammps Atom type used.
 		 */
 		const std::vector<double>& GetMasses() const { return _masses; }
+
+		/*! \copydoc Snapshot::GetMasses() const */
 		std::vector<double>& GetMasses() 
 		{
 			_changed = true; 
@@ -242,6 +255,8 @@ namespace SSAGES
 		 * alpha, beta, gamma
 		 */
 		const std::array<Vector3, 4>& GetUCVectors() const { return _ucvectors; }
+
+		//! \copydoc Snapshot::GetUCVectors() const
 		std::array<Vector3, 4>& GetUCVectors()
 		{
 			_changed = true; 
@@ -253,6 +268,8 @@ namespace SSAGES
 		 * \return List of atom IDs
 		 */
 		const Label& GetAtomIDs() const { return _atomids; }
+
+		/*! \copydoc Snapshot::GetAtomIDs() const */
 		Label& GetAtomIDs()
 		{
 			_changed = true;
@@ -264,6 +281,8 @@ namespace SSAGES
 		 * \return List of atom types
 		 */
 		const Label& GetAtomTypes() const { return _types; }
+
+		/*! \copydoc Snapshot::GetAtomTypes() const */
 		Label& GetAtomTypes() 
 		{
 			_changed = true; 
@@ -275,6 +294,8 @@ namespace SSAGES
 		 * \return Snapshot ID
 		 */
 		const std::string& GetSnapshotID() const { return _ID; }
+
+		/*! \copydoc Snapshot::GetSnapshotID() const */
 		std::string& GetSnapshotID() 
 		{
 			_changed = true; 

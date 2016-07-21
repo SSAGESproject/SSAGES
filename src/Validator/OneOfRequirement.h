@@ -5,14 +5,20 @@
 
 namespace Json
 {
+	//! Requires exactly one of a list of Requirements to hold.
+	/*!
+	 * \ingroup Json
+	 */
 	class OneOfRequirement : public Requirement
 	{
 	private:
-		RequireList _reqs;
+		RequireList _reqs; //!< List of Requirements.
 
 	public:
+		//! Constructor.
 		OneOfRequirement() : _reqs(0) {}
 
+		//! Clear list of error messages for all Requirements.
 		virtual void ClearErrors() override
 		{
 			for(auto& r : _reqs)
@@ -21,6 +27,7 @@ namespace Json
 			Requirement::ClearErrors();
 		}
 
+		//! Clear list of notices for all Requirements.
 		virtual void ClearNotices() override
 		{
 			for(auto& r : _reqs)
@@ -29,6 +36,7 @@ namespace Json
 			Requirement::ClearNotices();
 		} 
 
+		//! Reset requirement.
 		virtual void Reset() override
 		{
 			ClearErrors();
@@ -36,6 +44,11 @@ namespace Json
 			_reqs.clear();
 		}
 
+		//! Parse JSON value to generate Requirement.
+		/*!
+		 * \param json JSON input value.
+		 * \param path Path for JSON path specification.
+		 */
 		virtual void Parse(Value json, const std::string& path) override
 		{
 			Reset();
@@ -52,6 +65,11 @@ namespace Json
 
 		}
 
+		//! Validate that only one of the Requirements hold.
+		/*!
+		 * \param json JSON value to be validated.
+		 * \param path Path for JSON path specification.
+		 */
 		virtual void Validate(const Value& json, const std::string& path) override
 		{
 			int validated = 0;

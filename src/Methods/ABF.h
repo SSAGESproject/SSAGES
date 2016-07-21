@@ -15,9 +15,9 @@ namespace SSAGES
 	 * \ingroup Methods
 	 *
 	 *
-	 * Implementation of the Adaptive Biasing Force algorithm based on:
-	 * Darve, E.; Rodriguez-Gomez, D.; Pohorille, A. Adaptive biasing force method for scalar and vector free energy calculations, J. Chem. Phys. 2008, 128, 144120
-	*/
+	 * Implementation of the Adaptive Biasing Force algorithm based on
+	 * \cite DARVE2008144120
+	 */
 
 	class ABF : public Method
 	{
@@ -128,18 +128,23 @@ namespace SSAGES
 	public: 
 		//! Constructor 
 		/*!
+		 * \param world MPI global communicator.
+		 * \param comm MPI local communicator.
+		 * \param histdetails Minimum, maximum and number of bins for each CV.
+		 * \param restraint Minimum, maximum and spring constant for CV restraints.
+		 * \param timestep Simulation time step.
+		 * \param min Minimum number of hist in a histogram bin before biasing is applied.
+		 * \param readF Prior histogram to restart simulation or to provide a guess.
+		 * \param printdetails Set up what information to print and frequency of printing.
+		 * \param FBackupInterv Set how often the adaptive force histogram is saved.
+		 * \param unitconv Unit conversion from d(momentum)/d(time) to force.
+		 * \param Orthogonalization Flag to turn on or off Gram-Schmidt Orthogonalization.
+		 * \param frequency Frequency with which this method is invoked.
+		 *
 		 * Constructs an instance of Adaptive Biasing Force method.
-		 * _histdetails holds three arrays that define the minimum, the maximum, and the number of bins for each CV.
-		 * _restraint holds the minimum, the maximum and the spring constant for CV restraints. These restraints should be outside of the range defined in _histdetails by at least one bin size on each side.
-		 * _timestep is the time between two steps in the simulations, in simulation units.
-		 * _min is the minimum number of hits in a histogram bin required before full biasing is applied.
-		 * _readF is used to provide a prior histogram to restart a simulation, or to provide a guess.
-		 * _printdetails is used to set up what information to print and the frequency of printing out.
-		 * _FBackupInterv is used to set up how often the adaptive force histogram is saved.
-		 * _unitconv is used to provide the unit conversion from d(momentum)/d(time) to force.
-		 * _Orthogonalization is a flag to turn on or off Gram-Schmidt Orthogonalization.
+		 * \note The restraints should be outside of the range defined in
+		 *       _histdetails by at least one bin size on each side.
 		 */ 
-
 		ABF(boost::mpi::communicator& world,
 			 boost::mpi::communicator& comm,
 			 const std::vector<std::vector<double>>& histdetails, std::vector<std::vector<double>> restraint, double timestep, double min, std::string readF, std::vector<int> printdetails, int FBackupInterv, double unitconv, int Orthogonalization, unsigned int frequency) : 
@@ -148,18 +153,35 @@ namespace SSAGES
 		}
 
 		//! Pre-simulation hook.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 * \param cvs List of CVs.
+		 */
 		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override;
 
 		//! Post-integration hook.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 * \param cvs List of CVs.
+		 */
 		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
 
 		//! Post-simulation hook.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 * \param cvs List of CVs.
+		 */
 		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
 
+		//! \copydoc Serializable::Serialize()
+		/*!
+		 * \warning Serialization not implemented yet.
+		 */
 		void Serialize(Json::Value& json) const override
 		{
 		
 		}
+
 		//! Destructor
 		~ABF() {}
 	};

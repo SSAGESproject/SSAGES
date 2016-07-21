@@ -95,12 +95,31 @@ namespace SSAGES
 
 		//! Options for restarting string
 		bool _restart;
+
+		//! Iteration of restart configuration.
 		unsigned int _restartiter;
+
+		//! Averages of restart configuration.
 		std::vector<double> _restartavgs;
 
 	public:
 		//! Constructor
 		/*!
+		 * \param world MPI global communicator.
+		 * \param com MPI local communicator.
+		 * \param isteps Number of iterations per block averaging.
+		 * \param centers List of centers.
+		 * \param NumNodes Number of nodes.
+		 * \param kappa Value of kappa (default: 0.1).
+		 * \param tau Value of tau (default: 0.1).
+		 * \param spring Spring constant.
+		 * \param tol Tolerance value.
+		 * \param maxiterator Maximum number of iterations.
+		 * \param restart If \c True start from restart file.
+		 * \param restartiter Iteration of restart system.
+		 * \param restartavgs Averages of restart system.
+		 * \param frequency Frequency with which this method is invoked.
+		 *
 		 * Constructs an instance of Finite String method.
 		 * isteps = Number Iterations per block averaging
 		 * _tau and _kappa default values of 0.1 (JSON reader for this)

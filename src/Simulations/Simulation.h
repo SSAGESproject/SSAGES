@@ -16,36 +16,49 @@ namespace mpi = boost::mpi;
 using namespace Json;
 namespace SSAGES
 {
-	// Simulation class for creating simulation and a driver object.
 
+	//! Simulation class for creating simulation and a driver object.
+	/*!
+	 * The simulation class pulls together the simulation and the driver to
+	 * steer the simulation.
+	 *
+	 * \ingroup Core
+	 */
 	class Simulation : public Serializable
 	{
 
 	protected:
 
-		// The MPI world communicator
+		//! The MPI world communicator
 		boost::mpi::communicator _world;
 
-		// The local communicator 
+		//! The local communicator
 		boost::mpi::communicator _comm;
 
-		// A pointer to the driver
+		//! A pointer to the driver
 		Driver* _MDDriver;
 
-		// Number of walkers
+		//! Number of walkers
 		int _nwalkers;
 
-		// MDEngine of choice
+		//! MDEngine of choice
 		std::string _MDEngine;
 
-		// Global input file
+		//! Global input file
 		std::string _GlobalInput;
 
-		// For message parsing
-		int _ltot, _msgw, _notw;
+		int _ltot; //!< Magic number for message passing
+		int _msgw; //!< Magic number for message passing
+		int _notw; //!< Magic number for message passing
 
 	public:
 
+		//! Constructor
+		/*!
+		 * \param world The MPI world communicator to use
+		 *
+		 * Construct the simulation object.
+		 */
 		Simulation(boost::mpi::communicator& world) : 
 		_world(world), _comm(), _MDDriver(), _nwalkers(1),
 		_MDEngine(), _GlobalInput(),
@@ -54,18 +67,25 @@ namespace SSAGES
 
 		}
 
+		//! Destructor
 		~Simulation()
 		{
 			delete _MDDriver;
 		}
 
+		//! Read the JSON file
+		/*!
+		 * \param jfile File name of the JSON file
+		 * \returns JSON Value containing all input information.
+		 *
+		 * With this function, the MPI head node will read in the JSON file and
+		 * broadcast to other nodes the necessary information. The JSON file
+		 * will include the Engine input file name(s).
+		 */
 		Json::Value ReadJSON(std::string jfile)
 		{
 			Value root;
 			JSONLoader loader;
-
-			// Read in JSON using head node and broadcast to other nodes
-			// JSON file will include the Engine input file name(s)
 
 			if(_world.rank() == 0)
 				PrintBoldNotice(" > Validating JSON...", _msgw, _world);
@@ -89,6 +109,15 @@ namespace SSAGES
 
 		}
 
+		//! Set up the simulation
+		/*!
+		 * \param json JSON value containing the input information.
+		 * \param path Path for JSON path specification.
+		 * \return \c True if simulation was set up correctly, else return \c False .
+		 *
+		 * This function sets up the simulation based on the JSON input
+		 * information read in before using Simulation::ReadJSON().
+		 */
 		bool BuildSimulation(const Json::Value& json, const std::string& path)
 		{
 
@@ -121,6 +150,14 @@ namespace SSAGES
 			return true;
 		}
 
+		//! Set up the driver for the simulation
+		/*!
+		 * \param json JSON value containing input information.
+		 * \param path JSON path specification.
+		 * \return \c True if Driver was set up correctly, else return \c False .
+		 *
+		 * Set up the Driver for the Metadynamics simulation.
+		 */
 		bool BuildDriver(const Json::Value& json, const std::string& path)
 		{
 
@@ -269,6 +306,15 @@ namespace SSAGES
             return success_build;
 		}
 
+		//! Set up CVs
+		/*!
+		 * \param json JSON value containing input information.
+		 * \param path JSON path specification.
+		 * \return \c True if CVs have been set up correctly, else return \c False .
+		 *
+		 * Set up the collective variables (CV) used in the Metadynamics
+		 * simulation.
+		 */
 		bool BuildCVs(const Json::Value& json, const std::string& path)
 		{
 			// Build CV(s).
@@ -285,6 +331,14 @@ namespace SSAGES
 			return true;
 		}
 
+		//! Set up Method
+		/*!
+		 * \param json JSON value containing input information.
+		 * \param path JSON path specification.
+		 * \return \c True if Method has been set up correctly, else return \c False .
+		 *
+		 * Set up the Metadynamics method to be used in the simulation.
+		 */
 		bool BuildMethod(const Json::Value& json, const std::string& path)
 		{
 			// Build method(s).
@@ -301,6 +355,14 @@ namespace SSAGES
 			return true;
 		}
 
+		//! Set up grid
+		/*!
+		 * \param json JSON value containing input information.
+		 * \param path JSON path specification.
+		 * \return \c True if Grid has been set up sucessfully, else return \c False .
+		 *
+		 * Set up the grid for the Metadynamics simulation.
+		 */
 		bool BuildGrid(const Json::Value& json, const std::string& path)
 		{
 			try{
@@ -316,6 +378,11 @@ namespace SSAGES
 			return true;
 		}
 
+		//! Read the MD Engine input file
+		/*!
+		 * Read the input file for the MD engine used in the simulation and
+		 * broadcast the necessary information to all MPI instances.
+		 */
 		void ReadInputFile()
 		{
 
@@ -348,17 +415,19 @@ namespace SSAGES
 
 		}
 
-		// Set up listeners and hook
+		//! Set up listeners and hook
 		void Finalize()
 		{
 			_MDDriver->Finalize();
 		}
 
+		//! Perform simulation run
 		void Run()
 		{
 			_MDDriver->Run();
 		}
 
+		//! \copydoc Serializable::Serialize()
 		virtual void Serialize(Json::Value& json) const override
 		{
 			if(_GlobalInput != "none")

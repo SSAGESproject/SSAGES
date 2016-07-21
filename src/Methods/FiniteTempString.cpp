@@ -7,7 +7,12 @@
 namespace mpi = boost::mpi;
 namespace SSAGES
 { 
-	// Helper function for calculating distances
+	//! Helper function for calculating distances
+	/*!
+	 * \param x List of coordinates.
+	 * \param y List of coordinates.
+	 * \return Sum of distances between the x-values and y-values.
+	 */
 	double sqdist(std::vector<double>& x, std::vector<double>& y)
 	{
 		double distance = 0;

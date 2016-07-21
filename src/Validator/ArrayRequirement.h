@@ -11,16 +11,30 @@
 
 namespace Json
 {
+	//! Array of Requirements.
+	/*!
+	 * \ingroup Json
+	 */
 	class ArrayRequirement : public Requirement
 	{
 	private:
-		RequireList _items;
-		std::unique_ptr<Requirement> _item;
+		RequireList _items; //!< List of Requirements.
+		std::unique_ptr<Requirement> _item; //!< Single Requirement.
 
-		bool _addItems, _setMin, _setMax, _unique;
+		bool _addItems; //!< \c True if items can be added.
+		bool _setMin; //!< \c True if minimum has been set.
+		bool _setMax; //!< \c True if maximum has been set.
+		bool _unique; //!< \c True if all Requirements are unique.
 
-		int _min, _max;
+		int _min; //!< Minimum value.
+		int _max; //!< Maximum value.
 
+		//! Test if set is unique
+		/*!
+		 * \tparam T Container class.
+		 * \param X Container containing Requirements.
+		 * \return True if no element in the container is duplicate.
+		 */
 		template <class T>
 		bool IsUnique(T X) 
 		{
@@ -29,6 +43,7 @@ namespace Json
 		}
 
 	public:
+		//! Constructor
 		ArrayRequirement() : 
 		_items(0), _item(nullptr), _addItems(true),
 		_setMin(false), _setMax(false), _unique(false), 
@@ -38,6 +53,7 @@ namespace Json
 			_items.clear();
 		}
 
+		//! Clear list of error messages for all Requirements.
 		virtual void ClearErrors() override
 		{
 			if(_item != nullptr)
@@ -49,6 +65,7 @@ namespace Json
 			Requirement::ClearErrors();
 		}
 
+		//! Clear notices for all Requirements.
 		virtual void ClearNotices() override
 		{
 			if(_item != nullptr)
@@ -60,6 +77,7 @@ namespace Json
 			Requirement::ClearNotices();
 		}
 
+		//! Reset array.
 		virtual void Reset() override
 		{
 			_items.clear();
@@ -71,6 +89,14 @@ namespace Json
 			_min = _max = 0;
 		}
 
+		//! Parse JSON value and fill array.
+		/*!
+		 * \param json JSON input value.
+		 * \param path Path for JSON path specification.
+		 *
+		 * This function parses the JSON input value and creates new
+		 * Requirements for all values in the "items" branch.
+		 */
 		virtual void Parse(Value json, const std::string& path) override
 		{
 			Reset();
@@ -112,6 +138,11 @@ namespace Json
 				_unique = json["uniqueItems"].asBool();
 		}
 
+		//! Validate json value.
+		/*!
+		 * \param json JSON value to be validated.
+		 * \param path Path for JSON path specification.
+		 */
 		virtual void Validate(const Value& json, const std::string& path) override
 		{
 			if(!json.isArray())

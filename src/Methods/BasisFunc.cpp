@@ -10,13 +10,13 @@ namespace SSAGES
 	// Pre-simulation hook.
 	void Basis::PreSimulation(Snapshot* snapshot, const CVList& cvs)
 	{
-		//! Open file for writing and allocate derivatives vector
+        // Open file for writing and allocate derivatives vector
         int coeff_size = 1, bin_size = 1;
        
-        //! For print statements and file I/O, the walker IDs are used
+        // For print statements and file I/O, the walker IDs are used
         _mpiid = snapshot->GetWalkerID();
 
-        //! Make sure the iteration index is set correctly
+        // Make sure the iteration index is set correctly
         _iter = 0;
 
         if(!_grid)
@@ -28,7 +28,7 @@ namespace SSAGES
 			_world.abort(EXIT_FAILURE);
 		}
 
-        //! There are a few error messages / checks that are in place with defining CVs and grids
+        // There are a few error messages / checks that are in place with defining CVs and grids
         else
         {
             if(_grid->GetDimension() != cvs.size())
@@ -63,7 +63,7 @@ namespace SSAGES
         for(size_t i = 0; i < cvs.size(); ++i)
             _nbins[i] = _grid->GetNumPoints()[i];
 
-        //! This is to check for non-periodic bounds. It comes into play in the update bias function
+        // This is to check for non-periodic bounds. It comes into play in the update bias function
         _bounds = true;
                  
         for(size_t i = 0; i < cvs.size(); ++i)
@@ -169,14 +169,14 @@ namespace SSAGES
         std::vector<int> idx(cvs.size(),0);
         int ii = 0;
 
-        /*!The binned cv space is updated at every step
+        /*The binned cv space is updated at every step
          *After a certain number of steps has been passed, the system updates a
          *bias projection based on the visited histogram states
          */
         for(size_t i = 0; i < cvs.size(); ++i)
         {
             x[i] = cvs[i]->GetValue();
-            //! Change to periodic boundaries here just in case grid doesn't do it too well...
+            // Change to periodic boundaries here just in case grid doesn't do it too well...
             if(_grid->GetPeriodic()[i])
             {
                 double min = _grid->GetLower()[i];
@@ -190,24 +190,24 @@ namespace SSAGES
        
         if(_bounds)
         {
-            //! Convert the CV value to its discretized value through the grid tool
+            // Convert the CV value to its discretized value through the grid tool
             idx = _grid->GetIndices(x);
            
-            //! Map the grid index to the form of the hist and unbias mapping
+            // Map the grid index to the form of the hist and unbias mapping
             for(size_t i = 0; i < cvs.size(); ++i)
             {
                 ii += (idx[i])*std::pow(_nbins[i],i);
             } 
 
-            //! The histogram is updated based on the index
+            // The histogram is updated based on the index
             _hist[ii].value++;
     
-            //! Update the basis projection after a predefined number of steps
+            // Update the basis projection after a predefined number of steps
             if(snapshot->GetIteration() % _cyclefreq == 0) {	
                 double beta;
                 beta = snapshot->GetTemperature();
 
-                //! For systems with poorly defined temperature (ie: 1 particle) the user needs to define their own temperature. This is a hack that may be removed in future versions. 
+                // For systems with poorly defined temperature (ie: 1 particle) the user needs to define their own temperature. This is a hack that may be removed in future versions. 
                 if(beta == 0)
                 {
                     beta = _temperature;
@@ -227,16 +227,16 @@ namespace SSAGES
             }
         }
 
-		//! This calculates the bias force based on the existing basis projection.
+		// This calculates the bias force based on the existing basis projection.
 		CalcBiasForce(cvs);
 
-		//! Take each CV and add its biased forces to the atoms using the chain rule
+		// Take each CV and add its biased forces to the atoms using the chain rule
 		auto& forces = snapshot->GetForces();
 		for(size_t i = 0; i < cvs.size(); ++i)
 		{
 			auto& grad = cvs[i]->GetGradient();
 
-			/*! Update the forces in snapshot by adding in the force bias from each
+			/* Update the forces in snapshot by adding in the force bias from each
 			 *CV to each atom based on the gradient of the CV.
              */
 			for (size_t j = 0; j < forces.size(); ++j) 
@@ -251,7 +251,7 @@ namespace SSAGES
 	    std::cout<<"Run has finished"<<std::endl;	
 	}
 
-    /*! The basis set is initialized through the recursive definition.
+    /* The basis set is initialized through the recursive definition.
      *Currently, SSAGES only supports Legendre polyonmials for basis projections
      */
     void Basis::BasisInit(const CVList& cvs)
@@ -264,7 +264,7 @@ namespace SSAGES
 			std::vector<double> vals(_nbins[k]*ncoeff,0);
             std::vector<double> x(_nbins[k],0);
 
-            /*!As the values for Legendre polynomials can be defined recursively, \
+            /*As the values for Legendre polynomials can be defined recursively, \
              *both the derivatives and values are defined at the same time,
              */
 			for (size_t i = 0; i < _nbins[k]; ++i)
@@ -398,46 +398,46 @@ namespace SSAGES
         double bias = 0.0;
         double basis = 1.0;
 
-        //! For multiple walkers, the struct is unpacked
+        // For multiple walkers, the struct is unpacked
         for(size_t i = 0; i < _hist.size(); ++i)
             _histlocal[i] = (int)_hist[i].value;
 
-        //! Summed between all walkers
+        // Summed between all walkers
         MPI_Allreduce(&_histlocal[0], &_histglobal[0], _hist.size(), MPI_INT, MPI_SUM, _world);
 
-        //! And then it is repacked into the struct
+        // And then it is repacked into the struct
         for(size_t i = 0; i < _hist.size(); ++i)
             _hist[i].value = _histglobal[i];
 
-        //! Construct the biased histogram
+        // Construct the biased histogram
         for(size_t i = 0; i < _hist.size(); ++i)
         {
             auto& hist = _hist[i];
 
-            //! This is to make sure that the CV projects across the entire surface
+            // This is to make sure that the CV projects across the entire surface
             if(hist.value == 0) {hist.value = 1;} 
            
-            //! The loop builds the previous basis projection for each bin of the histogram
+            // The loop builds the previous basis projection for each bin of the histogram
             for(size_t k = 1; k < _coeff.size(); ++k)
             {
                 auto& coeff = _coeff[k];
                 for(size_t l = 0; l < cvs.size(); ++l)
                 { 
-                    //! The previous bias is only calculated after each sweep has happened
+                    // The previous bias is only calculated after each sweep has happened
                     basis *= _LUT[l].values[hist.map[l] + coeff.map[l]*(_nbins[l])];
                 }
                 bias += coeff.value*basis;
                 basis = 1.0;
             }
             
-            /*! The evaluation of the biased histogram which projects the histogram to the \
+            /* The evaluation of the biased histogram which projects the histogram to the
              * current bias of CV space.
              */
             _unbias[i] += hist.value * exp(bias/(double)(beta)) * _weight / (double)(_cyclefreq); 
             bias = 0.0;
         }
 
-        //! The coefficients and histograms are reset after evaluating the biased histogram values
+        // The coefficients and histograms are reset after evaluating the biased histogram values
         for(size_t i = 0; i < _coeff.size(); ++i)
         {
             coeffTemp[i] = _coeff[i].value;
@@ -451,28 +451,28 @@ namespace SSAGES
             _histglobal[i] = 0;
         }
 
-        //! The loop that evaluates the new coefficients by integrating the CV space
+        // The loop that evaluates the new coefficients by integrating the CV space
         for(size_t i = 1; i < _coeff.size(); ++i)
         {
             auto& coeff = _coeff[i];
             
-            //! The method uses a standard integration with trap rule weights
+            // The method uses a standard integration with trap rule weights
             for(size_t j = 0; j < _hist.size(); ++j)
             {
                 auto& hist = _hist[j];
                 double weight = std::pow(2.0,cvs.size());
 
-                //! This adds in a trap-rule type weighting which lowers error significantly at the boundaries
+                // This adds in a trap-rule type weighting which lowers error significantly at the boundaries
                 for(size_t k = 0; k < cvs.size(); ++k)
                 {
                     if(hist.map[k] == 0 || hist.map[k] == _nbins[k]-1)
                         weight /= 2.0;
                 }
               
-                //! To make sure that the projection doesn't produce errors, any bins that aren't visited are removed from the evaluation of the coefficients
+                // To make sure that the projection doesn't produce errors, any bins that aren't visited are removed from the evaluation of the coefficients
                 if(_unbias[j])
                 {
-                    /*!The numerical integration of the biased histogram across the entirety of CV space
+                    /*The numerical integration of the biased histogram across the entirety of CV space
                      *All calculations include the normalization as well
                      */
                     for(size_t l = 0; l < cvs.size(); l++)
@@ -492,7 +492,7 @@ namespace SSAGES
             // Write coeff at this step, but only one walker
             PrintBias(cvs);
 
-        //! The convergence tolerance and whether the user wants to exit are incorporated here
+        // The convergence tolerance and whether the user wants to exit are incorporated here
         if(sum < _tol)
         {
             std::cout<<"System has converged"<<std::endl;
@@ -504,7 +504,7 @@ namespace SSAGES
         }
 	}
 
-    /*!The coefficients are printed out for the purpose of saving the free energy space
+    /*The coefficients are printed out for the purpose of saving the free energy space
      *Additionally, the current basis projection is printed so that the user can view
      *the current free energy space
      */
@@ -515,7 +515,7 @@ namespace SSAGES
         double temp = 1.0; 
         double pos = 0;
 
-        /*! Since the coefficients are the only piece that needs to be
+        /* Since the coefficients are the only piece that needs to be
          *updated, the bias is only evaluated when printing
          */
         for(size_t i = 0; i < _hist.size(); ++i)
@@ -532,7 +532,7 @@ namespace SSAGES
             }
         }
 
-        //! The filenames will have a standard name, with a user-defined suffix
+        // The filenames will have a standard name, with a user-defined suffix
         std::string filename1 = "basis"+_bnme+".out";
         std::string filename2 = "coeff"+_cnme+".out";
     
@@ -541,7 +541,7 @@ namespace SSAGES
         _basisout.open(filename1.c_str());
         _coeffout.open(filename2.c_str());
 
-        //! The CV values, PMF projection, PMF, and biased histogram are output for the user  
+        // The CV values, PMF projection, PMF, and biased histogram are output for the user
         _coeffout << _iter  <<std::endl;
         _basisout << "CV Values" << std::setw(35*cvs.size()) << "Basis Set Bias" << std::setw(35) << "PMF Estimate" << std::setw(35) << "Biased Histogram" << std::endl;
         
@@ -572,7 +572,7 @@ namespace SSAGES
         _coeffout.close();
 	}
 
-    //! The forces are calculated by chain rule, first  the derivatives of the basis set, then in the PostIntegration function, the derivative of the CV is evaluated
+    // The forces are calculated by chain rule, first  the derivatives of the basis set, then in the PostIntegration function, the derivative of the CV is evaluated
 	void Basis::CalcBiasForce(const CVList& cvs)
 	{	
 		// Reset derivatives
@@ -599,7 +599,7 @@ namespace SSAGES
             }
             else
             {
-                //! In order to prevent the index for the histogram from going out of bounds a check is in place 
+                // In order to prevent the index for the histogram from going out of bounds a check is in place
                 if(x[j] > max && _bounds)
                 {
                     std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
@@ -626,7 +626,7 @@ namespace SSAGES
             }
         }
 
-        //! Only apply soft wall potential in the event that it has left the boundaries
+        // Only apply soft wall potential in the event that it has left the boundaries
         if(_bounds)
         {
             idx = _grid->GetIndices(x);
@@ -649,7 +649,7 @@ namespace SSAGES
             }
         }
         
-        //! This is where the wall potentials are going to be thrown into the method if the system is not a periodic CV
+        // This is where the wall potentials are going to be thrown into the method if the system is not a periodic CV
         for(size_t j = 0; j < cvs.size(); ++j)
         {
             if(!_grid->GetPeriodic()[j]) 

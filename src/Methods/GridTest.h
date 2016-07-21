@@ -9,10 +9,20 @@
 namespace SSAGES
 {
 
+	//! Test class for the Grid
+	/*!
+	 * \ingroup Methods
+	 */
 	class GridTest : public Method
 	{
 
 	public: 
+		//! Constructor
+		/*!
+		 * \param world MPI global communicator.
+		 * \param comm MPI local communicator.
+		 * \param frequency Frequency with which this method is invoked.
+		 */
 		GridTest(boost::mpi::communicator& world,
 					boost::mpi::communicator& comm,
 					unsigned int frequency): 
@@ -20,7 +30,11 @@ namespace SSAGES
 		{
 		}
 
-		// Pre-simulation hook.
+		//! Pre-simulation hook.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 * \param cvs List of CVs.
+		 */
 		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override
 		{
 			if(!_grid)
@@ -31,7 +45,11 @@ namespace SSAGES
 			_grid->PrintGrid();
 		}
 
-		// Post-integration hook.
+		//! Post-integration hook.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 * \param cvs List of CVs.
+		 */
 		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override
 		{
 
@@ -67,17 +85,26 @@ namespace SSAGES
 			std::cout<<std::endl;
 		}
 
-		// Post-simulation hook.
+		//! Post-simulation hook.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 * \param cvs List of CVs.
+		 */
 		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override
 		{
 
 		}
 
+		//! \copydoc Serializable::Serialize()
+		/*!
+		 * \warning Serialization not implemented yet!
+		 */
 		void Serialize(Json::Value& json) const override
 		{
 
 		}
 
+		//! Destructor.
 		~GridTest() {}
 	};
 }

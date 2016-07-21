@@ -5,14 +5,20 @@
 
 namespace Json
 {
+	//! Requires a given Requirement to fail.
+	/*!
+	 * \ingroup Json
+	 */
 	class NotRequirement : public Requirement
 	{
 	private:
-		std::unique_ptr<Requirement> _req;
+		std::unique_ptr<Requirement> _req; //!< Requirement to negate.
 
 	public:
+		//! Constructor.
 		NotRequirement() : _req(nullptr) {}
 
+		//! Clear list of error messages.
 		virtual void ClearErrors() override
 		{
 			if(_req)
@@ -21,6 +27,7 @@ namespace Json
 			Requirement::ClearErrors();
 		}
 
+		//! Clear list of notices.
 		virtual void ClearNotices() override
 		{
 			if(_req != nullptr)
@@ -29,6 +36,7 @@ namespace Json
 			Requirement::ClearNotices();
 		} 
 
+		//! Reset Requirement.
 		virtual void Reset() override
 		{
 			ClearErrors();
@@ -37,6 +45,11 @@ namespace Json
 			_req.reset();		
 		}
 
+		//! Parse JSON value and generate Requirement to be negated.
+		/*!
+		 * \param json JSON input value.
+		 * \param path Path for JSON path specification.
+		 */
 		virtual void Parse(Value json, const std::string& path) override
 		{
 			Reset();
@@ -47,6 +60,15 @@ namespace Json
 				_req->Parse(head, path);
 		}
 
+		//! Validate that JSON value fails the given Requirement.
+		/*!
+		 * \param json JSON value to validate.
+		 * \param path Path for JSON path specification.
+		 *
+		 * Calls validate on the Requirement to be negated and checks if it has
+		 * an error. If it has not, it passed the validation and an error is
+		 * added to this Requirement.
+		 */
 		virtual void Validate(const Value& json, const std::string& path) override
 		{
 			_req->Validate(json, path);
