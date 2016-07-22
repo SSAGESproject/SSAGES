@@ -57,5 +57,8 @@ namespace SSAGES
 		 * This function will be called after the simulation has finished.
 		 */
 		virtual void PostSimulation(Snapshot* snapshot, const CVList& cvs) = 0;
+
+		//! Destructor
+		virtual ~EventListener() { }
 	};
 }

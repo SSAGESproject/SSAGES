@@ -60,7 +60,7 @@ namespace SSAGES
 		 * \todo Consider non-periodic boundary conditions.
 		 */
 		AtomSeparationCV(int atomid1, int atomid2, std::vector<double> boxsize) : 
-		_atomid1(atomid1),_atomid2(atomid2), _boxsize(boxsize), _val(0), _grad(0), _bounds{{0,0}}
+		_atomid1(atomid1),_atomid2(atomid2), _val(0), _boxsize(boxsize), _grad(0), _bounds{{0,0}}
 		{
 		}
 

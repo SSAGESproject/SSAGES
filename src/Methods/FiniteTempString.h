@@ -106,7 +106,7 @@ namespace SSAGES
 		//! Constructor
 		/*!
 		 * \param world MPI global communicator.
-		 * \param com MPI local communicator.
+		 * \param comm MPI local communicator.
 		 * \param isteps Number of iterations per block averaging.
 		 * \param centers List of centers.
 		 * \param NumNodes Number of nodes.
@@ -125,7 +125,7 @@ namespace SSAGES
 		 * _tau and _kappa default values of 0.1 (JSON reader for this)
 		 */
 		FiniteTempString(boost::mpi::communicator& world,
-					boost::mpi::communicator& com,
+					boost::mpi::communicator& comm,
 					unsigned int isteps,
 					const std::vector<double>& centers,
 					unsigned int NumNodes,
@@ -138,9 +138,12 @@ namespace SSAGES
 					unsigned int restartiter,
 					const std::vector<double>& restartavgs,
 			 		unsigned int frequency) : 
-		Method(frequency, world, com), _blockiterations(isteps), _centers(centers), _cv_prev(), _alpha(),
-		_mpiid(0), _worldstring(), _tau(tau), _kappa(kappa), _spring(spring), _tol(tol), _maxiterator(maxiterator), _restart(restart), _restartiter(restartiter), _restartavgs(restartavgs), _prev_positions(), _numnodes(NumNodes), _currentiter(0),
-		_run_SMD(true), _cv_inside_iterator(0)
+		Method(frequency, world, comm), _blockiterations(isteps), _centers(centers),
+		_cv_prev(), _alpha(), _mpiid(0), _worldstring(), _tau(tau), _kappa(kappa),
+		_spring(spring), _tol(tol), _prev_positions(), _numnodes(NumNodes),
+		_currentiter(0), _run_SMD(true), _cv_inside_iterator(0),
+		_maxiterator(maxiterator), _restart(restart), _restartiter(restartiter),
+		_restartavgs(restartavgs)
 		{
 		}
 

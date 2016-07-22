@@ -21,5 +21,8 @@ namespace SSAGES
          * simulation
          */
         virtual void Serialize(Json::Value& json) const = 0;
+
+        //! Destructor
+        virtual ~Serializable() { }
     };
 }

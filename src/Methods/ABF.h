@@ -146,9 +146,23 @@ namespace SSAGES
 		 *       _histdetails by at least one bin size on each side.
 		 */ 
 		ABF(boost::mpi::communicator& world,
-			 boost::mpi::communicator& comm,
-			 const std::vector<std::vector<double>>& histdetails, std::vector<std::vector<double>> restraint, double timestep, double min, std::string readF, std::vector<int> printdetails, int FBackupInterv, double unitconv, int Orthogonalization, unsigned int frequency) : 
-		Method(frequency, world, comm), _biases(0), _wdotpold(0), _mpiid(0), _Fold(0), _beta(0), _dim(0), _F(0), _N(0), _Fworld(0), _Nworld(0), _histdetails(histdetails), _restraint(restraint), _timestep(timestep), _min(min), _readF(readF), _printdetails(printdetails), _FBackupInterv(FBackupInterv), _unitconv(unitconv), _Orthogonalization(Orthogonalization)
+			boost::mpi::communicator& comm,
+			const std::vector<std::vector<double>>& histdetails,
+			std::vector<std::vector<double>> restraint,
+			double timestep,
+			double min,
+			std::string readF,
+			std::vector<int> printdetails,
+			int FBackupInterv,
+			double unitconv,
+			int Orthogonalization,
+			unsigned int frequency) :
+		Method(frequency, world, comm), _F(0), _Fworld(0), _N(0), _Nworld(0),
+		_restraint(restraint), _min(min), _wdotpold(0), _Fold(0), _beta(0),
+		_readF(readF), _biases(0), _dim(0), _mpiid(0), _histdetails(histdetails),
+		_printdetails(printdetails), _FBackupInterv(FBackupInterv),
+		_unitconv(unitconv), _Orthogonalization(Orthogonalization),
+		_timestep(timestep)
 		{
 		}
 

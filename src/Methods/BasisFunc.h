@@ -31,7 +31,7 @@ namespace SSAGES
          */
         Map(const std::vector<int>& map,
             double value) :
-            map(map), value(value)
+            value(value), map(map)
         {}
     };
 
@@ -261,11 +261,12 @@ namespace SSAGES
              const double weight,
              bool read,
              bool converge) : 
-		Method(frequency, world, comm), _coeff(), _hist(), _unbias(), _mpiid(0),
-		 _derivatives(), _histlocal(), _cyclefreq(cyclefreq), _polyords(polyord),
-         _read(read), _weight(weight), _LUT(), _restraint(restraint), _bnme(bnme),
-         _cnme(cnme), _temperature(temperature), _histglobal(), _nbins(), _boundUp(boundUp),
-         _boundLow(boundLow), _tol(tol), _converge_exit(converge) 
+		Method(frequency, world, comm), _hist(), _histlocal(), _histglobal(),
+        _coeff(), _unbias(), _LUT(), _derivatives(), _polyords(polyord),
+        _nbins(), _restraint(restraint), _boundUp(boundUp), _boundLow(boundLow),
+        _cyclefreq(cyclefreq), _mpiid(0), _weight(weight),
+        _temperature(temperature), _tol(tol), _read(read),
+        _converge_exit(converge), _bnme(bnme), _cnme(cnme)
 		{
 		}
 

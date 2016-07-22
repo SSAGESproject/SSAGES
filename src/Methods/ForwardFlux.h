@@ -111,7 +111,7 @@ namespace SSAGES
 				 unsigned int frequency) : 
 		Method(frequency, world, comm), _rd(), _gen(_rd()), _restart(LIBRARY),
 		_indexfilename(indexfilename), _indexfile(), _indexcontents(""), _globalcontents(""), 
-		_resultsfilename(resultsfilename), _restartfilename(restartfilename),
+		_restartfilename(restartfilename), _resultsfilename(resultsfilename),
 		_resultsfile(), _resultscontents(""), _centers(centers), _successes(), _currentnode(currentinterface),
 		_currentstartingpoint(-1), _requiredconfigs(requiredconfigs), _currenthash(10000*world.rank()), 
 		_shootingconfigfile(""), _numshots(numshots), _currentshot(0), _fluxout(0), _fluxin(0)
