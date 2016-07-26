@@ -96,6 +96,9 @@ namespace SSAGES
             //! Flag for determing whether to perform initialization or not
             bool sampling_started;
 
+            //! Purely debugging, try not to leave this in
+            int IntegrationCounter;
+
         public:
 
             //! Constructor

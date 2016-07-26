@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=swarm_test
+#SBATCH --job-name=Langevin_test
 #SBATCH --output=test.out
 #SBATCH --error=test.err
 #SBATCH --partition=boltzmann
@@ -9,4 +9,5 @@
 #SBATCH --mail-type=ALL
 
 mpiexec -np 22 ./ssages Swarm.json
+
 

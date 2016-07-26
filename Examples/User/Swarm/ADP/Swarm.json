@@ -1,7 +1,7 @@
 {
     "driver": [
         {
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "number processors": 1,
             "CVs": [
                 {
@@ -44,7 +44,7 @@
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -80,13 +80,13 @@
                 "type": "Swarm",
                 "centers": [
                     -1.282,
-                    1.164
+                    1.165
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -121,14 +121,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    -1.175,
-                    1.019
+                    -1.174,
+                    1.02
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -163,14 +163,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    -1.067,
-                    0.873
+                    -1.066,
+                    0.874
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -205,14 +205,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    -0.96,
-                    0.727
+                    -0.958,
+                    0.729
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -247,14 +247,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    -0.852,
-                    0.581
+                    -0.85,
+                    0.584
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -289,14 +289,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    -0.744,
-                    0.436
+                    -0.741,
+                    0.439
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -331,14 +331,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    -0.637,
-                    0.29
+                    -0.633,
+                    0.293
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -373,14 +373,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    -0.529,
-                    0.144
+                    -0.525,
+                    0.148
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -415,14 +415,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    -0.421,
-                    -0.001
+                    -0.417,
+                    0.003
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -457,14 +457,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    -0.314,
-                    -0.147
+                    -0.309,
+                    -0.142
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -499,14 +499,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    -0.206,
-                    -0.293
+                    -0.201,
+                    -0.288
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -541,14 +541,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    -0.099,
-                    -0.439
+                    -0.093,
+                    -0.433
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -583,14 +583,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    0.009,
-                    -0.584
+                    0.015,
+                    -0.578
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -625,14 +625,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    0.117,
-                    -0.73
+                    0.123,
+                    -0.723
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -667,14 +667,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    0.224,
-                    -0.876
+                    0.231,
+                    -0.869
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -709,14 +709,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    0.332,
-                    -1.021
+                    0.34,
+                    -1.014
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -751,14 +751,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    0.44,
-                    -1.167
+                    0.448,
+                    -1.159
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -793,14 +793,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    0.547,
-                    -1.313
+                    0.556,
+                    -1.304
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -835,14 +835,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    0.655,
-                    -1.459
+                    0.664,
+                    -1.45
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -877,14 +877,14 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    0.762,
-                    -1.604
+                    0.772,
+                    -1.595
                 ]
             }
         },
         {
             "number processors": 1,
-            "MDSteps": 20000000,
+            "MDSteps": 10000000,
             "CVs": [
                 {
                     "periodic": true,
@@ -919,8 +919,8 @@
                 "number of trajectories": 100,
                 "type": "Swarm",
                 "centers": [
-                    0.87,
-                    -1.75
+                    0.88,
+                    -1.74
                 ]
             }
         }

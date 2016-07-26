@@ -3,6 +3,9 @@ dimension 2
 boundary f f p
 units real
 atom_style atomic
+neighbor 2.0 bin
+neigh_modify every 1 delay 0 check yes
+
 
 #specify the box for the simulation.
 region box block -3 3 -3 3 -1 1 units box

@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=swarm_test
+#SBATCH --job-name=ADP_test
 #SBATCH --output=test.out
 #SBATCH --error=test.err
 #SBATCH --partition=boltzmann

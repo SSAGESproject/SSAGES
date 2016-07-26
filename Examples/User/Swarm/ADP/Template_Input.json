@@ -4,7 +4,7 @@
 		{
 			"number processors" : 1,
 			"type" : "LAMMPS",
-			"MDSteps" : 20000000,
+			"MDSteps" : 10000000,
 			"logfile" : "node-1",
 			"CVs" : [
 				{

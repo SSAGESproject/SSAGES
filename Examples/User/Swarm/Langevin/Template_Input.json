@@ -25,12 +25,12 @@
 					    -0.98
 				],
 				"number of nodes": 22,
-				"spring" : 500,
+				"spring" : 1000,
 				"frequency" : 1,
-				"initial steps" : 2500,
+				"initial steps" : 1000,
 				"harvest length" : 10,
-				"number of trajectories" : 250,
-                "swarm length" : 20
+				"number of trajectories" : 100,
+                "swarm length" : 2
 			}
 		}
 	]
