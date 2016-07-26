@@ -5,8 +5,8 @@ atom_style 	full
 bond_style	harmonic
 angle_style	harmonic
 dihedral_style	harmonic
-pair_style lj/cut 3.0
-neighbor 100.0 bin
+pair_style lj/cut 12.0
+neighbor 20.0 bin
 neigh_modify every 1 delay 0 check yes
 
 read_data data.input
@@ -19,7 +19,7 @@ velocity	all create 300 43256 dist uniform
 #Call ssages to run the metadynamics
 fix ssages all ssages
 
-timestep 0.1
+timestep 1.0
 
 #For the sync to engine to work correctly need to set thermo 1 for now
 thermo 1

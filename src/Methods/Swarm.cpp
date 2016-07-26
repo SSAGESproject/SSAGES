@@ -27,16 +27,26 @@ namespace SSAGES
     bool Swarm::CVInitialized(const CVList& cvs)
     {
         //std::cout << _mpiid << " Made a call to CVInitialized()" << std::endl; //Debugging
-        double threshold = 0.10;
+        double threshold = 0.05;
+        const double epsilon = 0.000000001;
+        double diff;
+
         //On the first iteration, check that the CVs are within (threshold*100)% of the center value they're associated to
         for(size_t i = 0; i < cvs.size(); i++)
         { 
-            //std::cout << _mpiid << " CV value = " << cvs[i]->GetValue() << " Centers value = " << _centers[i] << std::endl; //Debugging
-            double diff = std::abs(((double)cvs[i]->GetValue() - (double)_centers[i]) / (((double)cvs[i]->GetValue() + (double)_centers[i])/2.0));
+            std::cout << _mpiid << " CV value = " << cvs[i]->GetValue() << " Centers value = " << _centers[i] << std::endl; //Debuggingi
+            if(_centers[i] <= epsilon)
+            {//e.g. if _centers[i] = 0
+                diff = std::abs((cvs[i]->GetValue() - (_centers[i]+0.01)) / ((cvs[i]->GetValue() + (0.01 + _centers[i]))/2.0));
+            }
+            else
+            {
+                diff = std::abs((cvs[i]->GetValue() - (_centers[i])) / ((cvs[i]->GetValue() + (_centers[i]))/2.0));
+            }
             //std::cout << _mpiid << " Diff = " << diff << "Abs Test = " << std::abs(-10.1) << std::endl; //Debugging
             if(diff >= threshold)
             {
-                //std::cout << _mpiid << " Diff true" << std::endl; //Debugging
+                std::cout << _mpiid << " Diff true" << std::endl; //Debugging
                 return true; //e.g. proceed to initialize again
             }
         }
