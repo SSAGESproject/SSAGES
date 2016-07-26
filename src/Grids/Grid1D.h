@@ -12,8 +12,9 @@ namespace SSAGES
 	{
 	private:
 
-		std::vector<float> _values; //!< Grid values
-
+		std::vector<double> _values; //!< Grid values
+		std::vector<std::array<double, 1>> _derivs; //!< Grid derivatives
+		
 	public:
 
 		//! Constructor
@@ -39,7 +40,8 @@ namespace SSAGES
 			for(size_t i = 0; i < _spacing.size(); i++)
 				_spacing[i] = (_upper[i] - _lower[i])/double(_num_points[i] - 1);
 
-			_values.resize(_num_points[0]);
+			_values.resize(_num_points[0],0);
+			_derivs.resize(_num_points[0],{0});
 		}
 
 		//! Get value at one Grid point.
@@ -51,6 +53,83 @@ namespace SSAGES
 		{
 			return _values[indices[0]];
 		}
+		
+		float GetDeriv(const std::vector<int>& indices, int dim) const override
+		{
+		  return _derivs[indices[0]][dim];
+		}
+
+		float InterpolateValue(const std::vector<float> &val){
+		  std::vector<int> vertices;
+		  std::vector<float> gridpos;
+		  std::vector<float> gridval;
+		  int ii;
+		  float ival;
+		  
+		  for(ii = 0; ii <= 1; ii++){
+		    for(size_t i = 0; i < val.size(); i++)
+		      {
+			//always round down, allows us get the vertices appropriately
+			int vertex = int((val[i] - _lower[i])/_spacing[i]) + ii;
+			if(vertex < 0) // out of bounds
+			  vertex = 0;
+			else if(vertex > _num_points[i] -1) // out of bounds
+			{
+			  if(_periodic[i])
+			    vertex = 0;
+			  else
+			    vertex = _num_points[i] -1;
+			}
+		      vertices.push_back(vertex);
+		    }
+		    gridpos=push_back(GetLocation(vertices));
+		    gridval=push_back(GetValue(vertices));
+		    vertices.clear();
+		  }
+
+		  //now, do 1d interpolation
+		  ival = ((val[i]-gridpos[0])*gridval[1] +
+			  (gridpos[1]-val[i])*gridval[0]) /
+		          (gridpos[1]-gridpos[0]);
+
+		  return ival;
+		}
+
+		float InterpolateDeriv(const std::vector<float> &val, int dim){
+		  std::vector<int> vertices;
+		  std::vector<float> gridpos;
+		  std::vector<float> gridval;
+		  int ii;
+		  float ival;
+		  
+		  for(ii = 0; ii <= 1; ii++){
+		    for(size_t i = 0; i < val.size(); i++)
+		      {
+			//always round down, allows us get the vertices appropriately
+			int vertex = int((val[i] - _lower[i])/_spacing[i]) + ii;
+			if(vertex < 0) // out of bounds
+			  vertex = 0;
+			else if(vertex > _num_points[i] -1) // out of bounds
+			{
+			  if(_periodic[i])
+			    vertex = 0;
+			  else
+			    vertex = _num_points[i] -1;
+			}
+		      vertices.push_back(vertex);
+		    }
+		    gridpos=push_back(GetLocation(vertices));
+		    gridval=push_back(GetDeriv(vertices,dim));
+		    vertices.clear();
+		  }
+
+		  //now, do 1d interpolation
+		  ival = ((val[i]-gridpos[0])*gridval[1] +
+			  (gridpos[1]-val[i])*gridval[0]) /
+		          (gridpos[1]-gridpos[0]);
+
+		  return ival;
+		}
 
 		//! Set value at one grid point.
 		/*!
@@ -60,6 +139,10 @@ namespace SSAGES
 		void SetValue(const std::vector<int>& indices, float value) override
 		{
 			_values[indices[0]] = value;
+		}
+		void SetDeriv(const std::vector<int>& indices, float value, int dim) override
+		{
+			_derivs[indices[0]][dim] = value;
 		}
 
 		//! Write Grid to console

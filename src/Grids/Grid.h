@@ -64,12 +64,28 @@ namespace SSAGES
 			return vertices;
 		}
 
+		std::vector<float> GetLocation(const std::vector<int> &indices)
+		{
+		    std::vector<float> positions;
+
+		    for(size_t i = 0; i < indices.size(); i++)
+		      {
+			float position = _lower[i] + _spacing[i]*i;
+			positions.push_back(position);
+		      }
+
+		    return positions;
+		}
+
 		//! Get the value at the current indices.
 		/*!
 		 * \param indices Indices specifying grid point.
 		 * \return Value at the specified grid point.
 		 */
 		virtual float GetValue(const std::vector<int>& indices) const = 0;
+		virtual float GetDeriv(const std::vector<int>& indices, int dim) const = 0;
+		virtual float InterpolateValue(const std::vector<float> &val) const = 0;
+		virtual float InterpolateDeriv(const std::vector<float> &val, int dim) const = 0;
 
 		//! Set the value at the current incices.
 		/*!
@@ -77,6 +93,8 @@ namespace SSAGES
 		 * \param value New value for the grid point.
 		 */
 		virtual void SetValue(const std::vector<int>& indices, float value) = 0;
+		virtual void  SetDeriv(const std::vector<int>& indices, float value, int dim) = 0;
+
 
 		//! Write the grid to the console.
 		virtual void PrintGrid() const = 0;

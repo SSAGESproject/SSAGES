@@ -14,6 +14,7 @@ namespace SSAGES
 
 		//!< 3D Vector containing the Grid values.
 		std::vector<std::vector<std::vector<float>>> _values;
+		std::vector<std::vector<std::vector<std::array<double, 3>>>> _derivs;
 
 	public:
 
@@ -41,13 +42,20 @@ namespace SSAGES
 				_spacing[i] = (_upper[i] - _lower[i])/double(_num_points[i] - 1);
 
 			_values.resize(_num_points[0]);
+			_derivs.resize(_num_points[0]);
 
-			for(size_t i = 0; i < _values.size(); i++)
-				_values[i].resize(_num_points[1]);
+			for(size_t i = 0; i < _values.size(); i++){
+			  _values[i].resize(_num_points[1]);
+			  _derivs[i].resize(_num_points[1]);
+			}
+						
 
-			for(size_t i = 0; i < _values.size(); i++)
-				for(size_t j = 0; j < _values[i].size(); j++)
-					_values[i][j].resize(_num_points[2],0);
+			for(size_t i = 0; i < _values.size(); i++){
+			  for(size_t j = 0; j < _values[i].size(); j++){
+			    _values[i][j].resize(_num_points[2],0);
+			    _derivs[i][j].resize(_num_points[2],{0,0,0});
+			  }
+			}
 		}
 
 		//! Get value at a given Grid point.
@@ -59,6 +67,10 @@ namespace SSAGES
 		{
 			return _values[indices[0]][indices[1]][indices[2]];
 		}
+		float GetDeriv(const std::vector<int>& indices, int dim) const override
+		{
+		  return _derivs[indices[0]][indices[1]][indices[2]][dim];
+		}
 
 		//! Set value at a given Grid point.
 		/*!
@@ -68,6 +80,10 @@ namespace SSAGES
 		void SetValue(const std::vector<int>& indices, float value) override
 		{
 			_values[indices[0]][indices[1]][indices[2]] = value;
+		}
+		void SetDeriv(const std::vector<int>& indices, float value, int dim) override
+		{
+			_derivs[indices[0]][indices[1]][indices[2]][dim] = value;
 		}
 
 		//! Write the Grid to console output.
