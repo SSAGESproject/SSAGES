@@ -16,36 +16,49 @@ namespace mpi = boost::mpi;
 using namespace Json;
 namespace SSAGES
 {
-	// Simulation class for creating simulation and a driver object.
 
+	//! Simulation class for creating simulation and a driver object.
+	/*!
+	 * The simulation class pulls together the simulation and the driver to
+	 * steer the simulation.
+	 *
+	 * \ingroup Core
+	 */
 	class Simulation : public Serializable
 	{
 
 	protected:
 
-		// The MPI world communicator
+		//! The MPI world communicator
 		boost::mpi::communicator _world;
 
-		// The local communicator 
+		//! The local communicator
 		boost::mpi::communicator _comm;
 
-		// A pointer to the driver
+		//! A pointer to the driver
 		Driver* _MDDriver;
 
-		// Number of walkers
+		//! Number of walkers
 		int _nwalkers;
 
-		// MDEngine of choice
+		//! MDEngine of choice
 		std::string _MDEngine;
 
-		// Global input file
+		//! Global input file
 		std::string _GlobalInput;
 
-		// For message parsing
-		int _ltot, _msgw, _notw;
+		int _ltot; //!< Magic number for message passing
+		int _msgw; //!< Magic number for message passing
+		int _notw; //!< Magic number for message passing
 
 	public:
 
+		//! Constructor
+		/*!
+		 * \param world The MPI world communicator to use
+		 *
+		 * Construct the simulation object.
+		 */
 		Simulation(boost::mpi::communicator& world) : 
 		_world(world), _comm(), _MDDriver(), _nwalkers(1),
 		_MDEngine(), _GlobalInput(),
@@ -54,18 +67,25 @@ namespace SSAGES
 
 		}
 
+		//! Destructor
 		~Simulation()
 		{
 			delete _MDDriver;
 		}
 
+		//! Read the JSON file
+		/*!
+		 * \param jfile File name of the JSON file
+		 * \returns JSON Value containing all input information.
+		 *
+		 * With this function, the MPI head node will read in the JSON file and
+		 * broadcast to other nodes the necessary information. The JSON file
+		 * will include the Engine input file name(s).
+		 */
 		Json::Value ReadJSON(std::string jfile)
 		{
 			Value root;
 			JSONLoader loader;
-
-			// Read in JSON using head node and broadcast to other nodes
-			// JSON file will include the Engine input file name(s)
 
 			if(_world.rank() == 0)
 				PrintBoldNotice(" > Validating JSON...", _msgw, _world);
@@ -89,6 +109,15 @@ namespace SSAGES
 
 		}
 
+		//! Set up the simulation
+		/*!
+		 * \param json JSON value containing the input information.
+		 * \param path Path for JSON path specification.
+		 * \return \c True if simulation was set up correctly, else return \c False .
+		 *
+		 * This function sets up the simulation based on the JSON input
+		 * information read in before using Simulation::ReadJSON().
+		 */
 		bool BuildSimulation(const Json::Value& json, const std::string& path)
 		{
 
@@ -98,9 +127,6 @@ namespace SSAGES
 
 			reader.parse(JsonSchema::Simulation, schema);
 			validator.Parse(schema, path);
-
-			if(_world.rank() == 0)
-				PrintBoldNotice(" >Building Simulation...", _msgw, _world);
 			
 			try
 			{
@@ -124,6 +150,14 @@ namespace SSAGES
 			return true;
 		}
 
+		//! Set up the driver for the simulation
+		/*!
+		 * \param json JSON value containing input information.
+		 * \param path JSON path specification.
+		 * \return \c True if Driver was set up correctly, else return \c False .
+		 *
+		 * Set up the Driver for the Metadynamics simulation.
+		 */
 		bool BuildDriver(const Json::Value& json, const std::string& path)
 		{
 
@@ -134,8 +168,6 @@ namespace SSAGES
 			Reader reader;
 
 			bool success_build = true;
-
-			PrintBoldNotice(" >Building Drivers...\n", _msgw, _world);
 
 			reader.parse(JsonSchema::driver, schema);
 			validator.Parse(schema, path);
@@ -221,9 +253,6 @@ namespace SSAGES
 		        success_build = false;
 			}
 
-			if(_comm.rank()==0)
-				std::cout << std::setw(_notw) << std::right << "\033[32mMEngine " << wid <<  " pass...!\033[0m\n";
-
 			if(!json.isMember("CVs") && !JsonDriver.isMember("CVs"))
 			{
 				DumpErrorsToConsole({"Need global CVs or per driver CVs"},_notw);
@@ -255,19 +284,40 @@ namespace SSAGES
 					success_build = false;
 			}
 
-			if(json.isMember("grid"))
+			if(JsonDriver.isMember("grid"))
+			{
+				if(!BuildGrid(JsonDriver,"#/Grids"))
+					success_build = false;
+			}
+			else if (json.isMember("grid"))
 			{
 				if(!BuildGrid(json,"#/Grids"))
 					success_build = false;
 			}
 
+			if(_comm.rank()==0)
+			{
+				if(success_build)
+					std::cout << std::setw(_notw) << std::right << "\033[32mMDEngine " << wid <<  " pass!\033[0m\n";
+				else
+					std::cout << std::setw(_notw) << std::right << "\033[32mMDEngine " << wid <<  " FAIL!\033[0m\n";
+			}
+
             return success_build;
 		}
 
+		//! Set up CVs
+		/*!
+		 * \param json JSON value containing input information.
+		 * \param path JSON path specification.
+		 * \return \c True if CVs have been set up correctly, else return \c False .
+		 *
+		 * Set up the collective variables (CV) used in the Metadynamics
+		 * simulation.
+		 */
 		bool BuildCVs(const Json::Value& json, const std::string& path)
 		{
 			// Build CV(s).
-			PrintBoldNotice(" > Building CV(s)...", _msgw, _world); 
 			try{
 				_MDDriver->BuildCVs(json.get("CVs", Json::arrayValue), path);
 			} catch(BuildException& e) {
@@ -278,15 +328,20 @@ namespace SSAGES
 				return false;
 			}
 
-			if(_world.rank() == 0)
-				std::cout << std::setw(_notw) << std::right << "\033[32mCV Pass...!\033[0m\n";
 			return true;
 		}
 
+		//! Set up Method
+		/*!
+		 * \param json JSON value containing input information.
+		 * \param path JSON path specification.
+		 * \return \c True if Method has been set up correctly, else return \c False .
+		 *
+		 * Set up the Metadynamics method to be used in the simulation.
+		 */
 		bool BuildMethod(const Json::Value& json, const std::string& path)
 		{
 			// Build method(s).
-			PrintBoldNotice(" > Building method(s)...", _msgw, _world); 
 			try{
 				_MDDriver->BuildMethod(json.get("method", Json::objectValue), path);
 			} catch(BuildException& e) {
@@ -296,14 +351,20 @@ namespace SSAGES
 				DumpErrorsToConsole({e.what()}, _notw);
 				return false;
 			}
-			if(_world.rank() == 0)
-				std::cout << std::setw(_notw) << std::right << "\033[32mMethod Pass...!\033[0m\n";
+
 			return true;
 		}
 
+		//! Set up grid
+		/*!
+		 * \param json JSON value containing input information.
+		 * \param path JSON path specification.
+		 * \return \c True if Grid has been set up sucessfully, else return \c False .
+		 *
+		 * Set up the grid for the Metadynamics simulation.
+		 */
 		bool BuildGrid(const Json::Value& json, const std::string& path)
 		{
-			PrintBoldNotice(" > Building grid...", _msgw, _world); 
 			try{
 				_MDDriver->BuildGrid(json, path);
 			} catch(BuildException& e) {
@@ -314,15 +375,18 @@ namespace SSAGES
 				return false;
 			}
 
-			if(_world.rank() == 0)
-				std::cout << std::setw(_notw) << std::right << "\033[32mGrid Pass...!\033[0m\n";
 			return true;
 		}
 
+		//! Read the MD Engine input file
+		/*!
+		 * Read the input file for the MD engine used in the simulation and
+		 * broadcast the necessary information to all MPI instances.
+		 */
 		void ReadInputFile()
 		{
 
-			std::string contents;
+			std::string contents ="";
 			std::string localInput = _MDDriver->GetInputFile();
 
 			if(_GlobalInput != "none" && localInput == "none")
@@ -332,10 +396,9 @@ namespace SSAGES
 					std::cout<<"Global input file found, first using: "<<_GlobalInput<<std::endl;
 					contents = GetFileContents(_GlobalInput.c_str());
 				}
-				mpi::broadcast(_world, contents, 0);
 			}
 
-			_world.barrier();
+			mpi::broadcast(_world, contents, 0);
 
 			// Each node reads in specified input file
 			if(localInput != "none")
@@ -348,38 +411,23 @@ namespace SSAGES
 				mpi::broadcast(_comm, contents, 0);
 			}
 
-			try{
-				_MDDriver->ExecuteInputFile(contents);
-			} catch(BuildException& e) {
-				DumpErrorsToConsole(e.GetErrors(), _notw);
-				_world.abort(-1);
-			} catch(std::exception& e) {
-				DumpErrorsToConsole({e.what()}, _notw);
-				_world.abort(-1);
-			}
+			_MDDriver->ExecuteInputFile(contents);
 
 		}
 
-		// Set up listeners and hook
+		//! Set up listeners and hook
 		void Finalize()
 		{
 			_MDDriver->Finalize();
 		}
 
+		//! Perform simulation run
 		void Run()
 		{
-			try{
-				_MDDriver->Run();
-			} catch(BuildException& e) {
-				DumpErrorsToConsole(e.GetErrors(), _notw);
-                std::cout << "Line 375" << std::endl; //Debugging
-			} catch(std::exception& e) {
-				DumpErrorsToConsole({e.what()}, _notw);
-                std::cout << "Line 378" << std::endl; //Debugging
-			}
-			
+			_MDDriver->Run();
 		}
 
+		//! \copydoc Serializable::Serialize()
 		virtual void Serialize(Json::Value& json) const override
 		{
 			if(_GlobalInput != "none")
