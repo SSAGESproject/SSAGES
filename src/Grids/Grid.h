@@ -11,27 +11,37 @@ namespace Json {
 
 namespace SSAGES
 {
-	// Forward declare.
+	// Forward declare Grid.
 	class Grid;
 
-	// Interface for a collective variable.
+	//! Generic Grid.
 	class Grid
 	{
 
 	protected:
 
-		std::vector<double> _lower;
-		std::vector<double> _upper;
-		std::vector<bool> _periodic;
-		std::vector<int> _num_points;
-		std::vector<double> _spacing;
-		int _NDim;
+		std::vector<double> _lower; //!< Lower edge of the grid.
+		std::vector<double> _upper; //!< Upper edge of the grid.
+		std::vector<bool> _periodic; //!< Is the grid periodic in the corresponding dimension?
+		std::vector<int> _num_points; //!< Number of grid points.
+		std::vector<double> _spacing; //!< Grid spacing.
+		int _NDim; //!< Grid dimension.
 	
 	public:
 
+		//! Destructor.
 		virtual ~Grid(){}
 
-		// Return the nearest indices for given values.
+		//! Return the nearest indices for given values.
+		/*!
+		 * \param val N-dimensional value.
+		 * \return N-dimensional vector with nearest grid indices.
+		 *
+		 * Returns the grid point which is the nearest to a given value. The
+		 * value must be given as a N-dimensional vector and the grid point is
+		 * returned as an N-dimensional vector. Here, N is the dimension of the
+		 * Grid.
+		 */
 		std::vector<int> GetIndices(const std::vector<float> &val)
 		{
 			std::vector<int> vertices;
@@ -54,51 +64,101 @@ namespace SSAGES
 			return vertices;
 		}
 
-		// Get the value at the current indices
+		//! Get the value at the current indices.
+		/*!
+		 * \param indices Indices specifying grid point.
+		 * \return Value at the specified grid point.
+		 */
 		virtual float GetValue(const std::vector<int>& indices) const = 0;
 
-		// Set the value at the current incices
+		//! Set the value at the current incices.
+		/*!
+		 * \param indices Indices specifying the grid point.
+		 * \param value New value for the grid point.
+		 */
 		virtual void SetValue(const std::vector<int>& indices, float value) = 0;
 
+		//! Write the grid to the console.
 		virtual void PrintGrid() const = 0;
 
+		//! Return lower edges of the Grid.
+		/*!
+		 * \return Vector containing the lower edges of the grid in each dimension.
+		 */
 		std::vector<double> GetLower()
 		{
 			return _lower;
 		}
 
+		//! Return upper edges of the Grid.
+		/*!
+		 * \return Vector containing the upper edges of the grid in each dimension.
+		 */
 		std::vector<double> GetUpper()
 		{
 			return _upper;
 		}
 
+		//! Get periodicity of the Grid.
+		/*!
+		 * \return Vector with boolean values.
+		 *
+		 * The vector contains \c True if the Grid is periodic in the
+		 * corresponding dimension.
+		 */
 		std::vector<bool> GetPeriodic()
 		{
 			return _periodic;
 		}
 
+		//! Get number of Grid points.
+		/*!
+		 * \return Vector containing number of grid points in each dimension.
+		 */
 		std::vector<int> GetNumPoints()
 		{
 			return _num_points;
 		}
 
+		//! Get grid spacing.
+		/*!
+		 * \return Vector containing grid spacing in each dimension.
+		 */
 		std::vector<double> GetSpacing()
 		{
 			return _spacing;
 		}
 
+		//! Get dimensionality of the Grid.
+		/*!
+		 * \return Grid dimension.
+		 */
 		int GetDimension()
 		{
 			return _NDim;
 		}
 
-		// Builds a Grid from a JSON node. Returns a pointer to the built grid.
-		// If return value is nullptr, 
-		// then an unknown error occurred. It will throw a BuildException on failure. 
-		// Object lifetime is the caller's responsibility. 
+		//! Set up the Grid.
+		/*!
+		 * \param json JSON input value.
+		 * \return Pointer to the Grid. \c nullptr if unknown error occured.
+		 *
+		 * This function builds a Grid from a JSON node. If an unknown error
+		 * occured, the return value is \c nullptr, but generally, the function
+		 * will throw a BuildException on failure.
+		 * \note Object lifetime is the caller's responsibility.
+		 */
 		static Grid* BuildGrid(const Json::Value& json);
 
-		// Overloaded function allowing JSON path specification.
+		//! Set up Grid.
+		/*!
+		 * \param json JSON input value.
+		 * \param path Path for JSON path specification
+		 * \return Pointer the the Grid built.
+		 *
+		 * This function overloads Grid::BuildGrid(const Json::Value&) to allow
+		 * JSON path specification.
+		 */
 		static Grid* BuildGrid(const Json::Value& json, 
 							   const std::string& path);
 	};

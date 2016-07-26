@@ -4,7 +4,13 @@
 
 namespace SSAGES
 {
-	// Value of the harmonic potential. Helper function.
+	//! Value of the harmonic potential. Helper function.
+	/*!
+	 * \param k Spring constant.
+	 * \param x0 Equilibrium extension.
+	 * \param x Current extension.
+	 * \return Harmonic potential at extension x.
+	 */
 	double spring(double k, double x0, double x)
 	{
 		return 0.5 * k * (x - x0) * (x - x0);

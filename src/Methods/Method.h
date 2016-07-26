@@ -11,45 +11,93 @@ namespace Json {
 
 namespace SSAGES
 {
-	// Interface for Method implementations.
+	//! Interface for Method implementations.
+	/*!
+	 * This class is designed to be the base class on which all Metadynamics
+	 * methods are based.
+	 *
+	 * \ingroup Methods
+	 */
 	class Method : public EventListener, public Serializable
 	{
 	protected:
-		boost::mpi::communicator _world, _comm;
+		boost::mpi::communicator _world; //!< Global MPI communicator
+		boost::mpi::communicator _comm; //!< Local MPI communicator
 
+		//! Pointer to grid
 		Grid* _grid;
 
 	public:
-		// Frequency of sampling must be specified by all methods.
+		//! Constructor
+		/*!
+		 * \param frequency Frequency of sampling.
+		 * \param world MPI world communicator.
+		 * \param comm MPI local communicator.
+		 *
+		 * Frequency of sampling must be specified by all methods.
+		 */
 		Method(unsigned int frequency, 
 			boost::mpi::communicator& world, 
 			boost::mpi::communicator& comm) : 
 		EventListener(frequency), _world(world), _comm(comm){}
 
-		// Method call prior to simulation initiation.
+		//! Method call prior to simulation initiation.
+		/*!
+		 * \param snapshot Pointer to the simulation snapshot.
+		 * \param cvs List of CVs.
+		 *
+		 * This function will be called before the simulation is started.
+		 */
 		virtual void PreSimulation(Snapshot* snapshot, const CVList& cvs) override = 0;
 
-		// Method call post integration.
+		//! Method call post integration.
+		/*!
+		 * \param snapshot Pointer to the simulation snapshot.
+		 * \param cvs List of CVs.
+		 *
+		 * This function will be called after each integration step.
+		 */
 		virtual void PostIntegration(Snapshot* snapshot, const CVList& cvs) override = 0;
 
-		// Method call post simulation.
+		//! Method call post simulation.
+		/*!
+		 * \param snapshot Pointer to the simulation snapshot.
+		 * \param cvs List of CVs.
+		 *
+		 * This function will be called after the end of the simulation run.
+		 */
 		virtual void PostSimulation(Snapshot* snapshot, const CVList& cvs) override = 0;
 
+		//! Set up the Grid
+		/*!
+		 * \param json JSON Value containing the input information
+		 * \param path Path for JSON path specification.
+		 */
 		void BuildGrid(const Json::Value& json, const std::string& path)
 		{
 			_grid = Grid::BuildGrid(json, path);
 		}
 
-		// Builds a method from a JSON node. Returns a pointer to the built Method.
-		// If return value is nullptr, 
-		// then an unknown error occurred. It will throw a BuildException on failure. 
-		// Object lifetime is the caller's responsibility. 
-		// Function allowing JSON path specification.
+		//! Set up the Method
+		/*!
+		 * \param json JSON Value containing all input information.
+		 * \param world MPI global communicator.
+		 * \param comm MPI local communicator.
+		 * \param path Path for JSON path specification.
+		 * \return Pointer to the Method built. nullptr if an unknown error occurred.
+		 *
+		 * This function builds a method from a JSON node. It will return a
+		 * nullptr when an unknown error occurred, but generally it will throw
+		 * a BuildException on failure.
+		 *
+		 * \note Object lifetime is the caller's responsibility.
+		 */
 		static Method* BuildMethod(const Json::Value& json,
 								boost::mpi::communicator& world, 
 								boost::mpi::communicator& comm,
 							   	const std::string& path);
 
+		//! Destructor
 		virtual ~Method() 
 		{
 			delete _grid;

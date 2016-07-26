@@ -5,20 +5,34 @@
 
 namespace Json
 {
+	//! Requirements on a numeric value
+	/*!
+	 * The numbers are stored internally as \c double.
+	 *
+	 * \ingroup Json
+	 */
 	class NumberRequirement : public Requirement
 	{
 	private:
-		std::string _path;
-		double _multipleOf, _min, _max;
-		bool _multSet, _minSet, _maxSet, _exclMin, _exclMax;
+		std::string _path; //!< JSON path.
+		double _multipleOf; //!< Base value for "multiple of" requirement.
+		double _min; //!< Lower bound for range requirement.
+		double _max; //!< Upper bound for range requirement.
+		bool _multSet; //!< If \c True, "Multiple of" requirement is active.
+		bool _minSet; //!< If \c True, Lower bound for range requirement is active.
+		bool _maxSet; //!< If \c True, Upper bound for range requirement is active.
+		bool _exclMin; //!< If \c True, lower bound is exclusive.
+		bool _exclMax; //!< If \c True, upper bound is exclusive.
 
 
 	public:
+		//! Constructor.
 		NumberRequirement() : 
 		_path(), _multipleOf(0), _min(0), _max(0), _multSet(false), 
 		_minSet(false), _maxSet(false), _exclMin(false), _exclMax(false)
 		{}
 
+		//! Reset Requirement.
 		virtual void Reset() override
 		{
 			_multipleOf = 0;
@@ -30,6 +44,11 @@ namespace Json
 			ClearNotices();
 		}
 
+		//! Parse JSON value to set up Requirement.
+		/*!
+		 * \param json JSON input value.
+		 * \param path Path for JSON path specification.
+		 */
 		virtual void Parse(Value json, const std::string& path) override
 		{
 			Reset();
@@ -64,6 +83,15 @@ namespace Json
 			}
 		}
 
+		//! Validate JSON value.
+		/*!
+		 * \param json JSON value to validate.
+		 * \param path Path for JSON path specification.
+		 *
+		 * Test that the JSON value meets the requirements set via
+		 * NumberRequirement::Parse(). If the validation fails, an error is added
+		 * to the list of error messages.
+		 */
 		virtual void Validate(const Value& json, const std::string& path) override
 		{
 			if(!json.isNumeric())

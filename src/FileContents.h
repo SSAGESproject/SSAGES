@@ -4,11 +4,21 @@
 #include <cstdio>
 #include <cerrno>
 
-// This a collection of random helper functions.
+/*!
+ * \file FileContents.h
+ *
+ * This file contains a collection of random helper functions.
+ */
 namespace SSAGES
 {
-	// Retrieves the contents of a file and returns them
-	// in a string. Throws exception on failure.
+	//! Read contents from a file
+	/*!
+	 * \param filename Name of the file to read from.
+	 * \return String containing the contents of the file.
+	 *
+	 * Retrieves the contents of a file and returns them in a string. Throws
+	 * exception on failure.
+	 */
 	inline std::string GetFileContents(const char *filename)
 	{
 		std::FILE *fp = std::fopen(filename, "rb");
@@ -30,7 +40,11 @@ namespace SSAGES
 		throw(errno);
 	}
 
-	// Gets file path from filename.
+	//! Gets file path from filename.
+	/*!
+	 * \param str String containing the absolute filename.
+	 * \return String containing only the directory path.
+	 */
 	inline std::string GetFilePath(const std::string& str)
 	{
 		size_t found;

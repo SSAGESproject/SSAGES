@@ -6,14 +6,20 @@
 
 namespace Json
 {
+	//! Requires that all of a list of Requirements hold.
+	/*!
+	 * \ingroup Json
+	 */
 	class AllOfRequirement : public Requirement
 	{
 	private:
-		RequireList _reqs;
+		RequireList _reqs; //!< List of Requirements.
 
 	public:
+		//! Constructor
 		AllOfRequirement() : _reqs(0) {}
 
+		//! Clear lists of errors for all Requirements.
 		virtual void ClearErrors() override
 		{
 			for(auto& r : _reqs)
@@ -22,6 +28,7 @@ namespace Json
 			Requirement::ClearErrors();
 		}
 
+		//! Clear lists of notices for all Requirements.
 		virtual void ClearNotices() override
 		{
 			for(auto& r : _reqs)
@@ -30,6 +37,7 @@ namespace Json
 			Requirement::ClearNotices();
 		} 
 
+		//! Reset all Requirements.
 		virtual void Reset() override
 		{
 			ClearErrors();
@@ -37,6 +45,14 @@ namespace Json
 			_reqs.clear();
 		}
 
+		//! Parse JSON value and add all loaded Requirements.
+		/*!
+		 * \param json JSON input value.
+		 * \param path Path for JSON path specification.
+		 *
+		 * This function parses a JSON value and adds all Requirements that are
+		 * in the "allOf" branch to the list of Requirements.
+		 */
 		virtual void Parse(Value json, const std::string& path) override
 		{
 			Reset();
@@ -53,6 +69,11 @@ namespace Json
 
 		}
 
+		//! Validate that all Requirements are met.
+		/*!
+		 * \param json JSON value to validate.
+		 * \param path Path for JSON path specification.
+		 */
 		virtual void Validate(const Value& json, const std::string& path) override
 		{
 			for(auto& r : _reqs)

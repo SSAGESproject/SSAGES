@@ -18,7 +18,7 @@ namespace SSAGES
 		return BuildCV(json, "#/CVs");
 	}
 
-	CollectiveVariable* CollectiveVariable::BuildCV(const Value &json, 
+	CollectiveVariable* CollectiveVariable::BuildCV(const Json::Value &json,
 						const std::string& path)
 	{
 		ObjectRequirement validator;

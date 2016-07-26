@@ -1,0 +1,50 @@
+{
+	"inputfile" : "in.ADP_Test",
+	"CVs" : [
+		{
+			"type" : "Torsional",
+			"atom ids" : [
+				5,
+				7,
+				9,
+				15
+			],
+			"periodic" : true 
+		},
+		{
+			"type": "Torsional",
+			"atom ids" : [
+				7,
+				9,
+				15,
+				17
+			],
+			"periodic" : true
+		}
+	],
+	"driver" : [
+		{
+			"number processors" : 1,
+			"type" : "LAMMPS",
+			"MDSteps" : 10000000,
+			"logfile" : "none",
+			"method" : {
+				"type" : "ElasticBand",
+				"ksprings" : [
+					20,
+					20
+				],
+				"centers" : [
+					-3.0,
+					3.0
+				],
+				"max iterations" : 2000,
+				"equilibration steps" : 200,
+				"evolution steps" : 200,
+				"number samples" : 20,
+				"kstring" : 5,
+				"time step" : 0.1
+			}
+		}
+	]
+}
