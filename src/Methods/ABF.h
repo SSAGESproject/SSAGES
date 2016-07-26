@@ -78,7 +78,7 @@ namespace SSAGES
 		std::vector<std::vector<double>> _biases;
 
 		//! Number of CVs in system
-		int _dim;
+		unsigned int _dim;
 
 		//! Output stream for string data.
 		std::ofstream _stringout;

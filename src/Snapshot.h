@@ -323,7 +323,7 @@ namespace SSAGES
 			json["walker id"] = _wid;
 			json["id"] = _ID;
 
-			for(int i = 0; i<_atomids.size(); i++)
+			for(unsigned int i = 0; i < _atomids.size(); i++)
 			{
 				json["Atom"][i]["ID"] = _atomids[i];
 				json["Atom"][i]["type"] = _types[i];

@@ -268,7 +268,7 @@ namespace SSAGES
 	void FiniteTempString::StringUpdate()
 	{
 		size_t i;
-		int centersize = _centers.size();
+		size_t centersize = _centers.size();
 		double alpha_star;
 		std::vector<double> alpha_starv;
 		std::vector<double> cvs_new;
@@ -285,7 +285,7 @@ namespace SSAGES
 			sendneighbor = 1;
 			recvneighbor = _world.size()-1;
 		} 
-		else if (_mpiid == _world.size()-1){
+		else if (_mpiid == (unsigned int)_world.size() - 1){
 			sendneighbor = 0;
 			recvneighbor = _world.size() - 2;
 		} 

@@ -164,9 +164,9 @@ namespace SSAGES
 			if(input.is_open())
 				{
 				_stringout << "Loading F estimate from file." <<std::endl;
-				int dimFile;
+				unsigned int dimFile;
 				input >> dimFile;
-				int len;
+				unsigned int len;
 				input >> len;
 				_stringout << "File dim: "<< dimFile << "; File length: " << len << std::endl;
 		
