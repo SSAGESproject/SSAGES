@@ -15,7 +15,7 @@ Contents:
    Getting Started
    Tutorials
    Meta-Dynamics Methods
-   Write your own Method
+   Write your own Methods and CVs
    Contribute to SSAGES
    The SSAGES Cookbook
    Acknowledgements

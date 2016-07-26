@@ -95,18 +95,37 @@ namespace SSAGES
 
 		//! Options for restarting string
 		bool _restart;
+
+		//! Iteration of restart configuration.
 		unsigned int _restartiter;
+
+		//! Averages of restart configuration.
 		std::vector<double> _restartavgs;
 
 	public:
 		//! Constructor
 		/*!
+		 * \param world MPI global communicator.
+		 * \param comm MPI local communicator.
+		 * \param isteps Number of iterations per block averaging.
+		 * \param centers List of centers.
+		 * \param NumNodes Number of nodes.
+		 * \param kappa Value of kappa (default: 0.1).
+		 * \param tau Value of tau (default: 0.1).
+		 * \param spring Spring constant.
+		 * \param tol Tolerance value.
+		 * \param maxiterator Maximum number of iterations.
+		 * \param restart If \c True start from restart file.
+		 * \param restartiter Iteration of restart system.
+		 * \param restartavgs Averages of restart system.
+		 * \param frequency Frequency with which this method is invoked.
+		 *
 		 * Constructs an instance of Finite String method.
 		 * isteps = Number Iterations per block averaging
 		 * _tau and _kappa default values of 0.1 (JSON reader for this)
 		 */
 		FiniteTempString(boost::mpi::communicator& world,
-					boost::mpi::communicator& com,
+					boost::mpi::communicator& comm,
 					unsigned int isteps,
 					const std::vector<double>& centers,
 					unsigned int NumNodes,
@@ -119,9 +138,12 @@ namespace SSAGES
 					unsigned int restartiter,
 					const std::vector<double>& restartavgs,
 			 		unsigned int frequency) : 
-		Method(frequency, world, com), _blockiterations(isteps), _centers(centers), _cv_prev(), _alpha(),
-		_mpiid(0), _worldstring(), _tau(tau), _kappa(kappa), _spring(spring), _tol(tol), _maxiterator(maxiterator), _restart(restart), _restartiter(restartiter), _restartavgs(restartavgs), _prev_positions(), _numnodes(NumNodes), _currentiter(0),
-		_run_SMD(true), _cv_inside_iterator(0)
+		Method(frequency, world, comm), _blockiterations(isteps), _centers(centers),
+		_cv_prev(), _alpha(), _mpiid(0), _worldstring(), _tau(tau), _kappa(kappa),
+		_spring(spring), _tol(tol), _prev_positions(), _numnodes(NumNodes),
+		_currentiter(0), _run_SMD(true), _cv_inside_iterator(0),
+		_maxiterator(maxiterator), _restart(restart), _restartiter(restartiter),
+		_restartavgs(restartavgs)
 		{
 		}
 

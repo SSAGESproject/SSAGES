@@ -7,7 +7,10 @@
 
 namespace SSAGES
 {
+    //! Three-dimensional vector.
 	using Vector3 = std::array<double, 3>;
+
+    //! List of integers.
 	using Label = std::vector<int>;
 	
 	//! Class containing a snapshot of the current simulation in time.
@@ -28,9 +31,11 @@ namespace SSAGES
 		std::string _ID; //!< ID string
 
 		std::vector<Vector3> _positions; //!< Positions
+		std::vector<Vector3> _images; //!< Unwrapped positions
 		std::vector<Vector3> _velocities; //!< Velocities
 		std::vector<Vector3> _forces; //!< Forces
 		std::vector<double> _masses; //!< Masses
+		std::array<Vector3, 4> _ucvectors; //!<UC vectors (ax, bx, cx), (ay, by, cy), (cx, cy, cz), (alpha, beta, gamma)
 		Label _atomids; //!< List of Atom IDs
 		Label _types; //!< List of Atom types
 
@@ -39,6 +44,7 @@ namespace SSAGES
 		double _pressure; //!< System pressure
 		double _energy; //!< Average per-particle energy
 		double _volume; //!< Volume of Simultion box
+		double _kb; //!< Kb from the MD driver
 
 		bool _changed; //!< \c TRUE is Simulation state changed
 
@@ -55,7 +61,7 @@ namespace SSAGES
 		_comm(comm), _wid(wid), _positions(0), _velocities(0), 
 		_forces(0), _atomids(0), _types(0), 
 		_iteration(0), _temperature(0), _pressure(0), 
-		_energy(0), _volume(0)
+		_energy(0), _volume(0), _kb(0)
 		{}
 
 		//! Get the current iteration
@@ -87,6 +93,12 @@ namespace SSAGES
 		 * \return Volume of the current simulation box
 		 */
 		double GetVolume() const { return _volume; }
+
+		//! Get system Kb
+		/*!
+		 * \return Kb of the current simulation box
+		 */
+		double GetKb() const { return _kb; }
 		
 		//! Get communicator for group (walker).
 		/*!
@@ -156,15 +168,40 @@ namespace SSAGES
 			_changed = true;
 		}
 
+		//! Change the kb
+		/*!
+		 * \param kb New value for the kb
+		 */
+		void SetKb(double kb) 
+		{
+			_kb = kb;
+			_changed = true;
+		}
+		
 		//! Access the particle positions
 		/*!
 		 * \return List of particle positions
 		 */
 		const std::vector<Vector3>& GetPositions() const { return _positions; }
+
+		/*! \copydoc Snapshot::GetPositions() const */
 		std::vector<Vector3>& GetPositions() 
 		{ 
 			_changed = true;
 			return _positions; 
+		}
+
+		//! Access the particles image flags
+		/*!
+		 * \return List of particle image flags
+		 */
+		const std::vector<Vector3>& GetImageFlags() const { return _positions; }
+
+		//! \copydoc Snapshot::GetImageFlags() const
+		std::vector<Vector3>& GetImageFlags() 
+		{ 
+			_changed = true;
+			return _images; 
 		}
 
 		//! Access the particle velocities
@@ -172,6 +209,8 @@ namespace SSAGES
 		 * \return List of particle velocities
 		 */
 		const std::vector<Vector3>& GetVelocities() const { return _velocities; }
+
+		/*! \copydoc Snapshot::GetVelocities() const */
 		std::vector<Vector3>& GetVelocities() 
 		{
 			_changed = true;
@@ -183,13 +222,15 @@ namespace SSAGES
 		 * \return List of per-particle forces
 		 */
 		const std::vector<Vector3>& GetForces() const { return _forces; }
+
+		/*! \copydoc Snapshot::GetForces() const */
 		std::vector<Vector3>& GetForces() 
 		{
 			_changed = true; 
 			return _forces; 
 		}
 
-		//! Access the particle masses
+		//! Const access to the particle masses
 		/*!
 		 * \return List of Masses
 		 *
@@ -197,10 +238,29 @@ namespace SSAGES
 		 * depending on the Lammps Atom type used.
 		 */
 		const std::vector<double>& GetMasses() const { return _masses; }
+
+		/*! \copydoc Snapshot::GetMasses() const */
 		std::vector<double>& GetMasses() 
 		{
 			_changed = true; 
 			return _masses; 
+		}
+
+		//! Access the UC vectors
+		/*!
+		 * \return List of UC vectors
+		 * ax, ay, az
+		 * bx, by, bz
+		 * cx, cy, cz
+		 * alpha, beta, gamma
+		 */
+		const std::array<Vector3, 4>& GetUCVectors() const { return _ucvectors; }
+
+		//! \copydoc Snapshot::GetUCVectors() const
+		std::array<Vector3, 4>& GetUCVectors()
+		{
+			_changed = true; 
+			return _ucvectors; 
 		}
 
 		//! Access the atom IDs
@@ -208,6 +268,8 @@ namespace SSAGES
 		 * \return List of atom IDs
 		 */
 		const Label& GetAtomIDs() const { return _atomids; }
+
+		/*! \copydoc Snapshot::GetAtomIDs() const */
 		Label& GetAtomIDs()
 		{
 			_changed = true;
@@ -219,6 +281,8 @@ namespace SSAGES
 		 * \return List of atom types
 		 */
 		const Label& GetAtomTypes() const { return _types; }
+
+		/*! \copydoc Snapshot::GetAtomTypes() const */
 		Label& GetAtomTypes() 
 		{
 			_changed = true; 
@@ -230,6 +294,8 @@ namespace SSAGES
 		 * \return Snapshot ID
 		 */
 		const std::string& GetSnapshotID() const { return _ID; }
+
+		/*! \copydoc Snapshot::GetSnapshotID() const */
 		std::string& GetSnapshotID() 
 		{
 			_changed = true; 
@@ -257,7 +323,7 @@ namespace SSAGES
 			json["walker id"] = _wid;
 			json["id"] = _ID;
 
-			for(int i = 0; i<_atomids.size(); i++)
+			for(unsigned int i = 0; i < _atomids.size(); i++)
 			{
 				json["Atom"][i]["ID"] = _atomids[i];
 				json["Atom"][i]["type"] = _types[i];
@@ -275,6 +341,7 @@ namespace SSAGES
 			json["pressure"] = _pressure; 
 			json["energy"] = _energy;
 			json["volume"] = _volume;
+			json["kb"] = _kb;
 		}
 		
 		//! Destructor

@@ -19,14 +19,36 @@
  * their extended support.
  */
 
-/*! \defgroup Methods
+/*! \defgroup Methods Methods
  *  \brief Meta-Dynamics Methods
  *
- * This module contains all MetaDynamics Methods
+ * This module contains all MetaDynamics Methods.
  */
 
-/*! \defgroup Core
+/*! \defgroup CVs CVs
+ *  \brief Collective Variables
+ *
+ * This module contains all collective variables available in SSAGES.
+ */
+
+/*! \defgroup Core Core
  *  \brief Core SSAGES classes
  *
- * This module contains the core classes of SSAGES
+ * This module contains the core classes of SSAGES.
+ */
+
+ /*! \defgroup Json Json
+  * \brief Classes for handling JSON input files.
+  *
+  * This module contains classes and functions to handle JSON input files.
+  */
+
+ /*! \namespace SSAGES
+  *
+  * The global namespace for all SSAGES classes and functions.
+  */
+
+/*! \namespace Json
+ *
+ * The global namespace for all classes handling JSON input and output.
  */

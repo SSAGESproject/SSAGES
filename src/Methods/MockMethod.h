@@ -8,12 +8,22 @@
 
 namespace SSAGES
 {
+	//! Mock Sampling
+	/*!
+	 * \ingroup Methods
+	 */
 	class MockMethod : public Method
 	{
 	private:
-		std::ofstream _myout;
+		std::ofstream _myout; //!< Output stream.
 
 	public:
+		//! Constructor
+		/*!
+		 * \param world MPI global communicator.
+		 * \param comm MPI local communicator.
+		 * \param frequency Frequency with which this method is invoked.
+		 */
 		MockMethod(boost::mpi::communicator& world,
 				   boost::mpi::communicator& comm,
 				   unsigned int frequency) : 
@@ -22,10 +32,16 @@ namespace SSAGES
 			_myout.open("foo.out");
 		}
 
+		//! Pre-simulation hook.
 		void PreSimulation(Snapshot*, const CVList&) override
 		{
 		}
 
+		//! Post-integration hook.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 * \param cvs List of CVs.
+		 */
 		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override
 		{
 			using std::setw;
@@ -51,10 +67,12 @@ namespace SSAGES
 				std::cout << cv->GetValue() << std::endl;
 		}
 
+		//! Post-simulation hook.
 		void PostSimulation(Snapshot*, const CVList&) override
 		{
 		}
 
+		//! Destructor.
 		~MockMethod() { _myout.close(); }
 	};
 }

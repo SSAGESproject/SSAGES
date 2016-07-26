@@ -27,6 +27,6 @@
 			"type" : "object"
 		}
 	},
-	"required" : ["type", "MDSteps", "logfile"],
+	"required" : ["type", "MDSteps"],
 	"additionalProperties": false
 }

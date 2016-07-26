@@ -1,6 +1,7 @@
 #include "ElasticBand.h"
 #include <math.h>
 #include <iostream>
+#include "../Drivers/DriverException.h"
 
 namespace SSAGES
 {
@@ -30,6 +31,9 @@ namespace SSAGES
 	 	_restartiter = 1;
 	 	_nsampled = 0;
 
+	 	if(_centers.size() != _kspring.size() || _centers.size() != cvs.size())
+	 		throw BuildException({"Number centers, kspring, and cvs are not the same!"});
+
 	}
 
 	// Post-integration hook.
@@ -37,6 +41,7 @@ namespace SSAGES
 	{
 
 		auto& forces = snapshot->GetForces();
+
 		bool sampled = false;
 
 		// Apply umbrella to cvs
@@ -47,23 +52,20 @@ namespace SSAGES
 			auto& grad = cv->GetGradient();
 
 			// Compute dV/dCV.
-			auto D = _kspring[i] * (cv->GetValue() - _centers[i]);
+			auto diff = cv->GetValue() - _centers[i];
+			auto D = _kspring[i] * diff;
 
 			// Update forces.
 			for(size_t j = 0; j < forces.size(); ++j)
-			{
 				for(size_t k = 0; k < forces[j].size(); ++k)
-				{
 					forces[j][k] -= D*grad[j][k];
 
-					// If not equilibrating and has evolved enough steps,
-					// generate the gradient
-					if(_restartiter >= _equilibrate && _restartiter % _evolution == 0)
-					{
-						_gradient[i] += 2*D*grad[j][k];
-						sampled = true;
-					}
-				}
+			// If not equilibrating and has evolved enough steps,
+			// generate the gradient
+			if(_restartiter >= _equilibrate && _restartiter % _evolution == 0)
+			{
+				_gradient[i] += diff;
+				sampled = true;
 			}
 		}
 
@@ -113,7 +115,9 @@ namespace SSAGES
 		_stringout << _mpiid << " "<< _currentiter << " ";
 
 		for(size_t jj = 0; jj < _centers.size(); jj++)
+		{
 			_stringout<< _centers[jj] << " " << CV[jj]->GetValue() << " ";
+		}
 
 		_stringout << std::endl;
 
@@ -165,49 +169,21 @@ namespace SSAGES
 
 		for(ii = 0; ii < _centers.size(); ii++)  {
 			tngt[ii] /= norm;
-		        _gradient[ii] /= ((double) _nsampled);
+		    _gradient[ii] /= ((double) _nsampled);
 			dot+=_gradient[ii]*tngt[ii];
 		}
 		
 		// Evolution of the images and reparametrirized of the string
 		for(ii = 0; ii < _centers.size(); ii++)
 		{
-
-
 			if((_mpiid != 0) && (_mpiid != _world.size()-1))
 			{
 				_gradient[ii] -= dot*tngt[ii];
-				
-				
-				{
-				  
-				  std::cout.precision(8);
-				  std::cout << "a "<< _mpiid << " "<< _currentiter << " ";
-				  for(size_t jj = 0; jj < _centers.size(); jj++)
-				    std::cout << _centers[jj] << " " << _gradient[jj] << " " << tngt[jj] << " " << _gradient[jj] + _stringspring * (ucv0[jj] + lcv0[jj] - 2 * _curr_field[jj]) << " ";
-				  
-				  std::cout << std::endl;
-				  
-				}
-
-
 				next_field[ii] = _curr_field[ii] + _timestep * 
 				(_gradient[ii] + _stringspring * (ucv0[ii] + lcv0[ii] - 2 * _curr_field[ii]));
 			}
 			else
 			{
-
-				{
-				  
-				  std::cout.precision(8);
-				  std::cout << " " <<_mpiid << " "<< _currentiter << " ";
-				  for(size_t jj = 0; jj < _centers.size(); jj++)
-				    std::cout << _centers[jj] << " " << _gradient[jj] << " " << tngt[jj] << " " << _gradient[jj] + _stringspring * (ucv0[jj] + lcv0[jj] - 2 * _curr_field[jj]) << " ";
-				  
-				  std::cout << std::endl;
-				  
-				}
-
 				next_field[ii] = _curr_field[ii] + _timestep * _gradient[ii];
 			}
 

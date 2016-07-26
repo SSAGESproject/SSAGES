@@ -1,0 +1,303 @@
+{
+    "driver": [
+        {
+            "logfile": "log_0",
+            "MDSteps": 10000000,
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 20,
+                "time step": 0.1,
+                "kstring": 5,
+                "evolution steps": 200,
+                "equilibration steps": 200,
+                "ksprings": [
+                    20,
+                    20
+                ],
+                "max iterations": 2000,
+                "type": "ElasticBand",
+                "centers": [
+                    -2.0944,
+                    2.0944
+                ]
+            },
+            "number processors": 1
+        },
+        {
+            "number processors": 1,
+            "logfile": "log_1",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 20,
+                "time step": 0.1,
+                "kstring": 5,
+                "centers": [
+                    -1.7949,
+                    1.7949
+                ],
+                "equilibration steps": 200,
+                "ksprings": [
+                    20,
+                    20
+                ],
+                "max iterations": 2000,
+                "type": "ElasticBand",
+                "evolution steps": 200
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "log_2",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 20,
+                "time step": 0.1,
+                "kstring": 5,
+                "centers": [
+                    -1.4953,
+                    1.4953
+                ],
+                "equilibration steps": 200,
+                "ksprings": [
+                    20,
+                    20
+                ],
+                "max iterations": 2000,
+                "type": "ElasticBand",
+                "evolution steps": 200
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "log_3",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 20,
+                "time step": 0.1,
+                "kstring": 5,
+                "centers": [
+                    -1.1958,
+                    1.1958
+                ],
+                "equilibration steps": 200,
+                "ksprings": [
+                    20,
+                    20
+                ],
+                "max iterations": 2000,
+                "type": "ElasticBand",
+                "evolution steps": 200
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "log_4",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 20,
+                "time step": 0.1,
+                "kstring": 5,
+                "centers": [
+                    -0.8963,
+                    0.8963
+                ],
+                "equilibration steps": 200,
+                "ksprings": [
+                    20,
+                    20
+                ],
+                "max iterations": 2000,
+                "type": "ElasticBand",
+                "evolution steps": 200
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "log_5",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 20,
+                "time step": 0.1,
+                "kstring": 5,
+                "centers": [
+                    -0.5967,
+                    0.5967
+                ],
+                "equilibration steps": 200,
+                "ksprings": [
+                    20,
+                    20
+                ],
+                "max iterations": 2000,
+                "type": "ElasticBand",
+                "evolution steps": 200
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "log_6",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 20,
+                "time step": 0.1,
+                "kstring": 5,
+                "centers": [
+                    -0.2972,
+                    0.2972
+                ],
+                "equilibration steps": 200,
+                "ksprings": [
+                    20,
+                    20
+                ],
+                "max iterations": 2000,
+                "type": "ElasticBand",
+                "evolution steps": 200
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "log_7",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 20,
+                "time step": 0.1,
+                "kstring": 5,
+                "centers": [
+                    0.0023,
+                    -0.0023
+                ],
+                "equilibration steps": 200,
+                "ksprings": [
+                    20,
+                    20
+                ],
+                "max iterations": 2000,
+                "type": "ElasticBand",
+                "evolution steps": 200
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "log_8",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 20,
+                "time step": 0.1,
+                "kstring": 5,
+                "centers": [
+                    0.3019,
+                    -0.3019
+                ],
+                "equilibration steps": 200,
+                "ksprings": [
+                    20,
+                    20
+                ],
+                "max iterations": 2000,
+                "type": "ElasticBand",
+                "evolution steps": 200
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "log_9",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 20,
+                "time step": 0.1,
+                "kstring": 5,
+                "centers": [
+                    0.6014,
+                    -0.6014
+                ],
+                "equilibration steps": 200,
+                "ksprings": [
+                    20,
+                    20
+                ],
+                "max iterations": 2000,
+                "type": "ElasticBand",
+                "evolution steps": 200
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "log_10",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 20,
+                "time step": 0.1,
+                "kstring": 5,
+                "centers": [
+                    0.9009,
+                    -0.9009
+                ],
+                "equilibration steps": 200,
+                "ksprings": [
+                    20,
+                    20
+                ],
+                "max iterations": 2000,
+                "type": "ElasticBand",
+                "evolution steps": 200
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "log_11",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 20,
+                "time step": 0.1,
+                "kstring": 5,
+                "centers": [
+                    1.2005,
+                    -1.2005
+                ],
+                "equilibration steps": 200,
+                "ksprings": [
+                    20,
+                    20
+                ],
+                "max iterations": 2000,
+                "type": "ElasticBand",
+                "evolution steps": 200
+            },
+            "MDSteps": 10000000
+        }
+    ],
+    "CVs": [
+        {
+            "periodic": true,
+            "type": "Torsional",
+            "atom ids": [
+                5,
+                7,
+                9,
+                15
+            ]
+        },
+        {
+            "periodic": true,
+            "type": "Torsional",
+            "atom ids": [
+                7,
+                9,
+                15,
+                17
+            ]
+        }
+    ],
+    "inputfile": "in.ADP_Test"
+}

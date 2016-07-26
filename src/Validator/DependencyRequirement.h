@@ -4,14 +4,24 @@
 
 namespace Json
 {
+	//! Requires dependencies to be met.
+	/*!
+	 * \ingroup Json
+	 */
 	class DependencyRequirement : public Requirement
 	{
 	private:
+		//! Set of dependencies.
 		std::map<std::string, std::vector<std::string>> _deps;
 
 	public:
+		//! Constructor
 		DependencyRequirement() : _deps() {}
 
+		//! Reset Requirement.
+		/*!
+		 * Clear set of dependencies.
+		 */
 		virtual void Reset() override
 		{
 			_deps.clear();
@@ -19,6 +29,10 @@ namespace Json
 			ClearNotices();
 		}
 
+		//! Parse JSON input value.
+		/*!
+		 * \param json JSON input value.
+		 */
 		virtual void Parse(Value json, const std::string&) override
 		{
 			Reset();
@@ -39,6 +53,11 @@ namespace Json
 			}
 		}
 
+		//! Validate that Requirement is met.
+		/*!
+		 * \param json JSON value to be validated.
+		 * \param path Path for JSON path specification.
+		 */
 		virtual void Validate(const Value& json, const std::string& path) override
 		{
 			if(!json.isObject())
@@ -57,6 +76,7 @@ namespace Json
 			}
 		}
 		
+		//! Destructor.
 		~DependencyRequirement() {}	
 	};
 }

@@ -7,67 +7,71 @@
 
 namespace SSAGES
 {
-	// Collective variable on an proper dihedral. This will 
-	// return the angle between two planes 
-	// Reference: @article{VANSCHAIK1993751,
-	// title = "A Structure Refinement Method Based on Molecular Dynamics in Four Spatial Dimensions",
-	// journal = "Journal of Molecular Biology",
-	// volume = "234",
-	// number = "3",
-	// pages = "751 - 762",
-	// year = "1993",
-	// note = "",
-	// issn = "0022-2836",
-	// doi = "http://dx.doi.org/10.1006/jmbi.1993.1624",
-	// url = "http://www.sciencedirect.com/science/article/pii/S0022283683716244",
-	// author = "René C. van Schaik and Herman J.C. Berendsen and Andrew E. Torda and Wilfred F. van Gunsteren",
-	// keywords = "structure refinement",
-	// keywords = "molecular dynamics: NOE"
-
-	/*
-	Blondel, A. and Karplus, M. (1996), 
-	New formulation for derivatives of torsion angles and improper torsion angles in molecular mechanics: Elimination of singularities.
-	J. Comput. Chem., 17: 1132–1141. doi:10.1002/(SICI)1096-987X(19960715)17:91132::AID-JCC53.0.CO;2-T
-	*/
-
+	//! Collective variable on the torsion angles.
+	/*!
+	 * Collective variable on an proper dihedral. This will return the angle
+	 * between two planes as defined in \cite VANSCHAIK1993751. Singularities
+	 * are avoided as described in \cite BLONDEL19961132.
+	 *
+	 * \ingroup CVs
+	 */
 	class TorsionalCV : public CollectiveVariable
 	{
 	private:
-		// IDs of atoms of interest.
-		int _atomid1;
-		int _atomid2; 
-		int _atomid3;
-		int _atomid4; 
+		int _atomid1; //!< ID of the first atom defining the torsion angle.
+		int _atomid2; //!< ID of the second atom defining the torsion angle.
+		int _atomid3; //!< ID of the third atom defining the torsion angle.
+		int _atomid4; //!< ID of the forth atom defining the torsion angle.
 
-		// Current value of the CV.
+		//! Current value of the CV.
 		double _val;
 
-		// Use periodic boundary or not
+		//! If \c True, use periodic boundary conditions.
 		bool _periodic;
 
-		// Gradients of the Dihedral CV, dtheta/dri, dtheta/drj, dtheta/drk, dtheta/drl.
+		//! Gradients of the Dihedral CV, dtheta/dri, dtheta/drj, dtheta/drk, dtheta/drl.
 		std::vector<Vector3> _grad;
 
-		// Bounds on CV.
+		//! Bounds on CV.
 		std::array<double, 2> _bounds;
 
-		// Helper function to compute the norm of a vector.
+		//! Helper function to compute the norm of a vector.
+		/*!
+		 * \param v Three-dimensional vector.
+		 * \return Norm of the vector.
+		 */
 		double norm(const Vector3& v)
 		{
 			return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
 		}
 
-		// Helper function to compute the norm of a vector.
+		//! Helper function to compute the squared norm of a vector.
+		/*!
+		 * \param v Three-dimensional vector.
+		 * \return Square of the norm of the vector.
+		 */
 		double norm2(const Vector3& v)
 		{
 			return (v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
 		}
 
+		//! Helper function to calculate dot product of two vectors.
+		/*!
+		 * \param v Three-dimensional vector.
+		 * \param w Second three-dimensional vector.
+		 * \return Dot product of the two vectors.
+		 */
 		double DotProduct(const Vector3& v, Vector3& w)
 		{
 			return (v[0]*w[0] + v[1]*w[1] + v[2]*w[2]);
 		}
 
+		//! Helper function to calculate cross product of two vectors.
+		/*!
+		 * \param u Three-dimensional vector.
+		 * \param v Second three-dimensional vector.
+		 * \return Cross product of the two vectors.
+		 */
 		Vector3 CrossProduct(const Vector3& u, const Vector3& v)
 		{
 			Vector3 Cross;
@@ -79,16 +83,28 @@ namespace SSAGES
 		}
 
 	public:
-		// Construct an dihedral CV. The atomids specify 
-		// the IDs of the atoms of interest
-		// TODO: bounds needs to be an input and periodic boundary conditions
+		//! Constructor.
+		/*!
+		 * \param atomid1 ID of the first atom defining the dihedral angle.
+		 * \param atomid2 ID of the second atom defining the dihedral angle.
+		 * \param atomid3 ID of the third atom defining the dihedral angle.
+		 * \param atomid4 ID of the forth atom defining the dihedral angle.
+		 * \param periodic If \c True consider periodic boundary conditions.
+		 *
+		 * Construct an dihedral CV.
+		 *
+		 * \todo Bounds needs to be an input and periodic boundary conditions
+		 */
 		TorsionalCV(int atomid1, int atomid2, int atomid3, int atomid4, bool periodic) : 
 		_atomid1(atomid1), _atomid2(atomid2), _atomid3(atomid3), _atomid4(atomid4),
 		_val(0), _periodic(periodic), _grad(0), _bounds{{0,0}}
 		{
 		}
 
-		// Initialize necessary variables.
+		//! Initialize necessary variables.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 */
 		void Initialize(const Snapshot& snapshot) override
 		{
 			// Initialize gradient. 
@@ -96,7 +112,10 @@ namespace SSAGES
 			_grad.resize(n);
 		}
 
-		// Evaluate the CV.
+		//! Evaluate the CV.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 */
 		void Evaluate(const Snapshot& snapshot) override
 		{
 			// Gradient and value. 
@@ -234,12 +253,25 @@ namespace SSAGES
 
 		}
 
-		// Return the value of the CV.
+		//! Return the value of the CV.
+		/*!
+		 * \return Current value of the CV.
+		 */
 		double GetValue() const override 
 		{ 
 			return _val; 
 		}
 
+		//! Return value taking periodic boundary conditions into account
+		/*!
+		 * \param Location Input value.
+		 * \return Wrapped or unwrapped input value depending on whether
+		 *         periodic boundaries are used.
+		 *
+		 * If periodic boundaries are used, this function wraps the input
+		 * value into the range (-pi, pi). Otherwise the input value is
+		 * returned unmodified.
+		 */
 		double GetPeriodicValue(double Location) const override
 		{
 			if(!_periodic)
@@ -258,18 +290,34 @@ namespace SSAGES
 			return PeriodicLocation;
 		}
 
-		// Return the gradient of the CV.
+		//! Return the gradient of the CV.
+		/*!
+		 * \return Gradient of the CV.
+		 */
 		const std::vector<Vector3>& GetGradient() const override
 		{
 			return _grad;
 		}
 
-		// Return the boundaries of the CV.
+		//! Return the boundaries of the CV.
+		/*!
+		 * \return Values of the lower and upper boundaries of the CV.
+		 */
 		const std::array<double, 2>& GetBoundaries() const override
 		{
 			return _bounds;
 		}
 
+		//! Get difference taking periodic boundary conditions into account.
+		/*!
+		 * \param Location Input value
+		 * \return Wrapped or unwrapped difference depending on whether periodic
+		 *         boundaries are used.
+		 *
+		 * If periodic boundaries are used, this function calculates the
+		 * difference and wraps the result into the range (-pi, pi). Otherwise,
+		 * the simple difference is returned.
+		 */
 		double GetDifference(const double Location) const override
 		{
 			double pi = 3.14159;

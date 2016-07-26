@@ -17,7 +17,7 @@ namespace SSAGES
 		return BuildGrid(json, "#/Grids");
 	}
 
-	Grid* Grid::BuildGrid(const Value &json, 
+	Grid* Grid::BuildGrid(const Json::Value &json,
 						const std::string& path)
 	{
 		ArrayRequirement validator;

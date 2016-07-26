@@ -7,15 +7,23 @@
 
 namespace SSAGES
 {
-	// Interface for a collective variable.
+	//! 2D Grid.
 	class Grid2D : public Grid
 	{
 	private:
 
+		//! Vector of vector containing values.
 		std::vector<std::vector<float>> _values;
 
 	public:
 
+		//! Constuctor
+		/*!
+		 * \param lower List of values for the lower edges of the Grid.
+		 * \param upper List of values for the upper edges of the Grid.
+		 * \param periodic List of periodicity values.
+		 * \param num_points List of how many Grid points in each direction.
+		 */
 		Grid2D(std::vector<double> lower, std::vector<double> upper,
 			std::vector<bool> periodic, std::vector<int> num_points)
 		{
@@ -38,19 +46,30 @@ namespace SSAGES
 				_values[i].resize(_num_points[1],0);
 		}
 	
-		// Return a pointer to the grid value allowing user to use it
-		// or modify it.
+		//! Get the value at a given Grid point.
+		/*!
+		 * \param indices List of indices specifying the Grid point.
+		 * \return Value at the specified Grid point.
+		 */
 		float GetValue(const std::vector<int>& indices) const override
 		{
 			return _values[indices[0]][indices[1]];
 		}
 
+		//! Set the value at a given Grid point.
+		/*!
+		 * \param indices List of indices specifying the Grid point.
+		 * \param value New value for the specified Grid point.
+		 */
 		void SetValue(const std::vector<int>& indices, float value) override
 		{
 			_values[indices[0]][indices[1]] = value;
 		}
 
-		//Currently only for debugging
+		//! Write grid to console
+		/*!
+		 * Currently only for debugging.
+		 */
 		void PrintGrid() const override
 		{
 			for(size_t i = 0; i<_values.size(); i++)

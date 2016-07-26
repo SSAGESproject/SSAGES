@@ -306,11 +306,6 @@ example:
     Cite a reference. The references are listed in ``doc/references.bib`` and
     follow the BibTex syntax.
 
-    .. note::
-
-        The reference system has not been set up yet. Contact Julian if you want to
-        put a citation in your documentation
-
 Doxygen also is very clever in producing automatic links. For example, there
 exists a class ``Method`` in SSAGES. Thus, doxygen automatically creates a
 link to the documentation of this class where the word "Method" appears. This
