@@ -335,5 +335,20 @@ namespace SSAGES
 
 			return PeriodicDiff;
 		}
+
+		//! Serialize this CV for restart purposes.
+		/*!
+		 * \param json JSON value
+		 */
+		virtual void Serialize(Json::Value& json) const override
+		{
+			json["type"] = "Torsional";
+			json["periodic"] = _periodic;
+			json["atom ids"][0] = _atomid1;
+			json["atom ids"][1] = _atomid2;
+			json["atom ids"][2] = _atomid3;
+			json["atom ids"][3] = _atomid4;
+
+		}
 	};
 }

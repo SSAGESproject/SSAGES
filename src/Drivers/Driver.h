@@ -9,7 +9,10 @@
 #include "../Methods/Method.h"
 #include "../Snapshot.h"
 #include "../JSON/JSONLoader.h"
-
+#include "../Grids/Grid.h"
+#include "../Simulations/SimObservable.h"
+#include "../Simulations/SimObserver.h"
+#include "../Observers/Visitable.h"
 
 namespace mpi = boost::mpi;
 using namespace Json;
@@ -19,7 +22,7 @@ namespace SSAGES
 	/*!
 	 * \ingroup Core
 	 */
-	class Driver : public Serializable
+	class Driver : public SimObservable, public Serializable
 	{
 
 	protected:
@@ -41,8 +44,17 @@ namespace SSAGES
 		//! The CVs that will be used
 		CVList _CVs;
 
+		//! The observers that will be used for this driver
+		ObserverList _observers;
+
 		//! Local input file
 		std::string _inputfile;
+
+		//! MD engine Restart file name
+		std::string _restartname;
+
+		//! Read a restart file
+		bool _readrestart;
 
 		//! Random number generators for setting seeds
 		std::random_device _rd;
@@ -62,7 +74,8 @@ namespace SSAGES
 			   int walkerID) : 
 		_world(world), _comm(comm), _wid(walkerID),
 		_hook(), _snapshot(), _method(), _CVs(),
-		_rd(), _gen(_rd())
+		_observers(), _inputfile(), _restartname(),
+		_readrestart(), _rd(), _gen(_rd())
 		 {}
 
 		//! Destructor
@@ -71,7 +84,11 @@ namespace SSAGES
 			for(auto& cv : _CVs)
 				delete cv;
 
+			for(auto& o : _observers)
+				delete o;
+
 			_CVs.clear();
+			_observers.clear();
 
 			delete _snapshot;
 
@@ -88,9 +105,6 @@ namespace SSAGES
 		 */
 		virtual void BuildDriver(const Json::Value& json, const std::string& path) = 0;
 
-		//! \copydoc Serializable::Serialize()
-		virtual void Serialize(Json::Value& json) const = 0;
-
 		//! Read in driver specific input file (e.g. Lammps.in)
 		/*!
 		 * \param contents The contents of the input file.
@@ -99,6 +113,16 @@ namespace SSAGES
 		 * loaded with SSAGES::GetFileContents() first.
 		 */
 		virtual void ExecuteInputFile(std::string contents) = 0;
+
+		//! Write a driver specific restart file
+		/*!
+		 * \param FilenName The name of the restart filename as defined by the user.
+		 *
+		 * Write out a restart file using driver specific commands.
+		 * This will most likely be executed by an observer to force
+		 * a write of the restart file.
+		 */
+		virtual void WriteRestartFile() const = 0;
 
 		//! Get the input file contents
 		/*!
@@ -110,6 +134,14 @@ namespace SSAGES
 		 *       has not been loaded before, an empty string will be returned.
 		 */
 		std::string GetInputFile(){return _inputfile;}
+
+		//! Get the Driver's method current iteration
+		/*!
+		 * \returns The drivers \c _method current iterator
+		 *
+		 * This function returns the Driver's methods iterator.
+		 */
+		int GetIteration(){return _method->GetIteration();}
 
 		//! Build CVs
 		/*!
@@ -129,6 +161,20 @@ namespace SSAGES
 		void BuildMethod(const Json::Value& json, const std::string& path)
 		{
 			_method = Method::BuildMethod(json, _world, _comm, path);
+		}
+
+		//! Build observer(s).
+		/*!
+		 * \param json JSON value containing input information.
+		 * \param path Path for JSON path specification.
+		 */
+		void BuildObservers(const Json::Value& json,
+			int nwalks)
+		{
+			SimObserver::BuildObservers(json, _world, _comm, nwalks, _wid, _observers);
+
+			for(auto& o : _observers)
+				this->AddObserver(o);
 		}
 
 		//! Build the grid.
@@ -154,9 +200,40 @@ namespace SSAGES
 			// Set the hook to snapshot
 			_hook->SetSnapshot(_snapshot);
 
+			//Set the driver in the hook
+			_hook->SetMDDriver(this);
+
 			_hook->AddListener(_method);
 			for(auto&cv : _CVs)
 				_hook->AddCV(cv);
+		}
+
+		//! \copydoc Serializable::Serialize()
+		virtual void Serialize(Json::Value& json) const override
+		{
+			SerializeObservers(json["observers"]);
+
+			_method->Serialize(json["method"]);
+
+			auto* Grid = _method->GetGrid();
+
+			if(Grid)
+				Grid->Serialize(json["grid"]);
+
+			auto& tmp = json["CVs"];
+			for(unsigned int i = 0; i < _CVs.size();i++)
+				_CVs[i]->Serialize(tmp[i]);
+
+			json["inputfile"] = _inputfile;
+			json["number processors"] = _comm.size();
+			json["restart file"] = _restartname;
+			json["read restart"] = _readrestart;
+		}
+
+     	// Accept a visitor.
+		virtual void AcceptVisitor(Visitor& v) const override
+		{
+			v.Visit(*this);
 		}
 	};
 }

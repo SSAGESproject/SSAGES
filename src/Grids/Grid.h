@@ -15,7 +15,7 @@ namespace SSAGES
 	class Grid;
 
 	//! Generic Grid.
-	class Grid
+	class Grid: public Serializable
 	{
 
 	protected:
@@ -26,6 +26,8 @@ namespace SSAGES
 		std::vector<int> _num_points; //!< Number of grid points.
 		std::vector<double> _spacing; //!< Grid spacing.
 		int _NDim; //!< Grid dimension.
+
+		std::vector<std::pair<std::vector<double>, double>> _flatvector;
 	
 	public:
 
@@ -62,6 +64,19 @@ namespace SSAGES
 			}
 
 			return vertices;
+		}
+
+		std::vector<float> GetLocation(const std::vector<int> &indices)
+		{
+			std::vector<float> positions;
+
+			for(size_t i = 0; i < indices.size(); i++)
+			{
+				float position = _lower[i] + _spacing[i]*i;
+				positions.push_back(position);
+			}
+
+			return positions;
 		}
 
 		//! Get the value at the current indices.
@@ -161,6 +176,11 @@ namespace SSAGES
 		 */
 		static Grid* BuildGrid(const Json::Value& json, 
 							   const std::string& path);
+
+		virtual void Serialize(Json::Value& json) const override
+		{
+
+		}
 	};
 	
 }

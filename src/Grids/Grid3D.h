@@ -13,9 +13,11 @@ namespace SSAGES
 	private:
 
 		//!< 3D Vector containing the Grid values.
-		std::vector<std::vector<std::vector<float>>> _values;
+		std::vector<std::vector<std::vector<double>>> _values;
 
 	public:
+
+		//using const_iterator = Grid3D::const_iterator;
 
 		//! Constructor.
 		/*!
@@ -48,6 +50,24 @@ namespace SSAGES
 			for(size_t i = 0; i < _values.size(); i++)
 				for(size_t j = 0; j < _values[i].size(); j++)
 					_values[i][j].resize(_num_points[2],0);
+
+			// Construct flat vector 
+			_flatvector.resize(_num_points[0]*_num_points[1]);
+			for(int i = 0; i < _num_points[0]; i++)
+			{
+				for(int j = 0; j < _num_points[1]; j++)
+				{
+					for(int k = 0; k < _num_points[1]; k++)
+					{
+						auto loc = GetLocation({i,j,k});
+						int loci = i*_num_points[1]*_num_points[2] + j*_num_points[2] + k;
+						_flatvector[loci].first[0] = loc[0];
+						_flatvector[loci].first[1] = loc[1];
+						_flatvector[loci].first[2] = loc[2];
+						_flatvector[loci].second = _values[i][j][k];
+					}
+				}
+			}
 		}
 
 		//! Get value at a given Grid point.
@@ -88,5 +108,8 @@ namespace SSAGES
 			}
 			std::cout<<std::endl;
 		}
+
+		//Grid3D::const_iterator begin() const { _flatvector.begin();}
+		//Grid3D::const_iterator end() const {_flatvector.end();}
 	};	
 }

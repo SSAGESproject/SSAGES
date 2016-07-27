@@ -157,5 +157,14 @@ namespace SSAGES
 		{
 			return _val - Location;
 		}
+
+		//! Serialize this CV for restart purposes.
+		/*!
+		 * \param json JSON value
+		 */
+		virtual void Serialize(Json::Value& json) const override
+		{
+
+		}
 	};
 }

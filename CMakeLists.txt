@@ -133,6 +133,10 @@ set(SOURCE
 	src/CVs/CollectiveVariable.cpp
 	src/Methods/Method.cpp
 	src/Grids/Grid.cpp
+	src/Observers/JSONObserver.cpp
+	src/Simulations/SimObservable.cpp
+	src/Simulations/SimObserver.cpp
+	src/Hook.cpp
 )
 
 include_directories(${MPI_CXX_INCLUDE_PATH})

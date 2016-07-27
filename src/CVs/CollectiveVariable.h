@@ -21,7 +21,7 @@ namespace SSAGES
 	/*!
 	 * \ingroup CVs
 	 */
-	class CollectiveVariable
+	class CollectiveVariable: public Serializable
 	{
 	public:
 

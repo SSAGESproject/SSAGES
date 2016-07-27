@@ -4,6 +4,7 @@
 
 #include "../JSON/Serializable.h"
 #include <vector>
+#include <iterator>
 
 namespace SSAGES
 {
@@ -12,9 +13,11 @@ namespace SSAGES
 	{
 	private:
 
-		std::vector<float> _values; //!< Grid values
+		std::vector<double> _values; //!< Grid values
 
 	public:
+
+		//using const_iterator = Grid1D::const_iterator;
 
 		//! Constructor
 		/*!
@@ -40,6 +43,16 @@ namespace SSAGES
 				_spacing[i] = (_upper[i] - _lower[i])/double(_num_points[i] - 1);
 
 			_values.resize(_num_points[0]);
+
+
+			// Construct flat vector 
+			_flatvector.resize(_num_points[0]);
+			for(int i = 0; i < _num_points[0]; i++)
+			{
+				auto loc = GetLocation({i});
+				_flatvector[i].first[0] = loc[0];
+				_flatvector[i].second = _values[i];
+			}
 		}
 
 		//! Get value at one Grid point.
@@ -74,6 +87,9 @@ namespace SSAGES
 			}
 			std::cout<<std::endl;
 		}
+
+		//Grid1D::const_iterator begin() const { _flatvector.begin();}
+		//Grid1D::const_iterator end() const {_flatvector.end();}
 
 	};	
 }
