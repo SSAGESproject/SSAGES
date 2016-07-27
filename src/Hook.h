@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Simulations/SimObservable.h"
 #include "EventListener.h"
 #include "CVs/CollectiveVariable.h"
 #include "Snapshot.h"
@@ -22,6 +23,9 @@ namespace SSAGES
 
 		//! Vector of CVs.
 		CVList _cvs;
+
+		//! Driver running this hook
+		Driver* _MDDriver;
 
 	protected:
 		//! Local snapshot.
@@ -91,6 +95,17 @@ namespace SSAGES
 			_snapshot->Changed(false);
 		}
 
+		//! Post-step hook.
+		/*!
+		 * This function should be called by the Hook implementation after the
+		 * integration routine such that the forces, position, velocities,
+		 * etc.. are done being updated.
+		 */
+		void PostStepHook()
+		{
+			NotifyObservers();
+		}
+
 		//! Post-simulation hook.
 		/*!
 		 * This method should be called by the Hook implementation at the
@@ -119,14 +134,14 @@ namespace SSAGES
 		 * corresponding walker ID.
 		 */
 		Hook() : 
-		_listeners(0), _snapshot(nullptr)
+		_listeners(0), _MDDriver(nullptr), _snapshot(nullptr)
 		{}
 
 		//! Sets the active snapshot.
-		void SetSnapshot(Snapshot* snapshot)
-		{
-			_snapshot = snapshot;
-		}
+		void SetSnapshot(Snapshot* snapshot);
+
+		//! Sets the active Driver
+		void SetMDDriver(Driver* MDDriver);
 
 		//! Add a listener to the hook.
 		/*!
@@ -134,11 +149,7 @@ namespace SSAGES
 		 *
 		 * Does nothing if the listener is already added.
 		 */
-		void AddListener(EventListener* listener)
-		{
-			if(std::find(_listeners.begin(), _listeners.end(), listener) == _listeners.end())
-				_listeners.push_back(listener);
-		}
+		void AddListener(EventListener* listener);
 
 		//! Add a CollectiveVariable to the hook.
 		/*!
@@ -146,11 +157,9 @@ namespace SSAGES
 		 *
 		 * Does nothing if the CollectiveVariable is already added.
 		 */
-		void AddCV(CollectiveVariable* cv)
-		{
-			if(std::find(_cvs.begin(), _cvs.end(), cv) == _cvs.end())
-				_cvs.push_back(cv);
-		}
+		void AddCV(CollectiveVariable* cv);
+
+		void NotifyObservers();
 
 		//! Destructor
 		virtual ~Hook(){}

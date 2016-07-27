@@ -1,12 +1,15 @@
 #pragma once
 
 #include "lammps.h"
+#include "../Observers/JSONObserver.h"
 #include "Drivers/Driver.h"
 #include "../Validator/ObjectRequirement.h"
 #include "schema.h"
 #include "../Utility/BuildException.h"
 #include "input.h"
 #include "modify.h"
+#include "output.h"
+#include "update.h"
 #include "fix.h"
 
 namespace mpi = boost::mpi;
@@ -66,6 +69,9 @@ namespace SSAGES
 			std::string token;
 			std::istringstream ss(contents);
 
+			if(_restartname != "none" && _readrestart)
+				_lammps->input->one(("read_restart " + _restartname).c_str());
+
 			while(std::getline(ss, token, '\n'))
 			{
 				int seedspot = token.find("SEED");
@@ -79,6 +85,19 @@ namespace SSAGES
 				_lammps->input->one(token.c_str());
 			}
 
+			// Initialize and create the restart parameters
+			for(auto* o : _observers)
+			{
+				if(o->GetName() == "JSON")
+				{
+					_readrestart = true;
+					JSONObserver* obs = static_cast<JSONObserver*>(o);
+					std::string filename1 = obs->GetPrefix() + "_" + std::to_string(_wid) + ".restart";
+					std::string filename2 = obs->GetPrefix() + "_" + std::to_string(_wid) + "b.restart";
+					_lammps->input->one(("restart 10000000000 " + filename1 + " " + filename2).c_str());
+				}
+			}
+
 			auto fid = _lammps->modify->find_fix("ssages");
 			if(fid < 0)
 				throw BuildException({"Could not find ssages fix in given input file!"});
@@ -89,6 +108,19 @@ namespace SSAGES
 			}
 		}
 
+		//! Write a driver specific restart file
+		/*!
+		 * \param FilenName The name of the restart filename as defined by the user.
+		 *
+		 * Write out a restart file using driver specific commands.
+		 * This will most likely be executed by an observer to force
+		 * a write of the restart file.
+		 */
+		virtual void WriteRestartFile() const override
+		{
+			_lammps->output->write_restart(bigint(_lammps->update->ntimestep));
+		}
+		
 		//! Set up the driver
 		/*!
 		 * \param json JSON value containing input information.
@@ -111,6 +143,11 @@ namespace SSAGES
 
 			_MDsteps = json.get("MDSteps",1).asInt();
 			_inputfile = json.get("inputfile","none").asString();
+			_restartname = json.get("restart file", "none").asString();
+			_readrestart = json.get("read restart", false).asBool();
+
+			if(_readrestart && _restartname == "none")
+				throw BuildException({"You want to run from a restart but no file name provided (see 'restart file' in LAMMPS's schema for more informationz)"});
 			
 			// Silence of the lammps.
 			char **largs = (char**) malloc(sizeof(char*) * 5);
@@ -135,19 +172,23 @@ namespace SSAGES
 
 		}
 
-		//! \copydoc Serializable::Serialize()
 		virtual void Serialize(Json::Value& json) const override
 		{
+			// Call parent first.
+			Driver::Serialize(json);
+
 			json["MDSteps"] = _MDsteps;
 			json["logfile"] = _logfile;
 			json["type"] = "LAMMPS";
-			json["number processors"] = _comm.size();
-			if(_inputfile != "none")
-				json["inputfile"] = _inputfile;
-
-			// Need CVs and Methods still
-			
-
+			//if true on first file
+			if(_lammps->output->restart_toggle)
+			{
+				json["restart file"] = std::string(_lammps->output->restart2a);
+			}
+			else
+			{
+				json["restart file"] = std::string(_lammps->output->restart2b);
+			}
 		}
 	};
 }

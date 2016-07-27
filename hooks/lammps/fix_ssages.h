@@ -9,8 +9,23 @@ FixStyle(ssages,FixSSAGES)
 #include "fix.h"
 #include "Hook.h"
 
+
 namespace LAMMPS_NS
 {
+  inline const std::array<double, 6> ConvertToLatticeConstant(const std::array<double, 6>& lmmpsbox)
+  {
+   
+    std::array<double, 6> box;
+
+    box[0] = lmmpsbox[0];   
+    box[1] = sqrt(lmmpsbox[1]*lmmpsbox[1] + lmmpsbox[3]*lmmpsbox[3]);
+    box[2] = sqrt(lmmpsbox[2]*lmmpsbox[2] + lmmpsbox[4]*lmmpsbox[4] + lmmpsbox[5]*lmmpsbox[5]);
+    box[3] = acos((lmmpsbox[3]*lmmpsbox[4] + lmmpsbox[1]*lmmpsbox[5])/box[1]*box[2]);
+    box[4] = acos(lmmpsbox[4]/box[2]);
+    box[5] = acos(lmmpsbox[3]/box[1]);
+
+    return box;
+  }
 	// SSAGES Hook class for LAMMPS implemented as 
 	// a LAMMPS fix. This is activated by adding 
 	// a "ssages" fix to "all". Note that thermo must 
@@ -35,9 +50,15 @@ namespace LAMMPS_NS
 
   		// Post-run for post-simulation call.
   		void post_run() override;
+  		
+  		// Post-step for post-step call.
+  		void end_of_step() override;
 
   		// Set mask to let LAMMPS know what triggers we're interested in.
   		int setmask() override;
+
+  		// Grab the box info from lammps
+  		const std::array<double, 6> GatherLAMMPSVectors() const;
 	};
 }
 

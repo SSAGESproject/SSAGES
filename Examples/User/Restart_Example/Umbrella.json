@@ -1,0 +1,239 @@
+{
+    "observers": [
+        {
+            "file name": "test_restart",
+            "frequency": 1000,
+            "type": "JSON"
+        }
+    ],
+    "driver": [
+        {
+            "number processors": 1,
+            "MDSteps": 100000,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "file name": "test_results_0",
+                "ksprings": [
+                    1000
+                ],
+                "type": "Umbrella",
+                "centers": [
+                    -3.142
+                ],
+                "log every": 1000
+            },
+            "inputfile": "Butane_SSAGES.in"
+        },
+        {
+            "MDSteps": 100000,
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "file name": "test_results_1",
+                "ksprings": [
+                    1000
+                ],
+                "type": "Umbrella",
+                "centers": [
+                    -2.618
+                ],
+                "log every": 1000
+            },
+            "inputfile": "Butane_SSAGES.in"
+        },
+        {
+            "MDSteps": 100000,
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "file name": "test_results_2",
+                "ksprings": [
+                    1000
+                ],
+                "type": "Umbrella",
+                "centers": [
+                    -2.094
+                ],
+                "log every": 1000
+            },
+            "inputfile": "Butane_SSAGES.in"
+        },
+        {
+            "MDSteps": 100000,
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "file name": "test_results_3",
+                "ksprings": [
+                    1000
+                ],
+                "type": "Umbrella",
+                "centers": [
+                    -1.571
+                ],
+                "log every": 1000
+            },
+            "inputfile": "Butane_SSAGES.in"
+        },
+        {
+            "MDSteps": 100000,
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "file name": "test_results_4",
+                "ksprings": [
+                    1000
+                ],
+                "type": "Umbrella",
+                "centers": [
+                    -1.047
+                ],
+                "log every": 1000
+            },
+            "inputfile": "Butane_SSAGES.in"
+        },
+        {
+            "MDSteps": 100000,
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "file name": "test_results_5",
+                "ksprings": [
+                    1000
+                ],
+                "type": "Umbrella",
+                "centers": [
+                    -0.524
+                ],
+                "log every": 1000
+            },
+            "inputfile": "Butane_SSAGES.in"
+        },
+        {
+            "MDSteps": 100000,
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "file name": "test_results_6",
+                "ksprings": [
+                    1000
+                ],
+                "type": "Umbrella",
+                "centers": [
+                    0.0
+                ],
+                "log every": 1000
+            },
+            "inputfile": "Butane_SSAGES.in"
+        },
+        {
+            "MDSteps": 100000,
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "file name": "test_results_7",
+                "ksprings": [
+                    1000
+                ],
+                "type": "Umbrella",
+                "centers": [
+                    0.524
+                ],
+                "log every": 1000
+            },
+            "inputfile": "Butane_SSAGES.in"
+        },
+        {
+            "MDSteps": 100000,
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "file name": "test_results_8",
+                "ksprings": [
+                    1000
+                ],
+                "type": "Umbrella",
+                "centers": [
+                    1.047
+                ],
+                "log every": 1000
+            },
+            "inputfile": "Butane_SSAGES.in"
+        },
+        {
+            "MDSteps": 100000,
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "file name": "test_results_9",
+                "ksprings": [
+                    1000
+                ],
+                "type": "Umbrella",
+                "centers": [
+                    1.571
+                ],
+                "log every": 1000
+            },
+            "inputfile": "Butane_SSAGES.in"
+        },
+        {
+            "MDSteps": 100000,
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "file name": "test_results_10",
+                "ksprings": [
+                    1000
+                ],
+                "type": "Umbrella",
+                "centers": [
+                    2.094
+                ],
+                "log every": 1000
+            },
+            "inputfile": "Butane_SSAGES.in"
+        },
+        {
+            "MDSteps": 100000,
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "file name": "test_results_11",
+                "ksprings": [
+                    1000
+                ],
+                "type": "Umbrella",
+                "centers": [
+                    2.618
+                ],
+                "log every": 1000
+            },
+            "inputfile": "Butane_SSAGES.in"
+        }
+    ],
+    "CVs": [
+        {
+            "periodic": true,
+            "type": "Torsional",
+            "atom ids": [
+                1,
+                5,
+                8,
+                11
+            ]
+        }
+    ]
+}

@@ -35,7 +35,7 @@ namespace SSAGES
 		std::vector<Vector3> _velocities; //!< Velocities
 		std::vector<Vector3> _forces; //!< Forces
 		std::vector<double> _masses; //!< Masses
-		std::array<Vector3, 4> _ucvectors; //!<UC vectors (ax, bx, cx), (ay, by, cy), (cx, cy, cz), (alpha, beta, gamma)
+		std::array<double, 6> _lattice; //!<lattice constants a, b, c, alpha, beta, gamma
 		Label _atomids; //!< List of Atom IDs
 		Label _types; //!< List of Atom types
 
@@ -254,13 +254,13 @@ namespace SSAGES
 		 * cx, cy, cz
 		 * alpha, beta, gamma
 		 */
-		const std::array<Vector3, 4>& GetUCVectors() const { return _ucvectors; }
+		const std::array<double, 6>& GetLatticeConstants() const { return _lattice; }
 
 		//! \copydoc Snapshot::GetUCVectors() const
-		std::array<Vector3, 4>& GetUCVectors()
+		std::array<double, 6>& GetLatticeConstants()
 		{
 			_changed = true; 
-			return _ucvectors; 
+			return _lattice; 
 		}
 
 		//! Access the atom IDs

@@ -60,7 +60,17 @@ namespace SSAGES
 
 			auto freq = json.get("frequency", 1).asInt();
 
-			auto* m = new Umbrella(world, comm, ksprings, centers, freq);
+			auto name = json.get("file name","none").asString();
+
+			auto* m = new Umbrella(world, comm, ksprings, centers, name, freq);
+
+			if(json.isMember("iteration"))
+				m->SetIteration(json.get("iteration",0).asInt());
+
+			if(json.isMember("log every"))
+				m->SetLogStep(json.get("log every",0).asInt());
+
+
 
 			method = static_cast<Method*>(m);
 		}

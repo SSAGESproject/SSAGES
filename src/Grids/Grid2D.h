@@ -13,9 +13,11 @@ namespace SSAGES
 	private:
 
 		//! Vector of vector containing values.
-		std::vector<std::vector<float>> _values;
+		std::vector<std::vector<double>> _values;
 
 	public:
+
+		//using const_iterator = Grid2D::const_iterator;
 
 		//! Constuctor
 		/*!
@@ -44,6 +46,19 @@ namespace SSAGES
 
 			for(size_t i = 0; i < _values.size(); i++)
 				_values[i].resize(_num_points[1],0);
+
+			// Construct flat vector 
+			_flatvector.resize(_num_points[0]*_num_points[1]);
+			for(int i = 0; i < _num_points[0]; i++)
+			{
+				for(int j = 0; j < _num_points[1]; j++)
+				{
+					auto loc = GetLocation({i,j});
+					_flatvector[i*_num_points[1] + j].first[0] = loc[0];
+					_flatvector[i*_num_points[1] + j].first[1] = loc[1];
+					_flatvector[i*_num_points[1] + j].second = _values[i][j];
+				}
+			}
 		}
 	
 		//! Get the value at a given Grid point.
@@ -80,6 +95,9 @@ namespace SSAGES
 			}
 			std::cout<<std::endl;
 		}
+
+		//Grid2D::const_iterator begin() const { _flatvector.begin();}
+		//Grid2D::const_iterator end() const {_flatvector.end();}
 
 	};	
 }

@@ -136,12 +136,18 @@ namespace LAMMPS_NS
 		Hook::PostSimulationHook();
 	}
 
+	void FixSSAGES::end_of_step()
+	{
+		Hook::PostStepHook();
+	}
+
 	int FixSSAGES::setmask()
 	{
 		// We are interested in post-force and post run hooks.
 		int mask = 0;
 		mask |= POST_FORCE;
 		mask |= POST_RUN;
+		mask |= END_OF_STEP;
 		return mask;
 	}
 
@@ -218,45 +224,7 @@ namespace LAMMPS_NS
 
 		_snapshot->SetKb(force->boltz);
 
-		double lx = domain->boxhi[0] - domain->boxlo[0];
-		double ly = domain->boxhi[1] - domain->boxlo[1];
-		double lz = domain->boxhi[2] - domain->boxlo[2];
-		double xy = domain->xy;
-		double xz = domain->xz;
-		double yz = domain->yz;
-
-		double a = lx;
-		double b = sqrt(ly*ly + xy*xy);
-		double c = sqrt(lz*lz + xz*xz + yz*yz);
-		double alpha = (xy*xz + ly*yz)/b*c;
-		double beta = (xz/c);
-		double gamma = (xy/b);
-
-		auto& box = _snapshot->GetUCVectors();
-
-		box[3][0] = acos(alpha);
-		box[3][1] = acos(beta);
-		box[3][2] = acos(gamma);
-
-		double ax = lx; //ax
-		double bx = b*cos(gamma); //bx
-		double by = sqrt(b*b - bx*bx); //by
-
-		double cx = c*beta; //cx
-		double cy = (b*c - bx*cx)/by; //cy
-		double cz = sqrt(c*c + cx*cx +cy*cy);
-
-		box[0][0] = ax;
-		box[0][1] = bx;
-		box[0][2] = cx;
-
-		box[1][0] = 0;
-		box[1][1] = by;
-		box[1][2] = cy;
-
-		box[2][0] = 0;
-		box[2][1] = 0;
-		box[2][2] = cz;
+		_snapshot->GetLatticeConstants() = ConvertToLatticeConstant(GatherLAMMPSVectors());
 
 		// First we sync local data, then gather.
 		// we gather data across all processors.
@@ -338,4 +306,20 @@ namespace LAMMPS_NS
 		// from snapshot to engine.
 		// However, this will change in the future.
 	}
+
+	const std::array<double, 6> FixSSAGES::GatherLAMMPSVectors() const
+	{
+
+		std::array<double, 6> box;
+
+		box[0] = domain->boxhi[0] - domain->boxlo[0];
+		box[1] = domain->boxhi[1] - domain->boxlo[1];
+		box[2] = domain->boxhi[2] - domain->boxlo[2];
+		box[3] = domain->xy;
+		box[4] = domain->xz;
+		box[5] = domain->yz;
+
+		return box;
+	}
+
 }

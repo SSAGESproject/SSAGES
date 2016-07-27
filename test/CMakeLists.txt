@@ -1,11 +1,10 @@
 # Add testing 
-enable_testing()
 set(TEST_DEPS  
 	${GTEST_LIBRARY_PATH} 
 	${GTEST_LIBRARY_MAIN_PATH}
 	libssages)
 
-set  (UNIT_TESTS "TorsionalCVTests")
+set  (UNIT_TESTS "TorsionalCVTests" "UCVectorTests")
 
 foreach (TEST ${UNIT_TESTS})
     add_executable (${TEST} ${TEST}.cpp)

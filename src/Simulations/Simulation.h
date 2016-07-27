@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Drivers/Driver.h"
-#include "Grids/Grid.h"
-#include "Drivers/LammpsDriver.h"
+#include "../Drivers/Driver.h"
+#include "../Grids/Grid.h"
+#include "../Drivers/LammpsDriver.h"
 #include "../JSON/Serializable.h"
 #include "json/json.h"
 #include <boost/mpi.hpp>
@@ -24,7 +24,7 @@ namespace SSAGES
 	 *
 	 * \ingroup Core
 	 */
-	class Simulation : public Serializable
+	class Simulation
 	{
 
 	protected:
@@ -208,7 +208,7 @@ namespace SSAGES
 				i++;
 			}
 
-			_nwalkers = json.size();
+			_nwalkers = JsonDrivers.size();
 			_comm = _world.split(wid);
 
 			if(_world.size() != totalproc)
@@ -295,6 +295,17 @@ namespace SSAGES
 					success_build = false;
 			}
 
+			if(JsonDriver.isMember("observers"))
+			{
+				if(!BuildObservers(JsonDriver))
+					success_build = false;
+			}
+			else if (json.isMember("observers"))
+			{
+				if(!BuildObservers(json))
+					success_build = false;
+			}
+
 			if(_comm.rank()==0)
 			{
 				if(success_build)
@@ -344,6 +355,30 @@ namespace SSAGES
 			// Build method(s).
 			try{
 				_MDDriver->BuildMethod(json.get("method", Json::objectValue), path);
+			} catch(BuildException& e) {
+				DumpErrorsToConsole(e.GetErrors(), _notw);
+				return false;
+			} catch(std::exception& e) {
+				DumpErrorsToConsole({e.what()}, _notw);
+				return false;
+			}
+
+			return true;
+		}
+
+		//! Set up observers
+		/*!
+		 * \param json JSON value containing input information.
+		 * \param path JSON path specification.
+		 * \return \c True if Method has been set up correctly, else return \c False .
+		 *
+		 * Set up the JSON observer to be used in creating restarts for the simulation.
+		 */
+		bool BuildObservers(const Json::Value& json)
+		{
+			// Build method(s).
+			try{
+				_MDDriver->BuildObservers(json.get("observers", Json::objectValue), _nwalkers);
 			} catch(BuildException& e) {
 				DumpErrorsToConsole(e.GetErrors(), _notw);
 				return false;
@@ -425,13 +460,6 @@ namespace SSAGES
 		void Run()
 		{
 			_MDDriver->Run();
-		}
-
-		//! \copydoc Serializable::Serialize()
-		virtual void Serialize(Json::Value& json) const override
-		{
-			if(_GlobalInput != "none")
-				json["inputfile"] = _GlobalInput;
 		}
 	};
 }
