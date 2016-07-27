@@ -1,5 +1,4 @@
 # Add testing 
-enable_testing()
 set(TEST_DEPS  
 	${GTEST_LIBRARY_PATH} 
 	${GTEST_LIBRARY_MAIN_PATH}
