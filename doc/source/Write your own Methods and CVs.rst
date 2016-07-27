@@ -123,3 +123,8 @@ new CV.
 .. warning::
 
     The steps to implement a new method have not been documented yet.
+
+.. todo::
+
+    Describe how to implement a new method, similar to how to implement a new
+    CV.
