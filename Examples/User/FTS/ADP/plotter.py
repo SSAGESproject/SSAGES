@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+#Execute this script in the folder with your node-00XX.log outputs to get a graph of initial and final images
+
 import numpy as np
 import matplotlib.pyplot as plt
 import math
