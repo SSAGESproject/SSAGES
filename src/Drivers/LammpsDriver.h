@@ -70,7 +70,7 @@ namespace SSAGES
 			std::istringstream ss(contents);
 
 			if(_restartname != "none" && _readrestart)
-				_lammps->input->one(("read_restart " + _restartname).c_str());
+				_lammps->input->one(("read_restart " + _restartname + " remap").c_str());
 
 			while(std::getline(ss, token, '\n'))
 			{
