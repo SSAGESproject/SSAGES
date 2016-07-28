@@ -69,9 +69,6 @@ namespace SSAGES
             //! Store positions for starting trajectories
             std::vector<std::vector<Vector3>> _traj_positions;
 
-            //! Store forces for starting trajectories
-            std::vector<std::vector<Vector3>> _traj_forces;
-
             //! Store velocities for starting trajectories
             std::vector<std::vector<Vector3>> _traj_velocities;
 
