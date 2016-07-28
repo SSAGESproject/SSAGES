@@ -112,6 +112,7 @@ namespace SSAGES
 	// Pre-simulation hook.
 	void ABF::PreSimulation(Snapshot* snapshot, const CVList& cvs)
 	{
+		_iteration = 0;
 		_mpiid = snapshot->GetWalkerID();
 		char file[1024];
 		sprintf(file, "node-%04d.log",_mpiid);
@@ -285,10 +286,10 @@ namespace SSAGES
 	 */
 	void ABF::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
-	
+		++_iteration;
 		// Feedback on Iteration Number. Helps with subsequent prints and comparing with log files.
-		if(snapshot->GetIteration() % _printdetails[0] == 0)
-			_stringout << "Iteration: " <<snapshot->GetIteration();		
+		if(_iteration % _printdetails[0] == 0)
+			_stringout << "Iteration: " <<_iteration;		
 		
 		// One genforce per CV.		
 		std::vector<double> genforce(cvs.size());
@@ -330,7 +331,7 @@ namespace SSAGES
 			for(size_t i = 0; i < cvs.size(); ++i)
 				{
 				//Feedback on CVs.
-				if(snapshot->GetIteration() % _printdetails[0] == 0 && _printdetails[1] > 0)
+				if(_iteration % _printdetails[0] == 0 && _printdetails[1] > 0)
 					_stringout << " CV[" << i << "]: " << cvs[i]->GetValue();
 				
 				// Get the gradient of current CV.
@@ -344,7 +345,7 @@ namespace SSAGES
 
 				if(_Orthogonalization) // Begin Gram-Schmidt Orthogonalization here. For all but the first CV, will remove the projection of every other CVs vector field from the current CV projector.
 					{
-					if(snapshot->GetIteration() % _printdetails[0] == 0 && _printdetails[2] > 0 && i > 0)
+					if(_iteration % _printdetails[0] == 0 && _printdetails[2] > 0 && i > 0)
 						_stringout << " Orthogonalization Corrector vector is: ";
 					for(size_t j = 0; j < i; ++j)
 						{
@@ -353,7 +354,7 @@ namespace SSAGES
 							for(size_t l = 0; l < grad[k].size(); ++l)
 								{
 								projector[i][3*k+l] -= grad[k][l]*projector[j][3*k+l]/dellensq[j];
-								if(snapshot->GetIteration() % _printdetails[0] == 0 && _printdetails[2] > 0 && grad[k][l] != 0)
+								if(_iteration % _printdetails[0] == 0 && _printdetails[2] > 0 && grad[k][l] != 0)
 									_stringout <<  projector[i][3*k+l] << " ";
 								}
 							}
@@ -375,7 +376,7 @@ namespace SSAGES
 				wdotp = wdotp/dellensq[i];
 				
 				// Feedback on dellensq.
-				if(snapshot->GetIteration() % _printdetails[0] == 0 && _printdetails[3] > 0)
+				if(_iteration % _printdetails[0] == 0 && _printdetails[3] > 0)
 					_stringout << " Normalization factor is: " << dellensq[i];
 	
 				// Calculate instantaneous generalized force. This is a second order forward numerical time derivative. +_Fold[i] removes the bias.
@@ -399,13 +400,13 @@ namespace SSAGES
 		else //Bound check on CV, implemented in histCoords function. If outside bounds, do not bias and do not collect histogram, but keep track of wdotp.
 			{
 			// Feedback on a CV being out of bounds.
-			if(snapshot->GetIteration() % _printdetails[0] == 0 && _printdetails[1] > 0)
+			if(_iteration % _printdetails[0] == 0 && _printdetails[1] > 0)
 				_stringout << " At least one CV is out of bounds!";
 
 			for(size_t i = 0; i < cvs.size(); ++i)
 				{
 				// Feedback on CV.
-				if(snapshot->GetIteration() % _printdetails[0] == 0 && _printdetails[1] > 0)
+				if(_iteration % _printdetails[0] == 0 && _printdetails[1] > 0)
 					_stringout << " CV[" << i << "]: " << cvs[i]->GetValue();
 
 				wdotp = 0;
@@ -413,7 +414,7 @@ namespace SSAGES
 				auto& grad = cvs[i]->GetGradient();
 				if(_Orthogonalization) // Begin Gram-Schmidt Orthogonalization here. For all but the first CV, will remove the projection of every other CVs vector field from the current CV projector.
 					{
-					if(snapshot->GetIteration() % _printdetails[0] == 0 && _printdetails[2] > 0 && i > 0)
+					if(_iteration % _printdetails[0] == 0 && _printdetails[2] > 0 && i > 0)
 						_stringout << " Orthogonalization Corrector vector is: ";
 					for(size_t j = 0; j < i; ++j)
 						{
@@ -422,7 +423,7 @@ namespace SSAGES
 							for(size_t l = 0; l < grad[k].size(); ++l)
 								{
 								projector[i][3*k+l] -= grad[k][l]*projector[j][3*k+l]/dellensq[j];
-								if(snapshot->GetIteration() % _printdetails[0] == 0 && _printdetails[2] > 0 && grad[k][l] != 0)
+								if(_iteration % _printdetails[0] == 0 && _printdetails[2] > 0 && grad[k][l] != 0)
 									_stringout <<  projector[i][3*k+l] << " ";
 								}
 							}
@@ -451,7 +452,7 @@ namespace SSAGES
 		}
 		
 		// Print out current F estimate over CV space - for backup and troubleshooting
-		if(snapshot->GetIteration() % _FBackupInterv == 0)
+		if(_iteration % _FBackupInterv == 0)
 		{
 		_stringout << std::endl;
 		_stringout << "Printing out 1) Dimensionality of F 2) Total Length of N 3) Total Length of F, 4) CV details 5) Initial histogrammed F estimate." << std::endl;
@@ -480,7 +481,7 @@ namespace SSAGES
 		
 
 		// Feedback on biasing.
-		if(snapshot->GetIteration() % _printdetails[0] == 0 && _printdetails[8] > 0)
+		if(_iteration % _printdetails[0] == 0 && _printdetails[8] > 0)
 			_stringout << " Biases to forces are: ";
 
 
@@ -490,14 +491,14 @@ namespace SSAGES
 			{
 			for(size_t k = 0; k < forces[j].size(); ++k)
 				{
-				if(snapshot->GetIteration() % _printdetails[0] == 0 && _printdetails[8] > 0 && _biases[j][k] != 0)
+				if(_iteration % _printdetails[0] == 0 && _printdetails[8] > 0 && _biases[j][k] != 0)
 					_stringout << _biases[j][k] << " ";
 				forces[j][k] += _biases[j][k];					
 				}
 			}
 		
 		// Feedback on locations.
-		if(snapshot->GetIteration() % _printdetails[0] == 0 && _printdetails[6] > 0)
+		if(_iteration % _printdetails[0] == 0 && _printdetails[6] > 0)
 			{
 			_stringout << " Locations are: ";
 			for(size_t i = 0; i < cvs.size(); ++i)
@@ -519,7 +520,7 @@ namespace SSAGES
 			
 		
 	// Each output gets its own line
-	if(snapshot->GetIteration() % _printdetails[0] == 0)
+	if(_iteration % _printdetails[0] == 0)
 		_stringout << std::endl;	
 	}
 

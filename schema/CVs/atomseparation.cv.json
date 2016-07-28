@@ -11,17 +11,8 @@
 		},
 		"atom id 2" : {
 			"type" : "integer"
-		},
-		"box size x" : {
-			"type" : "number"
-		},
-		"box size y" : {
-			"type" : "number"
-		},
-		"box size z" : {
-			"type" : "number"
 		}
 	},
-	"required": ["type", "atom id 1", "atom id 2", "box size x", "box size y", "box size z" ],
+	"required": ["type", "atom id 1", "atom id 2"],
 	"additionalProperties": false
 }

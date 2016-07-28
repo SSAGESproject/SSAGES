@@ -121,19 +121,7 @@ namespace SSAGES
 			auto atomid1 = json.get("atom id 1", -1).asInt();
 			auto atomid2 = json.get("atom id 2", -1).asInt();
 
-			std::vector<double> boxsize;
-			auto boxsize1 = json.get("box size x", -1).asDouble();
-				boxsize.push_back(boxsize1);
-			auto boxsize2 = json.get("box size y", -1).asDouble();
-				boxsize.push_back(boxsize2);
-			auto boxsize3 = json.get("box size z", -1).asDouble();
-				boxsize.push_back(boxsize3);
-
-			boxsize[0] = boxsize1;
-			boxsize[1] = boxsize2;
-			boxsize[2] = boxsize3;
-
-			auto* c = new AtomSeparationCV(atomid1, atomid2,boxsize);
+			auto* c = new AtomSeparationCV(atomid1, atomid2);
 
 			cv = static_cast<CollectiveVariable*>(c);
 		}
