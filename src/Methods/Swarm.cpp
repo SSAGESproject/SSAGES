@@ -67,22 +67,15 @@ namespace SSAGES
         _cv_start.resize(_centers.size());
         _cv_drift.resize(_centers.size());
         _traj_positions.resize(_number_trajectories);
-        _traj_forces.resize(_number_trajectories);
         _traj_velocities.resize(_number_trajectories);
         
         _traj_positions.reserve(_number_trajectories * positions.size());
-        _traj_forces.reserve(_number_trajectories * forces.size());
         _traj_velocities.reserve(_number_trajectories * velocities.size());
         
         for(size_t k = 0; k < _traj_positions.size(); k++)
         {
             _traj_positions[k].resize(positions.size());
             _traj_positions[k].reserve(positions.size());
-        }
-        for(size_t k = 0; k < _traj_forces.size(); k++)
-        {
-            _traj_forces[k].resize(forces.size());
-            _traj_forces[k].reserve(forces.size());
         }
         for(size_t k = 0; k < _traj_velocities.size(); k++)
         {
@@ -200,13 +193,6 @@ namespace SSAGES
                                 _traj_positions[_index][k][l] = positions[k][l];
                             }
                         }
-                        for(size_t k = 0; k < forces.size(); k++)
-                        {
-                            for(size_t l = 0; l < forces[k].size(); l++)
-                            {
-                                _traj_forces[_index][k][l] = forces[k][l];
-                            }
-                        }
                         for(size_t k = 0; k < velocities.size(); k++)
                         {
                             for(size_t l = 0; l < velocities[k].size(); l++)
@@ -233,15 +219,6 @@ namespace SSAGES
                             for(size_t l = 0; l < positions[k].size(); l++)
                             {
                                 positions[k][l] = _traj_positions[_index][k][l];
-                            }
-                        }
-                        //Then set forces
-                        for(size_t k = 0; k < forces.size(); k++)
-                        {
-                            for(size_t l = 0; l < forces[k].size(); l++)
-                            {
-                                //forces[k][l] = _traj_forces[_index][k][l];
-                                forces[k][l] = 0.0;
                             }
                         }
                         //Velocities
@@ -284,15 +261,6 @@ namespace SSAGES
                                 for(size_t l = 0; l < positions[k].size(); l++)
                                 {
                                     positions[k][l] = _traj_positions[_index][k][l];
-                                }
-                            }
-                            //Then set forces
-                            for(size_t k = 0; k < forces.size(); k++)
-                            {
-                                for(size_t l = 0; l < forces[k].size(); l++)
-                                {
-                                    forces[k][l] = 0.0;
-                                    //forces[k][l] = _traj_forces[_index][k][l];
                                 }
                             }
                             //Velocities
