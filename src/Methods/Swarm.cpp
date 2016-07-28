@@ -26,7 +26,6 @@ namespace SSAGES
     //Helper function to check if CVs are initialized correctly
     bool Swarm::CVInitialized(const CVList& cvs)
     {
-        //std::cout << _mpiid << " Made a call to CVInitialized()" << std::endl; //Debugging
         double threshold = 0.05;
         const double epsilon = 0.000000001;
         double diff;
@@ -43,14 +42,11 @@ namespace SSAGES
             {
                 diff = std::abs((cvs[i]->GetValue() - (_centers[i])) / ((cvs[i]->GetValue() + (_centers[i]))/2.0));
             }
-            //std::cout << _mpiid << " Diff = " << diff << "Abs Test = " << std::abs(-10.1) << std::endl; //Debugging
             if(diff >= threshold)
             {
-                std::cout << _mpiid << " Diff true" << std::endl; //Debugging
                 return true; //e.g. proceed to initialize again
             }
         }
-        //std::cout << _mpiid << " Diff false" << std::endl; //Debugging
         return false; //e.g. OK to move on to regular sampling
     }
 
@@ -73,8 +69,7 @@ namespace SSAGES
         _traj_positions.resize(_number_trajectories);
         _traj_forces.resize(_number_trajectories);
         _traj_velocities.resize(_number_trajectories);
-
-        //std::cout << _mpiid <<  " Reserving size..." << std::endl; //Debugging
+        
         _traj_positions.reserve(_number_trajectories * positions.size());
         _traj_forces.reserve(_number_trajectories * forces.size());
         _traj_velocities.reserve(_number_trajectories * velocities.size());
@@ -142,11 +137,9 @@ namespace SSAGES
         }
         if(_currentiter == 0 && initialize && sampling_started)
         {//On first pass, make sure CVs are initialized well
-            //std::cout << _mpiid << " Initializing on first pass..." << std::endl; //Debugging
             //Do restrained sampling, and do not harvest trajectories
             for(size_t i = 0; i < cvs.size(); i++)
             {
-                std::cout << _mpiid << " First Pass Restraining..." << std::endl; //Debugging
                 //Get current CV and gradient
                 auto& cv = cvs[i];
                 auto& grad = cv->GetGradient();
@@ -159,8 +152,7 @@ namespace SSAGES
                 {
                     for(size_t k = 0; k < forces[j].size(); k++)
                     {
-                        forces[j][k] -= (double)D*grad[j][k]; 
-                        //forces[j][k] -= 0.0; //Debugging
+                        forces[j][k] -= (double)D*grad[j][k];
                     }
                 }
             }
@@ -176,7 +168,6 @@ namespace SSAGES
                 //Do restrained sampling, and do not harvest trajectories
                 for(size_t i = 0; i < cvs.size(); i++)
                 {
-                    std::cout << _mpiid << " Normal  Restraining..." << std::endl; //Debugging
                     if(_iterator == 0)
                     {
                         _index = 0; //Reset index when starting
@@ -194,8 +185,6 @@ namespace SSAGES
                         for(size_t k = 0; k < forces[j].size(); k++)
                         {
                             forces[j][k] -= (double)D*grad[j][k]; 
-                            //forces[j][k] -= 0.0; //Debugging
-
                         }
                     }
                 }
@@ -204,7 +193,6 @@ namespace SSAGES
                     //Harvest a trajectory every ten steps
                     if(_iterator % 10 == 0)
                     {
-                        std::cout << _mpiid << " Harvesting" << std::endl; //Debugging
                         for(size_t k = 0; k < positions.size(); k++)
                         {
                             for(size_t l = 0; l < positions[k].size(); l++)
@@ -271,28 +259,22 @@ namespace SSAGES
             else if(_iterator <= _initialize_steps + _restrained_steps + _unrestrained_steps)
             {
                 //Launch unrestrained trajectories
-                //std::cout << _mpiid <<  " Running swarm...Iteration number = " << _iterator << std::endl; //Debugging  
                 if((_iterator - _initialize_steps - _restrained_steps) % _swarm_length == 0)
                 {
-                    //std::cout << _mpiid << " End of trajectory..." << std::endl; //Debugging
                     //End of trajectory, harvest drift
                     for(size_t i = 0; i < _cv_drift.size(); i++)
                     {
                         //Drift scaled down for debugging
                         _cv_drift[i] = (_cv_drift[i]*_index + cvs[i]->GetValue()  - _centers[i]) / (_index+1); //Calculate running average of drifts
-                        //_cv_drift[i] += 0; //Debugging
-                        //std::cout << _mpiid << " CV Drift = " << _cv_drift[i] << " " << std::endl; //Debugging
                     }
                     //Set up for next trajectory
                     _index++;
                     if(_index < _number_trajectories)
                     {
-                        //std::cout << _mpiid << " Starting trajectory...Index == " << _index << std::endl; //Debugging
-                        //std::cout << _mpiid << " Current size of forces and positions " << _traj_forces.size() << " " << _traj_positions.size() << std::endl;
                         //Start of trajectory, reset positions and forces
                         std::cout << _mpiid << " Attempting reset" << std::endl;
                         {
-                            //Debugging?  Start be zeroing
+                            //Zero forces
                             for(auto& force : forces)
                                 for(auto& xyz : force)
                                     xyz = 0.0;
@@ -325,27 +307,11 @@ namespace SSAGES
                     }
                 }
                 _iterator++;
-
-                if(_iterator == _initialize_steps + _restrained_steps + _unrestrained_steps + 1)
-                {
-                    //std::cout << _mpiid << " Last trajectory call" << std::endl; //Debugging
-                }
             }
             else
             {
-                //std::cout << _mpiid << " Accessed final loop" << std::endl; //Debugging
-                //_world.barrier(); //Hold until everything gets here
-                //std::cout << _mpiid << " Starting CV update" << std::endl; //Debugging
-                //Average drift
-                /*for(size_t i = 0; i < _cv_drift.size(); i++)
-                {
-                    _cv_drift[i] /= _number_trajectories;
-                }*/
-
                 //Evolve CVs, reparametrize, and reset vectors
                 _currentiter++;
-                //std::cout << _mpiid << " Reached string iteration " << _currentiter << std::endl; //Debugging
-
                 _world.barrier(); //Wait for all nodes before attempting string update
                 StringUpdate();
                 _world.barrier(); //Wait for all CVs to be updated
@@ -358,7 +324,6 @@ namespace SSAGES
                 {
                     _cv_drift[i] = 0; 
                 }
-                //_world.barrier(); //Hold until all CVs are updated
             }
         }
     }
@@ -371,7 +336,7 @@ namespace SSAGES
 
     void Swarm::PrintString(const CVList& CV)
     {
-        std::cout << _mpiid << " Printing string" << std::endl; //Debugging
+        std::cout << _mpiid << " Printing string" << std::endl;
         //Write node, iteration, centers of the string and current CV value to output file
         _stringout.precision(8);
         _stringout << _mpiid << " " << _currentiter << " ";
@@ -393,7 +358,6 @@ namespace SSAGES
 
     void Swarm::StringUpdate()
     {
-        std::cout << _mpiid << " Updating string..." << std::endl; //Debugging
         //Values for reparametrization
         size_t i;
         int centersize = _centers.size();
@@ -419,7 +383,6 @@ namespace SSAGES
         for(i = 0; i < cvs_new.size(); i++)
         {
             cvs_new[i] = _centers[i] + _cv_drift[i]*_drift_scale; //Rescale drift
-            //std::cout << cvs_new[i] << " " << std::endl; //Debugging
         }
 
         //Set up nodes to receive from their backward neighbor and send to their forward neighbor, wrapping around at the string ends
@@ -486,7 +449,6 @@ namespace SSAGES
             //_worldstring is indexed as cv followed by node
             mpi::all_gather(_world, _centers[i], _worldstring[i]);
         }
-        //_world.barrier();
     }
 }
 
