@@ -328,7 +328,7 @@ namespace SSAGES
 		//Validate input
 		validator.Validate(json, path);
 		if(validator.HasErrors())
-		throw BuildException(validator.GetErrors())
+            throw BuildException(validator.GetErrors());
 		std::vector<double> centers;
 		for(auto& s: json["centers"])
 			centers.push_back(s.asDouble());

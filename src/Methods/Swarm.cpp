@@ -106,7 +106,6 @@ namespace SSAGES
         PrintString(cvs);
 
         sampling_started = true;
-        IntegrationCounter = 0;
     }
 
     void Swarm::PostIntegration(Snapshot* snapshot, const CVList& cvs)
@@ -116,9 +115,6 @@ namespace SSAGES
         auto& velocities = snapshot->GetVelocities();
 
         bool initialize; //Whether to initialize or not
-
-        std::cout << _mpiid << " PostIntegration, Number " << IntegrationCounter << std::endl;
-        IntegrationCounter++;
 
         if(_currentiter == 0 && sampling_started) 
         {
@@ -350,7 +346,7 @@ namespace SSAGES
         //Evolve CVs with average drift
         for(i = 0; i < cvs_new.size(); i++)
         {
-            cvs_new[i] = _centers[i] + _cv_drift[i]*_drift_scale; //Rescale drift
+            cvs_new[i] = _centers[i] + _cv_drift[i];
         }
 
         //Set up nodes to receive from their backward neighbor and send to their forward neighbor, wrapping around at the string ends
