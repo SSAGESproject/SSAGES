@@ -1,0 +1,497 @@
+{
+    "driver": [
+        {
+            "MDSteps": 10000000,
+            "number processors": 1,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 12,
+                "spring": 500,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    -1.39,
+                    1.31
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 12,
+                "spring": 500,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    -1.185,
+                    1.033
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 12,
+                "spring": 500,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    -0.979,
+                    0.755
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 12,
+                "spring": 500,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    -0.774,
+                    0.478
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 12,
+                "spring": 500,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    -0.568,
+                    0.201
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 12,
+                "spring": 500,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    -0.363,
+                    -0.076
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 12,
+                "spring": 500,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    -0.157,
+                    -0.354
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 12,
+                "spring": 500,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    0.048,
+                    -0.631
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 12,
+                "spring": 500,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    0.254,
+                    -0.908
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 12,
+                "spring": 500,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    0.459,
+                    -1.185
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 12,
+                "spring": 500,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    0.665,
+                    -1.463
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 12,
+                "spring": 500,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    0.87,
+                    -1.74
+                ]
+            }
+        }
+    ],
+    "inputfile": "in.ADP_Test"
+}
