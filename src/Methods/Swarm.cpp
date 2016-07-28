@@ -204,7 +204,6 @@ namespace SSAGES
                     //Reset positions and forces before first call to unrestrained sampling
                     _index = 0;
                     {
-                        std::cout << _mpiid << " Attempting reset" << std::endl;
                         //Zero forces
                         for(auto& force: forces)
                             for(auto& xyz : force)
@@ -245,7 +244,6 @@ namespace SSAGES
                     if(_index < _number_trajectories)
                     {
                         //Start of trajectory, reset positions and forces
-                        std::cout << _mpiid << " Attempting reset" << std::endl;
                         {
                             //Zero forces
                             for(auto& force : forces)
@@ -300,7 +298,6 @@ namespace SSAGES
 
     void Swarm::PrintString(const CVList& CV)
     {
-        std::cout << _mpiid << " Printing string" << std::endl;
         //Write node, iteration, centers of the string and current CV value to output file
         _stringout.precision(8);
         _stringout << _mpiid << " " << _currentiter << " ";
