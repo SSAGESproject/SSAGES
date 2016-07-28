@@ -77,9 +77,6 @@ namespace SSAGES
 
             //! Number of nodes on a string
             unsigned int _numnodes;
-
-            //! Debugging - drift scale parameter
-            double _drift_scale; 
             
             //! Updates the positions of the string
             void StringUpdate();
@@ -96,16 +93,13 @@ namespace SSAGES
             //! Flag for determing whether to perform initialization or not
             bool sampling_started;
 
-            //! Purely debugging, try not to leave this in
-            int IntegrationCounter;
-
         public:
 
             //! Constructor
             /*!
              * Constructs an instance of the swarm of trajectories method.
              */
-            Swarm(boost::mpi::communicator& world, boost::mpi::communicator& com, const std::vector<double>& centers, unsigned int NumNodes, double spring, unsigned int frequency, unsigned int InitialSteps, unsigned int HarvestLength, unsigned int NumberTrajectories, unsigned int SwarmLength) : Method(frequency, world, com), _centers(centers), _cv_drift(), _cv_start(), _alpha(), _mpiid(0), _worldstring(), _currentiter(0), _initialize_steps(InitialSteps), _harvest_length(HarvestLength), _number_trajectories(NumberTrajectories), _swarm_length(SwarmLength), _iterator(0), _spring(spring), _numnodes(NumNodes), _drift_scale(1)
+            Swarm(boost::mpi::communicator& world, boost::mpi::communicator& com, const std::vector<double>& centers, unsigned int NumNodes, double spring, unsigned int frequency, unsigned int InitialSteps, unsigned int HarvestLength, unsigned int NumberTrajectories, unsigned int SwarmLength) : Method(frequency, world, com), _centers(centers), _cv_drift(), _cv_start(), _alpha(), _mpiid(0), _worldstring(), _currentiter(0), _initialize_steps(InitialSteps), _harvest_length(HarvestLength), _number_trajectories(NumberTrajectories), _swarm_length(SwarmLength), _iterator(0), _spring(spring), _numnodes(NumNodes)
         {
             /*for(size_t i = 0; i < centers.size(); i++)
             {
