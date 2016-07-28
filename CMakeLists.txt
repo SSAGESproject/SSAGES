@@ -82,7 +82,7 @@ set(SOURCE
     	src/Methods/Swarm.cpp
 	src/Methods/ForwardFlux.cpp
 	src/Methods/ABF.cpp
-    src/Methods/BasisFunc.cpp
+    	src/Methods/BasisFunc.cpp
 	src/Validator/RequirementLoader.cpp
 	src/JSON/jsoncpp.cpp
 	${SCHEMA_CPP}
