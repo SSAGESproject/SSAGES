@@ -165,7 +165,7 @@ namespace SSAGES
 	// Post-integration hook.
 	void Basis::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
-        std::vector<float> x(cvs.size(),0);
+        std::vector<double> x(cvs.size(),0);
         std::vector<int> idx(cvs.size(),0);
         int ii = 0;
 
@@ -577,7 +577,7 @@ namespace SSAGES
 	{	
 		// Reset derivatives
         std::fill(_derivatives.begin(), _derivatives.end(), 0);
-        std::vector<float> x(cvs.size(),0);
+        std::vector<double> x(cvs.size(),0);
         std::vector<int> idx(cvs.size(),0);
 
         double temp = 1.0;

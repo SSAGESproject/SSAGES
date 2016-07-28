@@ -426,6 +426,7 @@ namespace SSAGES
 
 			if(_GlobalInput != "none" && localInput == "none")
 			{
+				_MDDriver->SetInputFile(_GlobalInput);
 				if(_world.rank() == 0)
 				{
 					std::cout<<"Global input file found, first using: "<<_GlobalInput<<std::endl;

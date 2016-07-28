@@ -11,8 +11,19 @@ namespace Json {
 
 namespace SSAGES
 {
-	// Forward declare Grid.
-	class Grid;
+	inline int FlattenIndices(std::vector<int> indices, std::vector<int> num_points)
+	{
+		int loci = 0;
+		for(size_t i = 0; i < indices.size(); i++)
+		{
+			int locj = indices[i];
+			for(size_t j = i+1;j<indices.size();j++)
+				locj *= num_points[j];
+			loci += locj;
+		}
+
+		return loci;
+	}
 
 	//! Generic Grid.
 	class Grid: public Serializable
@@ -27,9 +38,10 @@ namespace SSAGES
 		std::vector<double> _spacing; //!< Grid spacing.
 		int _NDim; //!< Grid dimension.
 
-		std::vector<std::pair<std::vector<double>, double>> _flatvector;
+		std::vector<std::pair<double,std::vector<double>>> _flatvector;
 	
 	public:
+		using const_iterator = std::vector<std::pair<double, std::vector<double>>>::const_iterator;
 
 		//! Destructor.
 		virtual ~Grid(){}
@@ -44,7 +56,7 @@ namespace SSAGES
 		 * returned as an N-dimensional vector. Here, N is the dimension of the
 		 * Grid.
 		 */
-		std::vector<int> GetIndices(const std::vector<float> &val)
+		std::vector<int> GetIndices(const std::vector<double> &val)
 		{
 			std::vector<int> vertices;
 
@@ -66,17 +78,15 @@ namespace SSAGES
 			return vertices;
 		}
 
-		std::vector<float> GetLocation(const std::vector<int> &indices)
+
+		//! Get the location at the current indices.
+		/*!
+		 * \param indices Indices specifying grid point.
+		 * \return vector of positions at the specified grid point.
+		 */
+		std::vector<double> GetLocation(const std::vector<int> &indices) const
 		{
-			std::vector<float> positions;
-
-			for(size_t i = 0; i < indices.size(); i++)
-			{
-				float position = _lower[i] + _spacing[i]*i;
-				positions.push_back(position);
-			}
-
-			return positions;
+			return _flatvector[FlattenIndices(indices,_num_points)].second;
 		}
 
 		//! Get the value at the current indices.
@@ -84,17 +94,35 @@ namespace SSAGES
 		 * \param indices Indices specifying grid point.
 		 * \return Value at the specified grid point.
 		 */
-		virtual float GetValue(const std::vector<int>& indices) const = 0;
+		double GetValue(const std::vector<int>& indices) const
+		{
+			return _flatvector[FlattenIndices(indices,_num_points)].first;
+		}
 
 		//! Set the value at the current incices.
 		/*!
 		 * \param indices Indices specifying the grid point.
 		 * \param value New value for the grid point.
 		 */
-		virtual void SetValue(const std::vector<int>& indices, float value) = 0;
+		void SetValue(const std::vector<int>& indices, double value)
+		{
+			_flatvector[FlattenIndices(indices,_num_points)].first = value;
+		}
 
-		//! Write the grid to the console.
-		virtual void PrintGrid() const = 0;
+		//! Write Grid to console
+		/*!
+		 * Currently only for debugging
+		 */
+		void PrintGrid() const
+		{
+			for(size_t i = 0; i<_flatvector.size(); i++)
+			{
+				std::cout << _flatvector[i].first<<" ";
+				for(size_t j = 0; j<_flatvector[i].second.size(); j++)
+					std::cout<<_flatvector[i].second[j]<< " ";
+				std::cout<<std::endl;
+			}
+		}
 
 		//! Return lower edges of the Grid.
 		/*!
@@ -181,6 +209,9 @@ namespace SSAGES
 		{
 
 		}
+
+		const_iterator begin() const { return _flatvector.begin();}
+		const_iterator end() const { return _flatvector.end(); }
 	};
 	
 }

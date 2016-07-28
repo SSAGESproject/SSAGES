@@ -54,7 +54,7 @@ namespace SSAGES
 		{
 
 			std::vector<int> Indices;
-			std::vector<float> vals;
+			std::vector<double> vals;
 			int NDim = _grid->GetDimension();
 			for(int i=0; i<NDim; i++)
 			{
@@ -62,7 +62,7 @@ namespace SSAGES
 				vals.push_back(0);
 			}
 
-			float val = 10;
+			double val = 10;
 			val += _grid->GetValue(Indices);
 			_grid->PrintGrid();
 			_grid->SetValue(Indices, val);

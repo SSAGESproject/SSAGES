@@ -13,11 +13,7 @@ namespace SSAGES
 	{
 	private:
 
-		std::vector<double> _values; //!< Grid values
-
 	public:
-
-		//using const_iterator = Grid1D::const_iterator;
 
 		//! Constructor
 		/*!
@@ -42,54 +38,15 @@ namespace SSAGES
 			for(size_t i = 0; i < _spacing.size(); i++)
 				_spacing[i] = (_upper[i] - _lower[i])/double(_num_points[i] - 1);
 
-			_values.resize(_num_points[0]);
-
-
 			// Construct flat vector 
 			_flatvector.resize(_num_points[0]);
 			for(int i = 0; i < _num_points[0]; i++)
 			{
-				auto loc = GetLocation({i});
-				_flatvector[i].first[0] = loc[0];
-				_flatvector[i].second = _values[i];
+				_flatvector[i].first = 0.0;
+				_flatvector[i].second.push_back(_lower[i] + _spacing[0]*i);
 			}
 		}
 
-		//! Get value at one Grid point.
-		/*!
-		 * \param indices List of indices. Must be at least of size 1.
-		 * \return Value at the grid point specified by the first element of indices.
-		 */
-		float GetValue(const std::vector<int>& indices) const override
-		{
-			return _values[indices[0]];
-		}
-
-		//! Set value at one grid point.
-		/*!
-		 * \param indices List of indices. Must be at least of size 1.
-		 * \param value New value for the grid point specified by the first element in indices.
-		 */
-		void SetValue(const std::vector<int>& indices, float value) override
-		{
-			_values[indices[0]] = value;
-		}
-
-		//! Write Grid to console
-		/*!
-		 * Currently only for debugging
-		 */
-		void PrintGrid() const override
-		{
-			for(size_t i = 0; i<_values.size(); i++)
-			{
-				std::cout << _values[i]<<" ";
-			}
-			std::cout<<std::endl;
-		}
-
-		//Grid1D::const_iterator begin() const { _flatvector.begin();}
-		//Grid1D::const_iterator end() const {_flatvector.end();}
-
+		~Grid1D(){}
 	};	
 }

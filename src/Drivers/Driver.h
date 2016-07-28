@@ -135,6 +135,15 @@ namespace SSAGES
 		 */
 		std::string GetInputFile(){return _inputfile;}
 
+		//! Set the input file contents
+		/*!
+		 * \returns The contents of \c _inputfile.
+		 *
+		 * This function sets the name of the input file for the driver.
+		 *
+		 */
+		void SetInputFile(const std::string filename){ _inputfile = filename;}
+
 		//! Get the Driver's method current iteration
 		/*!
 		 * \returns The drivers \c _method current iterator
