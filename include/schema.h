@@ -27,6 +27,8 @@ namespace SSAGES
 		static std::string ElasticBandMethod;
 		static std::string BFSMethod;
 		static std::string ABFMethod;
+        static std::string JSONObserver;
+        static std::string Observers;
 		
 	};
 }

@@ -4,13 +4,53 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
-with open("2dstring.txt") as f:
-    data = f.read()
+nodes = 12
+end_lines = list()
+end_data = list()
+start_lines = list()
+start_data = list()
 
-data = data.split('\n')
+for i in range(0, 12):
+    if i <= 9:
+        fileName = "node-000{0}.log".format(i)
+    else:
+        fileName = "node-00{0}.log".format(i)
 
-x = [row.split(' ')[0] for row in data[:-1]]
-y = [row.split(' ')[1] for row in data[:-1]]
+    fileHandle = open(fileName)
+    lineList = fileHandle.readlines()
+    end_lines.append(lineList[-1])
+    start_lines.append(lineList[0])
+    fileHandle.close()
+
+#print lines
+
+#with open("2dstring.txt") as f:
+#    data = f.read()
+
+for line in end_lines:
+    end_data.append(line.split(' '))
+
+for line in start_lines:
+    start_data.append(line.split(' '))
+
+#print data
+#print start_data
+
+end_x = list()
+end_y = list()
+start_x = list()
+start_y = list()
+
+for line in end_data:
+    end_x.append(line[2])
+    end_y.append(line[4])
+
+for line in start_data:
+    start_x.append(line[2])
+    start_y.append(line[4])
+
+#print x
+#print y
 
 fig = plt.figure()
 
@@ -18,14 +58,19 @@ ax1 = fig.add_subplot(111)
 
 #Convert to degrees
 converter = 57.295779513
-xdegree = converter*np.array(x, dtype=float)
-ydegree = converter*np.array(y, dtype=float)
+end_xdegree = converter*np.array(end_x, dtype=float)
+end_ydegree = converter*np.array(end_y, dtype=float)
+start_xdegree = converter*np.array(start_x, dtype=float)
+start_ydegree = converter*np.array(start_y, dtype=float)
+
 
 ax1.set_title("ADP Isomerization")
 ax1.set_xlabel('X')
 ax1.set_ylabel('Y')
 
-ax1.plot(xdegree,ydegree, 'ro-', label='Images')
+ax1.plot(end_xdegree,end_ydegree, 'ro-', label='Final Images')
+ax1.plot(start_xdegree, start_ydegree, 'bo-', label='Initial Images')
+
 
 leg = ax1.legend()
 

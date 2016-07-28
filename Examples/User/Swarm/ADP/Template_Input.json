@@ -1,5 +1,5 @@
 {
-	"inputfile" : "in.ADP_FTS_Test",
+	"inputfile" : "in.ADP_Test",
 	"driver" : [
 		{
 			"number processors" : 1,
@@ -31,10 +31,10 @@
 			"method" : {
 				"type" : "Swarm",
 				"centers" : [
-						-3.1,
-                        3.1
+						-1.39,
+                        1.31
 				],
-				"number of nodes": 22,
+				"number of nodes": 12,
 				"spring" : 1000,
 				"frequency" : 1,
 				"initial steps" : 10000,

@@ -117,24 +117,6 @@ namespace SSAGES
 
         PrintString(cvs);
 
-        //Print initial string
-        if(_mpiid == 0)
-        {
-            std::ofstream pyth_string ("2dstring_init.txt");
-            for(size_t i = 0; i < _numnodes; i++)
-            {
-                for(size_t j = 0; j < _centers.size(); j++)
-                {
-                    pyth_string << _worldstring[j][i] << " ";
-                    if(j == _centers.size()-1)
-                    {
-                        pyth_string << std::endl;
-                    }
-                }
-            }
-            pyth_string.close();
-        }
-
         sampling_started = true;
         IntegrationCounter = 0;
     }
@@ -505,22 +487,6 @@ namespace SSAGES
             mpi::all_gather(_world, _centers[i], _worldstring[i]);
         }
         //_world.barrier();
-        if(_mpiid == 0)
-        {
-            std::ofstream pyth_string ("2dstring.txt");
-            for(size_t i = 0; i < _numnodes; i++)
-            {
-                for(size_t j = 0; j < centersize; j++)
-                {
-                    pyth_string << _worldstring[j][i] << " ";
-                    if(j == centersize-1)
-                    {
-                        pyth_string << std::endl;
-                    }
-                }
-            }
-            pyth_string.close();
-        }
     }
 }
 
