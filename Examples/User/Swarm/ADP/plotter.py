@@ -12,7 +12,7 @@ end_data = list()
 start_lines = list()
 start_data = list()
 
-for i in range(0, 12):
+for i in range(0, nodes):
     if i <= 9:
         fileName = "node-000{0}.log".format(i)
     else:
