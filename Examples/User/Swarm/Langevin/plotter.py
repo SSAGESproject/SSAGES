@@ -58,7 +58,7 @@ ax1.set_xlabel('X')
 ax1.set_ylabel('Y')
 
 ax1.plot(end_xdegree,end_ydegree, 'ro-', label='Final Images')
-ax1.plot(start_xdegree, start_ydegree, 'ro-', label='Initial Images')
+ax1.plot(start_xdegree, start_ydegree, 'bo-', label='Initial Images')
 
 leg = ax1.legend()
 
