@@ -35,7 +35,7 @@
                         1.31
 				],
 				"block iterations": 50,
-				"number samples" : 12,
+				"number samples" : 22,
 				"kappa" : 0.1,
 				"time step" : 0.1,
 				"frequency" : 1,
