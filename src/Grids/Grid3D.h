@@ -47,9 +47,9 @@ namespace SSAGES
 					{
 						int flat = FlattenIndices({i,j,k},_num_points);
 						_flatvector[flat].first = 0;
-						_flatvector[flat].second.push_back(_lower[i] + _spacing[0]*i);
-						_flatvector[flat].second.push_back(_lower[j] + _spacing[1]*j);
-						_flatvector[flat].second.push_back(_lower[k] + _spacing[2]*k);
+						_flatvector[flat].second.push_back(_lower[0] + _spacing[0]*i);
+						_flatvector[flat].second.push_back(_lower[1] + _spacing[1]*j);
+						_flatvector[flat].second.push_back(_lower[2] + _spacing[2]*k);
 					}
 				}
 			}

@@ -3,6 +3,7 @@
 #include "../JSON/Serializable.h"
 #include <vector>
 #include <iostream>
+#include <stdexcept>
 
 // Forward declare.
 namespace Json {
@@ -13,15 +14,19 @@ namespace SSAGES
 {
 	inline int FlattenIndices(std::vector<int> indices, std::vector<int> num_points)
 	{
+
 		int loci = 0;
 		for(size_t i = 0; i < indices.size(); i++)
 		{
+			if(indices[i]>=num_points[i])
+				throw std::out_of_range("Grid indices out of range");
+			
 			int locj = indices[i];
 			for(size_t j = i+1;j<indices.size();j++)
 				locj *= num_points[j];
 			loci += locj;
 		}
-
+		
 		return loci;
 	}
 
@@ -62,16 +67,24 @@ namespace SSAGES
 
 			for(size_t i = 0; i < val.size(); i++)
 			{
-				int vertex = int((val[i] - _lower[i])/_spacing[i] + 0.5);
+				int vertex = 0;
+				if(val[i]<_lower[i])
+					vertex = int((val[i] - _lower[i])/_spacing[i] - 0.5);
+				else
+					vertex = int((val[i] - _lower[i])/_spacing[i] + 0.5);
+
+				if(_periodic[i])
+				{
+					vertex = vertex % _num_points[i];
+					if(vertex<0)
+						vertex += _num_points[i];
+				}
+
 				if(vertex < 0) // out of bounds
 					vertex = 0;
-				else if(vertex > _num_points[i] -1) // out of bounds
-				{
-					if(_periodic[i])
-						vertex = 0;
-					else
-						vertex = _num_points[i] -1;
-				}
+				else if(vertex >= _num_points[i]) // out of bounds
+					vertex = _num_points[i] - 1;
+
 				vertices.push_back(vertex);
 			}
 
