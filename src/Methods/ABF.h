@@ -49,10 +49,11 @@ namespace SSAGES
 		//! Information for a harmonic restraint to keep CV in the region of interest. 
 		/*!
 		 * This is a 2 Dimensional object set up as the following:
-		 * _restraint is a vector of three vectors, each of those three vectors are (Number of CVs) long.
-		 * First of these vectors hold the lower bound for the CV restraints in order.
-		 * Second vector holds the upper bound for the CV restraints in order.
-		 * Third vector holds the spring constants for the CV restraints in order.
+		 * _restraint is a vector of (nr of CV) vectors, ordered in CV order.
+		 * Each of those vectors are 3 long.
+		 * First entry of each vector holds the lower bound for that CV restraint.
+		 * Second entry of each vector holds the upper bound for that CV restraint.
+		 * Third entry of each vector holds the spring constant for that CV restraint.
 		 */
 		std::vector<std::vector<double>> _restraint;		
 
@@ -89,10 +90,11 @@ namespace SSAGES
 		//! Histogram details. 
 		/*!
 		 * This is a 2 Dimensional object set up as the following:
-		 * Histdetails is a vector of three vectors, each of those three vectors are (Number of CVs) long.
-		 * First of these vectors hold the lower bound for the CVs in order.
-		 * Second vector holds the upper bound for the CVs in order.
-		 * Third vector holds number of histogram bins for the CVs in order.
+		 * Histdetails is a vector of (nr of CV) vectors, ordered in CV order.
+		 * Each of those vectors are 3 long.
+		 * First entry of each vector holds the lower bound for that CV.
+		 * Second entry of each vector holds the upper bound for that CV.
+		 * Third entry of each vector holds the nr of bins for that CV dimension.
 		*/ 
 		std::vector<std::vector<double>> _histdetails;
 
@@ -191,8 +193,58 @@ namespace SSAGES
 		/*!
 		 * \warning Serialization not implemented yet.
 		 */
+
+		void SetHistogram(const std::vector<double>& F, const std::vector<int>& N)
+		{
+			_F = F;
+			_N = N;
+		}		
+		
+		void SetIteration(const int iter)
+		{
+			_iteration = iter;
+		}			
+
 		void Serialize(Json::Value& json) const override
 		{
+		
+			json["type"] = "ABF";
+
+			for(size_t i = 0; i < _histdetails.size(); ++i)
+			{
+				json["CV minimums"].append(_histdetails[i][0]);				
+				json["CV maximums"].append(_histdetails[i][1]);
+				json["CV bins"].append(_histdetails[i][2]);
+			}
+
+			for(size_t i = 0; i < _restraint.size(); ++i)
+			{
+				json["CV restraint minimums"].append(_restraint[i][0]);
+				json["CV restraint maximums"].append(_restraint[i][1]);
+				json["CV restraint spring constants"].append(_restraint[i][2]);
+			}
+
+			json["timestep"] = _timestep;
+
+			json["minimum count"] = _min;
+
+			for(size_t i = 0; i < _printdetails.size(); ++i)
+				json["Print details"].append(_printdetails[i]);
+			 
+			json["Backup interval"] = _FBackupInterv;
+			
+			json["Unit conversion"] = _unitconv;
+
+			json["Orthogonalization"] = _Orthogonalization;			
+		
+			for(size_t i = 0; i < _F.size(); ++i)
+				json["F"].append(_F[i]);
+
+			for(size_t i = 0; i < _N.size(); ++i)
+				json["N"].append(_N[i]);
+
+			json["iteration"] = _iteration;		
+		
 		
 		}
 

@@ -4,6 +4,7 @@
 
 #include <array>
 #include <math.h>
+#include "../Utility/NearestNeighbor.h"
 
 
 namespace SSAGES
@@ -27,9 +28,6 @@ namespace SSAGES
 		//! Current value of the CV.
 		double _val;
 
-		//! Simulation box size.
-		std::vector<double> _boxsize;
-
 		//! Gradient of the CV, dr/dxi.
 		std::vector<Vector3> _grad;
 
@@ -46,21 +44,22 @@ namespace SSAGES
 			return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
 		}
 
+		//! Helper function to find matrix to convert to fractional coordinates from cartesian.
+		
+
 	public:
 		//! Constructor
 		/*!
 		 * \param atomid1 ID of the first atom of interest.
 		 * \param atomid2 ID of the second atom of interest.
-		 * \param boxsize Size of the simulation box.
 		 *
 		 * Construct an atom separation CV.
 		 *
 		 * \todo bounds needs to be an input.
-		 * \todo Get box size from the simulation snapshot.
 		 * \todo Consider non-periodic boundary conditions.
 		 */
-		AtomSeparationCV(int atomid1, int atomid2, std::vector<double> boxsize) : 
-		_atomid1(atomid1),_atomid2(atomid2), _val(0), _boxsize(boxsize), _grad(0), _bounds{{0,0}}
+		AtomSeparationCV(int atomid1, int atomid2) : 
+		_atomid1(atomid1),_atomid2(atomid2), _val(0), _grad(0), _bounds{{0,0}}
 		{
 		}
 
@@ -74,6 +73,7 @@ namespace SSAGES
 			auto n = snapshot.GetPositions().size();		
 			_grad.resize(n);
 		}
+		
 
 		// Evaluate the CV.
 		/*!
@@ -84,14 +84,13 @@ namespace SSAGES
 			// Gradient and value. 
 			const auto& pos = snapshot.GetPositions(); 
 			const auto& ids = snapshot.GetAtomIDs();
+			const auto& LatticeConstants = snapshot.GetLatticeConstants();
 			
 			// Some temp variables.
-			//double posx1 = 0,posx2 = 0,posy1 = 0,posy2 = 0,posz1 = 0,posz2 = 0;
 			Vector3 pos1{{0, 0, 0}};
 			Vector3 pos2{{0, 0, 0}};
 			
-			size_t index1 = 0, index2 = 0;
-		
+			size_t index1 = 0, index2 = 0;		
 			
 			// Loop through atom positions
 			for(size_t i = 0; i < pos.size(); ++i)
@@ -115,17 +114,8 @@ namespace SSAGES
 				}
 			}
 
-			Vector3 del{{pos1[0]-pos2[0],pos1[1]-pos2[1],pos1[2]-pos2[2]}};
-			
-			for(size_t i = 0; i<del.size(); ++i)
-				{
-				while(del[i] < -_boxsize[i]/2){
-					del[i] += _boxsize[i];
-					}
-				while(del[i] > _boxsize[i]/2){
-					del[i] -= _boxsize[i];
-					}
-				}					
+			// Account for PBCs
+			Vector3 del = NearestNeighbor(LatticeConstants, pos1, pos2);
 
 			// Compute norm and gradient.
 			auto r = norm(del);
@@ -142,7 +132,8 @@ namespace SSAGES
 		 * \return Current value of the CV.
 		 */
 		double GetValue() const override 
-		{ 
+		{	 
+			std::cout << _val <<std::endl;
 			return _val; 
 		}
 
@@ -189,14 +180,16 @@ namespace SSAGES
 		{
 			return _val - Location;
 		}
-
+		
 		//! Serialize this CV for restart purposes.
 		/*!
 		 * \param json JSON value
 		 */
 		virtual void Serialize(Json::Value& json) const override
 		{
-
+			json["type"] = "AtomSeparation";
+			json["atom id 1"] = _atomid1;
+			json["atom id 2"] = _atomid2;
 		}
 	};
 }

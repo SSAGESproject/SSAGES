@@ -203,6 +203,22 @@ namespace SSAGES
 			auto* m = new ABF(world, comm, histdetails, restraint, timestep, min, readF, printdetails, FBackupInterv, unitconv, Orthogonalization, freq);
 
 			method = static_cast<Method*>(m);
+
+			if(json.isMember("F") && json.isMember("N"))
+				{
+				std::vector<double> F;
+				std::vector<int> N;
+				for(auto& f : json["_F"])
+					F.push_back(f.asDouble());
+				for(auto& n : json["_N"])
+					N.push_back(n.asInt());
+
+				m->SetHistogram(F,N);
+				}
+
+			if(json.isMember("iteration"))
+				m->SetIteration(json.get("iteration",0).asInt());
+
 		}
 		else if(type == "ForwardFlux")
 		{
