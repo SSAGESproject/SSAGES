@@ -4,6 +4,7 @@
 
 #include <array>
 #include <math.h>
+#include "../Utility/VectorProducts.h"
 
 namespace SSAGES
 {
@@ -15,6 +16,7 @@ namespace SSAGES
 	 *
 	 * \ingroup CVs
 	 */
+
 	class TorsionalCV : public CollectiveVariable
 	{
 	private:
@@ -34,53 +36,6 @@ namespace SSAGES
 
 		//! Bounds on CV.
 		std::array<double, 2> _bounds;
-
-		//! Helper function to compute the norm of a vector.
-		/*!
-		 * \param v Three-dimensional vector.
-		 * \return Norm of the vector.
-		 */
-		double norm(const Vector3& v)
-		{
-			return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-		}
-
-		//! Helper function to compute the squared norm of a vector.
-		/*!
-		 * \param v Three-dimensional vector.
-		 * \return Square of the norm of the vector.
-		 */
-		double norm2(const Vector3& v)
-		{
-			return (v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-		}
-
-		//! Helper function to calculate dot product of two vectors.
-		/*!
-		 * \param v Three-dimensional vector.
-		 * \param w Second three-dimensional vector.
-		 * \return Dot product of the two vectors.
-		 */
-		double DotProduct(const Vector3& v, Vector3& w)
-		{
-			return (v[0]*w[0] + v[1]*w[1] + v[2]*w[2]);
-		}
-
-		//! Helper function to calculate cross product of two vectors.
-		/*!
-		 * \param u Three-dimensional vector.
-		 * \param v Second three-dimensional vector.
-		 * \return Cross product of the two vectors.
-		 */
-		Vector3 CrossProduct(const Vector3& u, const Vector3& v)
-		{
-			Vector3 Cross;
-			Cross[0] = u[1]*v[2] - u[2]*v[1];
-			Cross[1] = u[2]*v[0] - u[0]*v[2];
-			Cross[2] = u[0]*v[1] - u[1]*v[0];
-
-			return Cross;
-		}
 
 	public:
 		//! Constructor.
@@ -199,46 +154,53 @@ namespace SSAGES
 				ly - ky, 
 				lz - kz}};
 
-			Vector3 rij{{
-				ix - jx,
-				iy - jy,
-				iz - jz}};
-			Vector3 rkj{{
-				kx - jx,
-				ky - jy,
-				kz - jz}};
-			Vector3 rkl{{
-				lx - kx,
-				ly - ky, 
-				lz - kz}};
+			//Vector3 rij{{
+			//	ix - jx,
+			//	iy - jy,
+			//	iz - jz}};
+			//Vector3 rkj{{
+			//	kx - jx,
+			//	ky - jy,
+			//	kz - jz}};
+			//Vector3 rkl{{
+			//	lx - kx,
+			//	ly - ky, 
+			//	lz - kz}};
 
 			//Calculate dihedral angle
 
-			Vector3 rim, rln;
-			double rkj2 = norm(rkj)*norm(rkj);
-			for(size_t i = 0; i<3; i++)
-			{
-				rim[i] = rij[i] - DotProduct(rij,rkj)/(rkj2)*rkj[i];
-				rln[i] = DotProduct(rkl,rkj)/(rkj2)*rkj[i] - rkl[i];
-			}
-
-			double normrim, normrln;
-
-			normrim = norm(rim);
-			normrln = norm(rln);
-
-			auto normkj = norm(rkj);
-			Vector3 rijrkjprod;
-			for(size_t i = 0; i < rijrkjprod.size();i++)
-				rijrkjprod[i] = rij[i]*normkj;
-			auto rkjrklcross = CrossProduct(rkj, rkl);
-			auto y = DotProduct(rijrkjprod, rkjrklcross);
-			auto rijrkjcross = CrossProduct(rij, rkj);
-			auto x = DotProduct(rijrkjcross, rkjrklcross);
-			_val = atan2(y, x);
+			//Vector3 rim, rln;
+			//double rkj2 = norm(rkj)*norm(rkj);
+			//for(size_t i = 0; i<3; i++)
+		//	{
+		//		rim[i] = rij[i] - DotProduct(rij,rkj)/(rkj2)*rkj[i];
+		//		rln[i] = DotProduct(rkl,rkj)/(rkj2)*rkj[i] - rkl[i];
+		//	}
+//
+//			double normrim, normrln;
+//
+//			normrim = norm(rim);
+//			normrln = norm(rln);
+//
+//			auto normkj = norm(rkj);
+//			Vector3 rijrkjprod;
+//			for(size_t i = 0; i < rijrkjprod.size();i++)
+//				rijrkjprod[i] = rij[i]*normkj;
+//			auto rkjrklcross = CrossProduct(rkj, rkl);
+//			auto y = DotProduct(rijrkjprod, rkjrklcross);
+//			auto rijrkjcross = CrossProduct(rij, rkj);
+//			auto x = DotProduct(rijrkjcross, rkjrklcross);
+//			_val = atan2(y, x);
 
 			Vector3 A = CrossProduct(F, G);
 			Vector3 B = CrossProduct(H, G);
+
+			auto y1 = CrossProduct(B, A);
+			auto y = DotProduct(y1, G)/norm(G);
+			auto x = DotProduct(A, B);
+
+			_val = atan2(y, x);
+
 
 			double Zed = DotProduct(F, G)/(norm2(A)*norm(G));
 			double Ned = DotProduct(H, G)/(norm2(B)*norm(G));
@@ -348,6 +310,8 @@ namespace SSAGES
 			json["atom ids"][1] = _atomid2;
 			json["atom ids"][2] = _atomid3;
 			json["atom ids"][3] = _atomid4;
+			for(size_t i = 0; i < _bounds.size(); ++i)
+				json["bounds"].append(_bounds[i]);
 
 		}
 	};

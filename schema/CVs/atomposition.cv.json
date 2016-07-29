@@ -25,7 +25,15 @@
 		},
 		"fixz" :{
 			"type" : "boolean"
-		}
+		},
+		"bounds" : {
+			"type" : "array",
+			"minItems" : 2,
+			"maxItems" : 2,
+			"items" : {
+				"type" : "number"
+					}
+		}			
 	},
 	"required": ["type", "atom id", "position", "fixx", "fixy", "fixz"],
 	"additionalProperties": false

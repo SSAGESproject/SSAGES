@@ -5,6 +5,7 @@
 #include <array>
 #include <math.h>
 #include "../Utility/NearestNeighbor.h"
+#include "../Utility/VectorProducts.h"
 
 
 namespace SSAGES
@@ -33,18 +34,6 @@ namespace SSAGES
 
 		//! Bounds on CV.
 		std::array<double, 2> _bounds;
-
-		//! Helper function to compute the norm of a vector.
-		/*!
-		 * \param v Three dimensional vector.
-		 * \return Norm of the vector.
-		 */
-		double norm(const Vector3& v)
-		{
-			return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-		}
-
-		//! Helper function to find matrix to convert to fractional coordinates from cartesian.
 		
 
 	public:
@@ -97,7 +86,7 @@ namespace SSAGES
 			{
 				// If we are at the atom ID of interest.
 				if(ids[i] == _atomid1)
-				{
+				{ 
 					pos1 = pos[i];
 					index1 = i;
 				}
@@ -190,6 +179,8 @@ namespace SSAGES
 			json["type"] = "AtomSeparation";
 			json["atom id 1"] = _atomid1;
 			json["atom id 2"] = _atomid2;
+			for(size_t i = 0; i < _bounds.size(); ++i)
+				json["bounds"].append(_bounds[i]);
 		}
 	};
 }

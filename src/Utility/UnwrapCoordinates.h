@@ -16,15 +16,9 @@ namespace SSAGES
 
 		//double unwrap_coord(const Vector3& coord, Vector3& image, Vector3& b, Vector3& a)
 		{
-			
-			Vector3 parallelogram{{LatticeConstants[0],LatticeConstants[1],LatticeConstants[2]}};
-			Vector3 angles{{LatticeConstants[3],LatticeConstants[4],LatticeConstants[5]}};
 
-			std::vector<std::vector<double>> c2f(3,std::vector<double>(3));
-			std::vector<std::vector<double>> f2c(3,std::vector<double>(3));
-
-			c2f = uc_c2f(parallelogram, angles);
-			f2c = uc_f2c(parallelogram, angles);
+			auto c2f = uc_c2f(LatticeConstants);
+			auto f2c = uc_f2c(LatticeConstants);
 
 		// Convert Cartesian to fractional coordinates
 			Vector3 fract_coord{{c2f[0][0]*(coord[0]]) + c2f[0][1]*(coord[1]) + c2f[0][2]*(coord[2])

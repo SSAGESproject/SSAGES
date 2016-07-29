@@ -11,6 +11,14 @@
 		},
 		"atom id 2" : {
 			"type" : "integer"
+		},
+		"bounds" : {
+			"type" : "array",
+			"minItems" : 2,
+			"maxItems" : 2,
+			"items" : {
+				"type" : "number"
+					}
 		}
 	},
 	"required": ["type", "atom id 1", "atom id 2"],
