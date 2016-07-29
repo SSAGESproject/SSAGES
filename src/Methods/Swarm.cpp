@@ -105,7 +105,7 @@ namespace SSAGES
 
         PrintString(cvs);
 
-        sampling_started = true;
+        sampling_started = false;
     }
 
     void Swarm::PostIntegration(Snapshot* snapshot, const CVList& cvs)
@@ -116,7 +116,7 @@ namespace SSAGES
 
         bool initialize; //Whether to initialize or not
 
-        if(_currentiter == 0 && sampling_started) 
+        if(_currentiter == 0 && !sampling_started) 
         {
             initialize = CVInitialized(cvs);
         }
@@ -124,7 +124,7 @@ namespace SSAGES
         {
             initialize = false;
         }
-        if(_currentiter == 0 && initialize && sampling_started)
+        if(_currentiter == 0 && initialize && !sampling_started)
         {//On first pass, make sure CVs are initialized well
             //Do restrained sampling, and do not harvest trajectories
             for(size_t i = 0; i < cvs.size(); i++)
@@ -148,9 +148,9 @@ namespace SSAGES
         }
         else
         {
-            if(sampling_started)
+            if(!sampling_started)
             {
-                sampling_started = false; //Flag to prevent unneeded umbrella sampling
+                sampling_started = true; //Flag to prevent unneeded umbrella sampling
             }
             if(_iterator <= _initialize_steps + _restrained_steps)
             {
