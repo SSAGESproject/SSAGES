@@ -4,7 +4,9 @@ set(TEST_DEPS
 	${GTEST_LIBRARY_MAIN_PATH}
 	libssages)
 
-set  (UNIT_TESTS "TorsionalCVTests" "UCVectorTests")
+set  (UNIT_TESTS "TorsionalCVTests"
+				 "UCVectorTests"
+				 "GridTests")
 
 foreach (TEST ${UNIT_TESTS})
     add_executable (${TEST} ${TEST}.cpp)
