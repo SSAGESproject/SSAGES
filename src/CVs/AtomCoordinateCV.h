@@ -164,6 +164,22 @@ namespace SSAGES
 		 */
 		virtual void Serialize(Json::Value& json) const override
 		{
+			json["type"] = "AtomCoordinate";			
+			switch(_index)
+					{
+						case 0:
+							json["dimension"] = "x";
+							break;
+						case 1:
+							json["dimension"] = "y";
+							break;
+						case 2:
+							json["dimension"] = "z";
+							break;
+					}
+			json["atom id"] = _atomid;
+			for(size_t i = 0; i < _bounds.size(); ++i)
+				json["bounds"].append(_bounds[i]);
 
 		}
 	};

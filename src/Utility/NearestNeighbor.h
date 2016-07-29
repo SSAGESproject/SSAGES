@@ -15,14 +15,8 @@ namespace SSAGES
 
 	Vector3 NearestNeighbor(const std::array<double, 6>& LatticeConstants, const Vector3& a, const Vector3& b)
 	{
-		Vector3 parallelogram{{LatticeConstants[0],LatticeConstants[1],LatticeConstants[2]}};
-		Vector3 angles{{LatticeConstants[3],LatticeConstants[4],LatticeConstants[5]}};
-
-		std::vector<std::vector<double>> c2f(3,std::vector<double>(3));
-		std::vector<std::vector<double>> f2c(3,std::vector<double>(3));
-
-		c2f = uc_c2f(parallelogram, angles);
-		f2c = uc_f2c(parallelogram, angles);
+		auto c2f = uc_c2f(LatticeConstants);
+		auto f2c = uc_f2c(LatticeConstants);
 
 		// Convert the cartesian distance to fractional coordinates
 		Vector3 del{{	 c2f[0][0]*(a[0]-b[0]) + c2f[0][1]*(a[1]-b[1]) + c2f[0][2]*(a[2]-b[2])
