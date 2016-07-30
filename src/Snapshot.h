@@ -246,9 +246,11 @@ namespace SSAGES
 			return _masses; 
 		}
 
-		//! Access the UC vectors
+		//! Access the Lattice Constants
 		/*!
-		 * \return List of UC vectors
+		 * \return List of Lattice constants
+		 *
+		 * The lattice constants are:
 		 * ax, ay, az
 		 * bx, by, bz
 		 * cx, cy, cz
@@ -256,7 +258,7 @@ namespace SSAGES
 		 */
 		const std::array<double, 6>& GetLatticeConstants() const { return _lattice; }
 
-		//! \copydoc Snapshot::GetUCVectors() const
+		//! \copydoc Snapshot::GetLatticeConstants() const
 		std::array<double, 6>& GetLatticeConstants()
 		{
 			_changed = true; 

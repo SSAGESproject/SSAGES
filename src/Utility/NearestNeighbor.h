@@ -5,10 +5,18 @@
 
 namespace SSAGES
 {
-//! Helper function to give the shortest distance between two points, accounting for PBCs.
+	//! Helper function to give the shortest distance between two points,
+	//! accounting for PBCs.
 	/*!
-	 *  Uses the fractional coordinates - converts to fractional, then for each dimension accounts for PBCs (Xfrac < 0.5)
-	 *  then converts back to cartesian. Returns a Vector3.
+	 * \param LatticeConstants Array containing lattice constants.
+	 * \param a Coordinates of the first point.
+	 * \param b Coordinates of the second point.
+	 *
+	 * \return Vector of shortest distance between the two points.
+	 *
+	 *  Uses the fractional coordinates - converts to fractional, then for each
+	 * dimension accounts for PBCs (Xfrac < 0.5) then converts back to
+	 * cartesian. Returns a Vector3.
 	 *
 	 *  \ingroup Utility
 	 */

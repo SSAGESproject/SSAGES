@@ -110,8 +110,6 @@ namespace SSAGES
 
 		//! Write a driver specific restart file
 		/*!
-		 * \param FilenName The name of the restart filename as defined by the user.
-		 *
 		 * Write out a restart file using driver specific commands.
 		 * This will most likely be executed by an observer to force
 		 * a write of the restart file.

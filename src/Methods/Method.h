@@ -27,6 +27,7 @@ namespace SSAGES
 		//! Pointer to grid
 		Grid* _grid;
 
+		//! Number of the method iteration.
 		int _iteration;
 
 	public:

@@ -12,6 +12,13 @@ namespace Json {
 
 namespace SSAGES
 {
+	//! Calculate array index from n-Dimensional Grid indices.
+	/*!
+	 * \param indices Vector of indices.
+	 * \param num_points Number of grid points in each dimension.
+	 *
+	 * \return Index of 1d array storing data.
+	 */
 	inline int FlattenIndices(std::vector<int> indices, std::vector<int> num_points)
 	{
 
@@ -31,6 +38,9 @@ namespace SSAGES
 	}
 
 	//! Generic Grid.
+	/*!
+	 * \ingroup Core
+	 */
 	class Grid: public Serializable
 	{
 
@@ -43,9 +53,11 @@ namespace SSAGES
 		std::vector<double> _spacing; //!< Grid spacing.
 		int _NDim; //!< Grid dimension.
 
+		//! Array storing grid data.
 		std::vector<std::pair<double,std::vector<double>>> _flatvector;
 	
 	public:
+		//! Iterator for traversing the Grid.
 		using const_iterator = std::vector<std::pair<double, std::vector<double>>>::const_iterator;
 
 		//! Destructor.
@@ -218,12 +230,22 @@ namespace SSAGES
 		static Grid* BuildGrid(const Json::Value& json, 
 							   const std::string& path);
 
+		//! \copydoc Serializable::Serialize()
 		virtual void Serialize(Json::Value& json) const override
 		{
 
 		}
 
+		//! Get iterator to first element of the Grid.
+		/*!
+		 * \return Iterator to first element in the Grid.
+		 */
 		const_iterator begin() const { return _flatvector.begin();}
+
+		//! Get iterator one beyond last element of the Grid.
+		/*!
+		 * \return Iterator pointing to after the last element in the Grid.
+		 */
 		const_iterator end() const { return _flatvector.end(); }
 	};
 	

@@ -116,8 +116,6 @@ namespace SSAGES
 
 		//! Write a driver specific restart file
 		/*!
-		 * \param FilenName The name of the restart filename as defined by the user.
-		 *
 		 * Write out a restart file using driver specific commands.
 		 * This will most likely be executed by an observer to force
 		 * a write of the restart file.
@@ -135,12 +133,11 @@ namespace SSAGES
 		 */
 		std::string GetInputFile(){return _inputfile;}
 
-		//! Set the input file contents
+		//! Set the input file
 		/*!
-		 * \returns The contents of \c _inputfile.
+		 * \param filename File name of the input file.
 		 *
 		 * This function sets the name of the input file for the driver.
-		 *
 		 */
 		void SetInputFile(const std::string filename){ _inputfile = filename;}
 
@@ -175,7 +172,7 @@ namespace SSAGES
 		//! Build observer(s).
 		/*!
 		 * \param json JSON value containing input information.
-		 * \param path Path for JSON path specification.
+		 * \param nwalks Number of walkers.
 		 */
 		void BuildObservers(const Json::Value& json,
 			int nwalks)

@@ -6,7 +6,6 @@
 
 namespace SSAGES
 {
-
 	//! Helper functions to convert to and from fractional coordinates using lattice parameters.
 	/*!
 	 *  c2f converts from cartesian to fractional coordinates, given lattice parameters a, b, c and alpha, beta and gamma.
@@ -37,7 +36,16 @@ namespace SSAGES
 
 		}
 	
-		//! Helper function to find matrix to convert to cartesian coordinates from fractional.
+		//! Helper function to find matrix to convert to cartesian coordinates
+		//! from fractional.
+		/*!
+		 * \param b Box lengths (a, b, c)
+		 * \param a Box angles (alpha, beta, gamma)
+		 *
+		 * \return Matrix for conversions from fractional to cartesian coordinates.
+		 *
+		 * \ingroup Utility
+		 */
 		std::array<std::array<double,3>,3> uc_f2c(const std::array<double, 6>& LC)
 		{
 			std::array<std::array<double,3>,3> f2c;

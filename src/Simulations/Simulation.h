@@ -369,7 +369,7 @@ namespace SSAGES
 		//! Set up observers
 		/*!
 		 * \param json JSON value containing input information.
-		 * \param path JSON path specification.
+		 *
 		 * \return \c True if Method has been set up correctly, else return \c False .
 		 *
 		 * Set up the JSON observer to be used in creating restarts for the simulation.

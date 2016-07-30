@@ -38,6 +38,7 @@ namespace SSAGES
 		 * \param comm MPI local communicator.
 		 * \param kspring List of spring constants.
 		 * \param centers List of spring equilibrium positions.
+		 * \param name Filename.
 		 * \param frequency Frequency with which this method is applied.
 		 *
 		 * Create instance of umbrella with spring constants "kspring", and
@@ -81,11 +82,19 @@ namespace SSAGES
 		 */
 		void PrintUmbrella(const CVList& cvs);
 
+		//! Set method iteration
+		/*!
+		 * \param iter New value for the method iteration.
+		 */
 		void SetIteration(const int iter)
 		{
 			_iteration = iter;
 		}
 
+		//! Set how often to log
+		/*!
+		 * \param iter New value for logging interval.
+		 */
 		void SetLogStep(const int iter)
 		{
 			_logevery = iter;
