@@ -53,6 +53,6 @@ namespace SSAGES
 			bool ForceObserve() const { return _forceObserve; }
 
 			//! Destructor.
-			virtual ~SimEvent();
+			virtual ~SimEvent() {}
 	};
 }
