@@ -159,6 +159,7 @@ namespace SSAGES
 		 */
 		void AddCV(CollectiveVariable* cv);
 
+		//! Notify observers of changes in the simulation.
 		void NotifyObservers();
 
 		//! Destructor

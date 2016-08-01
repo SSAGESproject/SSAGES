@@ -10,47 +10,78 @@
 namespace SSAGES
 {
 	class SimObserver; 
+
+	//! List of Simulation Observers.
 	typedef std::vector<SimObserver*> ObserverList;
 
-	// Abstract class for objects wanting to observe a simulation.
+	//! Base class for objects observing a simulation.
+	/*
+	 * Abstract class for objects wanting to observe a simulation.
+	 *
+	 * \ingroup Core
+	 */
 	class SimObserver : public Visitor, public Serializable
 	{
 		private:
-			unsigned int _frequency = 1;
-			SimEvent _event;
+			unsigned int _frequency = 1; //!< Frequency of observation.
+			SimEvent _event; //!< Simulation event to be observed.
 
 		protected:
 
-			boost::mpi::communicator _world;
-			boost::mpi::communicator _comm;
-			int _numwalkers;
-			int _wid;
+			boost::mpi::communicator _world; //!< MPI global communicator.
+			boost::mpi::communicator _comm; //!< MPI local communicator.
+			int _numwalkers; //!< Number of walkers.
+			int _wid; //!< ID of walker to be observed.
 
+			//! Get current simulation event
+			/*!
+			 * \return Current simulation event.
+			 */
 			SimEvent& GetEvent()
 			{
 				return _event;
 			}
 
-			// Set logging frequency.
+			//! Set logging frequency.
+			/*!
+			 * \param f New frequency.
+			 * \return New frequency.
+			 */
 			unsigned int SetFrequency(int f)
 			{
 				return _frequency = f;
 			}
 
-			// Get current event iteration
+			//! Get current event iteration
+			/*!
+			 * \return Iteration of current event.
+			 */
 			unsigned int GetIteration()
 			{
 				return _event.GetIteration();
 			}
 
-			// Get caller identifier.
+			//! Get caller identifier.
+			/*!
+			 * \return 0 always.
+			 */
 			int GetObservableID()
 			{
 				return 0;
 			}
 
 		public:
-			// Initialize a SimObserver class with a specified observation frequency.
+			//! Constructor
+			/*!
+			 * \param world MPI global communicator.
+			 * \param comm MPI local communicator.
+			 * \param nws Number of walkers.
+			 * \param wid ID of walker to observe.
+			 * \param frequency Logging frequency.
+			 *
+			 * Initialize a SimObserver class with a specified observation
+			 * frequency.
+			 */
 			SimObserver(boost::mpi::communicator world,
 						boost::mpi::communicator comm,
 						int nws,
@@ -59,28 +90,54 @@ namespace SSAGES
 				: _frequency(frequency), _event(nullptr, 0),
 				_world(world), _comm(comm), _numwalkers(nws), _wid(wid){}
 
-			// Update observer when simulation has changed.
+			//! Update observer when simulation has changed.
+			/*!
+			 * \param e New simulation event.
+			 */
 			void Update(const SimEvent& e);
 
-
-			// Get logging frequency.
+			//! Get logging frequency.
+			/*!
+			 * \return Logging frequency.
+			 */
 			unsigned int GetFrequency() const { return _frequency; }
 
-			// Get name. 
+			//! Get name.
+			/*!
+			 * \return Name of the observer.
+			 */
 			virtual std::string GetName() const = 0;
 
-			// Called before visitors invokes.
+			//! Called before visitors invokes.
 			virtual void PreVisit(){}
 
-			// Called after visitors complete.
+			//! Called after visitors complete.
 			virtual void PostVisit(){}
 
-			// Serialize observer.
+			//! Serialize observer.
+			/*!
+			 * \param json JSON value to store information to.
+			 */
 			virtual void Serialize(Json::Value& json) const = 0;
 
-			// Static builder method for simobserver. If return value is nullptr, 
-			// then an unknown error occurred. It will throw a BuildException on 
-			// failure.  Object lifetime is caller's responsibility!
+			//! Build the simulation observer.
+			/*!
+			 * \param json JSON value containing input information.
+			 * \param world MPI global communicator.
+			 * \param comm MPI local communicator.
+			 * \param numwalkers Number of walkers.
+			 * \param wid ID of the walker to observe.
+			 * \param path Path for JSON path specification.
+			 *
+			 * \return Pointer to the newly created observer. \c nullptr in case
+			 *         of unknown error.
+			 *
+			 * Static builder method for simobserver. If an unknown error
+			 * occured, the return value is nullptr, but generally, this
+			 * function will throw a BuildException on failure.
+			 *
+			 * \note Object lifetime is caller's responsibility!
+			 */
 			static SimObserver* BuildObserver(const Json::Value& json,
 										boost::mpi::communicator world,
 										boost::mpi::communicator comm,
@@ -88,18 +145,43 @@ namespace SSAGES
 										int wid,
 										const std::string& path);
 			
-			// Static builder method for simobserver. If return value is nullptr, 
-			// then an unknown error occurred. It will throw a BuildException on 
-			// failure.  Object lifetime is caller's responsibility!
+			//! Build the simulation observer.
+			/*!
+			 * \param json JSON value containing input information.
+			 * \param world MPI global communicator.
+			 * \param comm MPI local communicator.
+			 * \param numwalkers Number of walkers.
+			 * \param wid ID of the walker to observe.
+			 *
+			 * \return Pointer to the newly created observer. \c nullptr in case
+			 *         of unknown error.
+			 *
+			 * Static builder method for simobserver. If an unknown error
+			 * occured, the return value is nullptr, but generally, this
+			 * function will throw a BuildException on failure.
+			 *
+			 * \note Object lifetime is caller's responsibility!
+			 */
 			static SimObserver* BuildObserver(const Json::Value& json,
 										boost::mpi::communicator world,
 										boost::mpi::communicator comm,
 										int numwalkers,
 										int wid);
 			
-			// Static builder method for sim observers. ObserverList is a vector
-			// which will be populated with initialized observers. Object lifetime
-			// is caller's responsibility!
+			//! Build list of observers.
+			/*!
+			 * \param json JSON value containing input information.
+			 * \param world MPI global communicator.
+			 * \param comm MPI local communicator.
+			 * \param numwalkers Number of walkers.
+			 * \param wid ID of the walker to be observed.
+			 * \param ol List of observers to which the new observers are appended.
+			 *
+			 * Static builder method for sim observers. ObserverList is a vector
+			 * which will be populated with initialized observers.
+			 *
+			 * \note Object lifetime is caller's responsibility!
+			 */
 			static void BuildObservers(const Json::Value& json,
 			boost::mpi::communicator world,
 			boost::mpi::communicator comm,
@@ -107,6 +189,7 @@ namespace SSAGES
 			int wid,
 			ObserverList& ol);
 
+			//! Destructor.
 			virtual ~SimObserver(){}	
 	};
 }

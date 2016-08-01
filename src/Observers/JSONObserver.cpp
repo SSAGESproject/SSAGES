@@ -5,6 +5,10 @@
 
 namespace SSAGES
 {
+	//! Local function, undocumented
+	/*!
+	 * \return Timestamp
+	 */
 	std::string GetTimestamp()
 	{
 		time_t rawtime;

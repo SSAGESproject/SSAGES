@@ -23,7 +23,7 @@ namespace SSAGES
 		}
 	};
 
-	SimObserver* SimObserver::BuildObserver(const Value &json,
+	SimObserver* SimObserver::BuildObserver(const Json::Value &json,
 									boost::mpi::communicator world,
 									boost::mpi::communicator comm,
 									int numwalkers,

@@ -189,22 +189,27 @@ namespace SSAGES
 		 */
 		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
 
-		//! \copydoc Serializable::Serialize()
+		//! Set values of the histograms.
 		/*!
-		 * \warning Serialization not implemented yet.
+		 * \param F Values of the stored total.
+		 * \param N Values of the numbers of hits.
 		 */
-
 		void SetHistogram(const std::vector<double>& F, const std::vector<int>& N)
 		{
 			_F = F;
 			_N = N;
 		}		
 		
+		//! Set the method iteration.
+		/*!
+		 * \param iter New value of the iteration.
+		 */
 		void SetIteration(const int iter)
 		{
 			_iteration = iter;
 		}			
 
+		//! \copydoc Serializable::Serialize()
 		void Serialize(Json::Value& json) const override
 		{
 		

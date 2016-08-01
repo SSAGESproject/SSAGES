@@ -4,7 +4,8 @@ set(TEST_DEPS
 	${GTEST_LIBRARY_MAIN_PATH}
 	libssages)
 
-set  (UNIT_TESTS "TorsionalCVTests"
+set  (UNIT_TESTS "AtomPositionCVTests"
+                 "TorsionalCVTests"
 				 "UCVectorTests"
 				 "GridTests")
 
