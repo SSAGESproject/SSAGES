@@ -84,6 +84,50 @@ namespace SSAGES
 
 		// Write hill to file.
 		PrintHill(_hills.back());
+
+		// Add hill to grid
+		if(_isgrid){
+		  std::vector<int> idxs(_grid->GetDimension);
+		  std::vector<double> tderiv(_grid->GetDimension);
+		  auto numpoints = _grid->GetNumPoints();
+		  int j, k;
+		  double temp, bias;
+		  for (j = 0; j < numpoints.size(); j++)
+		    {
+		      idxs[j]++;
+		      if (idxs[j] < numpoints[j])
+			break;
+		      idxs[j] = 0;
+		      
+		      auto xi = _grid->GetLocation(idxs);
+
+		      //Your Code here
+		      bias = 1;
+		      for(int k = 0; k < _grid->GetDimension; k++) tderiv[k] = 1;
+
+		      for(int k = 0; k < _grid->GetDimension; k++) {
+			argk    = cvs[k]->GetValue()-xi[k];
+			gaussk  = gaussian(arg,_width[k]);
+			for(int l = 0; l < _grid->GetDimension; l++) {
+			  if(k==l){
+			    tderiv[l] *= gaussianDerv(argk, _width[k]);
+			  } else {
+			    tderiv[l] *= gaussk;
+			  }
+			}
+			bias *= gaussk;
+		      }
+
+		      bias *= height;
+		      bias += _grid->GetValue(idxs);
+		      _grid->SetValue(idxs, bias);
+		      for(int k = 0; k < _grid->GetDimension; k++){
+			tderiv[k] *= height;
+			tderiv[k] += _grid->GetDeriv(idxs,k);
+			_grid->SetDeriv(idxs,k) = tderiv;
+		      }
+		    }
+		}
 	}
 
 	//Ruthless pragmatism
@@ -92,7 +136,7 @@ namespace SSAGES
 		_hillsout.precision(8);
 		for(auto& cv : hill.center)
 			_hillsout << cv << " ";
-
+		
 		for(auto& w : hill.width)
 			_hillsout << w << " ";
 
@@ -107,31 +151,45 @@ namespace SSAGES
 			_derivatives[i] = 0;
 
 		// Loop through hills and calculate the bias force.
-		for(auto& hill : _hills)
-		{
-			auto n = hill.center.size();
-			std::vector<double> tder(n, 1.0), dx(n, 1); 
-			auto tbias = 1.;
-			
-			// Initialize dx and tbias.
-			for(size_t i = 0; i < n; ++i)
+		if(!_isgrid){
+		  for(auto& hill : _hills)
+		    {
+		      auto n = hill.center.size();
+		      std::vector<double> tder(n, 1.0), dx(n, 1); 
+		      auto tbias = 1.;
+		      
+		      // Initialize dx and tbias.
+		      for(size_t i = 0; i < n; ++i)
 			{
-				dx[i] = cvs[i]->GetDifference(hill.center[i]);
-				tbias *= gaussian(dx[i], hill.width[i]);
+			  dx[i] = cvs[i]->GetDifference(hill.center[i]);
+			  tbias *= gaussian(dx[i], hill.width[i]);
 			}
+		      
+		      for(size_t i = 0; i < n; ++i)
+			for(size_t j = 0; j < n; ++j)
+			  {
+			    if(j != i) 
+			      tder[i] *= gaussian(dx[j], hill.width[j]);
+			    else
+			      tder[i] *= gaussianDerv(dx[j], hill.width[j]);
+			  }
+		      
+		      _bias += _height * tbias;
+		      for(size_t i = 0; i < n; ++i)
+			_derivatives[i] += _height*tder[i];
+		    }
+		} else {
+		  //Interpolate from the grid.
+		  std::vector<double> cvals;
 
-			for(size_t i = 0; i < n; ++i)
-				for(size_t j = 0; j < n; ++j)
-				{
-					if(j != i) 
-						tder[i] *= gaussian(dx[j], hill.width[j]);
-					else
-						tder[i] *= gaussianDerv(dx[j], hill.width[j]);
-				}
+		  // Get CV values.
+		  for(size_t i = 0; i < cvs.size(); ++i)
+		    cvals.push_back(cvs[i]->GetValue());
 
-			_bias += _height * tbias;
-			for(size_t i = 0; i < n; ++i)
-				_derivatives[i] += _height*tder[i];
+		  _bias = _grid->InterpolateValue(cvals);
+		  for(size_t i = 0; i < _derivatives.size(); ++i){
+		    _derivatives[i] = _grid->InterpolateDeriv(cvals, i);
+		  }
 		}
 	}
 }

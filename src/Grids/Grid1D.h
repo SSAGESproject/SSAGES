@@ -88,9 +88,9 @@ namespace SSAGES
 		  }
 
 		  //now, do 1d interpolation
-		  ival = ((val[i]-gridpos[0])*gridval[1] +
-			  (gridpos[1]-val[i])*gridval[0]) /
-		          (gridpos[1]-gridpos[0]);
+		  ival = ((val[0]-gridpos[0][0])*gridval[1] +
+			  (gridpos[1][0]-val[0])*gridval[0]) /
+		          (gridpos[1][0]-gridpos[0][0]);
 
 		  return ival;
 		}
@@ -124,9 +124,9 @@ namespace SSAGES
 		  }
 
 		  //now, do 1d interpolation
-		  ival = ((val[i]-gridpos[0])*gridval[1] +
-			  (gridpos[1]-val[i])*gridval[0]) /
-		          (gridpos[1]-gridpos[0]);
+		  ival = ((val[0]-gridpos[0][0])*gridval[1] +
+			  (gridpos[1][0]-val[0])*gridval[0]) /
+		          (gridpos[1][0]-gridpos[0][0]);
 
 		  return ival;
 		}

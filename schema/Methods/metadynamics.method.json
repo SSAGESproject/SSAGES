@@ -26,7 +26,11 @@
 			"type" : "integer",
 			"minimum" : 1
 		}
+        	"gridflag" : {
+		        "type" : "integer",
+		        "minimum" : 0
+	        }
 	},
-	"required": ["type", "widths", "height"],
+        "required": ["type", "widths", "height", "gridflag"],
 	"additionalProperties": false
 }

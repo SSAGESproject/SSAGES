@@ -57,6 +57,9 @@ namespace SSAGES
 		//! Hill widths.
 		std::vector<double> _widths;
 
+		//! Gridding flag and grid
+		bool _isgrid;
+
 		//! Derivatives.
 		std::vector<double> _derivatives;
 
@@ -83,9 +86,14 @@ namespace SSAGES
 		 * \param hill Hill to be printed.
 		 */
 		void PrintHill(const Hill& hill);
-		
+
 		//! Output stream for hill data.
 		std::ofstream _hillsout;
+
+		//! Grid-related functions
+		void AddHillToGrid(const CVList& cvs);
+		void InterpolateHeight(const CVList& cvs);
+		void InterpolateDeriv(const CVList& cvs);
 
 	public:
 		//! Constructor
@@ -106,9 +114,10 @@ namespace SSAGES
 			 double height, 
 			 const std::vector<double>& widths, 
 			 unsigned int hillfreq, 
-			 unsigned int frequency) : 
+        		 unsigned int frequency,
+		         bool isgrid ) : 
 		Method(frequency, world, comm), _hills(), _height(height), _widths(widths), 
-		_derivatives(0), _bias(0), _hillfreq(hillfreq)
+		  _derivatives(0), _bias(0), _hillfreq(hillfreq), _isgrid(isgrid)
 		{
 		}
 
