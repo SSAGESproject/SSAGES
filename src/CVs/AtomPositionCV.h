@@ -26,9 +26,9 @@ namespace SSAGES
 		//! Current value of the CV.
 		double _val;
 
-		bool _fixx; //!< If \c True, constrain x dimension of CV.
-		bool _fixy; //!< If \c True, constrain y dimension of CV.
-		bool _fixz; //!< If \c True, constrain z dimension of CV.
+		bool _fixx; //!< If \c False, constrain x dimension of CV.
+		bool _fixy; //!< If \c False, constrain y dimension of CV.
+		bool _fixz; //!< If \c False, constrain z dimension of CV.
 
 		//! Gradient of the CV, dr/dxi.
 		std::vector<Vector3> _grad;
@@ -51,9 +51,9 @@ namespace SSAGES
 		/*!
 		 * \param atomid ID of the atom of interest.
 		 * \param position Point in (1,2,3)D space for the distance calculation.
-		 * \param fixx If \c True, constrain x dimension.
-		 * \param fixy If \c True, constrain y dimension.
-		 * \param fixz If \c True, constrain z dimension.
+		 * \param fixx If \c False, constrain x dimension.
+		 * \param fixy If \c False, constrain y dimension.
+		 * \param fixz If \c False, constrain z dimension.
 		 *
 		 * Construct an atom position CV. If a dimension is constrained, this
 		 * dimension does not contribute to the distance calculation. For
@@ -108,10 +108,14 @@ namespace SSAGES
 
 					// Compute norm and gradient.
 					auto r = norm(dx);
-					_grad[i][0] = dx[0]/r;
-					_grad[i][1] = dx[1]/r;
-					_grad[i][2] = dx[2]/r;
 					_val = r;
+					if (r == 0) {
+						_grad[i] = {0.0, 0.0, 0.0};
+					} else {
+						_grad[i][0] = dx[0]/r;
+						_grad[i][1] = dx[1]/r;
+						_grad[i][2] = dx[2]/r;
+					}
 				}
 				else
 				{
