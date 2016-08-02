@@ -546,7 +546,7 @@ namespace SSAGES
 					}
 				for(size_t j=0 ; j < _histdetails.size(); ++j)
 					{
-					_worldout << _Fworld[i+j*_Nworld.size()]/_Nworld[i] << " ";
+					_worldout << _Fworld[_dim*i+j]/std::max(_Nworld[i],_min) << " ";
 					}
 				}
 			_worldout.close();
