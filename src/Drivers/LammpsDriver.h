@@ -68,18 +68,35 @@ namespace SSAGES
 
 			std::string token;
 			std::istringstream ss(contents);
+			bool reading_restart = false;
 
 			if(_restartname != "none" && _readrestart)
+			{
 				_lammps->input->one(("read_restart " + _restartname + " remap").c_str());
+				while(std::getline(ss, token, '\n'))
+					if(token.find("#RESTART") != std::string::npos)
+						reading_restart = true;
+
+			}
+
+			// need these 2 lines
+			ss.clear(); // clear the `failbit` and `eofbit`
+			ss.seekg(0); // rewind
 
 			while(std::getline(ss, token, '\n'))
 			{
-				int seedspot = token.find("SEED");
-				int driverspot = token.find("DRIVER");
-				if(seedspot >= 0)
+				if(token.find("#RESTART") != std::string::npos)
+					reading_restart = false;
+
+				if(_readrestart && reading_restart)
+					continue;
+
+				std::size_t seedspot = token.find("SEED");
+				std::size_t driverspot = token.find("DRIVER");
+				if(seedspot != std::string::npos)
 					token.replace(seedspot, 4, std::to_string(dis(_gen)));
 
-				if(driverspot >= 0)
+				if(driverspot != std::string::npos)
 					token.replace(driverspot, 6, std::to_string(_wid));
 
 				_lammps->input->one(token.c_str());
