@@ -176,7 +176,7 @@ namespace SSAGES
 
 			double unitconv = json.get("Unit conversion", 0).asDouble();
 		
-			int Orthogonalization = json.get("Orthogonalization", 1).asInt();
+			int Orthogonalization = json.get("Orthogonalization", 0).asInt();
 
 			double timestep = json.get("timestep",2).asDouble();
 
@@ -197,9 +197,9 @@ namespace SSAGES
 			
 			auto freq = json.get("frequency", 1).asInt();
 
-			std::string readF = json.get("F from file", " ").asString();
+			std::string filename = json.get("filename", "F_out").asString();
 
-			auto* m = new ABF(world, comm, histdetails, restraint, timestep, min, readF, printdetails, FBackupInterv, unitconv, Orthogonalization, freq);
+			auto* m = new ABF(world, comm, histdetails, restraint, timestep, min, filename, printdetails, FBackupInterv, unitconv, Orthogonalization, freq);
 
 			method = static_cast<Method*>(m);
 
@@ -207,9 +207,9 @@ namespace SSAGES
 				{
 				std::vector<double> F;
 				std::vector<int> N;
-				for(auto& f : json["_F"])
+				for(auto& f : json["F"])
 					F.push_back(f.asDouble());
-				for(auto& n : json["_N"])
+				for(auto& n : json["N"])
 					N.push_back(n.asInt());
 
 				m->SetHistogram(F,N);
