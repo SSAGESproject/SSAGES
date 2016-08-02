@@ -76,8 +76,8 @@ namespace SSAGES
 			const auto& LatticeConstants = snapshot.GetLatticeConstants();
 			
 			// Some temp variables.
-			Vector3 pos1{{0, 0, 0}};
-			Vector3 pos2{{0, 0, 0}};
+			Vector3 pos1{0, 0, 0};
+			Vector3 pos2{0, 0, 0};
 			
 			size_t index1 = 0, index2 = 0;		
 			

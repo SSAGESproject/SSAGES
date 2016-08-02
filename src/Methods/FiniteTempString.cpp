@@ -148,9 +148,7 @@ namespace SSAGES
 			if(InCell(cvs)){
 				_run_SMD = false;
 				for(auto& force : forces){
-					for(auto& xyz : force){
-						xyz = 0.0;
-					}
+					force.setZero();
 				}
 			} else {
 				_cv_inside_iterator = 0;
@@ -182,8 +180,7 @@ namespace SSAGES
 			// Otherwise, reset system back to previous step  
 			if(!inside){
 				for(auto& force : forces)
-					for(auto& xyz : force)
-						xyz = 0.0;
+					force.setZero();
 
 				for(size_t i = 0; i < positions.size(); i++)
 					for(size_t j = 0; j < positions[i].size(); j++)

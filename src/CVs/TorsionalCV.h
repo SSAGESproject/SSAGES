@@ -141,18 +141,18 @@ namespace SSAGES
 			}
 
 			//Calculate pertinent vectors
-			Vector3 F{{
+			Vector3 F{
 				ix - jx,
 				iy - jy,
-				iz - jz}};
-			Vector3 G{{
+				iz - jz};
+			Vector3 G{
 				jx - kx,
 				jy - ky,
-				jz - kz}};
-			Vector3 H{{
+				jz - kz};
+			Vector3 H{
 				lx - kx,
 				ly - ky, 
-				lz - kz}};
+				lz - kz};
 
 			//Vector3 rij{{
 			//	ix - jx,
