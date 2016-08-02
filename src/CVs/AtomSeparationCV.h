@@ -5,8 +5,6 @@
 #include <array>
 #include <math.h>
 #include "../Utility/NearestNeighbor.h"
-#include "../Utility/VectorProducts.h"
-
 
 namespace SSAGES
 {
@@ -107,12 +105,9 @@ namespace SSAGES
 			Vector3 del = NearestNeighbor(LatticeConstants, pos1, pos2);
 
 			// Compute norm and gradient.
-			auto r = norm(del);
-			for(size_t i = 0; i<del.size(); ++i)
-				{
-				_grad[index1][i] = del[i]/r;
-				_grad[index2][i] = -del[i]/r;
-				}
+			auto r = del.norm();
+			_grad[index1] = del/r;
+			_grad[index2] = -del/r;
 			_val = r;
 		}
 

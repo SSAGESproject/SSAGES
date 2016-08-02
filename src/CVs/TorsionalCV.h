@@ -3,8 +3,7 @@
 #include "CollectiveVariable.h"
 
 #include <array>
-#include <math.h>
-#include "../Utility/VectorProducts.h"
+#include <cmath>
 
 namespace SSAGES
 {
@@ -80,56 +79,35 @@ namespace SSAGES
 			int iindex, jindex, kindex, lindex;
 
 			iindex = jindex = kindex = lindex = -1;
-			double ix = 0;
-			double iy = 0;
-			double iz = 0;
-			double jx = 0;
-			double jy = 0;
-			double jz = 0;
-			double kx = 0;
-			double ky = 0;
-			double kz = 0;
-			double lx = 0;
-			double ly = 0;
-			double lz = 0;
+			Vector3 xi, xj, xk, xl;
 			
 			// Loop through atom positions
 			for(size_t i = 0; i < pos.size(); ++i)
 			{
-				_grad[i][0] = 0;
-				_grad[i][1] = 0;
-				_grad[i][2] = 0;
+				_grad[i].setZero();
 				// If we are at the atom ID of interest, grab coordinates
 				if(ids[i] == _atomid1)
 				{
 					//coordinates for atom i
-					ix = pos[i][0];
-					iy = pos[i][1];
-					iz = pos[i][2];
+					xi = pos[i];
 					iindex = i;
 				}
 				if(ids[i] == _atomid2)
 				{
 					//coordinates for atom j
-					jx = pos[i][0];
-					jy = pos[i][1];
-					jz = pos[i][2];
+					xj = pos[i];
 					jindex = i;
 				}
 				if(ids[i] == _atomid3)
 				{
 					//coordinates for atom k
-					kx = pos[i][0];
-					ky = pos[i][1];
-					kz = pos[i][2];
+					xk = pos[i];
 					kindex = i;
 				}
 				if(ids[i] == _atomid4)
 				{
 					//coordinates for atom l
-					lx = pos[i][0];
-					ly = pos[i][1];
-					lz = pos[i][2];
+					xl = pos[i];
 					lindex = i;
 				}
 			}
@@ -141,78 +119,25 @@ namespace SSAGES
 			}
 
 			//Calculate pertinent vectors
-			Vector3 F{
-				ix - jx,
-				iy - jy,
-				iz - jz};
-			Vector3 G{
-				jx - kx,
-				jy - ky,
-				jz - kz};
-			Vector3 H{
-				lx - kx,
-				ly - ky, 
-				lz - kz};
-
-			//Vector3 rij{{
-			//	ix - jx,
-			//	iy - jy,
-			//	iz - jz}};
-			//Vector3 rkj{{
-			//	kx - jx,
-			//	ky - jy,
-			//	kz - jz}};
-			//Vector3 rkl{{
-			//	lx - kx,
-			//	ly - ky, 
-			//	lz - kz}};
-
-			//Calculate dihedral angle
-
-			//Vector3 rim, rln;
-			//double rkj2 = norm(rkj)*norm(rkj);
-			//for(size_t i = 0; i<3; i++)
-		//	{
-		//		rim[i] = rij[i] - DotProduct(rij,rkj)/(rkj2)*rkj[i];
-		//		rln[i] = DotProduct(rkl,rkj)/(rkj2)*rkj[i] - rkl[i];
-		//	}
-//
-//			double normrim, normrln;
-//
-//			normrim = norm(rim);
-//			normrln = norm(rln);
-//
-//			auto normkj = norm(rkj);
-//			Vector3 rijrkjprod;
-//			for(size_t i = 0; i < rijrkjprod.size();i++)
-//				rijrkjprod[i] = rij[i]*normkj;
-//			auto rkjrklcross = CrossProduct(rkj, rkl);
-//			auto y = DotProduct(rijrkjprod, rkjrklcross);
-//			auto rijrkjcross = CrossProduct(rij, rkj);
-//			auto x = DotProduct(rijrkjcross, rkjrklcross);
-//			_val = atan2(y, x);
-
-			Vector3 A = CrossProduct(F, G);
-			Vector3 B = CrossProduct(H, G);
-
-			auto y1 = CrossProduct(B, A);
-			auto y = DotProduct(y1, G)/norm(G);
-			auto x = DotProduct(A, B);
+			auto F = xi - xj;
+			auto G = xj - xk;
+			auto H = xl - xk;
+			auto A = F.cross(G);
+			auto B = H.cross(G);
+			
+			auto y = B.cross(A).dot(G.normalized());
+			auto x = A.dot(B);
 
 			_val = atan2(y, x);
 
 
-			double Zed = DotProduct(F, G)/(norm2(A)*norm(G));
-			double Ned = DotProduct(H, G)/(norm2(B)*norm(G));
+			auto Zed = F.dot(G.normalized())/A.dot(A); 
+			auto Ned = H.dot(G.normalized())/B.dot(B);
 
-			for(size_t i = 0; i<3; i++)
-			{
-				_grad[iindex][i] = -norm(G)*A[i]/norm2(A);
-				_grad[lindex][i] = norm(G)*B[i]/norm2(B);
-				_grad[jindex][i] = Zed*A[i] - Ned*B[i] - _grad[iindex][i];
-				_grad[kindex][i] = Ned*B[i] - Zed*A[i] - _grad[lindex][i];
-			}
-
+			_grad[iindex] = -G.norm()*A/A.dot(A);
+			_grad[lindex] = G.norm()*B/B.dot(B);
+			_grad[jindex] = Zed*A - Ned*B - _grad[iindex];
+			_grad[kindex] = Ned*B  - Zed*A - _grad[lindex];
 		}
 
 		//! Return the value of the CV.
@@ -239,15 +164,14 @@ namespace SSAGES
 			if(!_periodic)
 				return Location;
 
-			double pi = 3.14159;
-			int n = (int)(Location/(2.0*pi));
-			double PeriodicLocation = Location-2.0*n*pi;
+			int n = (int)(Location/(2.0*M_PI));
+			double PeriodicLocation = Location-2.0*n*M_PI;
 
-			PeriodicLocation = Location - n*pi;
-			if(PeriodicLocation < -pi)
-				PeriodicLocation += 2.0*pi;
-			else if (Location > pi)
-				PeriodicLocation -= 2.0*pi;
+			PeriodicLocation = Location - n*M_PI;
+			if(PeriodicLocation < -M_PI)
+				PeriodicLocation += 2.0*M_PI;
+			else if (Location > M_PI)
+				PeriodicLocation -= 2.0*M_PI;
 
 			return PeriodicLocation;
 		}
@@ -282,7 +206,6 @@ namespace SSAGES
 		 */
 		double GetDifference(const double Location) const override
 		{
-			double pi = 3.14159;
 			double PeriodicDiff = _val - Location;
 
 			if(!_periodic)
@@ -290,10 +213,10 @@ namespace SSAGES
 
 			PeriodicDiff = GetPeriodicValue(PeriodicDiff);
 
-			if(PeriodicDiff > pi)
-				PeriodicDiff -= 2.0*pi;
-			else if(PeriodicDiff < -pi)
-				PeriodicDiff += 2.0*pi;
+			if(PeriodicDiff > M_PI)
+				PeriodicDiff -= 2.0*M_PI;
+			else if(PeriodicDiff < -M_PI)
+				PeriodicDiff += 2.0*M_PI;
 
 			return PeriodicDiff;
 		}
