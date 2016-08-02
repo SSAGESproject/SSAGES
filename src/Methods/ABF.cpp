@@ -218,6 +218,7 @@ namespace SSAGES
 					index = index % modulo;
 					}
 				}
+			_worldout << std::endl;
 			}
 		
 		_walkerout << std::endl;
@@ -413,7 +414,10 @@ namespace SSAGES
 						}		
 					}
 
-				
+				// Sync _F and _N across all walkers.
+				MPI_Allreduce(&_N[0], &_Nworld[0], _N.size(), MPI_INT, MPI_SUM, _world);
+				MPI_Allreduce(&_F[0], &_Fworld[0], _F.size(), MPI_DOUBLE, MPI_SUM, _world);
+
 				// Normalize to ensure JW = I
 				wdotp = wdotp/dellensq[i];
 				genforce[i] = _unitconv*(3*wdotp-4*_wdotpold[i]+_wdotpold[i+cvs.size()])/(2*_timestep) + _Fold[i];
