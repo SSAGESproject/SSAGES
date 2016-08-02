@@ -13,9 +13,9 @@ TEST(TorsionalCV, DefaultBehavior)
 	Snapshot* snap = new Snapshot(comm, 0);
 
 	auto& pos = snap->GetPositions();
-	pos.resize(5);
+	pos.resize(6);
 	auto& ids = snap->GetAtomIDs();
-	ids.resize(5);
+	ids.resize(6);
 
 	for(unsigned int i =0; i <ids.size();i++)
 		ids[i] = i+1;
@@ -40,15 +40,23 @@ TEST(TorsionalCV, DefaultBehavior)
 	pos[4][1] = 1;
 	pos[4][2] = 1;
 
+	pos[5][0] = 1;
+	pos[5][1] = 0;
+	pos[5][2] = 0;
+
 	TorsionalCV* tortest = new TorsionalCV(1, 2, 3, 4, true);
 	TorsionalCV* tortest2 = new TorsionalCV(1, 2, 3, 5, true);
+	TorsionalCV* tortest3 = new TorsionalCV(1, 2, 3, 6, true);
 
 	tortest->Initialize(*snap);
 	tortest2->Initialize(*snap);
+	tortest3->Initialize(*snap);
 
 	tortest->Evaluate(*snap);
 	tortest2->Evaluate(*snap);
+	tortest3->Evaluate(*snap);
 
-	ASSERT_NEAR(tortest->GetValue(), 0, 0.01);
-	ASSERT_NEAR(tortest2->GetValue(), 1.570796, 0.01);
+	EXPECT_NEAR(tortest->GetValue(), 3.14159, 0.01);
+	EXPECT_NEAR(tortest2->GetValue(), -1.570796, 0.01);
+	EXPECT_NEAR(tortest3->GetValue(), 0, 0.01);
 }
