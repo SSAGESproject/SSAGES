@@ -404,7 +404,6 @@ namespace SSAGES
             //Update CV values to lie on a regular mesh
             _centers[i] = spl(_alpha); 
         }
-        //Print a simple text file to be analyzed by Python script
         for(size_t i = 0; i < _centers.size(); i++)
         {//Fill up world_string
             //_worldstring is indexed as cv followed by node

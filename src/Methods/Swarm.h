@@ -96,7 +96,30 @@ namespace SSAGES
             /*!
              * Constructs an instance of the swarm of trajectories method.
              */
-            Swarm(boost::mpi::communicator& world, boost::mpi::communicator& com, const std::vector<double>& centers, unsigned int NumNodes, double spring, unsigned int frequency, unsigned int InitialSteps, unsigned int HarvestLength, unsigned int NumberTrajectories, unsigned int SwarmLength) : Method(frequency, world, com), _centers(centers), _cv_drift(), _cv_start(), _alpha(), _mpiid(0), _worldstring(), _currentiter(0), _initialize_steps(InitialSteps), _harvest_length(HarvestLength), _number_trajectories(NumberTrajectories), _swarm_length(SwarmLength), _iterator(0), _spring(spring), _numnodes(NumNodes)
+            Swarm(boost::mpi::communicator& world, 
+                    boost::mpi::communicator& com, 
+                    const std::vector<double>& centers, 
+                    unsigned int NumNodes, 
+                    double spring, 
+                    unsigned int frequency, 
+                    unsigned int InitialSteps, 
+                    unsigned int HarvestLength, 
+                    unsigned int NumberTrajectories, 
+                    unsigned int SwarmLength) : 
+                Method(frequency, world, com), 
+                _centers(centers), 
+                _cv_drift(), 
+                _cv_start(), 
+                _alpha(), 
+                _mpiid(0), 
+                _worldstring(), 
+                _currentiter(0), 
+                _initialize_steps(InitialSteps), 
+                _harvest_length(HarvestLength), 
+                _number_trajectories(NumberTrajectories), 
+                _swarm_length(SwarmLength), 
+                _iterator(0), _spring(spring), 
+                _numnodes(NumNodes)
         {
             
         }
