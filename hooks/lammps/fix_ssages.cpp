@@ -277,28 +277,34 @@ namespace LAMMPS_NS
 		const auto& ids = _snapshot->GetAtomIDs();
 		const auto& types = _snapshot->GetAtomTypes();
 
-		// Loop through all atoms and set their values
-		// Positions. This is predicatd on the fact that the 
-		// allgatherv_serialize keeps local processor information 
-		// FIRST. This means that the first nlocal entries are the 
-		// data corresponding to that on the local processor.
-		for (int i = 0; i < atom->nlocal; ++i)
+		// Sync back only local atom data. all_gather guarantees 
+		// sorting of data in vector based on rank. Compute offset
+		// based on rank and sync back only the appropriate data.
+		std::vector<int> natoms;
+		auto& comm = _snapshot->GetCommunicator();
+		natoms.reserve(comm.size());
+		boost::mpi::all_gather(comm, atom->nlocal, natoms);
+		auto j = std::accumulate(natoms.begin(), natoms.begin() + comm.rank(), 0);
+
+		for (int i = 0; i < atom->nlocal; ++i, ++j)
 		{
-			atom->x[i][0] = pos[i][0]; //x 
-			atom->x[i][1] = pos[i][1]; //y
-			atom->x[i][2] = pos[i][2]; //z
-			atom->f[i][0] = frc[i][0]; //force->x
-			atom->f[i][1] = frc[i][1]; //force->y
-			atom->f[i][2] = frc[i][2]; //force->z
+			atom->x[i][0] = pos[j][0]; //x 
+			atom->x[i][1] = pos[j][1]; //y
+			atom->x[i][2] = pos[j][2]; //z
+			atom->f[i][0] = frc[j][0]; //force->x
+			atom->f[i][1] = frc[j][1]; //force->y
+			atom->f[i][2] = frc[j][2]; //force->z
+			atom->v[i][0] = vel[j][0]; //velocity->x
+			atom->v[i][1] = vel[j][1]; //velocity->y
+			atom->v[i][2] = vel[j][2]; //velocity->z
+			atom->tag[i] = ids[j];
+			atom->type[i] = types[j];
+			
 			// Current masses can only be changed if using
 			// per atom masses in lammps
 			if(atom->rmass_flag)
-				atom->rmass[i] = masses[i];
-			atom->v[i][0] = vel[i][0]; //velocity->x
-			atom->v[i][1] = vel[i][1]; //velocity->y
-			atom->v[i][2] = vel[i][2]; //velocity->z
-			atom->tag[i] = ids[i];
-			atom->type[i] = types[i];
+				atom->rmass[i] = masses[j];
+			
 		}
 
 		// LAMMPS computes will reset thermo data based on
