@@ -78,9 +78,7 @@ namespace SSAGES
 				{
 					// We set the gradient to zero, and only 
 					// set to unity the dimension of interest.
-					_grad[i][0] = 0;
-					_grad[i][1] = 0;
-					_grad[i][2] = 0;
+					_grad[i].setZero();
 					switch(_index)
 					{
 						case 0:
@@ -99,9 +97,7 @@ namespace SSAGES
 				}
 				else
 				{
-					_grad[i][0] = 0;
-					_grad[i][1] = 0;
-					_grad[i][2] = 0;
+					_grad[i].setZero();
 				}
 			}
 		}

@@ -54,11 +54,11 @@ namespace SSAGES
 		int _NDim; //!< Grid dimension.
 
 		//! Array storing grid data.
-		std::vector<std::pair<double,std::vector<double>>> _flatvector;
+		std::vector<std::pair<std::vector<double>, std::vector<double>>> _flatvector;
 	
 	public:
 		//! Iterator for traversing the Grid.
-		using const_iterator = std::vector<std::pair<double, std::vector<double>>>::const_iterator;
+		using const_iterator = std::vector<std::pair<std::vector<double>, std::vector<double>>>::const_iterator;
 
 		//! Destructor.
 		virtual ~Grid(){}
@@ -103,7 +103,6 @@ namespace SSAGES
 			return vertices;
 		}
 
-
 		//! Get the location at the current indices.
 		/*!
 		 * \param indices Indices specifying grid point.
@@ -121,7 +120,7 @@ namespace SSAGES
 		 */
 		double GetValue(const std::vector<int>& indices) const
 		{
-			return _flatvector[FlattenIndices(indices,_num_points)].first;
+			return _flatvector[FlattenIndices(indices,_num_points)].first[0];
 		}
 
 		//! Set the value at the current incices.
@@ -131,7 +130,33 @@ namespace SSAGES
 		 */
 		void SetValue(const std::vector<int>& indices, double value)
 		{
-			_flatvector[FlattenIndices(indices,_num_points)].first = value;
+			_flatvector[FlattenIndices(indices,_num_points)].first[0] = value;
+		}
+
+		//! Get the extra at the current indices.
+		/*!
+		 * \param indices Indices specifying grid point.
+		 * \return Value at the specified grid point.
+		 */
+		std::vector<double> GetExtra(const std::vector<int>& indices) const
+		{
+			const std::vector<double>& temp = _flatvector[FlattenIndices(indices,_num_points)].first;
+			std::vector<double> temp2(&temp[1], &temp[temp.size()-1]);
+			return temp2;
+		}
+
+		//! Set the extra at the current incices.
+		/*!
+		 * \param indices Indices specifying the grid point.
+		 * \param value New value for the grid point.
+		 */
+		void SetExtra(const std::vector<int>& indices, std::vector<double> value)
+		{
+			int flatten = FlattenIndices(indices, _num_points);
+			if(value.size() != _flatvector[flatten].first.size()-1)
+				throw std::out_of_range("Vector field in grid is not the same size as value");
+			for(size_t i = 0; i < value.size(); i++)
+				_flatvector[flatten].first[i+1] = value[i];
 		}
 
 		//! Write Grid to console
@@ -142,7 +167,7 @@ namespace SSAGES
 		{
 			for(size_t i = 0; i<_flatvector.size(); i++)
 			{
-				std::cout << _flatvector[i].first<<" ";
+				std::cout << _flatvector[i].first[0]<<" ";
 				for(size_t j = 0; j<_flatvector[i].second.size(); j++)
 					std::cout<<_flatvector[i].second[j]<< " ";
 				std::cout<<std::endl;
@@ -229,6 +254,12 @@ namespace SSAGES
 		 */
 		static Grid* BuildGrid(const Json::Value& json, 
 							   const std::string& path);
+
+		virtual std::vector<std::vector<int>> GetVoxel(const std::vector<double> &val) const = 0;
+
+		virtual double InterpolateValue(const std::vector<double> &val) const = 0;
+
+		virtual double InterpolateDeriv(const std::vector<double> &val, int dim) const = 0;
 
 		//! \copydoc Serializable::Serialize()
 		virtual void Serialize(Json::Value& json) const override

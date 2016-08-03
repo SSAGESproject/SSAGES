@@ -24,25 +24,29 @@ namespace SSAGES
 	private:	
 		//! To store running total. 
 		/*!
-		 *A 1D vector, but will hold N-dimensional data, where N is number of CVs +1. This will be size (CVbinNr1*CVbinNr2*..)*3.
+		 * A 1D vector, but will hold N-dimensional data, where N is number of
+		 * CVs +1. This will be size (CVbinNr1*CVbinNr2*..)*3.
 		 */
 		std::vector<double> _F;
 
 		//! Will hold the global total, synced to every time step. 
 		/*!
-		 *A 1D vector, but will hold N-dimensional data, where N is number of CVs +1. This will be size (CVbinNr1*CVbinNr2*..)*3.
+		 * A 1D vector, but will hold N-dimensional data, where N is number of
+		 * CVs +1. This will be size (CVbinNr1*CVbinNr2*..)*3.
 		 */
 		std::vector<double> _Fworld;
 
 		//! To store number of hits at a given CV bin.
 		/*!
-		 *A 1D vector, but will hold N-dimensional data, where N is number of CVs. This will be size (CVbinNr1*CVbinNr2*..).
+		 * A 1D vector, but will hold N-dimensional data, where N is number of
+		 * CVs. This will be size (CVbinNr1*CVbinNr2*..).
 		 */
 		std::vector<int> _N;
 
 		//! To store number of hits at a given CV bin.
 		/*!
-		 *A 1D vector, but will hold N-dimensional data, where N is number of CVs. This will be size (CVbinNr1*CVbinNr2*..).
+		 * A 1D vector, but will hold N-dimensional data, where N is number of
+		 * CVs. This will be size (CVbinNr1*CVbinNr2*..).
 		 */
 		std::vector<int> _Nworld;
 
@@ -57,7 +61,8 @@ namespace SSAGES
 		 */
 		std::vector<std::vector<double>> _restraint;		
 
-		//! The minimum number of hits required before full biasing, bias is _F[i]/max(_N[i],_min).
+		//! The minimum number of hits required before full biasing, bias is
+		//!_F[i]/max(_N[i],_min).
 		int _min;
 
 		//! To hold last iterations wdotp value for derivative
@@ -66,14 +71,19 @@ namespace SSAGES
 		//! To hold last iterations _F value for removing bias
 		std::vector<double> _Fold;
 
-		//! Function to return bin coordinate to address _F and _N, given a vector [CV1,CV2..] values
+		//! Get coordinates of histogram bin corresponding to given list of CVs.
+		/*!
+		 * \param cvs List of CVs.
+		 *
+		 * \return Index of histogram bin.
+		 *
+		 * Function to return bin coordinate to address _F and _N, given a vector
+		 * [CV1,CV2..] values.
+		 */
 		int histCoords(const CVList& cvs);
 
 		//! Thermodynamic beta.
 		double _beta;
-
-		//! To read in estimate of F.
-		std::string _readF; 
 
 		//! Biases.	
 		std::vector<std::vector<double>> _biases;
@@ -81,8 +91,14 @@ namespace SSAGES
 		//! Number of CVs in system
 		unsigned int _dim;
 
-		//! Output stream for string data.
-		std::ofstream _stringout;
+		//! Output stream for walker-specific data.
+		std::ofstream _walkerout;
+
+		//! Output stream for world data.
+		std::ofstream _worldout;
+
+		//! File name for world data
+		std::string _filename;
 
 		//! The node this belongs to
 		unsigned int _mpiid;
@@ -100,7 +116,10 @@ namespace SSAGES
 
 		//! Vector to hold print out information
 		/*! 
-		 * [Print every how many timesteps?, Print CVs?, Print Orthogonalization Correction?, Print Normalization Factor?, Print Gradient?, Print Genforce?, Print Coords?, Print Restraint info?, Print Biases?] 
+		 * [Print every how many timesteps?, Print CVs?, Print
+		 * Orthogonalization Correction?, Print Normalization Factor?, Print
+		 * Gradient?, Print Genforce?, Print Coords?, Print Restraint info?,
+		 * Print Biases?]
 		 */
 		std::vector<int> _printdetails;
 
@@ -113,8 +132,9 @@ namespace SSAGES
 		//! Unit Conversion Constant from W dot P to Force
 		/*!
 		 * It is crucial that unit conversion is entered correctly.
-                 * Unit conversion from d(momentum)/d(time) to force for the simulation. 
-		 * For LAMMPS using units real, this is 2390.06 (gram.angstrom/mole.femtosecond^2 -> kcal/mole.angstrom)
+		 * Unit conversion from d(momentum)/d(time) to force for the simulation.
+		 * For LAMMPS using units real, this is
+		 * 2390.06 (gram.angstrom/mole.femtosecond^2 -> kcal/mole.angstrom)
 		 */
 		double _unitconv;
 	
@@ -136,7 +156,7 @@ namespace SSAGES
 		 * \param restraint Minimum, maximum and spring constant for CV restraints.
 		 * \param timestep Simulation time step.
 		 * \param min Minimum number of hist in a histogram bin before biasing is applied.
-		 * \param readF Prior histogram to restart simulation or to provide a guess.
+		 * \param filename Name for output file.
 		 * \param printdetails Set up what information to print and frequency of printing.
 		 * \param FBackupInterv Set how often the adaptive force histogram is saved.
 		 * \param unitconv Unit conversion from d(momentum)/d(time) to force.
@@ -153,7 +173,7 @@ namespace SSAGES
 			std::vector<std::vector<double>> restraint,
 			double timestep,
 			double min,
-			std::string readF,
+			std::string filename,
 			std::vector<int> printdetails,
 			int FBackupInterv,
 			double unitconv,
@@ -161,7 +181,7 @@ namespace SSAGES
 			unsigned int frequency) :
 		Method(frequency, world, comm), _F(0), _Fworld(0), _N(0), _Nworld(0),
 		_restraint(restraint), _min(min), _wdotpold(0), _Fold(0), _beta(0),
-		_readF(readF), _biases(0), _dim(0), _mpiid(0), _histdetails(histdetails),
+		_filename(filename), _biases(0), _dim(0), _mpiid(0), _histdetails(histdetails),
 		_printdetails(printdetails), _FBackupInterv(FBackupInterv),
 		_unitconv(unitconv), _Orthogonalization(Orthogonalization),
 		_timestep(timestep)
@@ -189,10 +209,10 @@ namespace SSAGES
 		 */
 		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
 
-		//! Set values of the histograms.
+		//! Set biasing histogram
 		/*!
-		 * \param F Values of the stored total.
-		 * \param N Values of the numbers of hits.
+		 * \param F Vector containing values for the running total.
+		 * \param N Vector containing number of hits for bin intervals.
 		 */
 		void SetHistogram(const std::vector<double>& F, const std::vector<int>& N)
 		{
@@ -200,9 +220,9 @@ namespace SSAGES
 			_N = N;
 		}		
 		
-		//! Set the method iteration.
+		//! Set iteration of the method
 		/*!
-		 * \param iter New value of the iteration.
+		 * \param iter New value for the iteration counter.
 		 */
 		void SetIteration(const int iter)
 		{
@@ -248,8 +268,9 @@ namespace SSAGES
 			for(size_t i = 0; i < _N.size(); ++i)
 				json["N"].append(_N[i]);
 
-			json["iteration"] = _iteration;		
-		
+			json["iteration"] = _iteration;
+			
+			json["filename"] = _filename;		
 		
 		}
 

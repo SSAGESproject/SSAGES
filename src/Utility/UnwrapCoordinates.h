@@ -5,13 +5,19 @@
 
 namespace SSAGES
 {
-//! Helper function to unwrap coordinates .
+	//! Helper function to unwrap coordinates.
 	/*!
-	 *  Converts Cartesian to fractional, adjusts the fractional coordinates to appropriate images,
-	 *  then converts back to Cartesian. Returns unwrapped coordinates; Vector 3. 
-	 *  \ingroup Utility
+	 * \param LatticeConstants Lattice Constants (a, b, c, alpha, beta, gamma).
+	 * \param image Mirror images in the three dimensions.
+	 * \param coord Coordinates.
+	 *
+	 * \return Vector3 containing the unwrapped coordinates.
+	 *
+	 * Converts Cartesian to fractional, adjusts the fractional coordinates
+	 * to appropriate images, then converts back to Cartesian.
+	 *
+	 * \ingroup Utility
 	 */
-
 	Vector3 UnwrapCoordinates(const std::array<double, 6>& LatticeConstants, const Vector3& image, const Vector3& coord)
 
 		//double unwrap_coord(const Vector3& coord, Vector3& image, Vector3& b, Vector3& a)

@@ -6,15 +6,18 @@
 
 namespace SSAGES
 {
-	//! Helper functions to convert to and from fractional coordinates using lattice parameters.
+	//! Helper function to find matrix to convert to fractional coordinates
+	//! from cartesian.
 	/*!
-	 *  c2f converts from cartesian to fractional coordinates, given lattice parameters a, b, c and alpha, beta and gamma.
-	 *  f2c converts from fractional to cartesian coordinates, given lattice parameters a, b, c and alpha, beta and gamma.
-	 *  Each function returns a Vector3.
-	 *  \ingroup Utility
+	 * \param LC Lattice constants of simulation box.
+	 *
+	 * \return Matrix to convert cartesian to fractional coordinates.
+	 *
+	 * c2f converts from cartesian to fractional coordinates, given lattice
+	 * parameters a, b, c and alpha, beta and gamma.
+	 *
+	 * \ingroup Utility
 	 */
-
-	//! Helper function to find matrix to convert to fractional coordinates from cartesian.
 		std::array<std::array<double,3>,3> uc_c2f(const std::array<double, 6>& LC)
 		{
 			std::array<std::array<double,3>,3> c2f;
@@ -39,8 +42,7 @@ namespace SSAGES
 		//! Helper function to find matrix to convert to cartesian coordinates
 		//! from fractional.
 		/*!
-		 * \param b Box lengths (a, b, c)
-		 * \param a Box angles (alpha, beta, gamma)
+		 * \param LC Lattice constants (a, b, c, alpha, beta, gamma).
 		 *
 		 * \return Matrix for conversions from fractional to cartesian coordinates.
 		 *

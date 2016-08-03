@@ -4,15 +4,26 @@
 #include <boost/mpi.hpp>
 #include "json/json.h"
 #include "JSON/Serializable.h"
+#include "types.h"
+
+namespace boost
+{
+	namespace serialization
+	{
+		template<class Archive, typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+    	inline void serialize(
+        	Archive & ar, 
+        	Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> & t, 
+        	const unsigned int
+    	) 
+	    {       
+    		ar & boost::serialization::make_array(t.data(), t.size());
+	    }
+	}
+}
 
 namespace SSAGES
 {
-    //! Three-dimensional vector.
-	using Vector3 = std::array<double, 3>;
-
-    //! List of integers.
-	using Label = std::vector<int>;
-	
 	//! Class containing a snapshot of the current simulation in time.
 	/*!
 	 * \ingroup core

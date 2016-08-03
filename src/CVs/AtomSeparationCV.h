@@ -5,8 +5,6 @@
 #include <array>
 #include <math.h>
 #include "../Utility/NearestNeighbor.h"
-#include "../Utility/VectorProducts.h"
-
 
 namespace SSAGES
 {
@@ -76,8 +74,8 @@ namespace SSAGES
 			const auto& LatticeConstants = snapshot.GetLatticeConstants();
 			
 			// Some temp variables.
-			Vector3 pos1{{0, 0, 0}};
-			Vector3 pos2{{0, 0, 0}};
+			Vector3 pos1{0, 0, 0};
+			Vector3 pos2{0, 0, 0};
 			
 			size_t index1 = 0, index2 = 0;		
 			
@@ -107,12 +105,9 @@ namespace SSAGES
 			Vector3 del = NearestNeighbor(LatticeConstants, pos1, pos2);
 
 			// Compute norm and gradient.
-			auto r = norm(del);
-			for(size_t i = 0; i<del.size(); ++i)
-				{
-				_grad[index1][i] = del[i]/r;
-				_grad[index2][i] = -del[i]/r;
-				}
+			auto r = del.norm();
+			_grad[index1] = del/r;
+			_grad[index2] = -del/r;
 			_val = r;
 		}
 
@@ -122,7 +117,6 @@ namespace SSAGES
 		 */
 		double GetValue() const override 
 		{	 
-			std::cout << _val <<std::endl;
 			return _val; 
 		}
 
