@@ -112,105 +112,71 @@ namespace SSAGES
 	// Pre-simulation hook.
 	void ABF::PreSimulation(Snapshot* snapshot, const CVList& cvs)
 	{
-		_iteration = 0;
 		_mpiid = snapshot->GetWalkerID();
 		char file[1024];
 		sprintf(file, "node-%04d.log",_mpiid);
-	 	_stringout.open(file);
+	 	_walkerout.open(file);
+
+		if(_mpiid == 0)
+		{
+		 	_worldout.open(_filename.c_str());
+		 }
+		
 		// Convenience. Number of CVs.
 		_dim = cvs.size();
 
 		// Size and initialize _Fold
 		_Fold.resize(_dim);
 		for(size_t i = 0; i < _Fold.size(); ++i)
+			{
 			_Fold[i] = 0;
-
-		// Size and initialize _F and _N		
-		_F.resize(1);
-		_N.resize(1);
+			}
 		
+		// Size and initialize _Fworld and _Nworld		
 		_Fworld.resize(1);
 		_Nworld.resize(1);
+
 		for(size_t i = 0; i < _dim; ++i)
 			{
-			_F.resize(_F.size()*_histdetails[i][2]);
-			_N.resize(_N.size()*_histdetails[i][2]);
-
 			_Fworld.resize(_Fworld.size()*_histdetails[i][2]);
 			_Nworld.resize(_Nworld.size()*_histdetails[i][2]);
 			}
-
-		_F.resize(_F.size()*_dim);
 		_Fworld.resize(_Fworld.size()*_dim);
+
+
+		// Check if _F, _N is loaded or not
+		if (_F.size() == _Fworld.size() && _N.size() == _Nworld.size())
+		{		
+			_walkerout << "Loaded histogram from user input." << std::endl;
+			_walkerout << "Restarting from iteration "<< _iteration <<"." << std::endl;
+		}
+
+		else if (_F.size() == 0 && _N.size() == 0)
+		{		
+			_walkerout << "No user provided initial histogram was found in input. Initializing to zero." << std::endl;
+			_F.resize(1);
+			_N.resize(1);
+			for(size_t i = 0; i < _dim; ++i)
+				{
+				_F.resize(_F.size()*_histdetails[i][2]);
+				_N.resize(_N.size()*_histdetails[i][2]);
+				}
+			_F.resize(_F.size()*_dim);
+		}
+		else
+		{
+			_walkerout << "F or N was specified in input, but failed to load correctly. Please check that dimension and the length are correct. Please refer to the manual to see an example on loading histograms.";
+			
+			if(_mpiid != 0)
+		 		_worldout.open(_filename.c_str());
+			_worldout << "F or N was specified in input, but failed to load correctly for at least one walker. Please check that dimension and the length are correct. Refer to walker outputs to find which walker(s) had errors";
+			_worldout.close();
+				
+			std::cerr << "F or N was specified in input, but failed to load correctly for at least one walker. Please check that dimension and the length are correct. Refer to walker outputs to find which walker(s) had errors";
+			_walkerout.close();			
+			exit(EXIT_FAILURE);
+		}
 		
-
-
-		// readF == " " means do not load a histogram, start from scratch.
-		if (_readF == " ")
-			{
-			_stringout << "No input file specified. Starting from an empty histogram." << std::endl;
-			for(size_t i = 0; i < _N.size(); ++i)
-				{
-				for(size_t j = 0; j < _dim; ++j)
-					{
-					_F[_dim*i+j] = 0;
-					}
-				_N[i] = 0;
-				}
-			}
-		else 
-			{
-			_stringout << "There is an input file specified. Input file is: " << _readF << std::endl;
-			std::fstream input(_readF, std::ios_base::in);
-			if(input.is_open())
-				{
-				_stringout << "Loading F estimate from file." <<std::endl;
-				unsigned int dimFile;
-				input >> dimFile;
-				unsigned int len;
-				input >> len;
-				_stringout << "File dim: "<< dimFile << "; File length: " << len << std::endl;
-		
-				for(size_t i=0; i < dimFile; ++i)
-					input.ignore(256,']');
-						
-
-				// Check if fed histogram is the correct dimension and number of bins.
-				if (dimFile == _dim && len == _N.size())
-					{
-					int tempN;
-					double tempF;
-					for(size_t i = 0; i < _N.size(); ++i)
-						{
-						for(size_t j = 0; j < _dim; ++j)
-							{
-							input >> tempF;
-							_F[_dim*i+j] = tempF;
-							}						
-						input >> tempN;
-						_N[i] = tempN;
-						}
-					}
-				else
-					{
-					std::cerr << "An input file was specified, but failed to load correctly. Please check that dimension and the length are correct, and the header is correct. Please refer to the manual to see an example on loading histograms.";
-					exit(EXIT_FAILURE);
-					//_stringout << "Dimension or Number of Bins mismatch! Initializing Empty Histogram Instead!" << std::endl;
-					//for(size_t i = 0; i < _F.size(); ++i)
-						//{
-						//_F[i].resize(dim);
-						//for(size_t j = 0; j < dim; ++j)
-						//	_F[i][j] = 0;
-						//_N[i] = 0;
-						//}
-					}
-				}
-			else
-				{
-				std::cerr << "An input file was specified, but was not found.";
-				exit(EXIT_FAILURE);
-				}
-			}
 
 		// Janky way to set the size right.
 		_biases.resize((cvs[0]->GetGradient()).size());
@@ -226,52 +192,59 @@ namespace SSAGES
 		//One wdotpold for each CV
 		_wdotpold.resize(2*cvs.size());
 		for(size_t i = 0; i < _wdotpold.size(); ++i)
-			_wdotpold[i] = 0.0;
-		
-		// Print out the coordinate system for _F and _N
-		_stringout << "Histogram grids are set up. The coordinates for Generalized Force Vector Field and N, in order of CVs in columns are:";
-
-		int modulo = 1;
-		int index;
-		for(size_t i = 0; i < _N.size(); ++i)
 			{
-			index = i;
-			_stringout << std::endl;
-			for(size_t j=0 ; j < _histdetails.size(); ++j)
+			_wdotpold[i] = 0.0;
+			}
+
+		// Print out the coordinate system for _F and _N
+		if(_mpiid == 0)
+			{
+			_worldout << "Histogram grids are set up. The coordinates for Generalized Force Vector Field and N, in order of CVs in columns are:";
+
+			int modulo = 1;
+			int index;
+			for(size_t i = 0; i < _N.size(); ++i)
 				{
-				modulo = 1;
-				for(size_t k=j+1 ; k <_histdetails.size(); ++k)
+				index = i;
+				_worldout << std::endl;
+				for(size_t j=0 ; j < _histdetails.size(); ++j)
 					{
-					modulo = modulo * _histdetails[k][2];
+					modulo = 1;
+					for(size_t k=j+1 ; k <_histdetails.size(); ++k)
+						{
+						modulo = modulo * _histdetails[k][2];
+						}
+					_worldout << (floor(index/modulo)+0.5)*((_histdetails[j][1]-_histdetails[j][0])/_histdetails[j][2]) + _histdetails[j][0] << " ";
+					index = index % modulo;
 					}
-				_stringout << (floor(index/modulo)+0.5)*((_histdetails[j][1]-_histdetails[j][0])/_histdetails[j][2]) + _histdetails[j][0] << " ";
-				index = index % modulo;
 				}
+			_worldout << std::endl;
 			}
 		
-		_stringout << std::endl;
-		_stringout << std::endl;
-		_stringout << "Start of simulation. Printing out 1) Dimensionality of F 2) Total Length of N 3) Total Length of F, 4) CV details 5) Initial histogrammed F estimate." << std::endl;
-		_stringout << _dim << std::endl;
-		_stringout << _N.size() <<std::endl;
-		_stringout << _F.size() <<std::endl;
-		_stringout << "CV bounds and nr of bins are: ";
+		_walkerout << std::endl;
+		_walkerout << std::endl;
+		_walkerout << "Start of simulation. Printing out 1) Dimensionality of F 2) Total Length of N 3) Total Length of F, 4) CV details 5) Initial histogrammed F estimate." << std::endl;
+		_walkerout << _dim << std::endl;
+		_walkerout << _N.size() <<std::endl;
+		_walkerout << _F.size() <<std::endl;
+		_walkerout << "CV bounds and nr of bins are: ";
 		for(size_t i = 0; i < _histdetails.size(); ++i)
 			{
-			_stringout << "[" << _histdetails[i][0] << "," << _histdetails[i][1] << "," << _histdetails[i][2] << "] ";
+			_walkerout << "[" << _histdetails[i][0] << "," << _histdetails[i][1] << "," << _histdetails[i][2] << "] ";
 			}
-		_stringout << std::endl;
+		_walkerout << std::endl;
 
 		// Print out the initial estimate. User can verify whether their provided estimate was successfully loaded.
+		_walkerout << "The initial F and N for this walker is printed below. If loaded from an input, please check for accuracy." << std::endl;
 		for(size_t i = 0; i < _N.size(); ++i)
 				{
 				for(size_t j = 0; j < _dim; ++j)
 					{
-					_stringout << _F[_dim*i+j] << " ";
+					_walkerout << _F[_dim*i+j] << " ";
 					}
-				_stringout << _N[i] << std::endl;
+				_walkerout << _N[i] << std::endl;
 				}
-			_stringout << std::endl;
+			_walkerout << std::endl;
 		
 	}
 
@@ -289,7 +262,7 @@ namespace SSAGES
 		++_iteration;
 		// Feedback on Iteration Number. Helps with subsequent prints and comparing with log files.
 		if(_iteration % _printdetails[0] == 0)
-			_stringout << "Iteration: " <<_iteration;		
+			_walkerout << "Iteration: " <<_iteration;		
 		
 		// One genforce per CV.		
 		std::vector<double> genforce(cvs.size());
@@ -332,7 +305,7 @@ namespace SSAGES
 				{
 				//Feedback on CVs.
 				if(_iteration % _printdetails[0] == 0 && _printdetails[1] > 0)
-					_stringout << " CV[" << i << "]: " << cvs[i]->GetValue();
+					_walkerout << " CV[" << i << "]: " << cvs[i]->GetValue();
 				
 				// Get the gradient of current CV.
 				auto& grad = cvs[i]->GetGradient();
@@ -346,7 +319,7 @@ namespace SSAGES
 				if(_Orthogonalization) // Begin Gram-Schmidt Orthogonalization here. For all but the first CV, will remove the projection of every other CVs vector field from the current CV projector.
 					{
 					if(_iteration % _printdetails[0] == 0 && _printdetails[2] > 0 && i > 0)
-						_stringout << " Orthogonalization Corrector vector is: ";
+						_walkerout << " Orthogonalization Corrector vector is: ";
 					for(size_t j = 0; j < i; ++j)
 						{
 						for(size_t k = 0; k < grad.size(); ++k)
@@ -355,7 +328,7 @@ namespace SSAGES
 								{
 								projector[i][3*k+l] -= grad[k][l]*projector[j][3*k+l]/dellensq[j];
 								if(_iteration % _printdetails[0] == 0 && _printdetails[2] > 0 && grad[k][l] != 0)
-									_stringout <<  projector[i][3*k+l] << " ";
+									_walkerout <<  projector[i][3*k+l] << " ";
 								}
 							}
 						}
@@ -377,7 +350,7 @@ namespace SSAGES
 				
 				// Feedback on dellensq.
 				if(_iteration % _printdetails[0] == 0 && _printdetails[3] > 0)
-					_stringout << " Normalization factor is: " << dellensq[i];
+					_walkerout << " Normalization factor is: " << dellensq[i];
 	
 				// Calculate instantaneous generalized force. This is a second order forward numerical time derivative. +_Fold[i] removes the bias.
 				genforce[i] = _unitconv*(3*wdotp-4*_wdotpold[i]+_wdotpold[i+cvs.size()])/(2*_timestep) + _Fold[i];
@@ -401,13 +374,13 @@ namespace SSAGES
 			{
 			// Feedback on a CV being out of bounds.
 			if(_iteration % _printdetails[0] == 0 && _printdetails[1] > 0)
-				_stringout << " At least one CV is out of bounds!";
+				_walkerout << " At least one CV is out of bounds!";
 
 			for(size_t i = 0; i < cvs.size(); ++i)
 				{
 				// Feedback on CV.
 				if(_iteration % _printdetails[0] == 0 && _printdetails[1] > 0)
-					_stringout << " CV[" << i << "]: " << cvs[i]->GetValue();
+					_walkerout << " CV[" << i << "]: " << cvs[i]->GetValue();
 
 				wdotp = 0;
 				dellensq[i] = 0;		
@@ -415,7 +388,7 @@ namespace SSAGES
 				if(_Orthogonalization) // Begin Gram-Schmidt Orthogonalization here. For all but the first CV, will remove the projection of every other CVs vector field from the current CV projector.
 					{
 					if(_iteration % _printdetails[0] == 0 && _printdetails[2] > 0 && i > 0)
-						_stringout << " Orthogonalization Corrector vector is: ";
+						_walkerout << " Orthogonalization Corrector vector is: ";
 					for(size_t j = 0; j < i; ++j)
 						{
 						for(size_t k = 0; k < grad.size(); ++k)
@@ -424,7 +397,7 @@ namespace SSAGES
 								{
 								projector[i][3*k+l] -= grad[k][l]*projector[j][3*k+l]/dellensq[j];
 								if(_iteration % _printdetails[0] == 0 && _printdetails[2] > 0 && grad[k][l] != 0)
-									_stringout <<  projector[i][3*k+l] << " ";
+									_walkerout <<  projector[i][3*k+l] << " ";
 								}
 							}
 						}
@@ -441,7 +414,10 @@ namespace SSAGES
 						}		
 					}
 
-				
+				// Sync _F and _N across all walkers.
+				MPI_Allreduce(&_N[0], &_Nworld[0], _N.size(), MPI_INT, MPI_SUM, _world);
+				MPI_Allreduce(&_F[0], &_Fworld[0], _F.size(), MPI_DOUBLE, MPI_SUM, _world);
+
 				// Normalize to ensure JW = I
 				wdotp = wdotp/dellensq[i];
 				genforce[i] = _unitconv*(3*wdotp-4*_wdotpold[i]+_wdotpold[i+cvs.size()])/(2*_timestep) + _Fold[i];
@@ -452,29 +428,44 @@ namespace SSAGES
 		}
 		
 		// Print out current F estimate over CV space - for backup and troubleshooting
-		if(_iteration % _FBackupInterv == 0)
-		{
-		_stringout << std::endl;
-		_stringout << "Printing out 1) Dimensionality of F 2) Total Length of N 3) Total Length of F, 4) CV details 5) Initial histogrammed F estimate." << std::endl;
-		_stringout << _dim << std::endl;
-		_stringout << _Nworld.size() <<std::endl;
-		_stringout << _Fworld.size() <<std::endl;
-		_stringout << "CV bounds and nr of bins are: ";
-		for(size_t i = 0; i < _histdetails.size(); ++i)
+		if(_iteration % _FBackupInterv == 0 && _mpiid == 0)
 			{
-			_stringout << "[" << _histdetails[i][0] << "," << _histdetails[i][1] << "," << _histdetails[i][2] << "] ";
-			}
-		_stringout << std::endl;
-		for(size_t i = 0; i < _Nworld.size(); ++i)
+			_worldout << std::endl;
+			_worldout << "Iteration: " << _iteration << std::endl;			
+			_worldout << "Printing out the current Adaptive Biasing Vector Field." << std::endl;
+			_worldout << "First (Nr of CVs) columns are the coordinates, the next (Nr of CVs) columns are components of the Adaptive Force vector at that point." << std::endl;
+			_worldout << "The columns are " << _N.size() << " long, mapping out a surface of ";
+			for(size_t i = 0; i < _histdetails.size()-1; ++i)
 				{
-				for(size_t j = 0; j < _dim; ++j)
-					{
-					_stringout << _Fworld[_dim*i+j] << " ";
-					}
-				_stringout << _Nworld[i] << std::endl;
+				_worldout << _histdetails[i][2] << " by ";
 				}
-			_stringout << std::endl;
-		}
+			_worldout << _histdetails[_histdetails.size()-1][2] <<" points in " << _histdetails.size() << " dimensions." <<std::endl;
+
+
+			int modulo = 1;
+			int index;
+			for(size_t i = 0; i < _Nworld.size(); ++i)
+				{
+				index = i;
+				_worldout << std::endl;
+				for(size_t j=0 ; j < _histdetails.size(); ++j)
+					{
+					modulo = 1;
+					for(size_t k=j+1 ; k <_histdetails.size(); ++k)
+						{
+						modulo = modulo * _histdetails[k][2];
+						}
+					_worldout << (floor(index/modulo)+0.5)*((_histdetails[j][1]-_histdetails[j][0])/_histdetails[j][2]) + _histdetails[j][0] << " ";
+					index = index % modulo;
+					}
+				for(size_t j=0 ; j < _dim; ++j)
+					{
+					_worldout << _Fworld[_dim*i+j]/std::max(_Nworld[i],_min) << " ";
+					}
+				}
+			_worldout << std::endl;
+			_worldout << std::endl;
+			}
 		
 		// Calculate the bias from averaged F at current CV coordinates
 		CalcBiasForce(cvs,genforce, snapshot);
@@ -482,8 +473,7 @@ namespace SSAGES
 
 		// Feedback on biasing.
 		if(_iteration % _printdetails[0] == 0 && _printdetails[8] > 0)
-			_stringout << " Biases to forces are: ";
-
+			_walkerout << " Biases to forces are: ";
 
 		// Update the forces in snapshot by adding in the force bias from each
 		// CV to each atom based on the gradient of the CV.
@@ -492,7 +482,7 @@ namespace SSAGES
 			for(size_t k = 0; k < forces[j].size(); ++k)
 				{
 				if(_iteration % _printdetails[0] == 0 && _printdetails[8] > 0 && _biases[j][k] != 0)
-					_stringout << _biases[j][k] << " ";
+					_walkerout << _biases[j][k] << " ";
 				forces[j][k] += _biases[j][k];					
 				}
 			}
@@ -500,7 +490,7 @@ namespace SSAGES
 		// Feedback on locations.
 		if(_iteration % _printdetails[0] == 0 && _printdetails[6] > 0)
 			{
-			_stringout << " Locations are: ";
+			_walkerout << " Locations are: ";
 			for(size_t i = 0; i < cvs.size(); ++i)
 				{
 				auto& grad = cvs[i]->GetGradient();
@@ -511,7 +501,7 @@ namespace SSAGES
 						{
 						if (grad[j][k] != 0)
 							{
-							_stringout << loc[j][k] << " ";
+							_walkerout << loc[j][k] << " ";
 							}
 						}
 					}
@@ -521,53 +511,51 @@ namespace SSAGES
 		
 	// Each output gets its own line
 	if(_iteration % _printdetails[0] == 0)
-		_stringout << std::endl;	
+		_walkerout << std::endl;	
 	}
 
 	// Post-simulation hook.
 	void ABF::PostSimulation(Snapshot*, const CVList&)
 	{
-
-	_stringout << "End of simulation. The coordinates for Generalized Force Vector Field and N, in order of CVs in columns are:";
-
-		int modulo = 1;
-		int index;
-		for(size_t i = 0; i < _N.size(); ++i)
+		if(_mpiid == 0)
 			{
-			index = i;
-			_stringout << std::endl;
-			for(size_t j=0 ; j < _histdetails.size(); ++j)
+			_worldout << "End of simulation. The coordinates for Generalized Force Vector Field and N, in order of CVs in columns are:";
+			_worldout << std::endl;
+			_worldout << "Iteration: " << _iteration << std::endl;			
+			_worldout << "Printing out the current Adaptive Biasing Vector Field." << std::endl;
+			_worldout << "First (Nr of CVs) columns are the coordinates, the next (Nr of CVs) columns are components of the Adaptive Force vector at that point." << std::endl;
+			_worldout << "The columns are " << _N.size() << " long, mapping out a surface of ";
+			for(size_t i = 0; i < _histdetails.size()-1; ++i)
 				{
-				modulo = 1;
-				for(size_t k=j+1 ; k <_histdetails.size(); ++k)
-					{
-					modulo = modulo * _histdetails[k][2];
-					}
-				_stringout << (floor(index/modulo)+0.5)*((_histdetails[j][1]-_histdetails[j][0])/_histdetails[j][2]) + _histdetails[j][0] << " ";
-				index = index % modulo;
+				_worldout << _histdetails[i][2] << " by ";
 				}
-			}
-		_stringout << std::endl;
-		_stringout << "Printing out 1) Dimensionality of F 2) Total Length of N 3) Total Length of F, 4) CV details 5) Initial histogrammed F estimate." << std::endl;
-		_stringout << _dim << std::endl;
-		_stringout << _Nworld.size() <<std::endl;
-		_stringout << _Fworld.size() <<std::endl;
-		_stringout << "CV bounds and nr of bins are: ";
-		for(size_t i = 0; i < _histdetails.size(); ++i)
-			{
-			_stringout << "[" << _histdetails[i][0] << "," << _histdetails[i][1] << "," << _histdetails[i][2] << "] ";
-			}
-		_stringout << std::endl;
-		for(size_t i = 0; i < _Nworld.size(); ++i)
+			_worldout << _histdetails[_histdetails.size()-1][2] <<" points in " << _histdetails.size() << " dimensions." <<std::endl;
+
+
+			int modulo = 1;
+			int index;
+			for(size_t i = 0; i < _Nworld.size(); ++i)
 				{
-				for(size_t j = 0; j < _dim; ++j)
+				index = i;
+				_worldout << std::endl;
+				for(size_t j=0 ; j < _histdetails.size(); ++j)
 					{
-					_stringout << _Fworld[_dim*i+j] << " ";
+					modulo = 1;
+					for(size_t k=j+1 ; k <_histdetails.size(); ++k)
+						{
+						modulo = modulo * _histdetails[k][2];
+						}
+					_worldout << (floor(index/modulo)+0.5)*((_histdetails[j][1]-_histdetails[j][0])/_histdetails[j][2]) + _histdetails[j][0] << " ";
+					index = index % modulo;
 					}
-				_stringout << _Nworld[i] << std::endl;
+				for(size_t j=0 ; j < _histdetails.size(); ++j)
+					{
+					_worldout << _Fworld[_dim*i+j]/std::max(_Nworld[i],_min) << " ";
+					}
 				}
-			_stringout << std::endl;	
-		_stringout.close();
+			_worldout.close();
+			}				
+		_walkerout.close();
 	}
 
 	void ABF::CalcBiasForce(const CVList& cvs, const std::vector<double>& genforce, const Snapshot* snapshot)
@@ -586,14 +574,14 @@ namespace SSAGES
 			for(size_t i = 0; i < cvs.size(); ++i)
 				{
 				auto& grad = cvs[i]->GetGradient();
-				//_stringout << " Gradient[" << i << "]: ";
+				//_walkerout << " Gradient[" << i << "]: ";
 				for(size_t j = 0; j < _biases.size(); ++j)
 					{
 					for(size_t k = 0; k < _biases[j].size(); ++k)
 						{
 						if (grad[j][k] != 0)
 							{
-							//_stringout << grad[j][k] << " ";
+							//_walkerout << grad[j][k] << " ";
 							_biases[j][k] += -(_Fworld[_dim*coord+i]/std::max(_Nworld[coord],_min))*grad[j][k];
 							}
 						}
@@ -608,7 +596,7 @@ namespace SSAGES
 				if(cvs[i]->GetValue() < _restraint[i][0] && _restraint[i][2] > 0)
 				{
 					if(snapshot->GetIteration() % _printdetails[0] == 0 && _printdetails[7] > 0)
-						_stringout << " Minimum Harmonic Restraint Active on CV: " << i << "; Restraint force is: ";
+						_walkerout << " Minimum Harmonic Restraint Active on CV: " << i << "; Restraint force is: ";
 					auto& grad = cvs[i]->GetGradient();
 					for(size_t j = 0; j < _biases.size(); ++j)
 					{
@@ -618,7 +606,7 @@ namespace SSAGES
 							{
 								_biases[j][k] += grad[j][k]*(_restraint[i][0] - cvs[i]->GetValue())*_restraint[i][2];
 								if(snapshot->GetIteration() % _printdetails[0] == 0 && _printdetails[7] > 0)
-									_stringout << _biases[j][k] << " ";
+									_walkerout << _biases[j][k] << " ";
 							}
 						}
 					}
@@ -628,7 +616,7 @@ namespace SSAGES
 				else if(cvs[i]->GetValue() > _restraint[i][1] && _restraint[i][2] > 0)
 				{
 					if(snapshot->GetIteration() % _printdetails[0] == 0 && _printdetails[7] > 0)
-						_stringout << " Maximum Harmonic Restraint Active on CV: " << i << "; Restraint force is: ";
+						_walkerout << " Maximum Harmonic Restraint Active on CV: " << i << "; Restraint force is: ";
 
 					auto& grad = cvs[i]->GetGradient();
 					for(size_t j = 0; j < _biases.size(); ++j)
@@ -639,7 +627,7 @@ namespace SSAGES
 							{
 								_biases[j][k] += grad[j][k]*(_restraint[i][1] - cvs[i]->GetValue())*_restraint[i][2];
 								if(snapshot->GetIteration() % _printdetails[0] == 0 && _printdetails[7] > 0)
-									_stringout << _biases[j][k] << " ";
+									_walkerout << _biases[j][k] << " ";
 							}
 						}
 					}	

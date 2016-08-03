@@ -72,17 +72,20 @@ namespace SSAGES
 		//! Thermodynamic beta.
 		double _beta;
 
-		//! To read in estimate of F.
-		std::string _readF; 
-
 		//! Biases.	
 		std::vector<std::vector<double>> _biases;
 
 		//! Number of CVs in system
 		unsigned int _dim;
 
-		//! Output stream for string data.
-		std::ofstream _stringout;
+		//! Output stream for walker-specific data.
+		std::ofstream _walkerout;
+
+		//! Output stream for world data.
+		std::ofstream _worldout;
+
+		//! File name for world data
+		std::string _filename;
 
 		//! The node this belongs to
 		unsigned int _mpiid;
@@ -153,7 +156,7 @@ namespace SSAGES
 			std::vector<std::vector<double>> restraint,
 			double timestep,
 			double min,
-			std::string readF,
+			std::string filename,
 			std::vector<int> printdetails,
 			int FBackupInterv,
 			double unitconv,
@@ -161,7 +164,7 @@ namespace SSAGES
 			unsigned int frequency) :
 		Method(frequency, world, comm), _F(0), _Fworld(0), _N(0), _Nworld(0),
 		_restraint(restraint), _min(min), _wdotpold(0), _Fold(0), _beta(0),
-		_readF(readF), _biases(0), _dim(0), _mpiid(0), _histdetails(histdetails),
+		_filename(filename), _biases(0), _dim(0), _mpiid(0), _histdetails(histdetails),
 		_printdetails(printdetails), _FBackupInterv(FBackupInterv),
 		_unitconv(unitconv), _Orthogonalization(Orthogonalization),
 		_timestep(timestep)
@@ -189,27 +192,22 @@ namespace SSAGES
 		 */
 		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
 
-		//! Set values of the histograms.
+		//! \copydoc Serializable::Serialize()
 		/*!
-		 * \param F Values of the stored total.
-		 * \param N Values of the numbers of hits.
+		 * \warning Serialization not implemented yet.
 		 */
+
 		void SetHistogram(const std::vector<double>& F, const std::vector<int>& N)
 		{
 			_F = F;
 			_N = N;
 		}		
 		
-		//! Set the method iteration.
-		/*!
-		 * \param iter New value of the iteration.
-		 */
 		void SetIteration(const int iter)
 		{
 			_iteration = iter;
 		}			
 
-		//! \copydoc Serializable::Serialize()
 		void Serialize(Json::Value& json) const override
 		{
 		
@@ -248,8 +246,9 @@ namespace SSAGES
 			for(size_t i = 0; i < _N.size(); ++i)
 				json["N"].append(_N[i]);
 
-			json["iteration"] = _iteration;		
-		
+			json["iteration"] = _iteration;
+			
+			json["filename"] = _filename;		
 		
 		}
 

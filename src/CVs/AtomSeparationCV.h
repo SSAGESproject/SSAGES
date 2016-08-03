@@ -122,7 +122,6 @@ namespace SSAGES
 		 */
 		double GetValue() const override 
 		{	 
-			std::cout << _val <<std::endl;
 			return _val; 
 		}
 
