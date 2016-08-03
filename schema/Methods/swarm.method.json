@@ -25,6 +25,9 @@
 			"type" : "integer",
 			"minimum" : 1
 		},
+		"iteration" : {
+			"type" : "integer"
+		}, 
 		"initial steps" : {
 			"type" : "number",
 			"minimum" : 0

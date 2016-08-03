@@ -359,6 +359,9 @@ namespace SSAGES
 		
 		auto* m = new Swarm(world, comm, centers, NumNodes, spring, freq, InitialSteps, HarvestLength, NumberTrajectories, SwarmLength); 
 		method = static_cast<Method*>(m);
+        
+        if(json.isMember("iteration"))
+            m->SetIteration(json.get("iteration",0).asInt());
 		
 	}
 	else

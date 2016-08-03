@@ -116,7 +116,7 @@ namespace SSAGES
 
         bool initialize; //Whether to initialize or not
 
-        if(_currentiter == 0 && !sampling_started) 
+        if(_iteration == 0 && !sampling_started) 
         {
             initialize = CVInitialized(cvs);
         }
@@ -124,7 +124,7 @@ namespace SSAGES
         {
             initialize = false;
         }
-        if(_currentiter == 0 && initialize && !sampling_started)
+        if(_iteration == 0 && initialize && !sampling_started)
         {//On first pass, make sure CVs are initialized well
             //Do restrained sampling, and do not harvest trajectories
             for(size_t i = 0; i < cvs.size(); i++)
@@ -273,7 +273,7 @@ namespace SSAGES
             else
             {
                 //Evolve CVs, reparametrize, and reset vectors
-                _currentiter++;
+                _iteration++;
                 _world.barrier(); //Wait for all nodes before attempting string update
                 StringUpdate();
                 _world.barrier(); //Wait for all CVs to be updated
@@ -300,7 +300,7 @@ namespace SSAGES
     {
         //Write node, iteration, centers of the string and current CV value to output file
         _stringout.precision(8);
-        _stringout << _mpiid << " " << _currentiter << " ";
+        _stringout << _mpiid << " " << _iteration << " ";
 
         for(size_t i = 0; i < _centers.size(); i++)
         {
@@ -309,7 +309,7 @@ namespace SSAGES
         _stringout << std::endl;
 
         //Write same info to terminal, omit current CV value
-        std::cout << _mpiid << " " << _currentiter << " "; 
+        std::cout << _mpiid << " " << _iteration << " "; 
         for(size_t i = 0; i < _centers.size(); i++)
         {
             std::cout << _centers[i] << " "; 

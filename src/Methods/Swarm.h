@@ -33,9 +33,6 @@ namespace SSAGES
             //! Index of all CV values on the string
             std::vector<std::vector<double>> _worldstring;
 
-            //! Number of iterations run so far
-            unsigned int _currentiter;
-
             //! Total number of MD steps for initialization for one iteration
             unsigned int _initialize_steps; 
 
@@ -113,7 +110,6 @@ namespace SSAGES
                 _alpha(), 
                 _mpiid(0), 
                 _worldstring(), 
-                _currentiter(0), 
                 _initialize_steps(InitialSteps), 
                 _harvest_length(HarvestLength), 
                 _number_trajectories(NumberTrajectories), 
@@ -133,9 +129,31 @@ namespace SSAGES
             //! Post-simulation hook
             void PostSimulation(Snapshot* snapshot, const CVList& cvs) override; 
 
+            //! Set the method iteration.
+            /*!
+             * \param iter New value of the iteration.
+             */
+            void SetIteration(const int iter)
+            {
+                _iteration = iter;
+            }		
+
             void Serialize(Json::Value& json) const override
             {
+                json["type"] = "Swarm";
+                for(size_t i = 0; i < _centers.size(); i++)
+                {
+                    json["centers"].append(_centers[i]);
+                }
 
+                json["number of nodes"] = _numnodes;
+                json["spring"] = _spring;
+                json["initial steps"] = _initialize_steps;
+                json["harvest length"] = _harvest_length;
+                json["number of trajectories"] = _number_trajectories;
+                json["swarm length"] = _swarm_length;
+
+                json["iteration"] = _iteration; 
             }
 
             //! Destructor
