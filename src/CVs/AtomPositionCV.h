@@ -36,16 +36,6 @@ namespace SSAGES
 		//! Bounds on CV.
 		std::array<double, 2> _bounds;
 
-		//! Helper function to compute the norm of a vector.
-		/*!
-		 * \param v Three dimensional vector.
-		 * \return Norm of the vector.
-		 */
-		double norm(const Vector3& v)
-		{
-			return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-		}
-
 	public:
 		//! Constructor
 		/*!
@@ -96,10 +86,10 @@ namespace SSAGES
 				if(ids[i] == _atomid)
 				{
 					// Compute distance.
-					Vector3 dx{{
+					Vector3 dx{
 						pos[i][0] - _position[0], 
 						pos[i][1] - _position[1], 
-						pos[i][2] - _position[2]}};
+						pos[i][2] - _position[2]};
 
 					// Set to 0 dimensions we aren't interested in.
 					if(!_fixx) dx[0] = 0;
@@ -107,15 +97,12 @@ namespace SSAGES
 					if(!_fixz) dx[2] = 0;
 
 					// Compute norm and gradient.
-					auto r = norm(dx);
+					auto r = dx.norm();
 					_val = r;
-					if (r == 0) {
-						_grad[i] = {0.0, 0.0, 0.0};
-					} else {
-						_grad[i][0] = dx[0]/r;
-						_grad[i][1] = dx[1]/r;
-						_grad[i][2] = dx[2]/r;
-					}
+					if (r == 0)
+						_grad[i].setZero();
+					else 
+						_grad[i] = dx/r;
 				}
 				else
 				{

@@ -313,8 +313,7 @@ namespace SSAGES
 			velocities[atomindex][2] = std::stod(tokens[6]);
 
 			for(auto& force : forces)
-				for(auto& xyz : force)
-					xyz = 0;
+				force.setZero();
 		}
 	}
 
