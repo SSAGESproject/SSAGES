@@ -40,7 +40,7 @@ namespace SSAGES
 
 			for(int i = 0; i < _num_points[0]; i++)
 			{
-				_flatvector[flat].first = std::vector<double>(2, 0.0);
+				_flatvector[i].first = std::vector<double>(2, 0.0);
 				_flatvector[i].second.push_back(_lower[0] + _spacing[0]*i);
 			}
 		}
