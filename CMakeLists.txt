@@ -31,7 +31,7 @@ set(GROMACS_SRC "" CACHE STRING "GROMACS source directory")
 include(ExternalProject)
 
 if(LAMMPS_SRC)
-
+	set(ENABLE_LAMMPS true)
 	# Add lammps as external project
 	ExternalProject_Add(
 		lammps
@@ -72,6 +72,8 @@ if(LAMMPS_SRC)
 		hooks/lammps/fix_ssages.cpp
 	)
 elseif(GROMACS_SRC)
+		set(ENABLE_GROMACS true)
+
 		ExternalProject_Add(
 		gromacs
 		SOURCE_DIR ${GROMACS_SRC}
