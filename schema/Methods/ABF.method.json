@@ -61,7 +61,7 @@
 			"minimum" : 0
 		},
 
-		"F from file" : {
+		"filename" : {
 			"type" : "string"
 		},
 
@@ -113,6 +113,6 @@
 			"minimum" : 1
 		}
 	},
-	"required": ["type", "CV minimums", "CV maximums", "CV bins", "timestep", "Unit conversion", "Print details"],
+	"required": ["type", "CV minimums", "CV maximums", "CV bins", "timestep", "Unit conversion", "Print details", "filename"],
 	"additionalProperties": false
 }
