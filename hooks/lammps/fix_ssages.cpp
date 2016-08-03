@@ -9,6 +9,8 @@
 #include "domain.h"
 #include <boost/mpi.hpp>
 #include <boost/version.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
 
 using namespace SSAGES;
 using namespace LAMMPS_NS::FixConst;
@@ -32,68 +34,41 @@ namespace LAMMPS_NS
 {
 	// Copyright (C) 2015 Lorenz Hübschle-Schneider <lorenz@4z2.de>
 	// Helper function for variable MPI_allgather.
-	template <typename T>
+	template <typename T, typename transmit_type = uint64_t>
 	void allgatherv_serialize(const mpi::communicator &comm, const std::vector<T> &in, std::vector<T> &out) 
 	{
-		// Step 1: serialize input data
-		mpi::packed_oarchive oa(comm);
-		oa << in;
-
-		// Step 2: exchange sizes (archives' .size() is measured in bytes)
+		// Step 1: exchange sizes
+		// We need to compute the displacement array, specifying for each PE
+		// at which position in out to place the data received from it
 		// Need to cast to int because this is what MPI uses as size_t...
-		const int in_size = static_cast<int>(in.size()),
-				transmit_size = static_cast<int>(oa.size());
+		const int factor = sizeof(T) / sizeof(transmit_type);
+		const int in_size = static_cast<int>(in.size()) * factor;
+		std::vector<int> sizes(comm.size());
+		mpi::all_gather(comm, in_size, sizes.data());
 
-		std::vector<int> in_sizes(comm.size()), transmit_sizes(comm.size());
-		mpi::all_gather(comm, in_size, in_sizes.data());
-		mpi::all_gather(comm, transmit_size, transmit_sizes.data());
-
-		// Step 3: calculate displacements from sizes (prefix sum)
+		// Step 2: calculate displacements from sizes
+		// Compute prefix sum to compute displacements from sizes
 		std::vector<int> displacements(comm.size() + 1);
-		displacements[0] = sizeof(mpi::packed_iarchive);
-		for (int i = 1; i <= comm.size(); ++i)
-			displacements[i] = displacements[i-1] + transmit_sizes[i-1];
-		
+		displacements[0] = 0;
+		std::partial_sum(sizes.begin(), sizes.end(), displacements.begin() + 1);
 
-		// Step 4: allocate space for result and MPI_Allgatherv
-		char* recv = new char[displacements.back()];
-		auto sendptr = const_cast<void*>(oa.address());
-		auto sendsize = oa.size();
+		// divide by factor by which T is larger than transmit_type
+		out.resize(displacements.back() / factor);
 
-		int status = MPI_Allgatherv(sendptr, sendsize, MPI_PACKED, recv,
-		                            transmit_sizes.data(), displacements.data(),
-		                            MPI_PACKED, comm);
-
+		// Step 3: MPI_Allgatherv
+		const transmit_type *sendptr = reinterpret_cast<const transmit_type*>(in.data());
+		transmit_type *recvptr = reinterpret_cast<transmit_type*>(out.data());
+		const MPI_Datatype datatype = mpi::get_mpi_datatype<transmit_type>();
+		int status = MPI_Allgatherv(sendptr, in_size, datatype, recvptr,
+									sizes.data(), displacements.data(),
+									datatype, comm);
 		if (status != 0) 
 		{
-		    std::cerr << "PE " << comm.rank() << ": MPI_Allgatherv returned "
-		              << status << ", errno " << errno << std::endl;
-		    return;
+			std::cerr << "PE " << comm.rank() << ": MPI_Allgatherv returned "
+			<< status << ", errno " << errno << std::endl;
+			exit(-1);
 		}
-
-		// Step 5: deserialize received data
-		// Preallocate storage to prevent reallocations
-		std::vector<T> temp;
-		size_t largest_size = *std::max_element(in_sizes.begin(), in_sizes.end());
-		temp.reserve(largest_size);
-		out.clear();
-		out.reserve(std::accumulate(in_sizes.begin(), in_sizes.end(), 0));
-
-		// Deserialize archives one by one, inserting elements at the end.
-		for (int i = 0; i < comm.size(); ++i) 
-		{
-			mpi::packed_iarchive archive(comm);
-			archive.resize(transmit_sizes[i]);
-			memcpy(archive.address(), recv + displacements[i], transmit_sizes[i]);
-
-			temp.clear();
-			temp.resize(in_sizes[i]);
-			archive >> temp;
-			out.insert(out.end(), temp.begin(), temp.end());
-		}
-
-		delete[] recv;
-    }
+	}
 
 	FixSSAGES::FixSSAGES(LAMMPS *lmp, int narg, char **arg) : 
 	Fix(lmp, narg, arg), Hook()
@@ -256,9 +231,8 @@ namespace LAMMPS_NS
 		allgatherv_serialize(comm, frc, frc);
 		allgatherv_serialize(comm, masses, masses);
 		allgatherv_serialize(comm, vel, vel);
-		allgatherv_serialize(comm, ids, ids);
-		allgatherv_serialize(comm, types, types);
-
+		allgatherv_serialize<int,int>(comm, ids, ids);
+		allgatherv_serialize<int,int>(comm, types, types);
 	}
 
 	void FixSSAGES::SyncToEngine() //put Snapshot values -> LAMMPS
