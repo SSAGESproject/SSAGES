@@ -1,10 +1,17 @@
 project(SSAGES)
 cmake_minimum_required(VERSION 2.8.5)
 
+# SAPHRON version number.
+set(SSAGES_VERSION_MAJOR "0")
+set(SSAGES_VERSION_MINOR "0")
+set(SSAGES_VERSION_TINY "8") 
+
 # Default type is release
 if (NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Release")
 endif()
+
+# list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # Resolve dependencies
 find_package(MPI REQUIRED)
@@ -19,59 +26,75 @@ find_package(Boost
 
 # Get lammps source directory
 set(LAMMPS_SRC "" CACHE STRING "LAMMPS source directory")
+set(GROMACS_SRC "" CACHE STRING "GROMACS source directory")
 
 include(ExternalProject)
 
-# Add lammps as external project
-ExternalProject_Add(
-	lammps
-	SOURCE_DIR ${LAMMPS_SRC}
-	CONFIGURE_COMMAND ""
-	BUILD_COMMAND $(MAKE) mpi mode=shlib 
-	CCFLAGS=-I${PROJECT_SOURCE_DIR}/src  
-	CCFLAGS+=-I${PROJECT_SOURCE_DIR}/include  
-	CCFLAGS+=-I${Boost_INCLUDE_DIRS}     
-	CCFLAGS+=-std=c++11                  
-	CCFLAGS+=-L${Boost_LIBRARY_DIRS}      
-	LIB+=-lboost_mpi                      
-	LIB+=-lboost_serialization           
-	LIB+=${CMAKE_BINARY_DIR}/libssages.a
-	INSTALL_COMMAND ""
-	BUILD_IN_SOURCE true
-	LOG_BUILD ON
-)
+if(LAMMPS_SRC)
 
-ExternalProject_Add_Step(
-	lammps forceconfigure
-	COMMENT "Configuring LAMMPS"
-	DEPENDERS build
-	DEPENDEES update
-	ALWAYS 1
-)
+	# Add lammps as external project
+	ExternalProject_Add(
+		lammps
+		SOURCE_DIR ${LAMMPS_SRC}
+		CONFIGURE_COMMAND ""
+		BUILD_COMMAND $(MAKE) mpi mode=shlib 
+		CCFLAGS=-I${PROJECT_SOURCE_DIR}/src  
+		CCFLAGS+=-I${PROJECT_SOURCE_DIR}/include  
+		CCFLAGS+=-I${Boost_INCLUDE_DIRS}     
+		CCFLAGS+=-std=c++11                  
+		CCFLAGS+=-L${Boost_LIBRARY_DIRS}      
+		LIB+=-lboost_mpi                      
+		LIB+=-lboost_serialization           
+		LIB+=${CMAKE_BINARY_DIR}/libssages.a
+		INSTALL_COMMAND ""
+		BUILD_IN_SOURCE true
+		LOG_BUILD ON
+	)
 
-add_custom_command(
-    TARGET lammps PRE_BUILD
-    COMMAND ln -sf ${PROJECT_SOURCE_DIR}/hooks/lammps/fix_ssages.h ${LAMMPS_SRC}/fix_ssages.h
-    COMMAND touch ${LAMMPS_SRC}/modify.cpp
-)
-# End LAMMPS
+	ExternalProject_Add_Step(
+		lammps forceconfigure
+		COMMENT "Configuring LAMMPS"
+		DEPENDERS build
+		DEPENDEES update
+		ALWAYS 1
+	)
+
+	add_custom_command(
+	    TARGET lammps PRE_BUILD
+	    COMMAND ln -sf ${PROJECT_SOURCE_DIR}/hooks/lammps/fix_ssages.h ${LAMMPS_SRC}/fix_ssages.h
+	    COMMAND touch ${LAMMPS_SRC}/modify.cpp
+	)
+
+	include_directories("${LAMMPS_SRC}")
+
+	# Add source for appropriate package hook.
+	set(HOOKSRC
+		hooks/lammps/fix_ssages.cpp
+	)
+elseif(GROMACS_SRC)
+		ExternalProject_Add(
+		gromacs
+		SOURCE_DIR ${GROMACS_SRC}
+		PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gromacs
+		CMAKE_ARGS 
+		-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
+		-DGMX_BUILD_OWN_FFTW=ON -DREGRESSIONTEST_DOWNLOAD=ON 
+		-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+		BUILD_IN_SOURCE false
+		INSTALL_DIR ${CMAKE_BINARY_DIR}/gromacs
+		LOG_BUILD ON)
+	#include_directories(${GROMACS_INCLUDE_DIRS})
+	#add_definitions(${GROMACS_DEFINITIONS})
+endif()
 
 include_directories("${PROJECT_SOURCE_DIR}/src")
 include_directories("${PROJECT_SOURCE_DIR}/include")
+include_directories("${PROJECT_BINARY_DIR}")
 
-# Include directory for the pacakge we're interested in. 
-include_directories("${LAMMPS_SRC}")
 
-# Add source for appropriate package hook.
-set(HOOKSRC
-	hooks/lammps/fix_ssages.cpp
-)
-
+# Schema builder.
 set (SCHEMA_CPP ${CMAKE_CURRENT_BINARY_DIR}/schema/schema.cpp)
 add_subdirectory (schema)
-
-# Include the directory with the newly generated schema header file
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/schema/)
 
 # General source files
 set(SOURCE
@@ -94,6 +117,9 @@ set(SOURCE
 	src/Hook.cpp
 )
 
+# Include the directory with the newly generated schema header file
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/schema/)
+
 include_directories(${MPI_CXX_INCLUDE_PATH})
 include_directories(${Boost_INCLUDE_DIRS})
 add_definitions(${MPI_CXX_COMPILE_FLAGS})
@@ -109,15 +135,28 @@ set_target_properties(libssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra -fPIC")
 set_property(TARGET libssages PROPERTY CXX_STANDARD 11)
 set_property(TARGET libssages PROPERTY CXX_STANDARD_REQUIRED ON)
 
-# Dependency.
-add_dependencies(lammps libssages)
-
 # SSAGES executable.
 add_executable(ssages
 	src/main.cpp
 )
-target_link_libraries(ssages libssages ${LAMMPS_SRC}/liblammps_mpi.so)
-add_dependencies(ssages lammps)
+
+# Configure header.
+configure_file (
+"${PROJECT_SOURCE_DIR}/src/config.h.in"
+"${PROJECT_BINARY_DIR}/config.h"
+)
+
+# Dependencies
+if(LAMMPS_SRC)
+	add_dependencies(lammps libssages)
+	target_link_libraries(ssages libssages ${LAMMPS_SRC}/liblammps_mpi.so)
+	add_dependencies(ssages lammps)
+elseif(GROMACS_SRC)
+	add_dependencies(gromacs libssages)
+	target_link_libraries(ssages libssages ${CMAKE_BINARY_DIR}/gromacs/lib64/libgromacs.so)
+	add_dependencies(ssages gromacs)
+endif()
+
 set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra")
 
 # Configure flags 

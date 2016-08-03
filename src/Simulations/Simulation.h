@@ -2,7 +2,6 @@
 
 #include "../Drivers/Driver.h"
 #include "../Grids/Grid.h"
-#include "../Drivers/LammpsDriver.h"
 #include "../JSON/Serializable.h"
 #include "json/json.h"
 #include <boost/mpi.hpp>
@@ -11,6 +10,12 @@
 #include <exception>
 #include "../Utility/BuildException.h"
 #include "../Validator/ArrayRequirement.h"
+#include "schema.h"
+#include "config.h"
+
+#ifdef ENABLE_LAMMPS
+#include "Drivers/LammpsDriver.h"
+#endif
 
 namespace mpi = boost::mpi;
 using namespace Json;
@@ -226,6 +231,7 @@ namespace SSAGES
 			_MDEngine = JsonDriver.get("type", "none").asString();
 
 			// Use input from JSON to determine MDEngine of choice as well as other parameters
+			#ifdef ENABLE_LAMMPS
 			if(_MDEngine == "LAMMPS")
 			{
 				LammpsDriver* en = new LammpsDriver(_world, _comm, wid);
@@ -237,6 +243,7 @@ namespace SSAGES
 				}
 			}
 			else
+			#endif
 			{
 				DumpErrorsToConsole({"Unknown MD Engine [" + _MDEngine + "] specified."},_notw);
 				success_build = false;
