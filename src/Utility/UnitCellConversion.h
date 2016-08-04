@@ -3,9 +3,45 @@
 #include <vector>
 #include <array>
 #include <math.h>
+#include <stdexcept>
 
 namespace SSAGES
 {
+	//! Verify that Lattice Constants are within expected range.
+	/*!
+	 * \param LC Lattice constants.
+	 *
+	 * \throws std::domain_error At least one of the lattice constant
+	 *                           parameters has an unphysical value.
+	 *
+	 * This function tests the given lattice constant values and throws a
+	 * \c std::domain_error exception if (a) one of the lengths is negative,
+	 * or (b) one angle is negative (c) one angle is larger than pi. The
+	 * exception message contains details on which parameter is off.
+	 */
+	void verifyLatticeConstants(const std::array<double, 6>& LC)
+	{
+		if (LC[0] < 0.0) {
+			throw std::domain_error("Lattice constants: Negative x-dimension length");
+		} else if (LC[1] < 0.0) {
+			throw std::domain_error("Lattice constants: Negative y-dimension length");
+		} else if (LC[2] < 0.0) {
+			throw std::domain_error("Lattice constants: Negative z-dimension length");
+		} else if (LC[3] < 0.0) {
+			throw std::domain_error("Lattice constants: Angle alpha smaller than zero");
+		} else if (LC[3] > M_PI) {
+			throw std::domain_error("Lattice constants: Angle alpha larger than Pi");
+		} else if (LC[4] < 0.0) {
+			throw std::domain_error("Lattice constants: Angle beta smaller than zero");
+		} else if (LC[4] > M_PI) {
+			throw std::domain_error("Lattice constants: Angle beta larger than Pi");
+		} else if (LC[5] < 0.0) {
+			throw std::domain_error("Lattice constants: Angle gamma smaller than zero");
+		} else if (LC[5] > M_PI) {
+			throw std::domain_error("Lattice constants: Angle gamma larger than Pi");
+		}
+	}
+
 	//! Helper function to find matrix to convert to fractional coordinates
 	//! from cartesian.
 	/*!
@@ -20,6 +56,9 @@ namespace SSAGES
 	 */
 		std::array<std::array<double,3>,3> uc_c2f(const std::array<double, 6>& LC)
 		{
+			// Test for illegal input parameters
+			verifyLatticeConstants(LC);
+
 			std::array<std::array<double,3>,3> c2f;
 			double v=0;
 
@@ -50,6 +89,9 @@ namespace SSAGES
 		 */
 		std::array<std::array<double,3>,3> uc_f2c(const std::array<double, 6>& LC)
 		{
+			// Test for illegal input parameters
+			verifyLatticeConstants(LC);
+
 			std::array<std::array<double,3>,3> f2c;
 
 			f2c[0][0] = LC[0];
