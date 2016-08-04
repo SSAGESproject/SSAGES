@@ -135,14 +135,47 @@ TEST_F(GridsTest, OutOfBounds) {
 	// Grid2nn = new Grid2D({-109.5, 50.1}, {-60, 100.1}, {false, false}, {11, 101});
 	EXPECT_EQ(10, Grid2nn->GetIndices({100,100})[0]);
 	EXPECT_EQ(100, Grid2nn->GetIndices({1000,1000})[1]);
-	EXPECT_EQ(0, Grid2nn->GetIndices({-1000})[0]);
-	EXPECT_EQ(0, Grid2nn->GetIndices({-10000})[1]);
+	EXPECT_EQ(0, Grid2nn->GetIndices({-1000,100})[0]);
+	EXPECT_EQ(0, Grid2nn->GetIndices({-10000,0})[1]);
 	
 	// Grid2pp = new Grid2D({-109.5, 50.1}, {-60, 100.1}, {true, true}, {11, 101});
 	EXPECT_EQ(1, Grid2pp->GetIndices({-50.0,0})[0]); //4.95 spacing
 	EXPECT_EQ(3, Grid2pp->GetIndices({0,102})[1]); //0.5 spacing
 	EXPECT_EQ(9, Grid2pp->GetIndices({-117.5,0})[0]); //4.95 spacing
 	EXPECT_EQ(99, Grid2pp->GetIndices({0,49.0})[1]); //0.5 spacing
+}
+
+TEST_F(GridsTest, Iteration) {
+	double value;
+	//1D Grid Grid1n = new Grid1D({-1.2}, {0.8}, {false}, {11});
+	Grid1n->SetValue({2}, 5.2);
+	value = Grid1n->GetValue({2});
+	EXPECT_NEAR(value, 5.2, eps);
+	EXPECT_NEAR(-1.0, Grid1n->GetLocation({1})[0], eps);
+
+	//2D grid Grid2nn = new Grid2D({-109.5, 50.1}, {-60, 100.1}, {false, false}, {11, 101});
+	Grid2nn->SetValue({2,3}, 4.5);
+	value = Grid2nn->GetValue({2,3});
+	EXPECT_NEAR(value, 4.5, eps);
+	EXPECT_NEAR(-104.55, Grid2nn->GetLocation({1,1})[0], eps);
+	EXPECT_NEAR(50.6, Grid2nn->GetLocation({1,1})[1], eps);
+
+	for(auto& g : *Grid1n)
+	{
+		auto pos = Grid1n->GetIndices(g.second);
+		Grid1n->SetValue(pos, 15);
+		
+		EXPECT_EQ(g.first[0],15);
+	}
+
+	for(auto& g : *Grid2nn)
+	{
+		auto pos = Grid2nn->GetIndices(g.second);
+		Grid2nn->SetValue(pos, 15);
+		
+		EXPECT_EQ(g.first[0],15);
+	}
+
 }
 
 int main(int argc, char *argv[])
