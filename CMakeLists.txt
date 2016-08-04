@@ -30,6 +30,11 @@ set(GROMACS_SRC "" CACHE STRING "GROMACS source directory")
 
 include(ExternalProject)
 
+
+include_directories("${PROJECT_SOURCE_DIR}/src")
+include_directories("${PROJECT_SOURCE_DIR}/include")
+include_directories("${PROJECT_BINARY_DIR}")
+
 if(LAMMPS_SRC)
 	set(ENABLE_LAMMPS true)
 	# Add lammps as external project
@@ -72,26 +77,28 @@ if(LAMMPS_SRC)
 		hooks/lammps/fix_ssages.cpp
 	)
 elseif(GROMACS_SRC)
-		set(ENABLE_GROMACS true)
+	set(ENABLE_GROMACS true)
 
-		ExternalProject_Add(
-		gromacs
-		SOURCE_DIR ${GROMACS_SRC}
-		PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gromacs
-		CMAKE_ARGS 
-		-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
-		-DGMX_BUILD_OWN_FFTW=ON -DREGRESSIONTEST_DOWNLOAD=ON 
-		-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-		BUILD_IN_SOURCE false
-		INSTALL_DIR ${CMAKE_BINARY_DIR}/gromacs
-		LOG_BUILD ON)
-	#include_directories(${GROMACS_INCLUDE_DIRS})
-	#add_definitions(${GROMACS_DEFINITIONS})
+	ExternalProject_Add(
+	gromacs
+	SOURCE_DIR ${GROMACS_SRC}
+	PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gromacs
+	CMAKE_ARGS 
+	-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
+	-DGMX_BUILD_OWN_FFTW=ON -DGMX_MPI=ON
+	-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+	BUILD_IN_SOURCE false
+	INSTALL_DIR ${CMAKE_BINARY_DIR}/gromacs
+	PATCH_COMMAND patch -p2 -d ${GROMACS_SRC} < ${PROJECT_SOURCE_DIR}/hooks/gromacs/mdrun_cmake.patch 
+	LOG_BUILD ON)
+	
+	include_directories(${GROMACS_SRC}/src)
+	#file(GLOB MDRUN_SOURCES ${GROMACS_SRC}/src/programs/mdrun/*.c ${GROMACS_SRC}/src/programs/mdrun/*.cpp)
+	#add_library(mdrun_objlib OBJECT ${MDRUN_SOURCES})
+    #add_library(fahcore $<TARGET_OBJECTS:mdrun_objlib>)
+
 endif()
 
-include_directories("${PROJECT_SOURCE_DIR}/src")
-include_directories("${PROJECT_SOURCE_DIR}/include")
-include_directories("${PROJECT_BINARY_DIR}")
 
 
 # Schema builder.
@@ -154,8 +161,13 @@ if(LAMMPS_SRC)
 	target_link_libraries(ssages libssages ${LAMMPS_SRC}/liblammps_mpi.so)
 	add_dependencies(ssages lammps)
 elseif(GROMACS_SRC)
+	#set_target_properties(mdrun_objlib PROPERTIES COMPILE_FLAGS "-Wall -Wextra -fPIC")
 	add_dependencies(gromacs libssages)
-	target_link_libraries(ssages libssages ${CMAKE_BINARY_DIR}/gromacs/lib64/libgromacs.so)
+	target_link_libraries(ssages 
+		libssages 
+		${CMAKE_BINARY_DIR}/gromacs/lib64/libgromacs_mpi.so
+		${CMAKE_BINARY_DIR}/gromacs/lib64/libmdrun.a
+		)
 	add_dependencies(ssages gromacs)
 endif()
 

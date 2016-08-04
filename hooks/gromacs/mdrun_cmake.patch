@@ -1,0 +1,15 @@
+--- /gromacs/src/programs/CMakeLists.txt	2016-07-13 08:56:04.000000001 -0400
++++ /gromacs-ssages/src/programs/CMakeLists.txt	2016-08-04 13:12:20.000000001 -0400
+@@ -35,6 +35,12 @@
+ file(GLOB MDRUN_SOURCES mdrun/*.c mdrun/*.cpp)
+ # make an "object library" that we can re-use for multiple targets
+ add_library(mdrun_objlib OBJECT ${MDRUN_SOURCES})
++add_library(mdrun STATIC $<TARGET_OBJECTS:mdrun_objlib>)
++install(TARGETS mdrun
++        EXPORT mdrun
++        LIBRARY DESTINATION ${LIB_INSTALL_DIR}
++        ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
++        COMPONENT libraries)
+ 
+ if(GMX_FAHCORE)
+     # The lack of a real source file here alongside the object library
