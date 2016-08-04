@@ -11,7 +11,7 @@ namespace SSAGES
 	void Basis::PreSimulation(Snapshot* snapshot, const CVList& cvs)
 	{
         // Open file for writing and allocate derivatives vector
-        int coeff_size = 1, bin_size = 1;
+        size_t coeff_size = 1, bin_size = 1;
        
         // For print statements and file I/O, the walker IDs are used
         _mpiid = snapshot->GetWalkerID();
@@ -165,7 +165,7 @@ namespace SSAGES
 	// Post-integration hook.
 	void Basis::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
-        std::vector<float> x(cvs.size(),0);
+        std::vector<double> x(cvs.size(),0);
         std::vector<int> idx(cvs.size(),0);
         int ii = 0;
 
@@ -258,7 +258,7 @@ namespace SSAGES
     {
 		for( size_t k = 0; k < cvs.size(); k++)
 		{
-			int ncoeff = _polyords[k]+1; 
+			size_t ncoeff = _polyords[k]+1;
 
 			std::vector<double> dervs(_nbins[k]*ncoeff,0);
 			std::vector<double> vals(_nbins[k]*ncoeff,0);
@@ -309,7 +309,7 @@ namespace SSAGES
          *This will only occur if the file exists and the read option
          *is chosen in the JSON file
          */
-        int i = 0;
+        size_t i = 0;
         while (std::getline(infile, line))
         {
             std::istringstream iss(line);
@@ -577,7 +577,7 @@ namespace SSAGES
 	{	
 		// Reset derivatives
         std::fill(_derivatives.begin(), _derivatives.end(), 0);
-        std::vector<float> x(cvs.size(),0);
+        std::vector<double> x(cvs.size(),0);
         std::vector<int> idx(cvs.size(),0);
 
         double temp = 1.0;

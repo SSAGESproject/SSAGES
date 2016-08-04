@@ -78,9 +78,7 @@ namespace SSAGES
 				{
 					// We set the gradient to zero, and only 
 					// set to unity the dimension of interest.
-					_grad[i][0] = 0;
-					_grad[i][1] = 0;
-					_grad[i][2] = 0;
+					_grad[i].setZero();
 					switch(_index)
 					{
 						case 0:
@@ -99,9 +97,7 @@ namespace SSAGES
 				}
 				else
 				{
-					_grad[i][0] = 0;
-					_grad[i][1] = 0;
-					_grad[i][2] = 0;
+					_grad[i].setZero();
 				}
 			}
 		}
@@ -156,6 +152,31 @@ namespace SSAGES
 		double GetDifference(const double Location) const override
 		{
 			return _val - Location;
+		}
+
+		//! Serialize this CV for restart purposes.
+		/*!
+		 * \param json JSON value
+		 */
+		virtual void Serialize(Json::Value& json) const override
+		{
+			json["type"] = "AtomCoordinate";			
+			switch(_index)
+					{
+						case 0:
+							json["dimension"] = "x";
+							break;
+						case 1:
+							json["dimension"] = "y";
+							break;
+						case 2:
+							json["dimension"] = "z";
+							break;
+					}
+			json["atom id"] = _atomid;
+			for(size_t i = 0; i < _bounds.size(); ++i)
+				json["bounds"].append(_bounds[i]);
+
 		}
 	};
 }

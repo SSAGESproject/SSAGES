@@ -26,9 +26,9 @@ namespace SSAGES
 		//! Current value of the CV.
 		double _val;
 
-		bool _fixx; //!< If \c True, constrain x dimension of CV.
-		bool _fixy; //!< If \c True, constrain y dimension of CV.
-		bool _fixz; //!< If \c True, constrain z dimension of CV.
+		bool _fixx; //!< If \c False, constrain x dimension of CV.
+		bool _fixy; //!< If \c False, constrain y dimension of CV.
+		bool _fixz; //!< If \c False, constrain z dimension of CV.
 
 		//! Gradient of the CV, dr/dxi.
 		std::vector<Vector3> _grad;
@@ -36,24 +36,14 @@ namespace SSAGES
 		//! Bounds on CV.
 		std::array<double, 2> _bounds;
 
-		//! Helper function to compute the norm of a vector.
-		/*!
-		 * \param v Three dimensional vector.
-		 * \return Norm of the vector.
-		 */
-		double norm(const Vector3& v)
-		{
-			return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-		}
-
 	public:
 		//! Constructor
 		/*!
 		 * \param atomid ID of the atom of interest.
 		 * \param position Point in (1,2,3)D space for the distance calculation.
-		 * \param fixx If \c True, constrain x dimension.
-		 * \param fixy If \c True, constrain y dimension.
-		 * \param fixz If \c True, constrain z dimension.
+		 * \param fixx If \c False, constrain x dimension.
+		 * \param fixy If \c False, constrain y dimension.
+		 * \param fixz If \c False, constrain z dimension.
 		 *
 		 * Construct an atom position CV. If a dimension is constrained, this
 		 * dimension does not contribute to the distance calculation. For
@@ -96,10 +86,10 @@ namespace SSAGES
 				if(ids[i] == _atomid)
 				{
 					// Compute distance.
-					Vector3 dx{{
+					Vector3 dx{
 						pos[i][0] - _position[0], 
 						pos[i][1] - _position[1], 
-						pos[i][2] - _position[2]}};
+						pos[i][2] - _position[2]};
 
 					// Set to 0 dimensions we aren't interested in.
 					if(!_fixx) dx[0] = 0;
@@ -107,11 +97,12 @@ namespace SSAGES
 					if(!_fixz) dx[2] = 0;
 
 					// Compute norm and gradient.
-					auto r = norm(dx);
-					_grad[i][0] = dx[0]/r;
-					_grad[i][1] = dx[1]/r;
-					_grad[i][2] = dx[2]/r;
+					auto r = dx.norm();
 					_val = r;
+					if (r == 0)
+						_grad[i].setZero();
+					else 
+						_grad[i] = dx/r;
 				}
 				else
 				{
@@ -175,6 +166,15 @@ namespace SSAGES
 		double GetDifference(const double Location) const override
 		{
 			return _val - Location;
+		}
+
+		//! Serialize this CV for restart purposes.
+		/*!
+		 * \param json JSON value
+		 */
+		virtual void Serialize(Json::Value& json) const override
+		{
+
 		}
 	};
 }

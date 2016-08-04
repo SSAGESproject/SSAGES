@@ -18,12 +18,9 @@ namespace SSAGES
 
 	void Umbrella::PreSimulation(Snapshot*, const CVList& cvs)
 	{
-		if(_comm.rank() ==0)
+		if(_comm.rank() == 0)
 		{
-			char file[1024];
-			sprintf(file, "node-%d.log", _world.rank());
-		 	_umbrella.open(file);
-		 	_currentiter = 0;
+		 	_umbrella.open(_filename.c_str(), std::ofstream::out | std::ofstream::app);
 		 }
 	}
 
@@ -46,8 +43,10 @@ namespace SSAGES
 				for(size_t k = 0; k < forces[j].size(); ++k)
 					forces[j][k] -= D*grad[j][k];
 		}
-		PrintUmbrella(cvs);
-		_currentiter++;
+
+		_iteration++;
+		if(_iteration % _logevery == 0)
+			PrintUmbrella(cvs);
 	}
 
 	void Umbrella::PostSimulation(Snapshot*, const CVList&)
@@ -63,7 +62,7 @@ namespace SSAGES
 		if(_comm.rank() ==0)
 		{
 			_umbrella.precision(8);
-			_umbrella << _currentiter << " ";
+			_umbrella << _iteration << " ";
 
 			for(size_t jj = 0; jj < _centers.size(); jj++)
 				_umbrella<< _centers[jj] << " " << CV[jj]->GetValue()<< " "; 

@@ -3,6 +3,7 @@
 #include "../JSON/Serializable.h"
 #include <vector>
 #include <iostream>
+#include <stdexcept>
 
 // Forward declare.
 namespace Json {
@@ -11,11 +12,36 @@ namespace Json {
 
 namespace SSAGES
 {
-	// Forward declare Grid.
-	class Grid;
+	//! Calculate array index from n-Dimensional Grid indices.
+	/*!
+	 * \param indices Vector of indices.
+	 * \param num_points Number of grid points in each dimension.
+	 *
+	 * \return Index of 1d array storing data.
+	 */
+	inline int FlattenIndices(std::vector<int> indices, std::vector<int> num_points)
+	{
+
+		int loci = 0;
+		for(size_t i = 0; i < indices.size(); i++)
+		{
+			if(indices[i]>=num_points[i])
+				throw std::out_of_range("Grid indices out of range");
+			
+			int locj = indices[i];
+			for(size_t j = i+1;j<indices.size();j++)
+				locj *= num_points[j];
+			loci += locj;
+		}
+		
+		return loci;
+	}
 
 	//! Generic Grid.
-	class Grid
+	/*!
+	 * \ingroup Core
+	 */
+	class Grid: public Serializable
 	{
 
 	protected:
@@ -26,8 +52,13 @@ namespace SSAGES
 		std::vector<int> _num_points; //!< Number of grid points.
 		std::vector<double> _spacing; //!< Grid spacing.
 		int _NDim; //!< Grid dimension.
+
+		//! Array storing grid data.
+		std::vector<std::pair<std::vector<double>, std::vector<double>>> _flatvector;
 	
 	public:
+		//! Iterator for traversing the Grid.
+		using const_iterator = std::vector<std::pair<std::vector<double>, std::vector<double>>>::const_iterator;
 
 		//! Destructor.
 		virtual ~Grid(){}
@@ -42,39 +73,44 @@ namespace SSAGES
 		 * returned as an N-dimensional vector. Here, N is the dimension of the
 		 * Grid.
 		 */
-		std::vector<int> GetIndices(const std::vector<float> &val)
+		std::vector<int> GetIndices(const std::vector<double> &val)
 		{
 			std::vector<int> vertices;
 
 			for(size_t i = 0; i < val.size(); i++)
 			{
-				int vertex = int((val[i] - _lower[i])/_spacing[i] + 0.5);
+				int vertex = 0;
+				if(val[i]<_lower[i])
+					vertex = int((val[i] - _lower[i])/_spacing[i] - 0.5);
+				else
+					vertex = int((val[i] - _lower[i])/_spacing[i] + 0.5);
+
+				if(_periodic[i])
+				{
+					vertex = vertex % _num_points[i];
+					if(vertex<0)
+						vertex += _num_points[i];
+				}
+
 				if(vertex < 0) // out of bounds
 					vertex = 0;
-				else if(vertex > _num_points[i] -1) // out of bounds
-				{
-					if(_periodic[i])
-						vertex = 0;
-					else
-						vertex = _num_points[i] -1;
-				}
+				else if(vertex >= _num_points[i]) // out of bounds
+					vertex = _num_points[i] - 1;
+
 				vertices.push_back(vertex);
 			}
 
 			return vertices;
 		}
 
-		std::vector<float> GetLocation(const std::vector<int> &indices)
+		//! Get the location at the current indices.
+		/*!
+		 * \param indices Indices specifying grid point.
+		 * \return vector of positions at the specified grid point.
+		 */
+		std::vector<double> GetLocation(const std::vector<int> &indices) const
 		{
-		    std::vector<float> positions;
-
-		    for(size_t i = 0; i < indices.size(); i++)
-		      {
-			float position = _lower[i] + _spacing[i]*i;
-			positions.push_back(position);
-		      }
-
-		    return positions;
+			return _flatvector[FlattenIndices(indices,_num_points)].second;
 		}
 
 		//! Get the value at the current indices.
@@ -82,22 +118,61 @@ namespace SSAGES
 		 * \param indices Indices specifying grid point.
 		 * \return Value at the specified grid point.
 		 */
-		virtual float GetValue(const std::vector<int>& indices) const = 0;
-		virtual float GetDeriv(const std::vector<int>& indices, int dim) const = 0;
-		virtual float InterpolateValue(const std::vector<float> &val) const = 0;
-		virtual float InterpolateDeriv(const std::vector<float> &val, int dim) const = 0;
+		double GetValue(const std::vector<int>& indices) const
+		{
+			return _flatvector[FlattenIndices(indices,_num_points)].first[0];
+		}
 
 		//! Set the value at the current incices.
 		/*!
 		 * \param indices Indices specifying the grid point.
 		 * \param value New value for the grid point.
 		 */
-		virtual void SetValue(const std::vector<int>& indices, float value) = 0;
-		virtual void  SetDeriv(const std::vector<int>& indices, float value, int dim) = 0;
+		void SetValue(const std::vector<int>& indices, double value)
+		{
+			_flatvector[FlattenIndices(indices,_num_points)].first[0] = value;
+		}
 
+		//! Get the extra at the current indices.
+		/*!
+		 * \param indices Indices specifying grid point.
+		 * \return Value at the specified grid point.
+		 */
+		std::vector<double> GetExtra(const std::vector<int>& indices) const
+		{
+			const std::vector<double>& temp = _flatvector[FlattenIndices(indices,_num_points)].first;
+			std::vector<double> temp2(&temp[1], &temp[temp.size()-1]);
+			return temp2;
+		}
 
-		//! Write the grid to the console.
-		virtual void PrintGrid() const = 0;
+		//! Set the extra at the current incices.
+		/*!
+		 * \param indices Indices specifying the grid point.
+		 * \param value New value for the grid point.
+		 */
+		void SetExtra(const std::vector<int>& indices, std::vector<double> value)
+		{
+			int flatten = FlattenIndices(indices, _num_points);
+			if(value.size() != _flatvector[flatten].first.size()-1)
+				throw std::out_of_range("Vector field in grid is not the same size as value");
+			for(size_t i = 0; i < value.size(); i++)
+				_flatvector[flatten].first[i+1] = value[i];
+		}
+
+		//! Write Grid to console
+		/*!
+		 * Currently only for debugging
+		 */
+		void PrintGrid() const
+		{
+			for(size_t i = 0; i<_flatvector.size(); i++)
+			{
+				std::cout << _flatvector[i].first[0]<<" ";
+				for(size_t j = 0; j<_flatvector[i].second.size(); j++)
+					std::cout<<_flatvector[i].second[j]<< " ";
+				std::cout<<std::endl;
+			}
+		}
 
 		//! Return lower edges of the Grid.
 		/*!
@@ -179,6 +254,30 @@ namespace SSAGES
 		 */
 		static Grid* BuildGrid(const Json::Value& json, 
 							   const std::string& path);
+
+		virtual std::vector<std::vector<int>> GetVoxel(const std::vector<double> &val) const = 0;
+
+		virtual double InterpolateValue(const std::vector<double> &val) const = 0;
+
+		virtual double InterpolateDeriv(const std::vector<double> &val, int dim) const = 0;
+
+		//! \copydoc Serializable::Serialize()
+		virtual void Serialize(Json::Value& json) const override
+		{
+
+		}
+
+		//! Get iterator to first element of the Grid.
+		/*!
+		 * \return Iterator to first element in the Grid.
+		 */
+		const_iterator begin() const { return _flatvector.begin();}
+
+		//! Get iterator one beyond last element of the Grid.
+		/*!
+		 * \return Iterator pointing to after the last element in the Grid.
+		 */
+		const_iterator end() const { return _flatvector.end(); }
 	};
 	
 }

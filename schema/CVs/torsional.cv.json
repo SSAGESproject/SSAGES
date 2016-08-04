@@ -16,7 +16,15 @@
 		},
 		"periodic" : {
 			"type" : "boolean"
-		}
+		},
+		"bounds" : {
+			"type" : "array",
+			"minItems" : 2,
+			"maxItems" : 2,
+			"items" : {
+				"type" : "number"
+					}
+		}	
 	},
 	"required": ["type", "atom ids"],
 	"additionalProperties": false

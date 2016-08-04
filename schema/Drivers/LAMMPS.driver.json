@@ -25,6 +25,18 @@
 		},
 		"method" : {
 			"type" : "object"
+		},
+		"observers" : {
+			"type" : "array"
+		},
+		"grid" : {
+			"type" : "object"
+		},
+		"restart file" : {
+			"type" : "string"
+		},
+		"read restart" : {
+			"type" : "boolean"
 		}
 	},
 	"required" : ["type", "MDSteps"],

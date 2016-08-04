@@ -1,8 +1,7 @@
 #pragma once
 
-#include "Drivers/Driver.h"
-#include "Grids/Grid.h"
-#include "Drivers/LammpsDriver.h"
+#include "../Drivers/Driver.h"
+#include "../Grids/Grid.h"
 #include "../JSON/Serializable.h"
 #include "json/json.h"
 #include <boost/mpi.hpp>
@@ -11,6 +10,12 @@
 #include <exception>
 #include "../Utility/BuildException.h"
 #include "../Validator/ArrayRequirement.h"
+#include "schema.h"
+#include "config.h"
+
+#ifdef ENABLE_LAMMPS
+#include "Drivers/LammpsDriver.h"
+#endif
 
 namespace mpi = boost::mpi;
 using namespace Json;
@@ -24,7 +29,7 @@ namespace SSAGES
 	 *
 	 * \ingroup Core
 	 */
-	class Simulation : public Serializable
+	class Simulation
 	{
 
 	protected:
@@ -208,7 +213,7 @@ namespace SSAGES
 				i++;
 			}
 
-			_nwalkers = json.size();
+			_nwalkers = JsonDrivers.size();
 			_comm = _world.split(wid);
 
 			if(_world.size() != totalproc)
@@ -226,6 +231,7 @@ namespace SSAGES
 			_MDEngine = JsonDriver.get("type", "none").asString();
 
 			// Use input from JSON to determine MDEngine of choice as well as other parameters
+			#ifdef ENABLE_LAMMPS
 			if(_MDEngine == "LAMMPS")
 			{
 				LammpsDriver* en = new LammpsDriver(_world, _comm, wid);
@@ -237,6 +243,7 @@ namespace SSAGES
 				}
 			}
 			else
+			#endif
 			{
 				DumpErrorsToConsole({"Unknown MD Engine [" + _MDEngine + "] specified."},_notw);
 				success_build = false;
@@ -292,6 +299,17 @@ namespace SSAGES
 			else if (json.isMember("grid"))
 			{
 				if(!BuildGrid(json,"#/Grids"))
+					success_build = false;
+			}
+
+			if(JsonDriver.isMember("observers"))
+			{
+				if(!BuildObservers(JsonDriver))
+					success_build = false;
+			}
+			else if (json.isMember("observers"))
+			{
+				if(!BuildObservers(json))
 					success_build = false;
 			}
 
@@ -355,6 +373,30 @@ namespace SSAGES
 			return true;
 		}
 
+		//! Set up observers
+		/*!
+		 * \param json JSON value containing input information.
+		 *
+		 * \return \c True if Method has been set up correctly, else return \c False .
+		 *
+		 * Set up the JSON observer to be used in creating restarts for the simulation.
+		 */
+		bool BuildObservers(const Json::Value& json)
+		{
+			// Build method(s).
+			try{
+				_MDDriver->BuildObservers(json.get("observers", Json::objectValue), _nwalkers);
+			} catch(BuildException& e) {
+				DumpErrorsToConsole(e.GetErrors(), _notw);
+				return false;
+			} catch(std::exception& e) {
+				DumpErrorsToConsole({e.what()}, _notw);
+				return false;
+			}
+
+			return true;
+		}
+
 		//! Set up grid
 		/*!
 		 * \param json JSON value containing input information.
@@ -391,6 +433,7 @@ namespace SSAGES
 
 			if(_GlobalInput != "none" && localInput == "none")
 			{
+				_MDDriver->SetInputFile(_GlobalInput);
 				if(_world.rank() == 0)
 				{
 					std::cout<<"Global input file found, first using: "<<_GlobalInput<<std::endl;
@@ -425,13 +468,6 @@ namespace SSAGES
 		void Run()
 		{
 			_MDDriver->Run();
-		}
-
-		//! \copydoc Serializable::Serialize()
-		virtual void Serialize(Json::Value& json) const override
-		{
-			if(_GlobalInput != "none")
-				json["inputfile"] = _GlobalInput;
 		}
 	};
 }

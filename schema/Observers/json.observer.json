@@ -1,0 +1,19 @@
+{
+	"type" : "object",
+	"varname" : "JSONObserver",
+	"properties" : {
+		"type" : {
+			"type" : "string",
+			"enum" : ["JSON"]
+		},
+		"file name" : {
+			"type" : "string"
+		},
+		"frequency" : {
+			"type" : "integer",
+			"minimum" : 1
+		}
+	},
+	"required" : ["type", "file name", "frequency"],
+	"additionalProperties" : false
+}

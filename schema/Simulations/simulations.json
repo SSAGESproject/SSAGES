@@ -17,6 +17,9 @@
 		},
 		"method" : {
 			"type" : "object"
+		},
+		"observers" : {
+			"type" : "array"
 		}
 	},
 	"required" : ["driver"],

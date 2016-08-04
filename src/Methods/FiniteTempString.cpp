@@ -148,9 +148,7 @@ namespace SSAGES
 			if(InCell(cvs)){
 				_run_SMD = false;
 				for(auto& force : forces){
-					for(auto& xyz : force){
-						xyz = 0.0;
-					}
+					force.setZero();
 				}
 			} else {
 				_cv_inside_iterator = 0;
@@ -182,8 +180,7 @@ namespace SSAGES
 			// Otherwise, reset system back to previous step  
 			if(!inside){
 				for(auto& force : forces)
-					for(auto& xyz : force)
-						xyz = 0.0;
+					force.setZero();
 
 				for(size_t i = 0; i < positions.size(); i++)
 					for(size_t j = 0; j < positions[i].size(); j++)
@@ -268,7 +265,7 @@ namespace SSAGES
 	void FiniteTempString::StringUpdate()
 	{
 		size_t i;
-		int centersize = _centers.size();
+		size_t centersize = _centers.size();
 		double alpha_star;
 		std::vector<double> alpha_starv;
 		std::vector<double> cvs_new;
@@ -285,7 +282,7 @@ namespace SSAGES
 			sendneighbor = 1;
 			recvneighbor = _world.size()-1;
 		} 
-		else if (_mpiid == _world.size()-1){
+		else if (_mpiid == (unsigned int)_world.size() - 1){
 			sendneighbor = 0;
 			recvneighbor = _world.size() - 2;
 		} 

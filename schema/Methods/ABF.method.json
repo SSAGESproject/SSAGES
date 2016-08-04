@@ -61,7 +61,7 @@
 			"minimum" : 0
 		},
 
-		"F from file" : {
+		"filename" : {
 			"type" : "string"
 		},
 
@@ -88,11 +88,31 @@
 			"minimum" : 0
 		},
 
+		"F" : {
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		}, 
+		
+		"N" : {
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "integer"
+			}
+		},
+
+		"iteration" : {
+			"type" : "integer"
+		}, 
+
 		"frequency" : {
 			"type" : "integer",
 			"minimum" : 1
 		}
 	},
-	"required": ["type", "CV minimums", "CV maximums", "CV bins", "timestep", "Unit conversion", "Print details"],
+	"required": ["type", "CV minimums", "CV maximums", "CV bins", "timestep", "Unit conversion", "Print details", "filename"],
 	"additionalProperties": false
 }

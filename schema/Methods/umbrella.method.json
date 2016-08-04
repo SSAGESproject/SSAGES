@@ -23,8 +23,17 @@
 		"frequency" : {
 			"type" : "integer",
 			"minimum" : 1
+		},
+		"file name" :{
+			"type" : "string"
+		},
+		"iteration" : {
+			"type" : "integer"
+		},
+		"log every" : {
+			"type" : "integer"
 		}
 	},
-	"required": ["type", "ksprings", "centers"],
+	"required": ["type", "ksprings", "centers", "file name"],
 	"additionalProperties": false
 }

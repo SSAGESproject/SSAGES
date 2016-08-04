@@ -27,6 +27,9 @@ namespace SSAGES
 		//! Pointer to grid
 		Grid* _grid;
 
+		//! Number of the method iteration.
+		int _iteration;
+
 	public:
 		//! Constructor
 		/*!
@@ -39,7 +42,17 @@ namespace SSAGES
 		Method(unsigned int frequency, 
 			boost::mpi::communicator& world, 
 			boost::mpi::communicator& comm) : 
-		EventListener(frequency), _world(world), _comm(comm){}
+		EventListener(frequency), _world(world), _comm(comm),
+		_grid(nullptr), _iteration(0){}
+
+		//! Set Method's iteration.
+		/*!
+		 * \param iter int value for what the method iteration should be.
+		 */
+		void SetIteration(int iter) {_iteration = iter;}
+
+		//! Get Method's iteration.
+		int GetIteration() {return _iteration;}
 
 		//! Method call prior to simulation initiation.
 		/*!
@@ -77,6 +90,9 @@ namespace SSAGES
 		{
 			_grid = Grid::BuildGrid(json, path);
 		}
+
+		//! Get the Grid
+		Grid* GetGrid() const {return _grid;}
 
 		//! Set up the Method
 		/*!

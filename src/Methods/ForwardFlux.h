@@ -54,10 +54,10 @@ namespace SSAGES
 		std::vector<std::vector< int> > _paths;
 
 		//! Current interface FF is shooting from.
-		int _currentnode;
+		size_t _currentnode;
 
 		//! The current starting configuration that we are on.
-		int _currentstartingpoint;
+		size_t _currentstartingpoint;
 
 		//! User defined number of starting configs needed per walker before starting FF.
 		int _requiredconfigs;

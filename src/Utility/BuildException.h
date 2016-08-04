@@ -52,7 +52,7 @@ namespace SSAGES
 	 * \param msgw Width of the message.
 	 * \param world MPI global communicator.
 	 */
-	void PrintBoldNotice(const std::string& notice, int msgw, const mpi::communicator& world)
+	inline void PrintBoldNotice(const std::string& notice, int msgw, const mpi::communicator& world)
 	{
 
 		if(world.rank() == 0)
@@ -67,7 +67,7 @@ namespace SSAGES
 	 *
 	 * Write a list of error messages to the console.
 	 */
-	int DumpErrorsToConsole(const std::vector<std::string>& msgs, int notw)
+	inline int DumpErrorsToConsole(const std::vector<std::string>& msgs, int notw)
 	{
 		std::cout << std::setw(notw) << std::right << "\033[1;31mError(s)! See below.\033[0m\n";
 		for(auto& msg : msgs)
@@ -82,7 +82,7 @@ namespace SSAGES
 	 * \param notw Width of the messages.
 	 * \param world MPI global communicator.
 	 */
-	void DumpNoticesToConsole(const std::vector<std::string>& msgs, std::string prefix, int notw, const mpi::communicator& world)
+	inline void DumpNoticesToConsole(const std::vector<std::string>& msgs, std::string prefix, int notw, const mpi::communicator& world)
 	{
 		if(world.rank() == 0)
 		{

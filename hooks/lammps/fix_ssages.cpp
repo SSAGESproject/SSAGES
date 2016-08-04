@@ -9,6 +9,8 @@
 #include "domain.h"
 #include <boost/mpi.hpp>
 #include <boost/version.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
 
 using namespace SSAGES;
 using namespace LAMMPS_NS::FixConst;
@@ -32,68 +34,41 @@ namespace LAMMPS_NS
 {
 	// Copyright (C) 2015 Lorenz Hübschle-Schneider <lorenz@4z2.de>
 	// Helper function for variable MPI_allgather.
-	template <typename T>
+	template <typename T, typename transmit_type = uint64_t>
 	void allgatherv_serialize(const mpi::communicator &comm, const std::vector<T> &in, std::vector<T> &out) 
 	{
-		// Step 1: serialize input data
-		mpi::packed_oarchive oa(comm);
-		oa << in;
-
-		// Step 2: exchange sizes (archives' .size() is measured in bytes)
+		// Step 1: exchange sizes
+		// We need to compute the displacement array, specifying for each PE
+		// at which position in out to place the data received from it
 		// Need to cast to int because this is what MPI uses as size_t...
-		const int in_size = static_cast<int>(in.size()),
-				transmit_size = static_cast<int>(oa.size());
+		const int factor = sizeof(T) / sizeof(transmit_type);
+		const int in_size = static_cast<int>(in.size()) * factor;
+		std::vector<int> sizes(comm.size());
+		mpi::all_gather(comm, in_size, sizes.data());
 
-		std::vector<int> in_sizes(comm.size()), transmit_sizes(comm.size());
-		mpi::all_gather(comm, in_size, in_sizes.data());
-		mpi::all_gather(comm, transmit_size, transmit_sizes.data());
-
-		// Step 3: calculate displacements from sizes (prefix sum)
+		// Step 2: calculate displacements from sizes
+		// Compute prefix sum to compute displacements from sizes
 		std::vector<int> displacements(comm.size() + 1);
-		displacements[0] = sizeof(mpi::packed_iarchive);
-		for (int i = 1; i <= comm.size(); ++i)
-			displacements[i] = displacements[i-1] + transmit_sizes[i-1];
-		
+		displacements[0] = 0;
+		std::partial_sum(sizes.begin(), sizes.end(), displacements.begin() + 1);
 
-		// Step 4: allocate space for result and MPI_Allgatherv
-		char* recv = new char[displacements.back()];
-		auto sendptr = const_cast<void*>(oa.address());
-		auto sendsize = oa.size();
+		// divide by factor by which T is larger than transmit_type
+		out.resize(displacements.back() / factor);
 
-		int status = MPI_Allgatherv(sendptr, sendsize, MPI_PACKED, recv,
-		                            transmit_sizes.data(), displacements.data(),
-		                            MPI_PACKED, comm);
-
+		// Step 3: MPI_Allgatherv
+		const transmit_type *sendptr = reinterpret_cast<const transmit_type*>(in.data());
+		transmit_type *recvptr = reinterpret_cast<transmit_type*>(out.data());
+		const MPI_Datatype datatype = mpi::get_mpi_datatype<transmit_type>();
+		int status = MPI_Allgatherv(sendptr, in_size, datatype, recvptr,
+									sizes.data(), displacements.data(),
+									datatype, comm);
 		if (status != 0) 
 		{
-		    std::cerr << "PE " << comm.rank() << ": MPI_Allgatherv returned "
-		              << status << ", errno " << errno << std::endl;
-		    return;
+			std::cerr << "PE " << comm.rank() << ": MPI_Allgatherv returned "
+			<< status << ", errno " << errno << std::endl;
+			exit(-1);
 		}
-
-		// Step 5: deserialize received data
-		// Preallocate storage to prevent reallocations
-		std::vector<T> temp;
-		size_t largest_size = *std::max_element(in_sizes.begin(), in_sizes.end());
-		temp.reserve(largest_size);
-		out.clear();
-		out.reserve(std::accumulate(in_sizes.begin(), in_sizes.end(), 0));
-
-		// Deserialize archives one by one, inserting elements at the end.
-		for (int i = 0; i < comm.size(); ++i) 
-		{
-			mpi::packed_iarchive archive(comm);
-			archive.resize(transmit_sizes[i]);
-			memcpy(archive.address(), recv + displacements[i], transmit_sizes[i]);
-
-			temp.clear();
-			temp.resize(in_sizes[i]);
-			archive >> temp;
-			out.insert(out.end(), temp.begin(), temp.end());
-		}
-
-		delete[] recv;
-    }
+	}
 
 	FixSSAGES::FixSSAGES(LAMMPS *lmp, int narg, char **arg) : 
 	Fix(lmp, narg, arg), Hook()
@@ -136,12 +111,18 @@ namespace LAMMPS_NS
 		Hook::PostSimulationHook();
 	}
 
+	void FixSSAGES::end_of_step()
+	{
+		Hook::PostStepHook();
+	}
+
 	int FixSSAGES::setmask()
 	{
 		// We are interested in post-force and post run hooks.
 		int mask = 0;
 		mask |= POST_FORCE;
 		mask |= POST_RUN;
+		mask |= END_OF_STEP;
 		return mask;
 	}
 
@@ -218,45 +199,7 @@ namespace LAMMPS_NS
 
 		_snapshot->SetKb(force->boltz);
 
-		double lx = domain->boxhi[0] - domain->boxlo[0];
-		double ly = domain->boxhi[1] - domain->boxlo[1];
-		double lz = domain->boxhi[2] - domain->boxlo[2];
-		double xy = domain->xy;
-		double xz = domain->xz;
-		double yz = domain->yz;
-
-		double a = lx;
-		double b = sqrt(ly*ly + xy*xy);
-		double c = sqrt(lz*lz + xz*xz + yz*yz);
-		double alpha = (xy*xz + ly*yz)/b*c;
-		double beta = (xz/c);
-		double gamma = (xy/b);
-
-		auto& box = _snapshot->GetUCVectors();
-
-		box[3][0] = acos(alpha);
-		box[3][1] = acos(beta);
-		box[3][2] = acos(gamma);
-
-		double ax = lx; //ax
-		double bx = b*cos(gamma); //bx
-		double by = sqrt(b*b - bx*bx); //by
-
-		double cx = c*beta; //cx
-		double cy = (b*c - bx*cx)/by; //cy
-		double cz = sqrt(c*c + cx*cx +cy*cy);
-
-		box[0][0] = ax;
-		box[0][1] = bx;
-		box[0][2] = cx;
-
-		box[1][0] = 0;
-		box[1][1] = by;
-		box[1][2] = cy;
-
-		box[2][0] = 0;
-		box[2][1] = 0;
-		box[2][2] = cz;
+		_snapshot->GetLatticeConstants() = ConvertToLatticeConstant(GatherLAMMPSVectors());
 
 		// First we sync local data, then gather.
 		// we gather data across all processors.
@@ -288,9 +231,8 @@ namespace LAMMPS_NS
 		allgatherv_serialize(comm, frc, frc);
 		allgatherv_serialize(comm, masses, masses);
 		allgatherv_serialize(comm, vel, vel);
-		allgatherv_serialize(comm, ids, ids);
-		allgatherv_serialize(comm, types, types);
-
+		allgatherv_serialize<int,int>(comm, ids, ids);
+		allgatherv_serialize<int,int>(comm, types, types);
 	}
 
 	void FixSSAGES::SyncToEngine() //put Snapshot values -> LAMMPS
@@ -309,28 +251,34 @@ namespace LAMMPS_NS
 		const auto& ids = _snapshot->GetAtomIDs();
 		const auto& types = _snapshot->GetAtomTypes();
 
-		// Loop through all atoms and set their values
-		// Positions. This is predicatd on the fact that the 
-		// allgatherv_serialize keeps local processor information 
-		// FIRST. This means that the first nlocal entries are the 
-		// data corresponding to that on the local processor.
-		for (int i = 0; i < atom->nlocal; ++i)
+		// Sync back only local atom data. all_gather guarantees 
+		// sorting of data in vector based on rank. Compute offset
+		// based on rank and sync back only the appropriate data.
+		std::vector<int> natoms;
+		auto& comm = _snapshot->GetCommunicator();
+		natoms.reserve(comm.size());
+		boost::mpi::all_gather(comm, atom->nlocal, natoms);
+		auto j = std::accumulate(natoms.begin(), natoms.begin() + comm.rank(), 0);
+
+		for (int i = 0; i < atom->nlocal; ++i, ++j)
 		{
-			atom->x[i][0] = pos[i][0]; //x 
-			atom->x[i][1] = pos[i][1]; //y
-			atom->x[i][2] = pos[i][2]; //z
-			atom->f[i][0] = frc[i][0]; //force->x
-			atom->f[i][1] = frc[i][1]; //force->y
-			atom->f[i][2] = frc[i][2]; //force->z
+			atom->x[i][0] = pos[j][0]; //x 
+			atom->x[i][1] = pos[j][1]; //y
+			atom->x[i][2] = pos[j][2]; //z
+			atom->f[i][0] = frc[j][0]; //force->x
+			atom->f[i][1] = frc[j][1]; //force->y
+			atom->f[i][2] = frc[j][2]; //force->z
+			atom->v[i][0] = vel[j][0]; //velocity->x
+			atom->v[i][1] = vel[j][1]; //velocity->y
+			atom->v[i][2] = vel[j][2]; //velocity->z
+			atom->tag[i] = ids[j];
+			atom->type[i] = types[j];
+			
 			// Current masses can only be changed if using
 			// per atom masses in lammps
 			if(atom->rmass_flag)
-				atom->rmass[i] = masses[i];
-			atom->v[i][0] = vel[i][0]; //velocity->x
-			atom->v[i][1] = vel[i][1]; //velocity->y
-			atom->v[i][2] = vel[i][2]; //velocity->z
-			atom->tag[i] = ids[i];
-			atom->type[i] = types[i];
+				atom->rmass[i] = masses[j];
+			
 		}
 
 		// LAMMPS computes will reset thermo data based on
@@ -338,4 +286,20 @@ namespace LAMMPS_NS
 		// from snapshot to engine.
 		// However, this will change in the future.
 	}
+
+	const std::array<double, 6> FixSSAGES::GatherLAMMPSVectors() const
+	{
+
+		std::array<double, 6> box;
+
+		box[0] = domain->boxhi[0] - domain->boxlo[0];
+		box[1] = domain->boxhi[1] - domain->boxlo[1];
+		box[2] = domain->boxhi[2] - domain->boxlo[2];
+		box[3] = domain->xy;
+		box[4] = domain->xz;
+		box[5] = domain->yz;
+
+		return box;
+	}
+
 }

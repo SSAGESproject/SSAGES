@@ -4,15 +4,26 @@
 #include <boost/mpi.hpp>
 #include "json/json.h"
 #include "JSON/Serializable.h"
+#include "types.h"
+
+namespace boost
+{
+	namespace serialization
+	{
+		template<class Archive, typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+    	inline void serialize(
+        	Archive & ar, 
+        	Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> & t, 
+        	const unsigned int
+    	) 
+	    {       
+    		ar & boost::serialization::make_array(t.data(), t.size());
+	    }
+	}
+}
 
 namespace SSAGES
 {
-    //! Three-dimensional vector.
-	using Vector3 = std::array<double, 3>;
-
-    //! List of integers.
-	using Label = std::vector<int>;
-	
 	//! Class containing a snapshot of the current simulation in time.
 	/*!
 	 * \ingroup core
@@ -35,7 +46,7 @@ namespace SSAGES
 		std::vector<Vector3> _velocities; //!< Velocities
 		std::vector<Vector3> _forces; //!< Forces
 		std::vector<double> _masses; //!< Masses
-		std::array<Vector3, 4> _ucvectors; //!<UC vectors (ax, bx, cx), (ay, by, cy), (cx, cy, cz), (alpha, beta, gamma)
+		std::array<double, 6> _lattice; //!<lattice constants a, b, c, alpha, beta, gamma
 		Label _atomids; //!< List of Atom IDs
 		Label _types; //!< List of Atom types
 
@@ -246,21 +257,23 @@ namespace SSAGES
 			return _masses; 
 		}
 
-		//! Access the UC vectors
+		//! Access the Lattice Constants
 		/*!
-		 * \return List of UC vectors
+		 * \return List of Lattice constants
+		 *
+		 * The lattice constants are:
 		 * ax, ay, az
 		 * bx, by, bz
 		 * cx, cy, cz
 		 * alpha, beta, gamma
 		 */
-		const std::array<Vector3, 4>& GetUCVectors() const { return _ucvectors; }
+		const std::array<double, 6>& GetLatticeConstants() const { return _lattice; }
 
-		//! \copydoc Snapshot::GetUCVectors() const
-		std::array<Vector3, 4>& GetUCVectors()
+		//! \copydoc Snapshot::GetLatticeConstants() const
+		std::array<double, 6>& GetLatticeConstants()
 		{
 			_changed = true; 
-			return _ucvectors; 
+			return _lattice; 
 		}
 
 		//! Access the atom IDs
@@ -323,7 +336,7 @@ namespace SSAGES
 			json["walker id"] = _wid;
 			json["id"] = _ID;
 
-			for(int i = 0; i<_atomids.size(); i++)
+			for(unsigned int i = 0; i < _atomids.size(); i++)
 			{
 				json["Atom"][i]["ID"] = _atomids[i];
 				json["Atom"][i]["type"] = _types[i];

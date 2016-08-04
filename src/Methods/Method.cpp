@@ -59,7 +59,17 @@ namespace SSAGES
 
 			auto freq = json.get("frequency", 1).asInt();
 
-			auto* m = new Umbrella(world, comm, ksprings, centers, freq);
+			auto name = json.get("file name","none").asString();
+
+			auto* m = new Umbrella(world, comm, ksprings, centers, name, freq);
+
+			if(json.isMember("iteration"))
+				m->SetIteration(json.get("iteration",0).asInt());
+
+			if(json.isMember("log every"))
+				m->SetLogStep(json.get("log every",0).asInt());
+
+
 
 			method = static_cast<Method*>(m);
 		}
@@ -175,7 +185,7 @@ namespace SSAGES
 
 			double unitconv = json.get("Unit conversion", 0).asDouble();
 		
-			int Orthogonalization = json.get("Orthogonalization", 1).asInt();
+			int Orthogonalization = json.get("Orthogonalization", 0).asInt();
 
 			double timestep = json.get("timestep",2).asDouble();
 
@@ -196,11 +206,27 @@ namespace SSAGES
 			
 			auto freq = json.get("frequency", 1).asInt();
 
-			std::string readF = json.get("F from file", " ").asString();
+			std::string filename = json.get("filename", "F_out").asString();
 
-			auto* m = new ABF(world, comm, histdetails, restraint, timestep, min, readF, printdetails, FBackupInterv, unitconv, Orthogonalization, freq);
+			auto* m = new ABF(world, comm, histdetails, restraint, timestep, min, filename, printdetails, FBackupInterv, unitconv, Orthogonalization, freq);
 
 			method = static_cast<Method*>(m);
+
+			if(json.isMember("F") && json.isMember("N"))
+				{
+				std::vector<double> F;
+				std::vector<int> N;
+				for(auto& f : json["F"])
+					F.push_back(f.asDouble());
+				for(auto& n : json["N"])
+					N.push_back(n.asInt());
+
+				m->SetHistogram(F,N);
+				}
+
+			if(json.isMember("iteration"))
+				m->SetIteration(json.get("iteration",0).asInt());
+
 		}
 		else if(type == "ForwardFlux")
 		{

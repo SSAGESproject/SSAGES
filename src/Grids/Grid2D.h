@@ -12,10 +12,6 @@ namespace SSAGES
 	{
 	private:
 
-		//! Vector of vector containing values.
-		std::vector<std::vector<double>> _values;
-		std::vector<std::vector<std::array<double, 2>>> _derivs;
-		
 	public:
 
 		//! Constuctor
@@ -41,151 +37,115 @@ namespace SSAGES
 			for(size_t i = 0; i < _spacing.size(); i++)
 				_spacing[i] = (_upper[i] - _lower[i])/double(_num_points[i] - 1);
 
-			_values.resize(_num_points[0]);
-			_derivs.resize(_num_points[0]);
-
-			for(size_t i = 0; i < _values.size(); i++){
-			  _values[i].resize(_num_points[1],0);
-			  _derivs[i].resize(_num_points[1],{0,0});
-			}
-			
-		}
-	
-		//! Get the value at a given Grid point.
-		/*!
-		 * \param indices List of indices specifying the Grid point.
-		 * \return Value at the specified Grid point.
-		 */
-		float GetValue(const std::vector<int>& indices) const override
-		{
-			return _values[indices[0]][indices[1]];
-		}
-		float GetDeriv(const std::vector<int>& indices, int dim) const override
-		{
-		  return _derivs[indices[0]][indices[1]][dim];
-		}
-
-		float InterpolateValue(const std::vector<float> &val){
-		  std::vector<int> vertices;
-		  std::vector<float> gridpos;
-		  std::vector<float> gridval;
-		  int ii[2];
-		  float ival;
-
-		  for(ii[1] = 0; ii[1] <= 1; ii[1]++){
-		    for(ii[0] = 0; ii[0] <= 1; ii[0]++){
-		      for(size_t i = 0; i < val.size(); i++)
+			// Construct flat vector 
+			_flatvector.resize(_num_points[0]*_num_points[1]);
+			for(int i = 0; i < _num_points[0]; i++)
 			{
-			  //always round down, allows us get the vertices appropriately
-			  int vertex = int((val[i] - _lower[i])/_spacing[i]) + ii[i];
-			  if(vertex < 0) // out of bounds
-			    vertex = 0;
-			  else if(vertex > _num_points[i] -1) // out of bounds
-			    {
-			      if(_periodic[i])
-				vertex = 0;
-			      else
-				vertex = _num_points[i] -1;
-			    }
-			  vertices.push_back(vertex);
+				for(int j = 0; j < _num_points[1]; j++)
+				{
+					int flat = FlattenIndices({i,j}, _num_points);
+					_flatvector[flat].first = std::vector<double>(3, 0.0);
+					_flatvector[flat].second.push_back(_lower[0] + _spacing[0]*i);
+					_flatvector[flat].second.push_back(_lower[1] + _spacing[1]*j);
+				}
 			}
-		      gridpos=push_back(GetLocation(vertices));
-		      gridval=push_back(GetValue(vertices));
-		      vertices.clear();
-		    }
-		  }
-
-		  //now, do 2d interpolation
-		  //order of vertices is 0,0; 1,0; 0,1; 1,1
-		  //note that middle two are negated so arguments are positive, since val < gridpos in
-		  // one of two directions.
-		  ival  = 0;
-		  ival +=  (val[0] - gridpos[0][0])*(val[1] - gridpos[0][1]) * gridval[3];
-		  ival += -(val[0] - gridpos[1][0])*(val[1] - gridpos[1][0]) * gridval[2];
-		  ival += -(val[0] - gridpos[2][0])*(val[1] - gridpos[2][1]) * gridval[1];
-		  ival +=  (val[0] - gridpos[3][0])*(val[1] - gridpos[3][1]) * gridval[0];
-
-		  
-		  ival /= _grid->spacing[0]*_grid->spacing[1];
-			
-		  return ival;
 		}
 
-		float InterpolateDeriv(const std::vector<float> &val, int dim){
-		  std::vector<int> vertices;
-		  std::vector<float> gridpos;
-		  std::vector<float> gridval;
-		  int ii[2];
-		  float ival;
-		  
-		  for(ii[1] = 0; ii[1] <= 1; ii[1]++){
-		    for(ii[0] = 0; ii[0] <= 1; ii[0]++){
-		      for(size_t i = 0; i < val.size(); i++)
+		std::vector<std::vector<int>> GetVoxel(const std::vector<double> &val) const override
+		{
+			std::vector<int> vertices;
+			std::vector<std::vector<int>> voxel;
+
+			for(size_t i = 0; i < val.size(); i++)
 			{
-			  //always round down, allows us get the vertices appropriately
-			  int vertex = int((val[i] - _lower[i])/_spacing[i]) + ii[i];
-			if(vertex < 0) // out of bounds
-			  vertex = 0;
-			else if(vertex > _num_points[i] -1) // out of bounds
-			{
-			  if(_periodic[i])
-			    vertex = 0;
-			  else
-			    vertex = _num_points[i] -1;
+				int vertex = 0;
+
+				vertex = int((val[i] - _lower[i])/_spacing[i]);
+
+				if(_periodic[i])
+				{
+					vertex = vertex % _num_points[i];
+					if(vertex<0)
+						vertex += _num_points[i];
+				}
+
+				if(vertex < 0 || vertex >=_num_points[i]) // out of bounds
+					throw std::out_of_range("Voxel not in grid!");
+
+				vertices.push_back(vertex);
 			}
-		      vertices.push_back(vertex);
-		    }
-		    gridpos=push_back(GetLocation(vertices));
-		    gridval=push_back(GetDeriv(vertices,dim));
-		    vertices.clear();
-		  }
-		  }
 
-		  //now, do 2d interpolation
-		  //order of vertices is 0,0; 1,0; 0,1; 1,1
-		  //note that middle two are negated so arguments are positive, since val < gridpos in
-		  // one of two directions.
-		  ival  = 0;
-		  ival +=  (val[0] - gridpos[0][0])*(val[1] - gridpos[0][1]) * gridval[3];
-		  ival += -(val[0] - gridpos[1][0])*(val[1] - gridpos[1][0]) * gridval[2];
-		  ival += -(val[0] - gridpos[2][0])*(val[1] - gridpos[2][1]) * gridval[1];
-		  ival +=  (val[0] - gridpos[3][0])*(val[1] - gridpos[3][1]) * gridval[0];
-
-		  
-		  ival /= _grid->spacing[0]*_grid->spacing[1];
-		  return ival;
-		}
-
-		
-		
-		//! Set the value at a given Grid point.
-		/*!
-		 * \param indices List of indices specifying the Grid point.
-		 * \param value New value for the specified Grid point.
-		 */
-		void SetValue(const std::vector<int>& indices, float value) override
-		{
-			_values[indices[0]][indices[1]] = value;
-		}
-		void SetDeriv(const std::vector<int>& indices, float value, int dim) override
-		{
-			_derivs[indices[0]][indices[1]][dim] = value;
-		}
-
-		//! Write grid to console
-		/*!
-		 * Currently only for debugging.
-		 */
-		void PrintGrid() const override
-		{
-			for(size_t i = 0; i<_values.size(); i++)
+			//order of vertices is 0,0; 1,0; 0,1; 1,1
+			int oldj = vertices[0];
+			for(size_t i = 0; i < 2; i++)
 			{
-				for(size_t j = 0; j< _values[i].size(); j++)
-					std::cout << _values[i][j]<<" ";
-				std::cout<<std::endl;
+				vertices[1] += i;
+				vertices[0] = oldj;
+				for(size_t j =0; j < 2; j++)
+				{
+					vertices[0] += j;
+					voxel.push_back(vertices);
+				}
 			}
-			std::cout<<std::endl;
+
+			return voxel;
 		}
 
+		double InterpolateValue(const std::vector<double> &val) const override
+		{
+			std::vector<std::vector<int>> voxel = GetVoxel(val);
+			std::vector<std::vector<double>> gridpos;
+			std::vector<double> gridval;
+
+		  	for(size_t v = 0; v < voxel.size(); v++)
+		  	{
+		  		gridpos.push_back(GetLocation(voxel[v]));
+		  		gridval.push_back(GetValue(voxel[v]));
+		  	}
+
+			//now, do 2d interpolation
+			//order of vertices is 0,0; 1,0; 0,1; 1,1
+			//note that middle two are negated so arguments are positive, since val < gridpos in
+			// one of two directions.
+			double ival  = 0;
+			ival +=  (val[0] - gridpos[0][0])*(val[1] - gridpos[0][1]) * gridval[3];
+			ival += -(val[0] - gridpos[1][0])*(val[1] - gridpos[1][0]) * gridval[2];
+			ival += -(val[0] - gridpos[2][0])*(val[1] - gridpos[2][1]) * gridval[1];
+			ival +=  (val[0] - gridpos[3][0])*(val[1] - gridpos[3][1]) * gridval[0];
+
+
+			ival /= _spacing[0]*_spacing[1];
+
+			return ival;
+		}
+
+		double InterpolateDeriv(const std::vector<double> &val, int dim) const override
+		{
+			std::vector<std::vector<int>> voxel = GetVoxel(val);
+			std::vector<std::vector<double>> gridpos;
+			std::vector<std::vector<double>> gridval;
+
+		  	for(size_t v = 0; v < voxel.size(); v++)
+		  	{
+		  		gridpos.push_back(GetLocation(voxel[v]));
+		  		gridval.push_back(GetExtra(voxel[v]));
+		  	}
+
+			//now, do 2d interpolation
+			//order of vertices is 0,0; 1,0; 0,1; 1,1
+			//note that middle two are negated so arguments are positive, since val < gridpos in
+			// one of two directions.
+			double ival  = 0;
+			ival +=  (val[0] - gridpos[0][0])*(val[1] - gridpos[0][1]) * gridval[3][dim];
+			ival += -(val[0] - gridpos[1][0])*(val[1] - gridpos[1][0]) * gridval[2][dim];
+			ival += -(val[0] - gridpos[2][0])*(val[1] - gridpos[2][1]) * gridval[1][dim];
+			ival +=  (val[0] - gridpos[3][0])*(val[1] - gridpos[3][1]) * gridval[0][dim];
+
+			ival /= _spacing[0]*_spacing[1];
+
+			return ival;
+		}
+
+		~Grid2D(){}
 	};	
 }
