@@ -32,8 +32,7 @@ namespace SSAGES
 
         //On the first iteration, check that the CVs are within (threshold*100)% of the center value they're associated to
         for(size_t i = 0; i < cvs.size(); i++)
-        { 
-            std::cout << _mpiid << " CV value = " << cvs[i]->GetValue() << " Centers value = " << _centers[i] << std::endl; //Debuggingi
+        {
             if(_centers[i] <= epsilon)
             {//e.g. if _centers[i] = 0
                 diff = std::abs((cvs[i]->GetValue() - (_centers[i]+0.01)) / ((cvs[i]->GetValue() + (0.01 + _centers[i]))/2.0));
@@ -116,7 +115,7 @@ namespace SSAGES
 
         bool initialize; //Whether to initialize or not
 
-        if(_iteration == 0 && !sampling_started) 
+        if(!sampling_started) 
         {
             initialize = CVInitialized(cvs);
         }
@@ -124,9 +123,9 @@ namespace SSAGES
         {
             initialize = false;
         }
-        if(_iteration == 0 && initialize && !sampling_started)
+        if(initialize && !sampling_started)
         {//On first pass, make sure CVs are initialized well
-            //Do restrained sampling, and do not harvest trajectories
+            //Do restrained sampling, and do not harvest trajectories 
             for(size_t i = 0; i < cvs.size(); i++)
             {
                 //Get current CV and gradient
@@ -206,8 +205,7 @@ namespace SSAGES
                     {
                         //Zero forces
                         for(auto& force: forces)
-                            for(auto& xyz : force)
-                                xyz = 0.0;
+                            force.setZero();
                         //Then set positions
                         for(size_t k = 0; k < positions.size(); k++)
                         {
@@ -247,8 +245,7 @@ namespace SSAGES
                         {
                             //Zero forces
                             for(auto& force : forces)
-                                for(auto& xyz : force)
-                                    xyz = 0.0;
+                                force.setZero();
                             //Then set positions
                             for(size_t k = 0; k < positions.size(); k++)
                             {
