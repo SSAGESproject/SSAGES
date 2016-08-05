@@ -93,10 +93,6 @@ elseif(GROMACS_SRC)
 	LOG_BUILD ON)
 	
 	include_directories(${GROMACS_SRC}/src)
-	#file(GLOB MDRUN_SOURCES ${GROMACS_SRC}/src/programs/mdrun/*.c ${GROMACS_SRC}/src/programs/mdrun/*.cpp)
-	#add_library(mdrun_objlib OBJECT ${MDRUN_SOURCES})
-    #add_library(fahcore $<TARGET_OBJECTS:mdrun_objlib>)
-
 endif()
 
 
@@ -161,12 +157,14 @@ if(LAMMPS_SRC)
 	target_link_libraries(ssages libssages ${LAMMPS_SRC}/liblammps_mpi.so)
 	add_dependencies(ssages lammps)
 elseif(GROMACS_SRC)
-	#set_target_properties(mdrun_objlib PROPERTIES COMPILE_FLAGS "-Wall -Wextra -fPIC")
 	add_dependencies(gromacs libssages)
+
+	# To determine Gromacs install dir. 
+	include(GNUInstallDirs)
 	target_link_libraries(ssages 
 		libssages 
-		${CMAKE_BINARY_DIR}/gromacs/lib64/libgromacs_mpi.so
-		${CMAKE_BINARY_DIR}/gromacs/lib64/libmdrun.a
+		${CMAKE_BINARY_DIR}/gromacs/${CMAKE_INSTALL_LIBDIR}/libgromacs_mpi.so
+		${CMAKE_BINARY_DIR}/gromacs/${CMAKE_INSTALL_LIBDIR}/libmdrun.a
 		)
 	add_dependencies(ssages gromacs)
 endif()
