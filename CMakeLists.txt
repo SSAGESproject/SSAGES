@@ -14,7 +14,7 @@ endif()
 # list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # Resolve dependencies
-find_package(MPI REQUIRED)
+find_package(MPI 1.6 REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
 
 # Require Boost MPI.
