@@ -72,7 +72,8 @@ namespace SSAGES
 			const auto& pos = snapshot.GetPositions(); 
 			const auto& ids = snapshot.GetAtomIDs();
 			const auto& LatticeConstants = snapshot.GetLatticeConstants();
-			
+			_grad.resize(pos.size());
+					
 			// Some temp variables.
 			Vector3 pos1{0, 0, 0};
 			Vector3 pos2{0, 0, 0};

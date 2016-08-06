@@ -2,6 +2,7 @@
 
 #include "../Snapshot.h"
 #include "../JSON/Serializable.h"
+#include "types.h"
 #include <vector>
 
 // Forward declare.
@@ -11,12 +12,6 @@ namespace Json {
 
 namespace SSAGES
 {
-	// Forward declare Collective Variable.
-	class CollectiveVariable;
-
-	//! List of Collective Variables.
-	using CVList = std::vector<CollectiveVariable*>;
-
 	//! Abstract class for a collective variable.
 	/*!
 	 * \ingroup CVs
