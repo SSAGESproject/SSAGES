@@ -101,7 +101,7 @@ elseif(GROMACS_SRC)
 
 	add_custom_target(
 		gmxln
-		COMMAND ln -s ${PROJECT_SOURCE_DIR}/hooks/gromacs/GromacsHook.h ${GROMACS_SRC}/src/programs/mdrun/GromacsHook.h
+		COMMAND ln -sf ${PROJECT_SOURCE_DIR}/hooks/gromacs/GromacsHook.h ${GROMACS_SRC}/src/programs/mdrun/GromacsHook.h
 	)
 	add_dependencies(gromacs gmxln)
 	
