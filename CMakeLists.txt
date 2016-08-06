@@ -79,23 +79,38 @@ if(LAMMPS_SRC)
 elseif(GROMACS_SRC)
 	set(ENABLE_GROMACS true)
 
+	set(GRO_CXX_ARGS "-I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include")
+
 	ExternalProject_Add(
 	gromacs
+	BUILD_COMMAND $(MAKE)
 	SOURCE_DIR ${GROMACS_SRC}
 	PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gromacs
-	CMAKE_ARGS 
+	BUILD_ALWAYS true
+	CMAKE_ARGS
 	-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
-	-DGMX_BUILD_OWN_FFTW=ON -DGMX_MPI=ON
+	-DGMX_MPI=ON
+	-DCMAKE_CXX_FLAGS=${GRO_CXX_ARGS}
 	-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+	-DGMX_EXTRA_LIBRARIES=${CMAKE_BINARY_DIR}/libssagesgmx.so
+	-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 	BUILD_IN_SOURCE false
 	INSTALL_DIR ${CMAKE_BINARY_DIR}/gromacs
-	PATCH_COMMAND patch -p2 -d ${GROMACS_SRC} < ${PROJECT_SOURCE_DIR}/hooks/gromacs/mdrun_cmake.patch 
+	PATCH_COMMAND patch -p2 -d ${GROMACS_SRC} < ${PROJECT_SOURCE_DIR}/hooks/gromacs/gmx_diff.patch 
 	LOG_BUILD ON)
+
+	add_custom_target(
+		gmxln
+		COMMAND ln -s ${PROJECT_SOURCE_DIR}/hooks/gromacs/GromacsHook.h ${GROMACS_SRC}/src/programs/mdrun/GromacsHook.h
+	)
+	add_dependencies(gromacs gmxln)
 	
+	set(HOOKSRC
+		hooks/gromacs/GromacsHook.cpp
+		)
+
 	include_directories(${GROMACS_SRC}/src)
 endif()
-
-
 
 # Schema builder.
 set (SCHEMA_CPP ${CMAKE_CURRENT_BINARY_DIR}/schema/schema.cpp)
@@ -157,7 +172,12 @@ if(LAMMPS_SRC)
 	target_link_libraries(ssages libssages ${LAMMPS_SRC}/liblammps_mpi.so)
 	add_dependencies(ssages lammps)
 elseif(GROMACS_SRC)
-	add_dependencies(gromacs libssages)
+	
+	# Build custom shared library for dependencies. 
+	add_library(ssagesgmx SHARED ${HOOKSRC} ${SOURCE})
+	target_link_libraries(ssagesgmx ${MPI_CXX_LIBRARIES} ${Boost_LIBRARIES})
+
+	add_dependencies(gromacs ssagesgmx)
 
 	# To determine Gromacs install dir. 
 	include(GNUInstallDirs)
