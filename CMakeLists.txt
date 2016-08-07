@@ -79,7 +79,7 @@ if(LAMMPS_SRC)
 elseif(GROMACS_SRC)
 	set(ENABLE_GROMACS true)
 
-	set(GRO_CXX_ARGS "-I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include")
+	set(GRO_CXX_ARGS "-I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${PROJECT_SOURCE_DIR}/hooks/gromacs")
 
 	ExternalProject_Add(
 	gromacs
@@ -99,12 +99,6 @@ elseif(GROMACS_SRC)
 	PATCH_COMMAND patch -p2 -d ${GROMACS_SRC} < ${PROJECT_SOURCE_DIR}/hooks/gromacs/gmx_diff.patch 
 	LOG_BUILD ON)
 
-	add_custom_target(
-		gmxln
-		COMMAND ln -sf ${PROJECT_SOURCE_DIR}/hooks/gromacs/GromacsHook.h ${GROMACS_SRC}/src/programs/mdrun/GromacsHook.h
-	)
-	add_dependencies(gromacs gmxln)
-	
 	set(HOOKSRC
 		hooks/gromacs/GromacsHook.cpp
 		)

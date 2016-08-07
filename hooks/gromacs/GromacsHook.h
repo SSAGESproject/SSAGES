@@ -52,48 +52,11 @@ namespace SSAGES
 			T1 masses[], 
 			T2 positions[], 
 			T2 velocities[], 
-			T2 forces[])
-		{
-			// Resize vectors.
-			auto& pos = _snapshot->GetPositions();
-			pos.resize(natoms);
-			auto& vel = _snapshot->GetVelocities();
-			vel.resize(natoms);
-			auto& frc = _snapshot->GetForces();
-			frc.resize(natoms);
-			auto& mass = _snapshot->GetMasses();
-			mass.resize(natoms);
-			auto& ids = _snapshot->GetAtomIDs();
-			ids.resize(natoms);
-			auto& types = _snapshot->GetAtomTypes();
-			types.resize(natoms);
-
-			// Load em up.
-			_snapshot->SetIteration(iteration);
-			for(int i = 0; i < natoms; ++i)
-			{
-				if(indices != nullptr)
-					ids[i] = indices[i];
-				else
-					ids[i] = i;
-
-				mass[i] = masses[i];
-				mass[i] = masses[i];
-				mass[i] = masses[i];
-
-				pos[i][0] = positions[i][0];
-				pos[i][1] = positions[i][1];
-				pos[i][2] = positions[i][2];
-
-				vel[i][0] = velocities[i][0];
-				vel[i][1] = velocities[i][1];
-				vel[i][2] = velocities[i][2];
-
-				frc[i][0] = forces[i][0];
-				frc[i][1] = forces[i][1];
-				frc[i][2] = forces[i][2];
-			}
- 		}
+			T2 forces[],
+			double temperature,
+			double pressure,
+			double potenergy,
+			double kb);
 
  		template<typename T1, typename T2>
  		void PushToGromacs(
@@ -102,36 +65,7 @@ namespace SSAGES
  			T1 masses[],
  			T2 positions[], 
  			T2 velocities[],
- 			T2 forces[])
- 		{
-	 		const auto& pos = _snapshot->GetPositions();
-			const auto& vel = _snapshot->GetVelocities();
-			const auto& frc = _snapshot->GetForces();
-			const auto& mass = _snapshot->GetMasses();
-			const auto& ids = _snapshot->GetAtomIDs();
-
-			for(int i = 0; i < natoms; ++i)
-			{
-				if(indices != nullptr)
-					indices[i] = ids[i];
-
-				masses[i] = mass[i];
-				masses[i] = mass[i];
-				masses[i] = mass[i];
-
-				positions[i][0] = pos[i][0];
-				positions[i][1] = pos[i][1];
-				positions[i][2] = pos[i][2];
-
-				velocities[i][0] = vel[i][0];
-				velocities[i][1] = vel[i][1];
-				velocities[i][2] = vel[i][2];
-
-				forces[i][0] = frc[i][0];
-				forces[i][1] = frc[i][1];
-				forces[i][2] = frc[i][2];
-			}
- 		}
+ 			T2 forces[]);
 
 		~GromacsHook(){}
 	};

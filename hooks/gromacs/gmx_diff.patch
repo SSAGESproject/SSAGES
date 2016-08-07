@@ -1,6 +1,6 @@
 diff -ruN /gromacs-original/src/programs/CMakeLists.txt /gromacs-ssages/src/programs/CMakeLists.txt
 --- /gromacs-original/src/programs/CMakeLists.txt	2016-07-13 08:56:04.000000000 -0400
-+++ /gromacs-ssages/src/programs/CMakeLists.txt	2016-08-06 00:02:35.918047301 -0400
++++ /gromacs-ssages/src/programs/CMakeLists.txt	2016-08-06 01:26:06.237904812 -0400
 @@ -35,6 +35,12 @@
  file(GLOB MDRUN_SOURCES mdrun/*.c mdrun/*.cpp)
  # make an "object library" that we can re-use for multiple targets
@@ -16,7 +16,7 @@ diff -ruN /gromacs-original/src/programs/CMakeLists.txt /gromacs-ssages/src/prog
      # The lack of a real source file here alongside the object library
 diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/programs/mdrun/md.cpp
 --- /gromacs-original/src/programs/mdrun/md.cpp	2016-07-13 08:56:04.000000000 -0400
-+++ /gromacs-ssages/src/programs/mdrun/md.cpp	2016-08-06 01:13:21.913926549 -0400
++++ /gromacs-ssages/src/programs/mdrun/md.cpp	2016-08-07 16:56:00.657471253 -0400
 @@ -111,6 +111,7 @@
  #include "gromacs/utility/fatalerror.h"
  #include "gromacs/utility/real.h"
@@ -51,7 +51,7 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
 +            natoms = cr->dd->nat_home;
 +            ids = cr->dd->gatindex;
 +        }
-+        ssages.PullToSSAGES(step, natoms, ids, mdatoms->massT, state->x, state->v, f);
++        ssages.PullToSSAGES(step, natoms, ids, mdatoms->massT, state->x, state->v, f, enerd->term[F_TEMP], enerd->term[F_PRES], enerd->term[F_EPOT], BOLTZ);
 +    });
 +
      walltime_accounting_start(walltime_accounting);
@@ -92,3 +92,4 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
      /* Closing TNG files can include compressing data. Therefore it is good to do that
       * before stopping the time measurements. */
      mdoutf_tng_close(outf);
+
