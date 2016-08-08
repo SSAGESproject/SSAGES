@@ -1,6 +1,7 @@
 #include "Meta.h"
 #include <math.h>
 #include <iostream>
+#include "../Utility/BuildException.h"
 
 namespace SSAGES
 {
@@ -35,6 +36,15 @@ namespace SSAGES
 		// Open file for writing and allocate derivatives vector.
 	 	_hillsout.open("hills.out");
 		_derivatives.resize(cvs.size());	
+		if(_isgrid)
+		  {
+		    if(_grid==NULL)
+		      {
+			throw BuildException({"Metadynamics expected a grid, but no grid was built!"});
+		      }
+		  } 
+		
+
 	}
 
 	// Post-integration hook.
@@ -67,17 +77,21 @@ namespace SSAGES
 	// Post-simulation hook.
 	void Meta::PostSimulation(Snapshot*, const CVList&)
 	{
+	  if(_isgrid) _grid->PrintGrid();
 		_hillsout.close();
 	}
 
 	// Drop a new hill.
 	void Meta::AddHill(const CVList& cvs)
 	{
-		std::vector<double> cvals;
+	  double bias, argk, gaussk;
+	  
+	  std::vector<double> cvals;
 
 		// Get CV values.
-		for(size_t i = 0; i < cvs.size(); ++i)
+		for(size_t i = 0; i < cvs.size(); ++i){
 			cvals.push_back(cvs[i]->GetValue());
+		}
 
 		// Note: emplace_back constructs a hill in-place.
 		_hills.emplace_back(cvals, _widths, _height);
@@ -87,30 +101,21 @@ namespace SSAGES
 
 		// Add hill to grid
 		if(_isgrid){
-		  std::vector<int> idxs(_grid->GetDimension);
-		  std::vector<double> tderiv(_grid->GetDimension);
-		  auto numpoints = _grid->GetNumPoints();
-		  int j, k;
-		  double temp, bias;
-		  for (j = 0; j < numpoints.size(); j++)
+		  std::vector<double> tderiv, cderiv;
+		  std::vector<int> idxs;
+		  for(int k = 0; k < _grid->GetDimension(); k++) tderiv.push_back(0.0);
+		  for(auto& g : *_grid)
 		    {
-		      idxs[j]++;
-		      if (idxs[j] < numpoints[j])
-			break;
-		      idxs[j] = 0;
-		      
-		      auto xi = _grid->GetLocation(idxs);
-
-		      //Your Code here
+		      //Initialize new bias and derivatives
 		      bias = 1;
-		      for(int k = 0; k < _grid->GetDimension; k++) tderiv[k] = 1;
+		      for(int k = 0; k < _grid->GetDimension(); k++) tderiv[k] = 1.0;
 
-		      for(int k = 0; k < _grid->GetDimension; k++) {
-			argk    = cvs[k]->GetValue()-xi[k];
-			gaussk  = gaussian(arg,_width[k]);
-			for(int l = 0; l < _grid->GetDimension; l++) {
+		      for(int k = 0; k < _grid->GetDimension(); k++) {
+			argk    = cvs[k]->GetValue()-g.second[k];
+			gaussk  = gaussian(argk,_widths[k]);
+			for(int l = 0; l < _grid->GetDimension(); l++) {
 			  if(k==l){
-			    tderiv[l] *= gaussianDerv(argk, _width[k]);
+			    tderiv[l] *= gaussianDerv(argk, _widths[k]);
 			  } else {
 			    tderiv[l] *= gaussk;
 			  }
@@ -118,14 +123,17 @@ namespace SSAGES
 			bias *= gaussk;
 		      }
 
-		      bias *= height;
-		      bias += _grid->GetValue(idxs);
+		      bias *= _height;
+		      //there is probably a better way to do this but I don't see it
+		      idxs  = _grid->GetIndices(g.second);
+		      bias += g.first[0];
 		      _grid->SetValue(idxs, bias);
-		      for(int k = 0; k < _grid->GetDimension; k++){
-			tderiv[k] *= height;
-			tderiv[k] += _grid->GetDeriv(idxs,k);
-			_grid->SetDeriv(idxs,k) = tderiv;
+		      cderiv = _grid->GetExtra(idxs);
+		      for(int k = 0; k < _grid->GetDimension(); k++){
+			tderiv[k] *= _height;
+			tderiv[k] += cderiv[k];
 		      }
+		      _grid->SetExtra(idxs,tderiv);
 		    }
 		}
 	}
@@ -147,7 +155,7 @@ namespace SSAGES
 	{	
 		// Reset bias and derivatives.
 		_bias = 0;
-		for(size_t i = 0; i < _derivatives.size(); ++i)
+		for(size_t i = 0; i < _grid->GetDimension(); ++i)
 			_derivatives[i] = 0;
 
 		// Loop through hills and calculate the bias force.
@@ -187,7 +195,7 @@ namespace SSAGES
 		    cvals.push_back(cvs[i]->GetValue());
 
 		  _bias = _grid->InterpolateValue(cvals);
-		  for(size_t i = 0; i < _derivatives.size(); ++i){
+		  for(size_t i = 0; i < _grid->GetDimension(); ++i){
 		    _derivatives[i] = _grid->InterpolateDeriv(cvals, i);
 		  }
 		}

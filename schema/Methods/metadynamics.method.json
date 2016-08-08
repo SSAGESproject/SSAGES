@@ -25,7 +25,7 @@
 		"hill frequency" : {
 			"type" : "integer",
 			"minimum" : 1
-		}
+		},
         	"gridflag" : {
 		        "type" : "integer",
 		        "minimum" : 0

@@ -90,11 +90,6 @@ namespace SSAGES
 		//! Output stream for hill data.
 		std::ofstream _hillsout;
 
-		//! Grid-related functions
-		void AddHillToGrid(const CVList& cvs);
-		void InterpolateHeight(const CVList& cvs);
-		void InterpolateDeriv(const CVList& cvs);
-
 	public:
 		//! Constructor
 		/*!

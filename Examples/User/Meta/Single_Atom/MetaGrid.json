@@ -19,7 +19,7 @@
             0.05
         ],
         "height" : 1.0,
-	"gridflag" : 0
+	"gridflag" : 1
     },
     "driver" : [
         {
@@ -27,6 +27,18 @@
             "type" : "LAMMPS",
             "MDSteps" : 4000000,
             "logfile" : "node-1"
+        }
+    ],
+    "grid" : [
+        {
+            "lower" : -1.5,
+            "upper" : 2.0,
+            "number points" : 351
+        },
+        {
+            "lower" : -1.5,
+            "upper" : 2.0,
+            "number points" : 351
         }
     ]
 }

@@ -92,14 +92,6 @@ namespace SSAGES
 			auto freq = json.get("frequency", 1).asInt();
 			auto isgrid = json.get("gridflag", 1).asInt();
 
-			if(isgrid)
-			  {
-			    if(!_grid)
-			      {
-				throw BuildException({"Metadynamics expected a grid, but no grid was built!"});
-			      }
-			  } 
-			
 			auto* m = new Meta(world, comm, height, widths, hillfreq, freq, isgrid);
 
 			method = static_cast<Method*>(m);
