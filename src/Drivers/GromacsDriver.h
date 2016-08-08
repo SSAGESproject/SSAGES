@@ -61,9 +61,13 @@ namespace SSAGES
 		virtual void BuildDriver(const Json::Value& json, const std::string& path) override
 		{
 			_inputfile = json.get("inputfile","none").asString();
+			auto iterations = json.get("MDSteps", 1).asInt();
 
+			
 			// Set hook. 
-			_hook = dynamic_cast<Hook*>(&GromacsHook::Instance());
+			auto& hook = GromacsHook::Instance();
+			hook.SetIterationTarget(iterations);
+			_hook = dynamic_cast<Hook*>(&hook);
 		}
 
 		virtual void Serialize(Json::Value& json) const override

@@ -12,7 +12,7 @@ namespace SSAGES
 	private:
 		std::function<void()> gmxpush_, gmxpull_;
 
-		int walkercount_;
+		int niterations_;
 
 	protected: 
 		// Implementation of the SyncToEngine interface.
@@ -21,7 +21,7 @@ namespace SSAGES
 		// Implementation of the SyncToSnapshot interface. 
 		void SyncToSnapshot() override;
 	public: 
-		GromacsHook() : gmxpush_(), gmxpull_(), walkercount_(0)
+		GromacsHook() : gmxpush_(), gmxpull_(), niterations_(0)
 		{} 
 
 		// Get singleton instance of GromacsHook.
@@ -45,6 +45,9 @@ namespace SSAGES
 		{
 			SyncToSnapshot();
 		}
+
+		int GetIterationTarget() { return niterations_; }
+		void SetIterationTarget(int niterations) { niterations_ = niterations; }
 
 		MPI_Comm GetCommunicator();
 
