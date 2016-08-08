@@ -14,6 +14,9 @@ namespace SSAGES
 
 		int niterations_;
 
+		GromacsHook() : gmxpush_(), gmxpull_(), niterations_(0)
+		{} 
+
 	protected: 
 		// Implementation of the SyncToEngine interface.
 		void SyncToEngine() override;
@@ -21,8 +24,6 @@ namespace SSAGES
 		// Implementation of the SyncToSnapshot interface. 
 		void SyncToSnapshot() override;
 	public: 
-		GromacsHook() : gmxpush_(), gmxpull_(), niterations_(0)
-		{} 
 
 		// Get singleton instance of GromacsHook.
 		static GromacsHook& Instance()
