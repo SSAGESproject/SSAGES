@@ -1,3 +1,28 @@
+diff -ruN /gromacs-original/src/gromacs/gmxlib/main.cpp /gromacs-ssages/src/gromacs/gmxlib/main.cpp
+--- /gromacs-original/src/gromacs/gmxlib/main.cpp	2016-07-13 08:56:03.000000000 -0400
++++ /gromacs-ssages/src/gromacs/gmxlib/main.cpp	2016-08-08 10:36:37.387130332 -0400
+@@ -61,6 +61,8 @@
+ #include "gromacs/utility/snprintf.h"
+ #include "gromacs/utility/sysinfo.h"
+ 
++#include "GromacsHook.h"
++
+ /* The source code in this file should be thread-safe.
+          Please keep it that way. */
+ 
+@@ -340,7 +342,11 @@
+     cr->sim_nodeid = cr->nodeid % nnodpersim;
+     cr->nnodes     = nnodpersim;
+ #ifdef GMX_MPI
+-    MPI_Comm_split(MPI_COMM_WORLD, sim, cr->sim_nodeid, &cr->mpi_comm_mysim);
++    // Get SSAGES communicator and assign.
++    auto& ssages = SSAGES::GromacsHook::Instance();
++    auto comm = ssages.GetCommunicator();
++    cr->mpi_comm_mysim = comm;
++    //MPI_Comm_split(MPI_COMM_WORLD, sim, cr->sim_nodeid, &cr->mpi_comm_mysim);
+     cr->mpi_comm_mygroup = cr->mpi_comm_mysim;
+     cr->nodeid           = cr->sim_nodeid;
+ #endif
 diff -ruN /gromacs-original/src/programs/CMakeLists.txt /gromacs-ssages/src/programs/CMakeLists.txt
 --- /gromacs-original/src/programs/CMakeLists.txt	2016-07-13 08:56:04.000000000 -0400
 +++ /gromacs-ssages/src/programs/CMakeLists.txt	2016-08-07 17:36:27.061402248 -0400

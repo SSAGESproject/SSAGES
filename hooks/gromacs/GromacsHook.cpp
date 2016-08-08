@@ -13,6 +13,11 @@ namespace SSAGES
 		gmxpull_();
 	}
 
+	MPI_Comm GromacsHook::GetCommunicator()
+	{
+		return static_cast<MPI_Comm>(_snapshot->GetCommunicator());
+	}
+
 	template<typename T1, typename T2>
 	void GromacsHook::PullToSSAGES(
 		int iteration, 

@@ -12,6 +12,8 @@ namespace SSAGES
 	private:
 		std::function<void()> gmxpush_, gmxpull_;
 
+		int walkercount_;
+
 	protected: 
 		// Implementation of the SyncToEngine interface.
 		void SyncToEngine() override;
@@ -19,7 +21,7 @@ namespace SSAGES
 		// Implementation of the SyncToSnapshot interface. 
 		void SyncToSnapshot() override;
 	public: 
-		GromacsHook() : gmxpush_(), gmxpull_()
+		GromacsHook() : gmxpush_(), gmxpull_(), walkercount_(0)
 		{} 
 
 		// Get singleton instance of GromacsHook.
@@ -43,6 +45,8 @@ namespace SSAGES
 		{
 			SyncToSnapshot();
 		}
+
+		MPI_Comm GetCommunicator();
 
 		template<typename T1, typename T2>
 		void PullToSSAGES(

@@ -10,27 +10,34 @@ namespace SSAGES
 {
 	class GromacsDriver : public Driver
 	{
+	private:
+		int nwalkers_;
 	public:
 		GromacsDriver(mpi::communicator& world_comm, 
 					  mpi::communicator& local_comm,
 					  int walkerID) : 
-		Driver(world_comm, local_comm, walkerID)
+		Driver(world_comm, local_comm, walkerID),
+		nwalkers_(world_comm.size()/local_comm.size())
 		{}
 
 		virtual void Run() override
 		{
-			int argc = 3; 
+			int argc = 5; 
 			char **largs = new char*[argc];
-			largs[0] = new char[100];
-			largs[1] = new char[100];
-			largs[2] = new char[100];
+			largs[0] = new char[128];
+			largs[1] = new char[128];
+			largs[2] = new char[128];
+			largs[3] = new char[128];
+			largs[4] = new char[128];
 
 			// Trim input file extension.
 			auto s = _inputfile.substr(0, _inputfile.find_last_of("."));
 
 			sprintf(largs[0], "ssages");
-			sprintf(largs[1], "-deffnm");
-			sprintf(largs[2], "%s", s.c_str());
+			sprintf(largs[1], "-multi");
+			sprintf(largs[2], "%i", nwalkers_);
+			sprintf(largs[3], "-deffnm");
+			sprintf(largs[4], "%s", s.c_str());
 
 			// For prettyness.
 			std::cout << std::endl;
