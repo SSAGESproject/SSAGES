@@ -108,11 +108,11 @@ namespace SSAGES
 			 boost::mpi::communicator& comm,
 			 double height, 
 			 const std::vector<double>& widths, 
-			 unsigned int hillfreq, 
-        		 unsigned int frequency,
-		         bool isgrid ) : 
+			 unsigned int hillfreq,
+			 bool isgrid,
+			 unsigned int frequency) : 
 		Method(frequency, world, comm), _hills(), _height(height), _widths(widths), 
-		  _derivatives(0), _bias(0), _hillfreq(hillfreq), _isgrid(isgrid)
+		  _derivatives(0), _bias(0), _isgrid(isgrid), _hillfreq(hillfreq)
 		{
 		}
 

@@ -37,14 +37,8 @@ namespace SSAGES
 	 	_hillsout.open("hills.out");
 		_derivatives.resize(cvs.size());	
 		if(_isgrid)
-		  {
-		    if(_grid==NULL)
-		      {
-			throw BuildException({"Metadynamics expected a grid, but no grid was built!"});
-		      }
-		  } 
-		
-
+			if(_grid==NULL)
+				throw BuildException({"Metadynamics expected a grid, but no grid was built!"});
 	}
 
 	// Post-integration hook.
@@ -89,9 +83,8 @@ namespace SSAGES
 	  std::vector<double> cvals;
 
 		// Get CV values.
-		for(size_t i = 0; i < cvs.size(); ++i){
+		for(size_t i = 0; i < cvs.size(); ++i)
 			cvals.push_back(cvs[i]->GetValue());
-		}
 
 		// Note: emplace_back constructs a hill in-place.
 		_hills.emplace_back(cvals, _widths, _height);
@@ -100,48 +93,41 @@ namespace SSAGES
 		PrintHill(_hills.back());
 
 		// Add hill to grid
-		if(_isgrid){
-		  std::vector<double> tderiv, cderiv;
-		  std::vector<int> idxs;
-		  for(int k = 0; k < _grid->GetDimension(); k++) tderiv.push_back(0.0);
-		  for(auto& g : *_grid)
-		    {
-		      //Initialize new bias and derivatives
-		      bias = 1;
-		      for(int k = 0; k < _grid->GetDimension(); k++) tderiv[k] = 1.0;
+		if(_isgrid)
+		{
+			for(auto& g : *_grid)
+			{
+				//Initialize new bias and derivatives
+				bias = 1;
+				std::vector<double> tderiv(_grid->GetDimension(), 1.0);
+				auto idxs  = _grid->GetIndices(g.second);
 
-		      for(int k = 0; k < _grid->GetDimension(); k++) {
-			argk    = cvs[k]->GetValue()-g.second[k];
-			gaussk  = gaussian(argk,_widths[k]);
-			for(int l = 0; l < _grid->GetDimension(); l++) {
-			  if(k==l){
-			    tderiv[l] *= gaussianDerv(argk, _widths[k]);
-			  } else {
-			    tderiv[l] *= gaussk;
-			  }
+				for(int k = 0; k < _grid->GetDimension(); k++)
+				{
+					argk = cvs[k]->GetValue()-g.second[k];
+					gaussk = gaussian(argk, _widths[k]);
+
+					for(int l = 0; l < _grid->GetDimension(); l++) 
+					{
+						if(k==l)
+							tderiv[l] *= gaussianDerv(argk, _widths[k]); 
+						else
+							tderiv[l] *= gaussk;
+					}
+					bias *= gaussk;
+				}
+			  
+				bias *= _height;
+				//there is probably a better way to do this but I don't see it
+				bias += g.first[0];
+				_grid->SetValue(idxs, bias);
+				auto cderiv = _grid->GetExtra(idxs);
+				
+				for(int k = 0; k < _grid->GetDimension(); k++)
+					tderiv[k] = tderiv[k]*_height + cderiv[k];
+
+				_grid->SetExtra(idxs,tderiv);
 			}
-			bias *= gaussk;
-		      }
-		      
-		      bias *= _height;
-		      //there is probably a better way to do this but I don't see it
-		      idxs  = _grid->GetIndices(g.second);
-		      bias += g.first[0];
-		      _grid->SetValue(idxs, bias);
-		      cderiv = _grid->GetExtra(idxs);
-		      if(idxs[0] == 1 && idxs[1] == 1){
-			std::cout << "Here\n" << std::endl;
-		      }
-		      for(int k = 0; k < _grid->GetDimension(); k++){
-			tderiv[k] *= _height;
-			tderiv[k] += cderiv[k];
-		      }
-		      _grid->SetExtra(idxs,tderiv);
-		      if(idxs[0] == 1 && idxs[1] == 1){
-			cderiv = _grid->GetExtra(idxs);
-			std::cout << "Here\n" << std::endl;
-		      }
-		    }
 		}
 	}
 
@@ -167,44 +153,45 @@ namespace SSAGES
 
 		// Loop through hills and calculate the bias force.
 		if(!_isgrid){
-		  for(auto& hill : _hills)
-		    {
-		      auto n = hill.center.size();
-		      std::vector<double> tder(n, 1.0), dx(n, 1); 
-		      auto tbias = 1.;
-		      
-		      // Initialize dx and tbias.
-		      for(size_t i = 0; i < n; ++i)
+			for(auto& hill : _hills)
 			{
-			  dx[i] = cvs[i]->GetDifference(hill.center[i]);
-			  tbias *= gaussian(dx[i], hill.width[i]);
+				auto n = hill.center.size();
+				std::vector<double> tder(n, 1.0), dx(n, 1); 
+				auto tbias = 1.;
+
+				// Initialize dx and tbias.
+				for(size_t i = 0; i < n; ++i)
+				{
+					dx[i] = cvs[i]->GetDifference(hill.center[i]);
+					tbias *= gaussian(dx[i], hill.width[i]);
+				}
+
+				for(size_t i = 0; i < n; ++i)
+					for(size_t j = 0; j < n; ++j)
+					{
+						if(j != i) 
+							tder[i] *= gaussian(dx[j], hill.width[j]);
+						else
+							tder[i] *= gaussianDerv(dx[j], hill.width[j]);
+					}
+
+				_bias += _height * tbias;
+				for(size_t i = 0; i < n; ++i)
+					_derivatives[i] += _height*tder[i];
 			}
-		      
-		      for(size_t i = 0; i < n; ++i)
-			for(size_t j = 0; j < n; ++j)
-			  {
-			    if(j != i) 
-			      tder[i] *= gaussian(dx[j], hill.width[j]);
-			    else
-			      tder[i] *= gaussianDerv(dx[j], hill.width[j]);
-			  }
-		      
-		      _bias += _height * tbias;
-		      for(size_t i = 0; i < n; ++i)
-			_derivatives[i] += _height*tder[i];
-		    }
-		} else {
-		  //Interpolate from the grid.
-		  std::vector<double> cvals;
+		} 
+		else 
+		{
+			//Interpolate from the grid.
+			std::vector<double> cvals;
 
-		  // Get CV values.
-		  for(size_t i = 0; i < cvs.size(); ++i)
-		    cvals.push_back(cvs[i]->GetValue());
+			// Get CV values.
+			for(size_t i = 0; i < cvs.size(); ++i)
+				cvals.push_back(cvs[i]->GetValue());
 
-		  _bias = _grid->InterpolateValue(cvals);
-		  for(size_t i = 0; i < _grid->GetDimension(); ++i){
-		    _derivatives[i] = _grid->InterpolateDeriv(cvals, i);
-		  }
+			_bias = _grid->InterpolateValue(cvals);
+			for(size_t i = 0; i < _grid->GetDimension(); ++i)
+				_derivatives[i] = _grid->InterpolateDeriv(cvals, i);
 		}
 	}
 }
