@@ -42,10 +42,6 @@ namespace SSAGES
 			// For prettyness.
 			std::cout << std::endl;
 			gmx::CommandLineModuleManager::runAsMainCMain(argc, largs, &gmx_mdrun);
-
-			for(int i = 0; i < argc; ++i)
-				free(largs[i]);
-			free(largs);
 		}
 
 		virtual void ExecuteInputFile(std::string contents) override
@@ -63,7 +59,6 @@ namespace SSAGES
 			_inputfile = json.get("inputfile","none").asString();
 			auto iterations = json.get("MDSteps", 1).asInt();
 
-			
 			// Set hook. 
 			auto& hook = GromacsHook::Instance();
 			hook.SetIterationTarget(iterations);
