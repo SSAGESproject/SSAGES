@@ -83,8 +83,13 @@ compute xx all reduce sum c_xxa
 compute yya all property/atom y
 compute yy all reduce sum c_yya
 
+compute fxa all property/atom fx
+compute ffxa all reduce sum c_fxa
+compute fya all property/atom y
+compute ffya all reduce sum c_fya
+
 timestep 0.001
-thermo_style custom step temp ke pe etotal c_xx c_yy c_ffx c_ffy c_ee press
+thermo_style custom step temp ke pe etotal c_xx c_yy c_ffx c_ffy c_ffxa c_ffya c_ee press
 
 #For the sync to engine to work correctly need to set thermo 1 for now
 thermo 1

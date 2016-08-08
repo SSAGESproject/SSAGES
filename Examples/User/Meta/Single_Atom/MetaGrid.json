@@ -33,12 +33,12 @@
         {
             "lower" : -1.5,
             "upper" : 2.0,
-            "number points" : 351
+            "number points" : 7
         },
         {
             "lower" : -1.5,
             "upper" : 2.0,
-            "number points" : 351
+            "number points" : 7
         }
     ]
 }

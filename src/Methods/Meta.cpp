@@ -122,18 +122,25 @@ namespace SSAGES
 			}
 			bias *= gaussk;
 		      }
-
+		      
 		      bias *= _height;
 		      //there is probably a better way to do this but I don't see it
 		      idxs  = _grid->GetIndices(g.second);
 		      bias += g.first[0];
 		      _grid->SetValue(idxs, bias);
 		      cderiv = _grid->GetExtra(idxs);
+		      if(idxs[0] == 1 && idxs[1] == 1){
+			std::cout << "Here\n" << std::endl;
+		      }
 		      for(int k = 0; k < _grid->GetDimension(); k++){
 			tderiv[k] *= _height;
 			tderiv[k] += cderiv[k];
 		      }
 		      _grid->SetExtra(idxs,tderiv);
+		      if(idxs[0] == 1 && idxs[1] == 1){
+			cderiv = _grid->GetExtra(idxs);
+			std::cout << "Here\n" << std::endl;
+		      }
 		    }
 		}
 	}
@@ -155,7 +162,7 @@ namespace SSAGES
 	{	
 		// Reset bias and derivatives.
 		_bias = 0;
-		for(size_t i = 0; i < _grid->GetDimension(); ++i)
+		for(size_t i = 0; i < cvs.size(); ++i)
 			_derivatives[i] = 0;
 
 		// Loop through hills and calculate the bias force.
