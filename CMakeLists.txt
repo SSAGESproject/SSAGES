@@ -8,8 +8,14 @@ set(SSAGES_VERSION_TINY "8")
 
 # Default type is release
 if (NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE "Release")
+	if (TEST)
+		set(CMAKE_BUILD_TYPE "Debug")
+	else (TEST)
+		set(CMAKE_BUILD_TYPE "Release")
+	endif (TEST)
 endif()
+
+string (TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE_NAME)
 
 # list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -132,7 +138,13 @@ link_directories(${MPI_CXX_LIBRARIES})
 add_library(libssages ${HOOKSRC} ${SOURCE})
 set_target_properties(libssages PROPERTIES PREFIX "")
 target_link_libraries(libssages ${MPI_CXX_LIBRARIES} ${Boost_LIBRARIES})
-set_target_properties(libssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra -fPIC")
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set_target_properties(libssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra -fPIC -g")
+elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    set_target_properties(libssages PROPERTIES COMPILE_FLAGS "-O2 -fPIC -g")
+else ()
+    set_target_properties(libssages PROPERTIES COMPILE_FLAGS "-O3 -fPIC")
+endif ()
 
 # Require C++11.
 set_property(TARGET libssages PROPERTY CXX_STANDARD 11)
@@ -160,7 +172,14 @@ elseif(GROMACS_SRC)
 	add_dependencies(ssages gromacs)
 endif()
 
-set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra")
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra -g")
+elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-O2 -g")
+else ()
+    set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-O3")
+
+endif ()
 
 # Configure flags 
 # - Globals

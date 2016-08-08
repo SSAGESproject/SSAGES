@@ -5,6 +5,8 @@
 #include <math.h>
 #include <stdexcept>
 
+#include "config.h"
+
 namespace SSAGES
 {
 	//! Verify that Lattice Constants are within expected range.
@@ -21,6 +23,7 @@ namespace SSAGES
 	 */
 	void verifyLatticeConstants(const std::array<double, 6>& LC)
 	{
+#ifndef BUILD_TYPE_RELEASE
 		if (LC[0] < 0.0) {
 			throw std::domain_error("Lattice constants: Negative x-dimension length");
 		} else if (LC[1] < 0.0) {
@@ -40,6 +43,7 @@ namespace SSAGES
 		} else if (LC[5] > M_PI) {
 			throw std::domain_error("Lattice constants: Angle gamma larger than Pi");
 		}
+#endif
 	}
 
 	//! Helper function to find matrix to convert to fractional coordinates
