@@ -49,6 +49,7 @@ namespace SSAGES
 			int iteration, 
 			int natoms, 
 			int* indices, 
+			int* types,
 			T1 masses[], 
 			T2 positions[], 
 			T2 velocities[], 
@@ -62,6 +63,7 @@ namespace SSAGES
  		void PushToGromacs(
  			int natoms,
  			int* indices, 
+ 			int* types,
  			T1 masses[],
  			T2 positions[], 
  			T2 velocities[],

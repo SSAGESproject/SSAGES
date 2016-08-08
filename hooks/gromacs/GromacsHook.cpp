@@ -17,7 +17,8 @@ namespace SSAGES
 	void GromacsHook::PullToSSAGES(
 		int iteration, 
 		int natoms, 
-		int* indices, 
+		int* indices,
+		int* types,
 		T1 masses[], 
 		T2 positions[], 
 		T2 velocities[], 
@@ -38,8 +39,8 @@ namespace SSAGES
 		mass.resize(natoms);
 		auto& ids = _snapshot->GetAtomIDs();
 		ids.resize(natoms);
-		auto& types = _snapshot->GetAtomTypes();
-		types.resize(natoms);
+		auto& typs = _snapshot->GetAtomTypes();
+		typs.resize(natoms);
 
 		// Reduce temperature/pressure/energy.
 		auto& comm = _snapshot->GetCommunicator();
@@ -65,6 +66,7 @@ namespace SSAGES
 				ids[i] = indices[i];
 			else
 				ids[i] = i;
+			typs[i] = types[i];
 
 			mass[i] = masses[i];
 			mass[i] = masses[i];
@@ -82,18 +84,13 @@ namespace SSAGES
 			frc[i][1] = forces[i][1];
 			frc[i][2] = forces[i][2];
 		}
-
-		if(iteration % 1000 == 0 && comm.rank() == 0)
-		{
-			std::cout << "Iteration: " << iteration << " temperature " << temperature <<
-			" pressure " << pressure << " potential " << potenergy << "\n"; 
-		}
 	}
 
  	template<typename T1, typename T2>
 	void GromacsHook::PushToGromacs(
 		int natoms,
 		int* indices, 
+		int* types,
 		T1 masses[],
 		T2 positions[], 
 		T2 velocities[],
@@ -104,11 +101,14 @@ namespace SSAGES
 		const auto& frc = _snapshot->GetForces();
 		const auto& mass = _snapshot->GetMasses();
 		const auto& ids = _snapshot->GetAtomIDs();
+		const auto& typs = _snapshot->GetAtomTypes();
 
 		for(int i = 0; i < natoms; ++i)
 		{
 			if(indices != nullptr)
 				indices[i] = ids[i];
+
+			types[i] = typs[i];
 
 			masses[i] = mass[i];
 			masses[i] = mass[i];
@@ -134,6 +134,7 @@ template void GromacsHook::PullToSSAGES<float, float[3]>(
 	int, 
 	int, 
 	int*,
+	int*,
 	float[],
 	float[][3],
 	float[][3],
@@ -145,6 +146,7 @@ template void GromacsHook::PullToSSAGES<float, float[3]>(
 
 template void GromacsHook::PushToGromacs<float, float[3]>(
 	int,
+	int*, 
 	int*, 
 	float[],
 	float[][3], 
