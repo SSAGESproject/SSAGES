@@ -90,9 +90,19 @@ namespace SSAGES
 			auto height = json.get("height", 1.0).asDouble();
 			auto hillfreq = json.get("hill frequency", 1).asInt();
 			auto freq = json.get("frequency", 1).asInt();
-			auto isgrid = json.get("gridflag", 1).asInt();
+			auto isgrid = json.get("use_grid", "no" ).asString();
+			bool usegrid = false;
 
-			auto* m = new Meta(world, comm, height, widths, hillfreq, freq, isgrid);
+			if(isgrid == "yes")
+				usegrid = true;
+			else if(isgrid == "no")
+				usegrid = false;
+			else
+			{
+				//throw error;
+			}
+
+			auto* m = new Meta(world, comm, height, widths, hillfreq, usegrid, freq);
 
 			method = static_cast<Method*>(m);
 		}

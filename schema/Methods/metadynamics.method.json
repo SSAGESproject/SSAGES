@@ -26,11 +26,11 @@
 			"type" : "integer",
 			"minimum" : 1
 		},
-        	"gridflag" : {
-		        "type" : "integer",
-		        "minimum" : 0
-	        }
+        "use_grid" : {
+        	"type" : "string",
+        	"enum" : ["yes", "no"]
+        }
 	},
-        "required": ["type", "widths", "height", "gridflag"],
+        "required": ["type", "widths", "height", "use_grid"],
 	"additionalProperties": false
 }
