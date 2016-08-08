@@ -23,7 +23,7 @@ namespace SSAGES
 	 */
 	void verifyLatticeConstants(const std::array<double, 6>& LC)
 	{
-#ifdef BUILD_TYPE_DEBUG
+#ifndef BUILD_TYPE_RELEASE
 		if (LC[0] < 0.0) {
 			throw std::domain_error("Lattice constants: Negative x-dimension length");
 		} else if (LC[1] < 0.0) {
