@@ -8,9 +8,14 @@ add_custom_target(apiref
 add_custom_target(manual
                   COMMAND sphinx-build -b html  ${CMAKE_CURRENT_SOURCE_DIR}/source
                                                 ${CMAKE_CURRENT_BINARY_DIR}/Manual
+                  COMMENT "Building User Manual")
+
+add_custom_target(pdfmanual
                   COMMAND sphinx-build -b latex ${CMAKE_CURRENT_SOURCE_DIR}/source
                                                 ${CMAKE_CURRENT_BINARY_DIR}/Manual
-                  COMMENT "Building User Manual")
+                  COMMAND make
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Manual
+                  COMMENT "Building PDF version of Manual")
 
 add_custom_target(doc
                   DEPENDS apiref manual)
