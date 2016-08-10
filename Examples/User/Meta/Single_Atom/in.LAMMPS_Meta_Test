@@ -85,7 +85,7 @@ compute yy all reduce sum c_yya
 
 compute fxa all property/atom fx
 compute ffxa all reduce sum c_fxa
-compute fya all property/atom y
+compute fya all property/atom fy
 compute ffya all reduce sum c_fya
 
 timestep 0.001

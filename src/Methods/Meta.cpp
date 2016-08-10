@@ -78,57 +78,70 @@ namespace SSAGES
 	// Drop a new hill.
 	void Meta::AddHill(const CVList& cvs)
 	{
-	  double bias, argk, gaussk;
-	  
+
+	  auto n = cvs.size();
 	  std::vector<double> cvals;
-
-		// Get CV values.
-		for(size_t i = 0; i < cvs.size(); ++i)
-			cvals.push_back(cvs[i]->GetValue());
-
-		// Note: emplace_back constructs a hill in-place.
-		_hills.emplace_back(cvals, _widths, _height);
-
-		// Write hill to file.
-		PrintHill(_hills.back());
-
-		// Add hill to grid
-		if(_isgrid)
+	  
+	  // Get CV values.
+	  for(size_t i = 0; i < cvs.size(); ++i)
+	    cvals.push_back(cvs[i]->GetValue());
+	  
+	  // Note: emplace_back constructs a hill in-place.
+	  _hills.emplace_back(cvals, _widths, _height);
+	  
+	  // Write hill to file.
+	  PrintHill(_hills.back());
+	  
+	  // Add hill to grid
+	  if(_isgrid)
+	    {
+	      for(auto& g : *_grid)
 		{
-			for(auto& g : *_grid)
+		  //Initialize new bias and derivatives
+		  auto tbias = 1.;
+		  std::vector<double> tder(n,1.0), dx(n,0.0);
+
+		  //get grid point
+		  auto idxs  = _grid->GetIndices(g.second);
+		  
+		  //calc dx for this grid point; calculate bias
+		  //minus sign due to perspective;
+		  // cv is the location of the hill, not the location being forced.
+		  for(size_t i = 0; i < n; ++i){
+		    dx[i] = -cvs[i]->GetDifference(g.second[i]);
+		    tbias = gaussian(dx[i], _widths[i]);
+		  }
+
+		  //calculate derivatives
+		  for(size_t i = 0; i < n; ++i)
+		    {
+		      for(size_t j = 0; j < n; ++j)
 			{
-				//Initialize new bias and derivatives
-				bias = 1;
-				std::vector<double> tderiv(_grid->GetDimension(), 1.0);
-				auto idxs  = _grid->GetIndices(g.second);
-
-				for(int k = 0; k < _grid->GetDimension(); k++)
-				{
-					argk = cvs[k]->GetValue()-g.second[k];
-					gaussk = gaussian(argk, _widths[k]);
-
-					for(int l = 0; l < _grid->GetDimension(); l++) 
-					{
-						if(k==l)
-							tderiv[l] *= gaussianDerv(argk, _widths[k]); 
-						else
-							tderiv[l] *= gaussk;
-					}
-					bias *= gaussk;
-				}
-			  
-				bias *= _height;
-				//there is probably a better way to do this but I don't see it
-				bias += g.first[0];
-				_grid->SetValue(idxs, bias);
-				auto cderiv = _grid->GetExtra(idxs);
-				
-				for(int k = 0; k < _grid->GetDimension(); k++)
-					tderiv[k] = tderiv[k]*_height + cderiv[k];
-
-				_grid->SetExtra(idxs,tderiv);
+			  if(j != i)
+			    {
+			      tder[i] *= gaussian(dx[j], _widths[j]);
+			    }
+			  else
+			    {
+			      tder[i] *= gaussianDerv(dx[j], _widths[j]);
+			    }
 			}
+		    }
+
+		  //there is probably a better way to do this but I don't see it
+		  tbias *= _height;
+		  tbias += g.first[0];
+		  _grid->SetValue(idxs, tbias);
+
+		  //derivatives
+		  auto cder = _grid->GetExtra(idxs);
+		  for(size_t i = 0; i < n; ++i){
+		    tder[i] *= _height;
+		    tder[i] += cder[i];
+		  }
+		  _grid->SetExtra(idxs,tder);
 		}
+	    }
 	}
 
 	//Ruthless pragmatism
