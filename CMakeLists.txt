@@ -162,6 +162,7 @@ configure_file (
 )
 
 # Dependencies
+add_dependencies(libssages schema)
 if(LAMMPS_SRC)
 	add_dependencies(lammps libssages)
 	target_link_libraries(ssages libssages ${LAMMPS_SRC}/liblammps_mpi.so)

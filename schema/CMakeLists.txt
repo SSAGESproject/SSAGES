@@ -13,8 +13,13 @@ if (PYTHON_BIN)
 
     # The following command will generate the schema header and source files.
     message (STATUS "Generating schema header and source files")
+
     execute_process (COMMAND ${PYTHON_BIN} ${BUILDSCHEMA_PY})
 
+    # The following command will make sure that the schema is updated on bulid time.
+    add_custom_target (schema
+                       COMMAND ${PYTHON_BIN} ${BUILDSCHEMA_PY}
+                       COMMENT "Updating schema files")
 else (PYTHON_BIN)
     message (SEND_ERROR "Unable to generate schema files. Python binary not found.")
 endif (PYTHON_BIN)
