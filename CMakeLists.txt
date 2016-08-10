@@ -176,7 +176,7 @@ elseif(GROMACS_SRC)
 	# To determine Gromacs install dir. 
 	include(GNUInstallDirs)
 	target_link_libraries(ssages 
-		libssages 
+		ssagesgmx 
 		${CMAKE_BINARY_DIR}/gromacs/${CMAKE_INSTALL_LIBDIR}/libgromacs_mpi.so
 		${CMAKE_BINARY_DIR}/gromacs/${CMAKE_INSTALL_LIBDIR}/libmdrun.a
 		)
