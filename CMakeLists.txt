@@ -121,8 +121,8 @@ set(SOURCE
 	src/Methods/Method.cpp
 	src/Grids/Grid.cpp
 	src/Observers/JSONObserver.cpp
-	src/Simulations/SimObservable.cpp
 	src/Simulations/SimObserver.cpp
+	src/Simulations/SimObservable.cpp
 	src/Hook.cpp
 )
 

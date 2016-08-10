@@ -5,6 +5,7 @@
 #include <fstream>
 #include <random>
 #include "../FileContents.h"
+#include "../Drivers/DriverException.h"
 
 namespace mpi = boost::mpi;
 namespace SSAGES
@@ -21,7 +22,7 @@ namespace SSAGES
 		std::mt19937 _gen; //!< Alternative random number generator.
 
 		//! Possible restart values.
-		enum Restart {NEW, LIBRARY, OLDCONFIG, NEWCONFIG, RESTART, NONE};
+		enum Restart {NEW, LIBRARY, NEWCONFIG, NONE};
 
 		//! Restart value.
 		Restart _restart;
@@ -31,10 +32,13 @@ namespace SSAGES
 		std::ofstream _indexfile; //!< File stream for index file.
 		std::string _indexcontents; //!< Contents of index file.
 		std::string _globalcontents; //!< Global contents.
+		std::string _totalcontents; //!< On going record of all paths.
+
+		std::string _libraryfilename; //!< File name for index file.
+		std::ofstream _libraryfile; //!< File stream for index file.
 		std::string _librarycontents; //!< Library contents.
-		std::string _restartfilename; //!< File name for restart file.
+		
 		std::string _currentconfig; //!< Current configuration.
-		std::vector<Snapshot> _dumpconfigs; //!< Configurations to write out.
 
 		// Results file for end of simulation.
 		std::string _resultsfilename; //!< File name for simulation results.
@@ -42,7 +46,7 @@ namespace SSAGES
 		std::string _resultscontents; //!< Content of simulation results.
 
 		//! Location of the nodes to be used in determining FF interfaces.
-		std::vector<std::vector<double>> _centers;
+		std::vector<double> _centers;
 
 		//! Number of successes at a given interface.
 		std::vector<int> _successes;
@@ -50,14 +54,11 @@ namespace SSAGES
 		//! Number of local successes.
 		std::vector<int> _localsuccesses;
 
-		//! List of paths.
-		std::vector<std::vector< int> > _paths;
-
 		//! Current interface FF is shooting from.
-		size_t _currentnode;
+		int _currentnode;
 
 		//! The current starting configuration that we are on.
-		size_t _currentstartingpoint;
+		int _currentstartingpoint;
 
 		//! User defined number of starting configs needed per walker before starting FF.
 		int _requiredconfigs;
@@ -77,9 +78,6 @@ namespace SSAGES
 		// Flux
 		int _fluxout; //!< Flux out.
 		int _fluxin; //!< Flux in.
-
-		//! Probabilities
-		std::vector<double> _weight;
 
 	public:
 		//! Constructor
@@ -101,20 +99,20 @@ namespace SSAGES
 		ForwardFlux(boost::mpi::communicator& world,
 				 boost::mpi::communicator& comm,
 				 std::string indexfilename,
+				 std::string libraryfilename,
 				 std::string resultsfilename,
-				 std::string restartfilename,
-				 int currentinterface,
-				 std::vector<std::vector<double> > centers,
-				 bool newrun,
+				 std::vector<double> centers,
 				 int requiredconfigs,
 				 int numshots,
 				 unsigned int frequency) : 
-		Method(frequency, world, comm), _rd(), _gen(_rd()), _restart(LIBRARY),
-		_indexfilename(indexfilename), _indexfile(), _indexcontents(""), _globalcontents(""), 
-		_restartfilename(restartfilename), _resultsfilename(resultsfilename),
-		_resultsfile(), _resultscontents(""), _centers(centers), _successes(), _currentnode(currentinterface),
-		_currentstartingpoint(-1), _requiredconfigs(requiredconfigs), _currenthash(10000*world.rank()), 
-		_shootingconfigfile(""), _numshots(numshots), _currentshot(0), _fluxout(0), _fluxin(0)
+		Method(frequency, world, comm), _rd(), _gen(_rd()), _restart(NEW),
+		_indexfilename(indexfilename), _indexcontents(""), _globalcontents(""),
+		_totalcontents(""), _libraryfilename(libraryfilename), _librarycontents(""),
+		_resultsfilename(resultsfilename), _resultscontents(""), 
+		_centers(centers), _currentnode(0), _currentstartingpoint(0), 
+		_requiredconfigs(requiredconfigs), _currenthash(1000000*world.rank()), 
+		_shootingconfigfile(""), _numshots(numshots), _currentshot(0),
+		_fluxout(0), _fluxin(0)
 		{
 			_successes.resize(_centers.size());
 			_localsuccesses.resize(_centers.size());
@@ -123,14 +121,6 @@ namespace SSAGES
 				_successes[i] = 0;
 				_localsuccesses[i] = 0;
 			}
-			_weight.resize(_requiredconfigs);
-
-			if(newrun)
-				_restart = NEW;
-			else if(_restartfilename != "none")
-				_restart = RESTART;
-			else
-				_restart = LIBRARY;
 		}
 
 		//! Pre-simulation hook.
@@ -153,15 +143,6 @@ namespace SSAGES
 		 * \param cvs List of CVs.
 		 */
 		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
-		
-		//! \copydoc Serializable::Serialize()
-		/*!
-		 * \warning Serialization not implemented yet!
-		 */
-		void Serialize(Json::Value& json) const override
-		{
-
-		}
 
 		//! Extract all indices for a given interface.
 		/*!
@@ -185,33 +166,9 @@ namespace SSAGES
 
 			// Record the difference between all cvs and all nodes
 			for (size_t i = 0; i < _centers.size(); i++)
-			{
-				dists[i] = 0;
-				for(size_t j = 0; j < cvs.size(); j++)
-					dists[i]+=(cvs[j]->GetValue() - _centers[i][j])*(cvs[j]->GetValue() - _centers[i][j]);
-			}
+				dists[i] = (cvs[0]->GetValue() - _centers[i])*(cvs[0]->GetValue() - _centers[i]);
 
 			return (std::min_element(dists.begin(), dists.end()) - dists.begin());
-		}
-
-		//! Store configuration
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \param interface Index of the interface.
-		 *
-		 * NEW: store in _libraryconfig, other in _dumpconfig
-		 */
-		void StoreConfiguration(Snapshot* snapshot, int interface)
-		{
-			std::string dumpfilename = "dump_"+std::to_string(interface)+"_"+std::to_string(_currenthash)+".dump";
-			_dumpconfigs.push_back(*snapshot);
-			auto& snapshotID = _dumpconfigs.back().GetSnapshotID();
-			auto& oldsnapshotID = snapshot->GetSnapshotID();
-			
-			snapshotID = dumpfilename;
-			oldsnapshotID = dumpfilename;
-
-			_currenthash++;
 		}
 
 		//! Write out configuration file
@@ -228,15 +185,6 @@ namespace SSAGES
 		 * \param dumpfilename File name of the dump file.
 		 */
 		void ReadConfiguration(Snapshot* snapshot, const std::string& dumpfilename);
-		
-		//! Read a given configuration from _dumpcontents and update snapshot
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 */
-		void ReadConfiguration(Snapshot* snapshot);
-
-		//! Clears everything to make way for a new run.
-		void CleanUp();
 
 		//! Sets up new library for a new run because previous library had no full successes
 		/*!
@@ -244,13 +192,6 @@ namespace SSAGES
 		 * \param cvs List of CVs.
 		 */
 		void SetUpNewLibrary(Snapshot* snapshot, const CVList& cvs);
-
-		//! Sets up the run from previous configuration
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \return \c False if the run could not be set up successfully.
-		 */
-		bool SetUpRestartRun(Snapshot* snapshot);
 
 		//! Randomly picks a configuration from a given interface
 		/*!
@@ -260,8 +201,88 @@ namespace SSAGES
 		 */
 		std::string PickConfiguration(int interface, const std::string& contents);
 
-		//! Randomly picks a configuration from list of _dumpconfigs
-		void PickConfiguration();
+		void SetRestart(std::string restart)
+		{
+			if(restart == "new_library")
+				_restart = NEW;
+			else if (restart == "from_library")
+				_restart = LIBRARY;
+			else if (restart == "from_interface")
+				_restart = NEWCONFIG;
+			else if (restart == "none")
+				_restart = NONE;
+			else
+				throw BuildException({"Unknown restart type for Forward Flux Method!"});
+		}
+
+		void SetLibraryPoint(int lpoint){_currentstartingpoint = lpoint;}
+
+		void SetHash(int hash){_currenthash = hash;}
+
+		void SetIndexContents(std::string contents){_indexcontents = contents;}
+
+		void SetAtShot(int atshot){_currentshot = atshot;}
+
+		void SetSuccesses(std::vector<int> succ)
+		{
+			if(_localsuccesses.size() != succ.size())
+				throw BuildException({"Number of interfaces does not match local successes."});
+
+			for(size_t i = 0; i<succ.size(); i++)
+				_localsuccesses[i] = succ[i];
+		}
+
+		//! \copydoc Serializable::Serialize()
+		/*!
+		 * \warning Serialization not implemented yet!
+		 */
+		void Serialize(Json::Value& json) const override
+		{
+			//Needed to run
+			json["type"] = "ForwardFlux";
+			json["index_file"] = _indexfilename;
+			json["library_file"] = _libraryfilename;
+			json["results_file"] = _resultsfilename;
+			json["generate_configs"] = _requiredconfigs;
+			json["shots"] = _numshots;
+			for(auto& c : _centers)
+				json["centers"].append(c);
+			
+			// Needed for Restart:
+			std::string restart;
+			switch(_restart)
+			{
+				case NEW: 
+				{
+					restart = "new_library";
+					break;
+				}
+				case LIBRARY: 
+				{
+					restart = "from_library";
+					break;
+				}
+				case NEWCONFIG: 
+				{
+					restart = "from_interface";
+					break;
+				}
+				default: 
+				{
+					restart = "none";
+				}
+			}
+
+			json["restart_type"] = restart;
+			json["library_point"] = _currentstartingpoint;
+			json["current_hash"] = _currenthash;
+			json["index_contents"] = _indexcontents;
+			for(auto s : _localsuccesses)
+				json["successes"].append(s);
+
+			json["current_shot"] = _currentshot;
+
+		}
 
 	};
 }

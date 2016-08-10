@@ -57,7 +57,12 @@ namespace SSAGES
 		{
 			// Initialize gradient. 
 			auto n = snapshot.GetPositions().size();
+			const auto& ids = snapshot.GetAtomIDs();
 			_grad.resize(n);
+
+			if(std::find(ids.begin(), ids.end(), _atomid) == ids.end())
+			    throw BuildException({"AtomCoordinateCV: Cannot find specified ID."});
+
 		}
 
 		//! Evaluate the CV.
@@ -71,14 +76,13 @@ namespace SSAGES
 			const auto& ids = snapshot.GetAtomIDs();
 
 			// Loop through atom positions.
-			for(size_t i = 0; i < pos.size(); ++i)
+			for(size_t i = 0; i < ids.size(); ++i)
 			{
+				_grad[i].setZero();
 				// We are at the ID of interest.
 				if(ids[i] == _atomid)
 				{
-					// We set the gradient to zero, and only 
-					// set to unity the dimension of interest.
-					_grad[i].setZero();
+					// Set to unity the dimension of interest.
 					switch(_index)
 					{
 						case 0:
@@ -94,10 +98,6 @@ namespace SSAGES
 							_grad[i][2] = 1.0;
 							break;
 					}
-				}
-				else
-				{
-					_grad[i].setZero();
 				}
 			}
 		}

@@ -70,8 +70,6 @@ namespace SSAGES
 			if(json.isMember("log every"))
 				m->SetLogStep(json.get("log every",0).asInt());
 
-
-
 			method = static_cast<Method*>(m);
 		}
 		else if(type == "Metadynamics")
@@ -230,27 +228,43 @@ namespace SSAGES
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
 
-			std::vector<std::vector<double> > centers;
+			auto indexfile = json.get("index_file", "none").asString();
+			auto libraryfile = json.get("library_file", "none").asString();
+			auto resultsfile = json.get("results_file", "none").asString();
+			std::vector<double> centers;
 			for(auto& s : json["centers"])
-			{
-				std::vector<double> temp;
-				for(auto& c : s["center"])
-					temp.push_back(c.asDouble());
-				centers.push_back(temp);
-			}
+				centers.push_back(s.asDouble());
 
-			auto libraryfile = json.get("library file", "none").asString();
-			auto resultsfile = json.get("results file", "none").asString();
-			auto restartfile = json.get("restart file", "none").asString();
-			auto newrun = json.get("new run",true).asBool();
-			auto currentinterface = json.get("starting interface",0).asInt(); 
-			auto genconfig = json.get("generate configs",1).asInt();
+			auto genconfig = json.get("generate_configs",1).asInt();
 			auto shots = json.get("shots",1).asInt();
 			auto freq = json.get("frequency", 1).asInt();
 
-			auto* m = new ForwardFlux(world, comm, libraryfile, resultsfile, 
-				restartfile, currentinterface, centers, newrun,
-				genconfig, shots, freq);
+			auto* m = new ForwardFlux(world, comm, 
+				indexfile, libraryfile, resultsfile, 
+				centers, genconfig, shots, freq);
+
+			if(json.isMember("restart_type"))
+				m->SetRestart(json["restart_type"].asString());
+
+			if(json.isMember("library_point"))
+				m->SetLibraryPoint(json["library_point"].asInt());
+
+			if(json.isMember("current_hash"))
+				m->SetHash(json["current_hash"].asInt());
+
+			if(json.isMember("index_contents"))
+				m->SetIndexContents(json["index_contents"].asString());
+
+			if(json.isMember("successes"))
+			{
+				std::vector<int> success;
+				for(auto s : json["successes"])
+					success.push_back(s.asInt());
+				m->SetSuccesses(success);
+			}
+
+			if(json.isMember("current_shot"))
+				m->SetAtShot(json["current_shot"].asInt());
 
 			method = static_cast<Method*>(m);
 		}
