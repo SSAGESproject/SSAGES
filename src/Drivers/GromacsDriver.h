@@ -22,23 +22,29 @@ namespace SSAGES
 
 		virtual void Run() override
 		{
-			int argc = 5; 
+			int argc = (nwalkers_ > 1) ? 5 : 3; 
 			char **largs = new char*[argc];
 			largs[0] = new char[128];
 			largs[1] = new char[128];
 			largs[2] = new char[128];
-			largs[3] = new char[128];
-			largs[4] = new char[128];
+			if(nwalkers_ > 1)
+			{
+				largs[3] = new char[128];
+				largs[4] = new char[128];
+			}
 
 			// Trim input file extension.
 			auto s = _inputfile.substr(0, _inputfile.find_last_of("."));
 
 			sprintf(largs[0], "ssages");
-			sprintf(largs[1], "-multi");
-			sprintf(largs[2], "%i", nwalkers_);
-			sprintf(largs[3], "-deffnm");
-			sprintf(largs[4], "%s", s.c_str());
-
+			sprintf(largs[1], "-deffnm");
+			sprintf(largs[2], "%s", s.c_str());
+			if(nwalkers_ > 1)
+			{
+				sprintf(largs[3], "-multi");
+				sprintf(largs[4], "%i", nwalkers_);
+			}
+				
 			// For prettyness.
 			std::cout << std::endl;
 			gmx::CommandLineModuleManager::runAsMainCMain(argc, largs, &gmx_mdrun);
