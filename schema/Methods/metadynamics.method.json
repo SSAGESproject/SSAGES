@@ -27,8 +27,7 @@
 			"minimum" : 1
 		},
         "use_grid" : {
-        	"type" : "string",
-        	"enum" : ["yes", "no"]
+        	"type" : "bool"
         }
 	},
         "required": ["type", "widths", "height", "use_grid"],

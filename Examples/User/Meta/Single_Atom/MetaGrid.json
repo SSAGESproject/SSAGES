@@ -19,7 +19,7 @@
             0.1
         ],
         "height" : 0.1,
-        "use_grid" : "yes"
+        "use_grid" : true
     },
     "driver" : [
         {
