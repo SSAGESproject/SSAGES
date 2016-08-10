@@ -109,7 +109,7 @@ namespace SSAGES
 		  // cv is the location of the hill, not the location being forced.
 		  for(size_t i = 0; i < n; ++i){
 		    dx[i] = -cvs[i]->GetDifference(g.second[i]);
-		    tbias = gaussian(dx[i], _widths[i]);
+		    tbias *= gaussian(dx[i], _widths[i]);
 		  }
 
 		  //calculate derivatives
