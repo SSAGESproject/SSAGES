@@ -1,5 +1,4 @@
 # Model system
-log DRIVER.log
 units           real
 atom_style      full
 boundary        p p p
@@ -10,18 +9,21 @@ pair_modify     tail yes mix geometric
 bond_style      harmonic
 angle_style     harmonic
 dihedral_style  opls
-kspace_style    pppm 1.0e-8
 special_bonds   lj/coul 0.0 0.0 0.5
-neighbor        2.0 bin
-neigh_modify    every 1 delay 0 check yes
 read_data       Butane_VMD.data
 group           mobile union all
 timestep        1
+
+#RESTART
+log DRIVER.log
+
+kspace_style    pppm 1.0e-8
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
 thermo_style    custom etotal ke pe ebond eangle edihed eimp evdwl ecoul elong temp press vol
 thermo_modify   line multi
 thermo          1
 thermo_modify   flush yes
-timestep 1
 fix 1 all nvt temp 300 300 100# iso 1.0 1.0 1000.0
 fix ssages all ssages
 

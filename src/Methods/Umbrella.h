@@ -82,15 +82,6 @@ namespace SSAGES
 		 */
 		void PrintUmbrella(const CVList& cvs);
 
-		//! Set method iteration
-		/*!
-		 * \param iter New value for the method iteration.
-		 */
-		void SetIteration(const int iter)
-		{
-			_iteration = iter;
-		}
-
 		//! Set how often to log
 		/*!
 		 * \param iter New value for logging interval.

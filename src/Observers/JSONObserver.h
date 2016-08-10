@@ -21,6 +21,7 @@ namespace SSAGES
 		std::unique_ptr<std::ofstream> _jsonfs; //!< Output file pointer.
 		std::string _prefix; //!< Prefix for output file.
 		Json::Value _root; //!< JSON root value.
+		bool _writetoother; //!< Indicate which json to write to.
 
 	public:
 		//! Constructor
