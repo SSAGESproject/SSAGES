@@ -2,6 +2,7 @@
 #include "../Drivers/Driver.h"
 #include <ctime>
 #include <iomanip>
+#include <stdio.h>
 
 namespace SSAGES
 {
@@ -28,10 +29,23 @@ namespace SSAGES
 								int numwalkers,
 								int wid,
 								unsigned int frequency) : 
-	SimObserver(world, comm, numwalkers, wid, frequency), _prefix(prefix), _root()
+	SimObserver(world, comm, numwalkers, wid, frequency), _prefix(prefix), _root(), _writetoother(true)
 	{
-		if(_world.rank()!=0)
+		if(_comm.rank() != 0)
 			return;
+
+		std::string Name = _prefix + "_" + std::to_string(_wid) +".json";
+		std::string BckupName = Name + "_backup";
+		
+		_jsonfs = std::unique_ptr<std::ofstream>(
+		new std::ofstream(Name));
+		_jsonfs = std::unique_ptr<std::ofstream>(
+		new std::ofstream(BckupName));
+		
+		if(_world.rank()!=0)
+		{
+			return;
+		}
 
 		for(int i = 0; i<numwalkers; i++)
 			_root["driver"][i] = "@include(" + _prefix + "_" + std::to_string(i) + ".json)";
@@ -55,9 +69,28 @@ namespace SSAGES
 
 	void JSONObserver::PreVisit()
 	{
+		std::string Name = _prefix + "_" + std::to_string(_wid) +".json";
+		std::string BckupName = Name + "_backup";
+		std::string tempName = BckupName + "_temp";
+
+		// Move backup to temp
+		int result = rename(BckupName.c_str(), tempName.c_str());
+		if(result != 0)
+			throw std::runtime_error("Could not move backup file to temp file!");
+		
+		// Move old file to backup
+		result = rename(Name.c_str(),BckupName.c_str());
+		if(result != 0)
+			throw std::runtime_error("Could not move restart file to backup file!");
+		
+		// Create pointer to New file
 		_jsonfs = std::unique_ptr<std::ofstream>(
-			new std::ofstream(_prefix + "_" + std::to_string(_wid) + ".json")
-		);
+			new std::ofstream(Name));
+
+		// Delete temp file
+		result = remove(tempName.c_str());
+		if(result != 0)
+			throw std::runtime_error("Could not remove temp file!");
 
 		_jsonfs->precision(20);
 	}

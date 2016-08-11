@@ -1,0 +1,37 @@
+{
+	"inputfile" : "in.LAMMPS_Meta_Test",
+	"driver" : [
+		{
+			"number processors" : 1,
+			"type" : "LAMMPS",
+			"MDSteps" : 10000000,
+			"logfile" : "node-1",
+			"CVs" : [
+				{
+					"type" : "AtomCoordinate",
+					"atom id" : 1,
+					"dimension" : "x"
+				},
+				{
+					"type": "AtomCoordinate",
+					"atom id" : 1,
+                    "dimension" : "y"
+				}
+			],
+			"method" : {
+				"type" : "Swarm",
+				"centers" : [
+						-0.98,
+					    -0.98
+				],
+				"number of nodes": 22,
+				"spring" : 1000,
+				"frequency" : 1,
+				"initial steps" : 1000,
+				"harvest length" : 10,
+				"number of trajectories" : 100,
+                "swarm length" : 2
+			}
+		}
+	]
+}

@@ -141,7 +141,7 @@ namespace SSAGES
 		std::vector<double> GetExtra(const std::vector<int>& indices) const
 		{
 			const std::vector<double>& temp = _flatvector[FlattenIndices(indices,_num_points)].first;
-			std::vector<double> temp2(&temp[1], &temp[temp.size()-1]);
+			std::vector<double> temp2(&temp[1], &temp[temp.size()]);
 			return temp2;
 		}
 

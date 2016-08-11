@@ -8,13 +8,19 @@ set(SSAGES_VERSION_TINY "8")
 
 # Default type is release
 if (NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE "Release")
+    if (BUILD_TESTS)
+		set(CMAKE_BUILD_TYPE "Debug")
+    else (BUILD_TESTS)
+		set(CMAKE_BUILD_TYPE "Release")
+    endif (BUILD_TESTS)
 endif()
+
+string (TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE_NAME)
 
 # list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 # Resolve dependencies
-find_package(MPI REQUIRED)
+find_package(MPI 1.6 REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
 
 # Require Boost MPI.
@@ -116,9 +122,10 @@ set(SOURCE
 	src/Methods/Umbrella.cpp
 	src/Methods/ElasticBand.cpp
 	src/Methods/FiniteTempString.cpp
+    	src/Methods/Swarm.cpp
 	src/Methods/ForwardFlux.cpp
 	src/Methods/ABF.cpp
-    src/Methods/BasisFunc.cpp
+    	src/Methods/BasisFunc.cpp
 	src/Validator/RequirementLoader.cpp
 	src/JSON/jsoncpp.cpp
 	${SCHEMA_CPP}
@@ -126,8 +133,8 @@ set(SOURCE
 	src/Methods/Method.cpp
 	src/Grids/Grid.cpp
 	src/Observers/JSONObserver.cpp
-	src/Simulations/SimObservable.cpp
 	src/Simulations/SimObserver.cpp
+	src/Simulations/SimObservable.cpp
 	src/Hook.cpp
 )
 
@@ -143,7 +150,13 @@ link_directories(${MPI_CXX_LIBRARIES})
 add_library(libssages ${HOOKSRC} ${SOURCE})
 set_target_properties(libssages PROPERTIES PREFIX "")
 target_link_libraries(libssages ${MPI_CXX_LIBRARIES} ${Boost_LIBRARIES})
-set_target_properties(libssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra -fPIC")
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set_target_properties(libssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra -fPIC -g")
+elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    set_target_properties(libssages PROPERTIES COMPILE_FLAGS "-O2 -fPIC -g")
+else ()
+    set_target_properties(libssages PROPERTIES COMPILE_FLAGS "-O3 -fPIC")
+endif ()
 
 # Require C++11.
 set_property(TARGET libssages PROPERTY CXX_STANDARD 11)
@@ -161,6 +174,7 @@ configure_file (
 )
 
 # Dependencies
+add_dependencies(libssages schema)
 if(LAMMPS_SRC)
 	add_dependencies(lammps libssages)
 	target_link_libraries(ssages libssages ${LAMMPS_SRC}/liblammps_mpi.so)
@@ -183,7 +197,14 @@ elseif(GROMACS_SRC)
 	add_dependencies(ssages gromacs)
 endif()
 
-set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra")
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra -g")
+elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-O2 -g")
+else ()
+    set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-O3")
+
+endif ()
 
 # Configure flags 
 # - Globals
@@ -192,7 +213,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -pthread -std=c++11")
 # Add doc subdirectory for building the documentation
 add_subdirectory(doc)
 
-if (TEST)
+if (BUILD_TESTS)
 	message(STATUS "")
 
 	# Find Google Test Framework
@@ -242,4 +263,4 @@ if (TEST)
 
 	enable_testing()
 	add_subdirectory(test)
-endif (TEST)
+endif (BUILD_TESTS)

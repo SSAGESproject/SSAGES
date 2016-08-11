@@ -35,7 +35,7 @@ namespace LAMMPS_NS
 	// Copyright (C) 2015 Lorenz Hübschle-Schneider <lorenz@4z2.de>
 	// Helper function for variable MPI_allgather.
 	template <typename T, typename transmit_type = uint64_t>
-	void allgatherv_serialize(const mpi::communicator &comm, const std::vector<T> &in, std::vector<T> &out) 
+	void allgatherv_serialize(const mpi::communicator &comm, std::vector<T> &in, std::vector<T> &out)
 	{
 		// Step 1: exchange sizes
 		// We need to compute the displacement array, specifying for each PE
@@ -56,7 +56,7 @@ namespace LAMMPS_NS
 		out.resize(displacements.back() / factor);
 
 		// Step 3: MPI_Allgatherv
-		const transmit_type *sendptr = reinterpret_cast<const transmit_type*>(in.data());
+		transmit_type *sendptr = reinterpret_cast<transmit_type*>(in.data());
 		transmit_type *recvptr = reinterpret_cast<transmit_type*>(out.data());
 		const MPI_Datatype datatype = mpi::get_mpi_datatype<transmit_type>();
 		int status = MPI_Allgatherv(sendptr, in_size, datatype, recvptr,

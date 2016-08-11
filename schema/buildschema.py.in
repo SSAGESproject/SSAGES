@@ -13,7 +13,6 @@ from os import path
 import json
 
 # Definitions
-currd = path.dirname(path.abspath(__file__))
 schemah = "${SCHEMA_H}"
 schemac = "${SCHEMA_CPP}"
 
@@ -44,7 +43,7 @@ def processfile(filename):
 
 
 def headertimestamp():
-	f = path.join(currd, schemah)
+	f = schemah
 	if not path.isfile(f):
 		return 0
 	return path.getmtime(f)
@@ -53,9 +52,9 @@ def headertimestamp():
 def jsontimestamps(folders):
 	maxts = 0
 	for folder in folders:
-		for f in os.listdir(path.join(currd, folder)):
+		for f in os.listdir(folder):
 			if f not in exclude:
-				fpath = path.join(currd, folder, f)
+				fpath = path.join(folder, f)
 				tstamp = path.getmtime(fpath)
 				if tstamp > maxts:
 					maxts = tstamp
@@ -73,13 +72,13 @@ def genfiles(folders):
 		return
 
 	# Delete old header/cpp files if they exist.
-	if path.isfile(path.join(currd, schemah)):
-		os.remove(path.join(currd, schemah))
-	if path.isfile(path.join(currd, schemac)):
-		os.remove(path.join(currd, schemac))
+	if path.isfile(schemah):
+		os.remove(schemah)
+	if path.isfile(schemac):
+		os.remove(schemac)
 
-	fheader = path.join(currd, "${CMAKE_CURRENT_SOURCE_DIR}/headertemplate.h")
-	fcpp = path.join(currd, "${CMAKE_CURRENT_SOURCE_DIR}/sourcetemplate.cpp")
+	fheader = "${CMAKE_CURRENT_SOURCE_DIR}/headertemplate.h"
+	fcpp = "${CMAKE_CURRENT_SOURCE_DIR}/sourcetemplate.cpp"
 
 	hlines = []
 	cpplines = []
@@ -90,9 +89,9 @@ def genfiles(folders):
 
 	# Go through folders, load json and write to header.
 	for folder in folders:
-		for f in os.listdir(path.join(currd, folder)):
+		for f in os.listdir(folder):
 			if f not in exclude:
-				fpath = path.join(currd, folder, f)
+				fpath = path.join(folder, f)
 				try:
 					jobj = json.loads(processfile(fpath))
 					varname = jobj["varname"]
@@ -112,10 +111,10 @@ def genfiles(folders):
 					"\t" + defn + '"' + json.dumps(jobj).replace('"', '\\"') + '";\n'
 				)
 
-	with open(path.join(currd, schemah), "w") as f:
+	with open(schemah, "w") as f:
 		f.writelines(hlines)
 
-	with open(path.join(currd, schemac), "w") as f:
+	with open(schemac, "w") as f:
 		f.writelines(cpplines)
 
 genfiles(folders)

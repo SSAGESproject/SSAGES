@@ -5,9 +5,11 @@ set(TEST_DEPS
 	libssages)
 
 set  (UNIT_TESTS "AtomPositionCVTests"
+                 "GridTests"
+                 "NearestNeighborTests"
                  "TorsionalCVTests"
-				 "UCVectorTests"
-				 "GridTests")
+                 "UCVectorTests"
+                 "UnitCellConversionTests")
 
 foreach (TEST ${UNIT_TESTS})
     add_executable (${TEST} ${TEST}.cpp)

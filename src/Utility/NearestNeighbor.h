@@ -14,9 +14,17 @@ namespace SSAGES
 	 *
 	 * \return Vector of shortest distance between the two points.
 	 *
-	 *  Uses the fractional coordinates - converts to fractional, then for each
-	 * dimension accounts for PBCs (Xfrac < 0.5) then converts back to
-	 * cartesian. Returns a Vector3.
+	 *  Calculate the shortest vector connecting two point, taking periodic
+	 * boundary conditions into account. The direction of the vector is from
+	 * point b to point a. The function takes cartesian coordinates, converts to
+	 * fractional, then for each dimension accounts for PBCs (Xfrac < 0.5) then
+	 * converts back to cartesian. Returns a Vector3.
+	 *
+	 * \note This function expects the point of origin of the simulation box to
+	 *       be at (0, 0, 0) or that all distances are given relative to the
+	 *       point or origin of the simulation box.
+	 *
+	 * \note This function assumes that the box is periodic in all directions.
 	 *
 	 *  \ingroup Utility
 	 */
@@ -34,7 +42,7 @@ namespace SSAGES
 		};
 	
 		// Take shortest distance through PBCs
-		for(size_t i = 0; i<del.size(); ++i)
+		for(int i = 0; i<del.size(); ++i)
 		{
 			while(del[i] < -0.5)
 				del[i] += 1.0;
