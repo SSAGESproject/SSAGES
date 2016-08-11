@@ -234,7 +234,6 @@ namespace SSAGES
                     //End of trajectory, harvest drift
                     for(size_t i = 0; i < _cv_drift.size(); i++)
                     {
-                        //Drift scaled down for debugging
                         _cv_drift[i] = (_cv_drift[i]*_index + cvs[i]->GetValue()  - _centers[i]) / (_index+1); //Calculate running average of drifts
                     }
                     //Set up for next trajectory

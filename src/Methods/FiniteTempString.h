@@ -62,9 +62,6 @@ namespace SSAGES
 
 		//! Number of nodes on a string
 		unsigned int _numnodes;
-
-		//! Total iterations run so far
-		unsigned int _currentiter;
 		
 		//! Output stream for string data.
 		std::ofstream _stringout;
@@ -95,9 +92,6 @@ namespace SSAGES
 
 		//! Options for restarting string
 		bool _restart;
-
-		//! Iteration of restart configuration.
-		unsigned int _restartiter;
 
 		//! Averages of restart configuration.
 		std::vector<double> _restartavgs;
@@ -135,15 +129,13 @@ namespace SSAGES
 					double tol,
 					unsigned int maxiterator,
 					bool restart,
-					unsigned int restartiter,
 					const std::vector<double>& restartavgs,
 			 		unsigned int frequency) : 
 		Method(frequency, world, comm), _blockiterations(isteps), _centers(centers),
 		_cv_prev(), _alpha(), _mpiid(0), _worldstring(), _tau(tau), _kappa(kappa),
 		_spring(spring), _tol(tol), _prev_positions(), _numnodes(NumNodes),
-		_currentiter(0), _run_SMD(true), _cv_inside_iterator(0),
-		_maxiterator(maxiterator), _restart(restart), _restartiter(restartiter),
-		_restartavgs(restartavgs)
+        _run_SMD(true), _cv_inside_iterator(0),
+		_maxiterator(maxiterator), _restart(restart), _restartavgs(restartavgs)
 		{
 		}
 
@@ -156,10 +148,35 @@ namespace SSAGES
 		//! Post-simulation hook.
 		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
 
+        void SetIteration(const int iter)
+        {
+            _iteration = iter;
+        }
+        
 		void Serialize(Json::Value& json) const override
-		{
+        {
+            json["type"] = "FTS";
+            for(size_t i = 0; i < _centers.size(); i++)
+            {
+                json["centers"].append(_centers[i]);
+            }
 
-		}
+            json["number samples"] = _numnodes;
+            json["spring"] = _spring;
+            json["block iterations"] = _blockiterations;
+            json["kappa"] = _kappa;
+            json["time step"] = _tau;
+            json["tol"] = _tol;
+            json["max iterations"] = _maxiterator;
+            json["restart"] = true; 
+
+            for(size_t i = 0; i < _restartavgs.size(); i++)
+            {
+                json["previous avgs"].append(_restartavgs[i]);
+            }
+
+            json["iteration"] = _iteration;
+        }
 
 		//! Destructor
 		~FiniteTempString() {}

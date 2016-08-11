@@ -164,6 +164,7 @@ namespace SSAGES
                 json["number of trajectories"] = _number_trajectories;
                 json["swarm length"] = _swarm_length;
 
+
                 json["iteration"] = _iteration;
             }
 

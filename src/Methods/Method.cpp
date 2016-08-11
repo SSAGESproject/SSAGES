@@ -291,7 +291,7 @@ namespace SSAGES
 			auto tol = json.get("tol", 0).asDouble();
 			auto maxiterator = json.get("max iterations", 0).asInt();
 			auto restart = json.get("restart", 0).asBool();
-			auto restartiter = json.get("previous iteration", 0).asInt();
+
 
 			std::vector<double> restartavgs;
 			for(auto& s : json["previous avgs"])
@@ -300,9 +300,13 @@ namespace SSAGES
 			auto* m = new FiniteTempString(world, comm, isteps, 
 									centers, nsamples, kappa,
 									tau, spring, tol, maxiterator, restart,
-									restartiter, restartavgs, freq);
+                                    restartavgs, freq);
 
 			method = static_cast<Method*>(m);
+            
+            if(json.isMember("iteration"))
+                m->SetIteration(json.get("iteration",0).asInt());
+            
 		}
 		
         else if(type == "Basis")

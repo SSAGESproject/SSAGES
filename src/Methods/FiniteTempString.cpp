@@ -74,6 +74,7 @@ namespace SSAGES
 	 	_prev_positions.resize(positions.size());
 	 	_worldstring.resize(_centers.size());
 	 	_runavgs.resize(_centers.size());
+        _restartavgs.resize(_centers.size());
 	 	_cv_prev.resize(_centers.size());
 	 	_SMD_centers.resize(_centers.size());
 
@@ -93,8 +94,7 @@ namespace SSAGES
 		}
 
 		if(_restart){
-			_currentiter = _restartiter + 1;
-			for(size_t i = 0; i < _centers.size(); i++){
+			for(size_t i = 0; i < _restartavgs.size(); i++){
 				_runavgs[i] = _restartavgs[i];
 			}
 			_stringout << "#! Restarting FTS from previous run";
@@ -102,7 +102,7 @@ namespace SSAGES
 			_stringout << "#! Beginning new FTS run";
 		}
 
-		_stringout << " with " << _numnodes << " nodes starting at iteration " << _currentiter << std::endl;
+		_stringout << " with " << _numnodes << " nodes starting at iteration " << _iteration << std::endl;
 
 		if(_tol){
 			_stringout << "#! Tolerance criteria is ON: " << _tol << std::endl;
@@ -197,8 +197,9 @@ namespace SSAGES
 
 			// Calculate running averages for each CV at each node 
 			for(size_t i = 0; i < _runavgs.size(); i++){
-				_runavgs[i] = _runavgs[i] * (_currentiter * _blockiterations + _iterator) + _cv_prev[i];
-				_runavgs[i] /= (_currentiter * _blockiterations + _iterator + 1);
+				_runavgs[i] = _runavgs[i] * (_iteration * _blockiterations + _iterator) + _cv_prev[i];
+				_runavgs[i] /= (_iteration * _blockiterations + _iterator + 1);
+                _restartavgs[i] = _runavgs[i];
 			}
 
 			// Update the string, every _blockiterations string method iterations
@@ -208,12 +209,14 @@ namespace SSAGES
 				PrintString(cvs);
 
 				// Update the string and reparameterize 
-				StringUpdate();
+                _world.barrier(); //Wait for all nodes before attempting string update
+                StringUpdate();
+                _world.barrier(); //Wait for all CVs to be updated
 
 				_iterator = 0;
-				_currentiter++;
+				_iteration++;
 
-				if(_maxiterator && _currentiter > _maxiterator){
+				if(_maxiterator && _iteration > _maxiterator){
 					std::cout << "System has reached max string method iterations (" << _maxiterator << ") as specified in the input file(s)." << std::endl;
 					std::cout << "Exiting now" << std::endl;
 					_world.abort(-1);
@@ -230,8 +233,8 @@ namespace SSAGES
 						_world.abort(-1);
 					}
 				}
-
-				if(!InCell(cvs)){
+                
+                if(!InCell(cvs)){
 					_run_SMD = true;
 					_cv_inside_iterator = 0;
 				}
@@ -246,7 +249,7 @@ namespace SSAGES
 	{
 		_stringout.close();
 		std::cout << "Walker " << _mpiid << " has reached max MD steps as specified in the input file(s)." << std::endl;
-		std::cout << "Completed iterations: " << _currentiter << std::endl;
+		std::cout << "Completed iterations: " << _iteration << std::endl;
 		std::cout << "Exiting now" << std::endl;
 		_world.abort(-1);
 
@@ -255,7 +258,7 @@ namespace SSAGES
 	void FiniteTempString::PrintString(const CVList& CV)
 	{
 		_stringout.precision(8);
-		_stringout << _mpiid << " " << _currentiter << " ";
+		_stringout << _mpiid << " " << _iteration << " ";
 		for(size_t i = 0; i < _centers.size(); i++){
 			_stringout << _centers[i] << " " << CV[i]->GetValue() << " " << _runavgs[i] << " ";
 		}
