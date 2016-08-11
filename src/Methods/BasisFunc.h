@@ -107,6 +107,9 @@ namespace SSAGES
          */
         std::vector<double> _unbias;
 
+        //! The coefficient array for restart runs
+        std::vector<double> _coeff_arr;
+
         //! The Basis set lookup table, also defined globally
 		std::vector<BasisLUT> _LUT;
 
@@ -139,9 +142,6 @@ namespace SSAGES
         
         //! Frequency of coefficient updates
 		unsigned int _cyclefreq;
-
-        //! Parameter for allowing the read coefficient function to work correctly.
-        unsigned int _iter;
         
         //! The node that the current system belongs to, primarily for printing and debugging.
         unsigned int _mpiid;
@@ -164,9 +164,6 @@ namespace SSAGES
 
         //! The tolerance criteria for the system .
         double _tol;
-
-        //! The checker to see if a run is continuing from a previous one.
-        bool _read;
 
         //! A variable to check to see if the simulation is in bounds or not.
         bool _bounds;
@@ -199,15 +196,6 @@ namespace SSAGES
          */
         void BasisInit(const CVList& cvs);
 
-        //! Reads the bias files to continue a previous simulation
-        void ReadBasis(std::string, std::string);
-
-        //! Determines the quadrature rule for the basis set. Currently only for Legendre polynomials
-        void GaussQuad(std::vector<double>&, std::vector<double>&, int, int);
-
-        //! Returns the bins from the grid
-        std::vector<int> GetBin(std::vector<float>&);
-        
 		//! Output stream for basis projection data.
 		std::ofstream _basisout;
 
@@ -238,7 +226,6 @@ namespace SSAGES
          * \param temperature Automatically set temperature.
          * \param tol Threshold for tolerance criterion.
          * \param weight Weight for improved sampling.
-         * \param read If \c True restart from old run.
          * \param converge If \c True quit on convergence.
          *
          * Constructs an instance of the Basis function sampling method. The
@@ -259,13 +246,12 @@ namespace SSAGES
              const double temperature,
              const double tol,
              const double weight,
-             bool read,
              bool converge) : 
 		Method(frequency, world, comm), _hist(), _histlocal(), _histglobal(),
-        _coeff(), _unbias(), _LUT(), _derivatives(), _polyords(polyord),
+        _coeff(), _unbias(), _LUT(), _derivatives(), _polyords(polyord), _coeff_arr(),
         _nbins(), _restraint(restraint), _boundUp(boundUp), _boundLow(boundLow),
         _cyclefreq(cyclefreq), _mpiid(0), _weight(weight),
-        _temperature(temperature), _tol(tol), _read(read),
+        _temperature(temperature), _tol(tol),
         _converge_exit(converge), _bnme(bnme), _cnme(cnme)
 		{
 		}
@@ -295,9 +281,53 @@ namespace SSAGES
         /*!
          * \warning Serialization is not implemented yet!
          */
+        void SetIteration(const int iter)
+        {
+            _iteration = iter;
+        }
+
+        void SetBasis(const std::vector<double>&coeff, std::vector<double>&unbias)
+        {
+            _coeff_arr = coeff;
+            _unbias = unbias;
+        }
+
 		void Serialize(Json::Value& json) const override
 		{
+            json["type"] = "Basis";
+            for(auto& p: _polyords)
+                json["CV_coefficients"].append(p);
 
+            for(auto& k: _restraint)
+                json["CV_restraint_spring_constants"].append(k);
+
+            for(auto& u: _boundUp)
+                json["CV_restraint_maximums"].append(u);
+
+            for(auto& l: _boundLow)
+                json["CV_restraint_minimums"].append(l);
+
+            for(auto& b: _unbias)
+                json["bias_hist"].append(b);
+
+            for(auto& c: _coeff_arr)
+                json["coefficients"].append(c);
+
+            json["tolerance"] = _tol;
+
+            json["convergence_exit"] = _converge_exit;
+
+            json["basis_filename"] = _bnme;
+
+            json["coeff_filename"] = _cnme;
+
+            json["iteration"] = _iteration;
+
+            json["cycle_frequency"] = _cyclefreq;
+
+            json["weight"] = _weight;
+
+            json["temperature"] = _temperature;
 		}
 
         //! Destructor.

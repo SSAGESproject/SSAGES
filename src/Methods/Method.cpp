@@ -137,31 +137,31 @@ namespace SSAGES
 				throw BuildException(validator.GetErrors());
 
 			std::vector<double> minsCV;
-			for(auto& mins : json["CV minimums"])
+			for(auto& mins : json["CV_lower_bounds"])
 				minsCV.push_back(mins.asDouble());
 			
 			std::vector<double> maxsCV;
-			for(auto& maxs : json["CV maximums"])
+			for(auto& maxs : json["CV_upper_bounds"])
 				maxsCV.push_back(maxs.asDouble());
 
 			std::vector<double> binsCV;
-			for(auto& bins : json["CV bins"])
+			for(auto& bins : json["CV_bins"])
 				binsCV.push_back(bins.asDouble());
 
 			std::vector<double> minsrestCV;
-			for(auto& mins : json["CV restraint minimums"])
+			for(auto& mins : json["CV_restraint_minimums"])
 				minsrestCV.push_back(mins.asDouble());
 			
 			std::vector<double> maxsrestCV;
-			for(auto& maxs : json["CV restraint maximums"])
+			for(auto& maxs : json["CV_restraint_maximums"])
 				maxsrestCV.push_back(maxs.asDouble());
 
 			std::vector<double> springkrestCV;
-			for(auto& bins : json["CV restraint spring constants"])
+			for(auto& bins : json["CV_restraint_spring_constants"])
 				springkrestCV.push_back(bins.asDouble());
 
 			std::vector<int> printdetails;
-			for(auto& bins : json["Print details"])
+			for(auto& bins : json["print_details"])
 				printdetails.push_back(bins.asDouble());
 
 			if(printdetails.size()!=9)
@@ -171,15 +171,15 @@ namespace SSAGES
 				printdetails = preset;
 				}
 
-			int FBackupInterv = json.get("Backup interval", 1000).asInt();
+			int FBackupInterv = json.get("backup_frequency", 1000).asInt();
 
-			double unitconv = json.get("Unit conversion", 0).asDouble();
+			double unitconv = json.get("unit_conversion", 0).asDouble();
 		
-			int Orthogonalization = json.get("Orthogonalization", 0).asInt();
+			int Orthogonalization = json.get("orthogonalization", 0).asInt();
 
 			double timestep = json.get("timestep",2).asDouble();
 
-			double min = json.get("minimum count",100).asDouble();
+			double min = json.get("minimum_count",100).asDouble();
 
 			std::vector<std::vector<double>> histdetails;
 			std::vector<std::vector<double>> restraint;
@@ -316,34 +316,51 @@ namespace SSAGES
                 throw BuildException(validator.GetErrors());
 
 			std::vector<unsigned int> coefsCV(0);
-			for(auto& coefs : json["CV coefficients"])
+			for(auto& coefs : json["CV_coefficients"])
 				coefsCV.push_back(coefs.asInt());
 
             std::vector<double> restrCV(0);
-            for(auto& restr : json["CV springs"])
+			for(auto& restr : json["CV_restraint_spring_constants"])
                 restrCV.push_back(restr.asDouble());
 
             std::vector<double> boundLow(0);
-            for(auto& bndl : json["CV upper bounds"])
+            for(auto& bndl : json["CV_restraint_minimums"])
                 boundLow.push_back(bndl.asDouble());
         
             std::vector<double> boundUp(0);
-            for(auto& bndu : json["CV upper bounds"])
+            for(auto& bndu : json["CV_restraint_maximums"])
                 boundUp.push_back(bndu.asDouble());
 
-            auto cyclefreq = json.get("cycle frequency", 100000).asInt();
+            auto cyclefreq = json.get("cycle_frequency", 100000).asInt();
             auto freq = json.get("frequency", 1).asInt();
             auto wght = json.get("weight", 1.0).asDouble();
-            auto read = json.get("read", false).asBool();
-            auto bnme = json.get("basis file", "").asString();
-            auto cnme = json.get("coeff file", "").asString();
+            auto bnme = json.get("basis_filename", "").asString();
+            auto cnme = json.get("coeff_filename", "").asString();
             auto temp = json.get("temperature", 0.0).asDouble();
             auto tol  = json.get("tolerance", 1e-6).asDouble();
-            auto conv = json.get("convergence exit", false).asBool();
+            auto conv = json.get("convergence_exit", false).asBool();
  
-            auto* m = new Basis(world, comm, coefsCV, restrCV, boundUp, boundLow, cyclefreq, freq, bnme, cnme, temp, tol, wght, read, conv);
+            auto* m = new Basis(world, comm, coefsCV, restrCV, boundUp, boundLow, cyclefreq, freq, bnme, cnme, temp, tol, wght, conv);
 
             method = static_cast<Method*>(m);
+			
+            if(json.isMember("iteration"))
+				m->SetIteration(json.get("iteration",0).asInt());
+
+            if(json.isMember("coefficients") && json.isMember("bias hist"))
+            {
+                std::vector<double> coeff;
+                std::vector<double> unbias;
+
+                for(auto& c : json["coefficients"])
+                    coeff.push_back(c.asDouble());
+
+                for(auto& u : json["bias hist"])
+                    unbias.push_back(u.asDouble());
+
+                m->SetBasis(coeff, unbias);
+            }
+
         }
 	else if(type == "GridTest")
 	{

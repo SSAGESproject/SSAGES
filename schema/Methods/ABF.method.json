@@ -6,14 +6,14 @@
 			"type" : "string",
 			"enum" : ["ABF"]
 		},
-		"CV minimums" : {
+		"CV_lower_bounds" : {
 			"type" : "array",
 			"minItems" : 1,
 			"items" : {
 				"type" : "number"
 			}
 		},
-		"CV maximums" : {
+		"CV_upper_bounds" : {
 			"type" : "array",
 			"minItems" : 1,
 			"items" : {
@@ -21,7 +21,7 @@
 			}
 		},
 
-		"CV bins" : {
+		"CV_bins" : {
 			"type" : "array",
 			"minItems" : 1,
 			"items" : {
@@ -29,14 +29,14 @@
 			}
 		},
 		
-		"CV restraint minimums" : {
+		"CV_restraint_minimums" : {
 			"type" : "array",
 			"minItems" : 1,
 			"items" : {
 				"type" : "number"
 			}
 		},
-		"CV restraint maximums" : {
+		"CV_restraint_maximums" : {
 			"type" : "array",
 			"minItems" : 1,
 			"items" : {
@@ -44,7 +44,7 @@
 			}
 		},
 
-		"CV restraint spring constants" : {
+		"CV_restraint_spring_constants" : {
 			"type" : "array",
 			"minItems" : 1,
 			"items" : {
@@ -56,7 +56,7 @@
 			"minimum" : 0
 		},
 		
-		"minimum count" : {
+		"minimum_count" : {
 			"type" : "number",
 			"minimum" : 0
 		},
@@ -65,7 +65,7 @@
 			"type" : "string"
 		},
 
-		"Print details" : {
+		"print_details" : {
 			"type" : "array",
 			"minItems" : 9,
 			"items" : {
@@ -73,17 +73,17 @@
 			}
 		},
 		
-		"Backup interval" : {
+		"backup_frequency" : {
 			"type" : "integer",
 			"minimum" : 0
 		},
 
-		"Unit conversion" : {
+		"unit_conversion" : {
 			"type" : "number",
 			"minimum" : 0
 		},
 
-		"Orthogonalization" : {
+		"orthogonalization" : {
 			"type" : "integer",
 			"minimum" : 0
 		},
@@ -113,6 +113,6 @@
 			"minimum" : 1
 		}
 	},
-	"required": ["type", "CV minimums", "CV maximums", "CV bins", "timestep", "Unit conversion", "Print details", "filename"],
+	"required": ["type", "CV_minimums", "CV_maximums", "CV_bins", "timestep", "unit_conversion", "print_details", "filename"],
 	"additionalProperties": false
 }
