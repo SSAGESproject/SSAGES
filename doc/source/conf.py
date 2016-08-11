@@ -340,5 +340,5 @@ epub_exclude_files = ['search.html']
 #epub_use_index = True
 
 # Use breathe
-breathe_projects = { "SSAGES": "../user-doc/xml/" }
-breathe_default_project = "SSAGES"
+#breathe_projects = { "SSAGES": "../user-doc/xml/" }
+#breathe_default_project = "SSAGES"
