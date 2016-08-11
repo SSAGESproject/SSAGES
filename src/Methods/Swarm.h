@@ -89,8 +89,19 @@ namespace SSAGES
 
         public:
 
-            //! Constructor
+            //! Constructor.
             /*!
+             * \param world MPI global communicator.
+             * \param com MPI local communicator.
+             * \param centers List of centers.
+             * \param NumNodes number of nodes.
+             * \param spring Spring constant.
+             * \param frequency Aplly method with this frequency.
+             * \param InitialSteps Number of initial steps.
+             * \param HarvestLength Length of trajectory before weighing.
+             * \param NumberTrajectories Number of trajectories.
+             * \param SwarmLength Lengt of the swarms.
+             *
              * Constructs an instance of the swarm of trajectories method.
              */
             Swarm(boost::mpi::communicator& world, 
@@ -152,6 +163,7 @@ namespace SSAGES
                 json["harvest length"] = _harvest_length;
                 json["number of trajectories"] = _number_trajectories;
                 json["swarm length"] = _swarm_length;
+
 
                 json["iteration"] = _iteration;
             }

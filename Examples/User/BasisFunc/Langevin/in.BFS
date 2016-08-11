@@ -1,0 +1,71 @@
+#double y = -20 * exp(-20*(x-0.5)*(x-0.5)) + -15 * exp(-15*(x+0.4)*(x+0.4));
+echo screen
+dimension 2
+boundary p p p
+units lj
+atom_style atomic
+
+#Box geometry and whatnot
+region box block -1.5000 2.0000 -5 5 -1 1 units box
+create_box 1 box
+
+#Set mass of all particles
+mass * 1.0
+
+#Set pair potentials
+pair_style lj/cut 0.5
+pair_coeff * * 1.0 1.0 2.5
+
+#Put that atom in
+create_atoms 1 single 1.0  0 0 units box
+group solid type 1
+
+#These are the people in your neighborhood!
+neighbor        1.0 bin
+neigh_modify    delay 0 every 1 check no
+
+#Fix?
+fix 1 all nve
+fix 2 all langevin 1.0  1.0  1.0  165876
+
+#include SUBSTRATE_FUNCTIONS (two energy wells)
+
+		#####First potential information (gaussian/well))###
+		variable _w01 equal 10.0000
+		variable _c01 equal 1.00000
+
+		variable e_01 atom "-v__w01 * exp(-v__w01 * (x-v__c01)^2)"
+		variable fx_01 atom "-2 * v__w01^2 * (x-v__c01) * exp(-v__w01 * ((x-v__c01)^2))"
+		##################################################
+		
+		###Second potential information (gaussian/barrier))#
+		variable _w02 equal 12.0000
+		variable _c02 equal -0.7000
+        
+		variable e_02 atom "-v__w02 * exp(-v__w02 *(x-v__c02)^2)"
+		variable fx_02 atom "-2 * v__w02^2 * (x-v__c02)*exp(-v__w02 * (x-v__c02)^2)"
+		##################################################
+
+#sum the three forces in the x and y direction
+variable substrate_xforce atom "(v_fx_01+v_fx_02)"
+
+#Calculate total energy
+variable substrate_energy atom "(v_e_01+v_e_02)"
+
+#Add forces and energy
+fix 3 all addforce v_substrate_xforce 0.0 0.0 energy v_substrate_energy
+
+#Call ssages to run the metadynamics
+fix ssages all ssages
+
+compute ffx all reduce sum v_substrate_xforce
+compute ee all reduce sum v_substrate_energy
+compute xxa all property/atom x
+compute xx all reduce sum c_xxa
+
+timestep 0.0001
+thermo_style custom step temp ke pe etotal c_xx c_ffx c_ee press
+
+#For the sync to engine to work correctly need to set thermo 1 for now
+thermo 1
+dump xers all xyz 10000 basis.xyz

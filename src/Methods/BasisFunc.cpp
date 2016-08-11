@@ -17,7 +17,7 @@ namespace SSAGES
         _mpiid = snapshot->GetWalkerID();
 
         // Make sure the iteration index is set correctly
-        _iter = 0;
+        _iteration = 0;
 
         if(!_grid)
 		{
@@ -76,6 +76,7 @@ namespace SSAGES
         _histlocal.resize(bin_size,0);
         _histglobal.resize(bin_size,0);
         _unbias.resize(bin_size,0);
+        _coeff_arr.resize(coeff_size,0);
 
         std::vector<int> idx(cvs.size(), 0);
         std::vector<int> jdx(cvs.size(), 0);
@@ -119,47 +120,12 @@ namespace SSAGES
 				temp_map.value  = 0; 
             }
 			_coeff.push_back(temp_map);           
+            _coeff[i].value = _coeff_arr[i];
             jdx[0]++;
         }
 
         //Initialize the look-up table.
         BasisInit(cvs);
-
-        //This is the check to read an already existing coefficient file already exists
-        if (_read)
-        {
-            std::string fnme1 = "basis_"+_bnme+".out";
-            std::string fnme2 = "coeff_"+_cnme+".out";
-
-            // Check to make sure the user defined files exist
-            if(std::ifstream(fnme1) && std::ifstream(fnme2))
-            {
-                std::cout<<std::endl;
-                std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                std::cout<<"Coefficient snapshot file exists, continuing run"<<std::endl;
-                std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-
-                ReadBasis(fnme1, fnme2);
-            }
-
-            //Otherwise a fresh run will happen
-            else 
-            {
-                std::cout<<std::endl;
-                std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                std::cout<<"User-defined output files not found"<<std::endl;
-                std::cout<<"Starting a clean run now"<<std::endl;
-                std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-            }
-            
-        }
-        else 
-        {
-            std::cout<<std::endl;
-            std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-            std::cout<<"Coefficient snapshot file does NOT exist, now starting"<<std::endl;
-            std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-        }
 	}
 
 	// Post-integration hook.
@@ -203,7 +169,7 @@ namespace SSAGES
             _hist[ii].value++;
     
             // Update the basis projection after a predefined number of steps
-            if(snapshot->GetIteration() % _cyclefreq == 0) {	
+            if(snapshot->GetIteration()  % _cyclefreq == 0) {	
                 double beta;
                 beta = snapshot->GetTemperature();
 
@@ -221,9 +187,9 @@ namespace SSAGES
                         exit(EXIT_FAILURE);
                     }
                 }
-                _iter += 1;
+                _iteration+= 1;
                 UpdateBias(cvs,beta);
-                std::cout<<"Node: ["<<_mpiid<<"]"<<std::setw(10)<<"\tSweep: "<<_iter<<std::endl;
+                std::cout<<"Node: ["<<_mpiid<<"]"<<std::setw(10)<<"\tSweep: "<<_iteration<<std::endl;
             }
         }
 
@@ -297,97 +263,6 @@ namespace SSAGES
             _LUT.push_back(TempLUT);
         }
 	}
-
-    // The function that reads in an existing simulation if it exists
-    void Basis::ReadBasis(std::string basisfile, std::string coeffile) 
-    {   
-        std::ifstream infile(coeffile);
-        std::ifstream infile2(basisfile);
-        std::string line;
-       
-        /*This is the loop to read the existing coeff.out file
-         *This will only occur if the file exists and the read option
-         *is chosen in the JSON file
-         */
-        size_t i = 0;
-        while (std::getline(infile, line))
-        {
-            std::istringstream iss(line);
-            double x;
-
-            //This is to ensure the file is correctly written
-            if(!(iss >> x)) {break;}
-   
-            //This will check to see if the coefficient works
-            if(i > _coeff.size() + 2) 
-            {
-                std::cout<<std::endl;
-                std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                std::cout<<"ERROR:The file you have chosen has more coefficients than "<<std::endl;
-                std::cout<<"you have requested the simulation will exit now"<<std::endl;
-                std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                exit(0);
-            }
-            
-            //If reading in an old run, the previous number of cycles becomes the first
-            //line of the "coeff.out" file
-            i == 0 ? _iter = (unsigned int)x
-                   : _coeff[i].value = x;
-            i++;
-        }
-
-        if(i != _coeff.size()+1) 
-        {
-            if (_coeff[1].value != 0) {
-                std::cout<<std::endl;
-                std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                std::cout<<"WARNING:The file you have chosen has less coefficients "<<std::endl;
-                std::cout<<"than you have requested. This may cause unwanted results"<<std::endl;
-                std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-            }
-            else { 
-                std::cout<<std::endl;
-                std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                std::cout<<"ERROR:Coefficients file was read incorrectly. Exiting."<<std::endl;
-                std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                exit(EXIT_FAILURE);
-            }
-        }
-
-        i = 0;
-
-        // Reads in the basis file to recover the last version of the biased histogram
-        while (std::getline(infile2, line))
-        {
-            std::istringstream iss(line);
-            double x, y, z, f, v;
-  
-            //This will check to see if the right number of values are being read in 
-            if(i > _unbias.size()+1) 
-            {
-                std::cout<<std::endl;
-                std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                std::cout<<"ERROR:The file you have chosen has more histogram bins than"<<std::endl;
-                std::cout<<"you have requested the simulation will exit now"<<std::endl;
-                std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                exit(EXIT_FAILURE);
-            } 
-                   
-            if(_grid->GetDimension() == 1 && i > 0)
-            {
-                iss >> x >> y >> z >> f; //Gets the values and not the text;
-                _unbias[i-1] = f;
-            }
-            else if(_grid->GetDimension() == 2 && i > 0)
-            { 
-                iss >> x >> y >> z >> f >> v;
-                _unbias[i-1] = v;
-            }
-            else if(_grid->GetDimension() == 3)
-                std::cout<<"Sorry! 3 dimensions and higher doesn't support the read functionality yet!"<<std::endl;
-            i++;
-        }
-    }
     
 	// Update the coefficients/bias projection
 	void Basis::UpdateBias(const CVList& cvs, double beta)
@@ -433,7 +308,7 @@ namespace SSAGES
             /* The evaluation of the biased histogram which projects the histogram to the
              * current bias of CV space.
              */
-            _unbias[i] += hist.value * exp(bias/(double)(beta)) * _weight / (double)(_cyclefreq); 
+            _unbias[i] += hist.value * exp(bias/(double)beta) * _weight / (double)(_cyclefreq); 
             bias = 0.0;
         }
 
@@ -485,6 +360,7 @@ namespace SSAGES
                 }
             }
             coeffTemp[i] -= coeff.value;
+            _coeff_arr[i] = coeff.value;
             sum += coeffTemp[i]*coeffTemp[i];
         }
 
@@ -542,7 +418,7 @@ namespace SSAGES
         _coeffout.open(filename2.c_str());
 
         // The CV values, PMF projection, PMF, and biased histogram are output for the user
-        _coeffout << _iter  <<std::endl;
+        _coeffout << _iteration  <<std::endl;
         _basisout << "CV Values" << std::setw(35*cvs.size()) << "Basis Set Bias" << std::setw(35) << "PMF Estimate" << std::setw(35) << "Biased Histogram" << std::endl;
         
         for(size_t j = 0; j < _unbias.size(); ++j)

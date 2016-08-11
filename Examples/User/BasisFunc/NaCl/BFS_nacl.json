@@ -1,0 +1,47 @@
+{
+    "inputfile" : "in.BFS_NaCl",
+    "CVs" : [
+        {
+            "type" : "AtomSeparation",
+            "atom id 1" : 4498,
+            "atom id 2" : 4499,
+            "box size x" : 36.0,
+            "box size y" : 36.0,
+            "box size z" : 36.0 
+        }
+    ],
+    "method" : {
+        "type" : "Basis",
+        "cycle_frequency" : 10000,
+        "frequency" : 1,
+        "weight" : 1.0,
+        "basis_filename" : "bound",
+        "coeff_filename" : "bound",
+        "CV_coefficients" : [ 100 ],
+        "CV_restraint_spring_constants" : [ 30 ],
+        "CV_restraint_maximums" : [ 10.3 ],
+        "CV_restraint_minimums" : [ 1.7 ]
+    },
+    "grid" : [
+        {
+            "lower" : 2.0,
+            "upper" : 11.0,
+            "number points" : 500,
+            "periodic" : false
+        }
+    ],
+    "driver" : [
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 1000000,
+            "logfile" : "node-1"
+        },
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 1000000,
+            "logfile" : "node-2"
+        }
+    ]
+}

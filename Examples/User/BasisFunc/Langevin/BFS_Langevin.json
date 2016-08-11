@@ -1,0 +1,55 @@
+{
+    "inputfile" : "in.BFS_Langevin",
+    "CVs" : [
+        {
+            "type" : "AtomCoordinate",
+            "atom id" : 1,
+            "dimension" : "x"
+        },
+        {
+            "type" : "AtomCoordinate",
+            "atom id" : 1,
+            "dimension" : "y"
+        }
+    ],
+    "method" : {
+        "type" : "Basis",
+        "cycle_frequency" : 100000,
+        "frequency" : 1,
+        "temperature" : 1.0,
+        "weight" : 1.0,
+        "basis_filename" : "_test_final_2",
+        "coeff_filename" : "_test_final_2",
+        "tolerance" : 1e-6,
+        "convergence_exit" : false,
+        "CV_coefficients" : [ 25, 25 ]
+    },
+    "grid" : [
+        {
+            "lower" : -1.5,
+            "upper" : 2.0,
+            "number points" : 100,
+            "periodic" : true
+        },
+        {
+            "lower" : -1.5,
+            "upper" : 2.0,
+            "number points" : 100,
+            "periodic" : true
+        }
+    ],
+    "driver" : [
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 1000000000,
+            "logfile" : "node-1"
+        },
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 1000000000,
+            "logfile" : "node-2"
+        }
+    ]
+}

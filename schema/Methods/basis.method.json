@@ -6,7 +6,7 @@
 			"type" : "string",
 			"enum" : ["Basis"]
 		},
-		"cycle frequency" : {
+		"cycle_frequency" : {
 			"type" : "integer",
 			"minimum" : 1
 		},
@@ -14,38 +14,55 @@
 			"type" : "integer",
 			"minimum" : 1
 		},
-        "CV coefficients" : {
+        "iteration" : {
+            "type" : "integer"
+        },
+        "coefficients" : {
+            "type": "array",
+            "minItems" : 1,
+            "items" : {
+                "type" : "number"
+            }
+        },
+        "bias_hist" : {
+            "type": "array",
+            "minItems" : 1,
+            "items" : {
+                "type" : "number"
+            }
+        },
+        "CV_coefficients" : {
             "type" : "array",
             "minItems" : 1,
             "items" : {
                 "type" : "integer"
             }
         },
-        "CV springs" : {
+        "CV_restraint_spring_constants" : {
             "type" : "array",
             "minItems" : 1,
             "items" : {
                 "type" : "number"
             }
         },
-        "CV upper bounds" : {
+        "CV_restraint_maximums" : {
             "type" : "array",
             "minItems" : 1,
             "items" : {
                 "type" : "number"
             }
         },
-        "CV lower bounds" : {
+        "CV_restraint_minimums" : {
             "type" : "array",
             "minItems" : 1,
             "items" : {
                 "type" : "number"
             }
         },
-        "basis file" : {
+        "basis_filename" : {
             "type" : "string"
         },
-        "coeff file" : {
+        "coeff_filename" : {
             "type" : "string"
         },
         "weight" : {
@@ -60,13 +77,10 @@
             "type" : "number",
             "minimum" : 1e-20
         },
-        "read" : {
-            "type" : "boolean"
-        },
-        "convergence exit" : {
+        "convergence_exit" : {
             "type" : "boolean"
         }
 	},
-	"required": ["type", "CV coefficients", "cycle frequency"],
+	"required": ["type", "CV_coefficients", "cycle_frequency"],
 	"additionalProperties": false
 }

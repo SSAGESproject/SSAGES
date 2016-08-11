@@ -237,30 +237,30 @@ namespace SSAGES
 
 			for(size_t i = 0; i < _histdetails.size(); ++i)
 			{
-				json["CV minimums"].append(_histdetails[i][0]);				
-				json["CV maximums"].append(_histdetails[i][1]);
-				json["CV bins"].append(_histdetails[i][2]);
+				json["CV_lower_bounds"].append(_histdetails[i][0]);				
+				json["CV_upper_bounds"].append(_histdetails[i][1]);
+				json["CV_bins"].append(_histdetails[i][2]);
 			}
 
 			for(size_t i = 0; i < _restraint.size(); ++i)
 			{
-				json["CV restraint minimums"].append(_restraint[i][0]);
-				json["CV restraint maximums"].append(_restraint[i][1]);
-				json["CV restraint spring constants"].append(_restraint[i][2]);
+				json["CV_restraint_minimums"].append(_restraint[i][0]);
+				json["CV_restraint_maximums"].append(_restraint[i][1]);
+				json["CV_restraint_spring_constants"].append(_restraint[i][2]);
 			}
 
 			json["timestep"] = _timestep;
 
-			json["minimum count"] = _min;
+			json["minimum_count"] = _min;
 
 			for(size_t i = 0; i < _printdetails.size(); ++i)
-				json["Print details"].append(_printdetails[i]);
+				json["print_details"].append(_printdetails[i]);
 			 
-			json["Backup interval"] = _FBackupInterv;
+			json["backup_frequency"] = _FBackupInterv;
 			
-			json["Unit conversion"] = _unitconv;
+			json["unit_conversion"] = _unitconv;
 
-			json["Orthogonalization"] = _Orthogonalization;			
+			json["orthogonalization"] = _Orthogonalization;			
 		
 			for(size_t i = 0; i < _F.size(); ++i)
 				json["F"].append(_F[i]);

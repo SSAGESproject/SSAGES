@@ -114,6 +114,8 @@ namespace SSAGES
 
 		//! Return value taking periodic boundary conditions into account.
 		/*!
+		 * \param Location Get wrapped value of this location.
+		 *
 		 * \return Input value
 		 *
 		 * The AtomCoordinate CV does not consider periodic boundary
@@ -144,6 +146,8 @@ namespace SSAGES
 
 		//! Return difference considering periodic boundaries.
 		/*!
+		 * \param Location Calculate difference of CV value to this location.
+		 *
 		 * \return Direct difference.
 		 *
 		 * As the AtomCoordinate CV does not consider periodic boundary

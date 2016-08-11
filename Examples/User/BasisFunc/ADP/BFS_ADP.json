@@ -1,0 +1,64 @@
+{
+    "inputfile" : "in.BFS_ADP",
+    "CVs": [
+        {
+            "periodic": true,
+            "type": "Torsional",
+            "atom ids": [
+                5,
+                7,
+                9,
+                15
+            ]
+        },
+        {
+            "periodic": true,
+            "type": "Torsional",
+            "atom ids": [
+                7,
+                9,
+                15,
+                17
+            ]
+        }
+    ],
+    "method" : {
+        "type" : "Basis",
+        "cycle_frequency" : 50000,
+        "frequency" : 1,
+        "basis_filename" : "_adp_5",
+        "coeff_filename" : "_adp_5",
+        "CV_coefficients" : [ 25, 25 ],
+        "weight" : 1.0,
+        "convergence_exit" : false,
+        "read" : false
+    },
+    "grid" : [
+        {
+            "lower" : -3.13,
+            "upper" : 3.13,
+            "number points" : 100,
+            "periodic" : true
+        },
+        {
+            "lower" : -3.13,
+            "upper" : 3.13,
+            "number points" : 100,
+            "periodic" : true
+        }
+    ],
+    "driver" : [
+        {
+            "number processors" : 2,
+            "type" : "LAMMPS",
+            "MDSteps" : 100000000,
+            "logfile" : "node-1"
+        },
+        {
+            "number processors" : 2,
+            "type" : "LAMMPS",
+            "MDSteps" : 100000000,
+            "logfile" : "node-2"
+        }
+    ]
+}

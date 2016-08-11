@@ -189,14 +189,13 @@ namespace LAMMPS_NS
 		// Get iteration.
 		_snapshot->SetIteration(update->ntimestep);
 		
-		// Get volume.
-		double vol = 0.;
-		if (domain->dimension == 3)
-			vol = domain->xprd * domain->yprd * domain->zprd;
-		else
-			vol = domain->xprd * domain->yprd;
-		_snapshot->SetVolume(vol);
+		// Get H-matrix.
+		Matrix3 H;
+		H << domain->h[0],            0,            0,
+		     domain->h[5], domain->h[1],            0,
+		     domain->h[4], domain->h[3], domain->h[2];
 
+		_snapshot->SetHMatrix(H);
 		_snapshot->SetKb(force->boltz);
 
 		_snapshot->GetLatticeConstants() = ConvertToLatticeConstant(GatherLAMMPSVectors());
