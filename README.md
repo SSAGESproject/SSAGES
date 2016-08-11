@@ -25,7 +25,7 @@ If you want to compile and run unit and integration tests, replace the cmake com
 in the example above with
 
 ```bash
-$ cmake -DLAMMPS_SRC=/path/to/lammps/src -DTEST=ON ..
+$ cmake -DLAMMPS_SRC=/path/to/lammps/src -DBUILD_TESTS=ON ..
 ```
 
 The build system is still a work in progress.

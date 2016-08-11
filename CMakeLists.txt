@@ -8,11 +8,11 @@ set(SSAGES_VERSION_TINY "8")
 
 # Default type is release
 if (NOT CMAKE_BUILD_TYPE)
-	if (TEST)
+    if (BUILD_TESTS)
 		set(CMAKE_BUILD_TYPE "Debug")
-	else (TEST)
+    else (BUILD_TESTS)
 		set(CMAKE_BUILD_TYPE "Release")
-	endif (TEST)
+    endif (BUILD_TESTS)
 endif()
 
 string (TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE_NAME)
@@ -189,7 +189,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -pthread -std=c++11")
 # Add doc subdirectory for building the documentation
 add_subdirectory(doc)
 
-if (TEST)
+if (BUILD_TESTS)
 	message(STATUS "")
 
 	# Find Google Test Framework
@@ -239,4 +239,4 @@ if (TEST)
 
 	enable_testing()
 	add_subdirectory(test)
-endif (TEST)
+endif (BUILD_TESTS)
