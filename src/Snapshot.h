@@ -6,24 +6,13 @@
 #include "JSON/Serializable.h"
 #include "types.h"
 
-namespace boost
-{
-	namespace serialization
-	{
-		template<class Archive, typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-    	inline void serialize(
-        	Archive & ar, 
-        	Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> & t, 
-        	const unsigned int
-    	) 
-	    {       
-    		ar & boost::serialization::make_array(t.data(), t.size());
-	    }
-	}
-}
-
 namespace SSAGES
 {
+	inline double anint(double x)
+	{
+    	return ( x >= 0 ) ? floor( x + 0.5 ) : ceil( x - 0.5 );
+  	}
+
 	//! Class containing a snapshot of the current simulation in time.
 	/*!
 	 * \ingroup core
@@ -41,6 +30,9 @@ namespace SSAGES
 
 		std::string _ID; //!< ID string
 
+		Matrix3 _H; //!< Parrinello-Rahman box H-matrix.
+		Matrix3 _Hinv; //!< Parinello-Rahman box inverse.
+
 		std::vector<Vector3> _positions; //!< Positions
 		std::vector<Vector3> _images; //!< Unwrapped positions
 		std::vector<Vector3> _velocities; //!< Velocities
@@ -54,7 +46,6 @@ namespace SSAGES
 		double _temperature; //!< Current temperature
 		double _pressure; //!< System pressure
 		double _energy; //!< Average per-particle energy
-		double _volume; //!< Volume of Simultion box
 		double _kb; //!< Kb from the MD driver
 
 		bool _changed; //!< \c TRUE is Simulation state changed
@@ -69,10 +60,10 @@ namespace SSAGES
 		 * correpsonding walker ID.
 		 */
 		Snapshot(boost::mpi::communicator& comm, unsigned wid) :
-		_comm(comm), _wid(wid), _positions(0), _velocities(0), 
+		_comm(comm), _wid(wid), _H(), _Hinv(), _positions(0), _velocities(0), 
 		_forces(0), _atomids(0), _types(0), 
 		_iteration(0), _temperature(0), _pressure(0), 
-		_energy(0), _volume(0), _kb(0)
+		_energy(0), _kb(0)
 		{}
 
 		//! Get the current iteration
@@ -99,11 +90,17 @@ namespace SSAGES
 		 */
 		double GetEnergy() const { return _energy; }
 
+		//! Get system H-matrix
+		/*! 
+		 * \return Parrinello-Rahman H-matrix of simulation box
+		 */
+		const Matrix3& GetHMatrix() const { return _H; }
+
 		//! Get system volume
 		/*!
 		 * \return Volume of the current simulation box
 		 */
-		double GetVolume() const { return _volume; }
+		double GetVolume() const { return _H.determinant(); }
 
 		//! Get system Kb
 		/*!
@@ -169,13 +166,14 @@ namespace SSAGES
 			_changed = true;
 		}
 
-		//! Change the volume
+		//! Change the Box H-matrix. 
 		/*!
-		 * \param volume New value for the volume
-		 */
-		void SetVolume(double volume) 
+		 * \param hmat New H-matrix for the system
+		*/
+		void SetHMatrix(const Matrix3& hmat)
 		{
-			_volume = volume;
+			_H = hmat;
+			_Hinv = hmat.inverse();
 			_changed = true;
 		}
 
@@ -276,6 +274,30 @@ namespace SSAGES
 			return _lattice; 
 		}
 
+		//! Scale a vector into fractional coordinates
+		/*! 
+		 * \param v Vector of interest
+		 * \return Scaled vector in fractional coordinates
+		 */
+		Vector3 ScaleVector(const Vector3& v)
+		{
+			return _Hinv*v;
+		}
+
+		//! Wrap a vector according to periodic boundary conditions
+		/*!
+		 * \param v Vector of interest
+		 */
+		void WrapVector(Vector3* v)
+		{
+			Vector3 scaled = ScaleVector(*v);
+			
+			for(int i = 0; i < 3; ++i)
+				scaled[i] -= anint(scaled[i]);
+
+			*v = _H*scaled;
+		}
+
 		//! Access the atom IDs
 		/*!
 		 * \return List of atom IDs
@@ -353,8 +375,11 @@ namespace SSAGES
 			json["temperature"] = _temperature; 
 			json["pressure"] = _pressure; 
 			json["energy"] = _energy;
-			json["volume"] = _volume;
 			json["kb"] = _kb;
+
+			for(int i = 0; i < 3; ++i)
+				for(int j = 0; j < 3; ++j)
+					json["hmat"][i][j] = _H(i,j);
 		}
 		
 		//! Destructor
