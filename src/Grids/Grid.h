@@ -255,10 +255,44 @@ namespace SSAGES
 		static Grid* BuildGrid(const Json::Value& json, 
 							   const std::string& path);
 
+		//! Get a voxel from the Grid.
+		/*!
+		 * \param val Position value.
+		 * \return Voxel
+		 *
+		 * This function returns a voxel from the Grid. For each dimension, the
+		 * voxel contains the next smaller and the next larger index based on the
+		 * given position. In other words, the position is inside the
+		 * (hyper-)cube defined by the voxel grid points.
+		 */
 		virtual std::vector<std::vector<int>> GetVoxel(const std::vector<double> &val) const = 0;
 
+		//! Interpolate value.
+		/*!
+		 * \param val Position.
+		 *
+		 * \return Interpolated value.
+		 *
+		 * This function returns the interpolated value at the given position.
+		 * The value is a linear interpolation between the value at the next
+		 * smaller and the next larger grid index, taking all dimensions of the
+		 * grid into account.
+		 */
 		virtual double InterpolateValue(const std::vector<double> &val) const = 0;
 
+		//! Interpolate derivative value.
+		/*!
+		 * \param val Position.
+		 * \param dim Dimension in which respect to calculate the derivative.
+		 *
+		 * \return Derivative of the interpolated value with respect to the
+		 *         given dimension.
+		 *
+		 * This function determines the derivative of the interpolated value with
+		 * respect to a given dimension.
+		 *
+		 * \sa InterpolateValue()
+		 */
 		virtual double InterpolateDeriv(const std::vector<double> &val, int dim) const = 0;
 
 		//! \copydoc Serializable::Serialize()

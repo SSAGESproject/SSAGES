@@ -85,11 +85,9 @@ namespace SSAGES
 		 * \param world MPI global communicator.
 		 * \param comm MPI local communicator.
 		 * \param indexfilename File name of index file.
+		 * \param libraryfilename File name for the library file.
 		 * \param resultsfilename File name of results file.
-		 * \param restartfilename File name for restart file.
-		 * \param currentinterface Index of the current interface.
 		 * \param centers List of centers.
-		 * \param newrun If \c True start a new run.
 		 * \param requiredconfigs Number of required configurations.
 		 * \param numshots Number of shots each node takes.
 		 * \param frequency Frequency with which this method is invoked.
@@ -193,7 +191,7 @@ namespace SSAGES
 		 */
 		void SetUpNewLibrary(Snapshot* snapshot, const CVList& cvs);
 
-		//! Randomly picks a configuration from a given interface
+		//! Randomly picks a configuration from a given interface.
 		/*!
 		 * \param interface Index of the interface.
 		 * \param contents String containing the configuration.
@@ -201,6 +199,22 @@ namespace SSAGES
 		 */
 		std::string PickConfiguration(int interface, const std::string& contents);
 
+		//! Set restart type.
+		/*!
+		 * \param restart String specifying the restart type.
+		 *
+		 * Set the type of restart. Possible values are:
+		 *
+		 * String Value     | Behavior
+		 * ------------     | --------
+		 * "new_library"    | Start method from scratch.
+		 * "from_library"   | Load a previous library and continue run.
+		 * "from_interface" | Start with a new configuration.
+		 * "none"           | No restart.
+		 *
+		 * If a value different from one of the above is given, the method will
+		 * throw a BuildException.
+		 */
 		void SetRestart(std::string restart)
 		{
 			if(restart == "new_library")
@@ -215,14 +229,37 @@ namespace SSAGES
 				throw BuildException({"Unknown restart type for Forward Flux Method!"});
 		}
 
+		//! Set starting point of the library.
+		/*!
+		 * \param lpoint New starting point for the library.
+		 */
 		void SetLibraryPoint(int lpoint){_currentstartingpoint = lpoint;}
 
+		//! Set hash value.
+		/*!
+		 * \param hash New hash value.
+		 */
 		void SetHash(int hash){_currenthash = hash;}
 
+		//! Set contents for the index.
+		/*!
+		 * \param contents New string for the index contents.
+		 */
 		void SetIndexContents(std::string contents){_indexcontents = contents;}
 
+		//! Set the value for the current shot.
+		/*!
+		 * \param atshot New value for the current shot.
+		 */
 		void SetAtShot(int atshot){_currentshot = atshot;}
 
+		//! Set the number of successes for the interfaces.
+		/*!
+		 * \param succ Vector storing the number of successes for all interfaces.
+		 *
+		 * Note that the size of the vector \c succ must equal the number of
+		 * interfaces in the method.
+		 */
 		void SetSuccesses(std::vector<int> succ)
 		{
 			if(_localsuccesses.size() != succ.size())
@@ -233,9 +270,6 @@ namespace SSAGES
 		}
 
 		//! \copydoc Serializable::Serialize()
-		/*!
-		 * \warning Serialization not implemented yet!
-		 */
 		void Serialize(Json::Value& json) const override
 		{
 			//Needed to run
