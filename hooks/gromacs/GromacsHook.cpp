@@ -58,16 +58,17 @@ namespace SSAGES
 		return static_cast<MPI_Comm>(_snapshot->GetCommunicator());
 	}
 
-	template<typename T1, typename T2>
+	template<typename T>
 	void GromacsHook::PullToSSAGES(
 		int iteration, 
 		int natoms, 
 		int* indices,
 		int* types,
-		T1 masses[], 
-		T2 positions[], 
-		T2 velocities[], 
-		T2 forces[],
+		T masses[], 
+		T positions[][3], 
+		T velocities[][3], 
+		T forces[][3],
+		T boxmat[3][3],
 		double temperature,
 		double pressure,
 		double potenergy,
@@ -130,6 +131,12 @@ namespace SSAGES
 			frc[i][1] = forces[i][1];
 			frc[i][2] = forces[i][2];			
 		}
+		
+		Matrix3 H;
+		H << boxmat[0][0], boxmat[0][1], boxmat[0][2],
+		     boxmat[1][0], boxmat[1][1], boxmat[1][2],
+		     boxmat[2][0], boxmat[2][1], boxmat[2][2];
+		_snapshot->SetHMatrix(H);
 
 		std::vector<Vector3> gpos, gvel, gfrc;
 		std::vector<double> gmass;
@@ -150,15 +157,15 @@ namespace SSAGES
 		typs = gtyps;
 	}
 
- 	template<typename T1, typename T2>
+ 	template<typename T>
 	void GromacsHook::PushToGromacs(
 		int natoms,
 		int* indices, 
 		int* types,
-		T1 masses[],
-		T2 positions[], 
-		T2 velocities[],
-		T2 forces[])
+		T masses[],
+		T positions[][3], 
+		T velocities[][3],
+		T forces[][3])
 	{
 		const auto& pos = _snapshot->GetPositions();
 		const auto& vel = _snapshot->GetVelocities();
@@ -203,7 +210,7 @@ namespace SSAGES
 
 // Explicit instantiation. Normally we'd let this happen in Gromacs, 
 // but the boost mpi calls are giving lib dependency grief.
-template void GromacsHook::PullToSSAGES<float, float[3]>(
+template void GromacsHook::PullToSSAGES<float>(
 	int, 
 	int, 
 	int*,
@@ -212,12 +219,13 @@ template void GromacsHook::PullToSSAGES<float, float[3]>(
 	float[][3],
 	float[][3],
 	float[][3],
+	float[3][3],
 	double,
 	double, 
 	double,
 	double);
 
-template void GromacsHook::PushToGromacs<float, float[3]>(
+template void GromacsHook::PushToGromacs<float>(
 	int,
 	int*, 
 	int*, 
@@ -225,4 +233,28 @@ template void GromacsHook::PushToGromacs<float, float[3]>(
 	float[][3], 
 	float[][3],
 	float[][3]);
+
+template void GromacsHook::PullToSSAGES<double>(
+	int, 
+	int, 
+	int*,
+	int*,
+	double[],
+	double[][3],
+	double[][3],
+	double[][3],
+	double[3][3],
+	double,
+	double, 
+	double,
+	double);
+
+template void GromacsHook::PushToGromacs<double>(
+	int,
+	int*, 
+	int*, 
+	double[],
+	double[][3], 
+	double[][3],
+	double[][3]);
 }

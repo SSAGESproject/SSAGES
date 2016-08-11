@@ -41,7 +41,7 @@ diff -ruN /gromacs-original/src/programs/CMakeLists.txt /gromacs-ssages/src/prog
      # The lack of a real source file here alongside the object library
 diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/programs/mdrun/md.cpp
 --- /gromacs-original/src/programs/mdrun/md.cpp	2016-07-13 08:56:04.000000000 -0400
-+++ /gromacs-ssages/src/programs/mdrun/md.cpp	2016-08-07 21:45:31.792977235 -0400
++++ /gromacs-ssages/src/programs/mdrun/md.cpp	2016-08-11 14:05:03.488087799 -0400
 @@ -111,6 +111,7 @@
  #include "gromacs/utility/fatalerror.h"
  #include "gromacs/utility/real.h"
@@ -50,7 +50,7 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
  
  #include "deform.h"
  #include "membed.h"
-@@ -647,6 +648,31 @@
+@@ -647,6 +648,44 @@
          fprintf(fplog, "\n");
      }
  
@@ -76,13 +76,26 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
 +            natoms = cr->dd->nat_home;
 +            ids = cr->dd->gatindex;
 +        }
-+        ssages.PullToSSAGES(step, natoms, ids, mdatoms->typeA, mdatoms->massT, state->x, state->v, f, enerd->term[F_TEMP], enerd->term[F_PRES], enerd->term[F_EPOT], BOLTZ);
++        ssages.PullToSSAGES(
++            step, 
++            natoms, 
++            ids, 
++            mdatoms->typeA, 
++            mdatoms->massT, 
++            state->x, 
++            state->v, 
++            f,
++            state->box,
++            enerd->term[F_TEMP], 
++            enerd->term[F_PRES], 
++            enerd->term[F_EPOT], 
++            BOLTZ);
 +    });
 +
      walltime_accounting_start(walltime_accounting);
      wallcycle_start(wcycle, ewcRUN);
      print_start(fplog, cr, walltime_accounting, "mdrun");
-@@ -741,6 +767,9 @@
+@@ -741,6 +780,9 @@
          gmx_fatal(FARGS, "The combination of mdrun -maxh and mdrun -multi is not supported. Please use the nsteps .mdp field.");
      }
  
@@ -92,7 +105,7 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
      /* and stop now if we should */
      bLastStep = (bRerunMD || (ir->nsteps >= 0 && step_rel > ir->nsteps) ||
                   ((multisim_nsteps >= 0) && (step_rel >= multisim_nsteps )));
-@@ -1086,6 +1115,9 @@
+@@ -1086,6 +1128,9 @@
                       state->lambda, graph,
                       fr, vsite, mu_tot, t, mdoutf_get_fp_field(outf), ed, bBornRadii,
                       (bNS ? GMX_FORCE_NS : 0) | force_flags);
@@ -102,7 +115,7 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
          }
  
          if (bVV && !bStartingFromCpt && !bRerunMD)
-@@ -1787,10 +1819,14 @@
+@@ -1787,10 +1832,14 @@
          /* If bIMD is TRUE, the master updates the IMD energy record and sends positions to VMD client */
          IMD_prep_energies_send_positions(ir->bIMD && MASTER(cr), bIMDstep, ir->imd, enerd, step, bCalcEner, wcycle);
  

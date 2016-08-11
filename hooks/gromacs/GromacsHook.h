@@ -52,30 +52,31 @@ namespace SSAGES
 
 		MPI_Comm GetCommunicator();
 
-		template<typename T1, typename T2>
+		template<typename T>
 		void PullToSSAGES(
 			int iteration, 
 			int natoms, 
 			int* indices, 
 			int* types,
-			T1 masses[], 
-			T2 positions[], 
-			T2 velocities[], 
-			T2 forces[],
+			T masses[], 
+			T positions[][3], 
+			T velocities[][3], 
+			T forces[][3],
+			T boxmat[3][3],
 			double temperature,
 			double pressure,
 			double potenergy,
 			double kb);
 
- 		template<typename T1, typename T2>
+ 		template<typename T>
  		void PushToGromacs(
  			int natoms,
  			int* indices, 
  			int* types,
- 			T1 masses[],
- 			T2 positions[], 
- 			T2 velocities[],
- 			T2 forces[]);
+ 			T masses[],
+ 			T positions[][3], 
+ 			T velocities[][3],
+ 			T forces[][3]);
 
 		~GromacsHook(){}
 	};
