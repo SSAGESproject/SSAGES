@@ -250,6 +250,11 @@ namespace SSAGES
 				success_build = false;
 			}
 
+			if (!success_build) {
+				// If building the MDEngine failed, don't bother about the rest.
+				return success_build;
+			}
+
 			// Build the driver
 			try{
 				_MDDriver->BuildDriver(JsonDriver, path + "/" + std::to_string(wid));
