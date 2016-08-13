@@ -94,6 +94,8 @@ namespace LAMMPS_NS
 		ids.resize(n);
 		auto& types = _snapshot->GetAtomTypes();
 		types.resize(n);
+		auto& flags = _snapshot->GetImageFlags();
+		flags.resize(n);
 
 		SyncToSnapshot();
 		Hook::PreSimulationHook();
@@ -146,6 +148,8 @@ namespace LAMMPS_NS
 		frc.resize(n);
 		auto& masses = _snapshot->GetMasses();
 		masses.resize(n);
+		auto& flags = _snapshot->GetImageFlags();
+		flags.resize(n);
 
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
@@ -218,6 +222,11 @@ namespace LAMMPS_NS
 			vel[i][0] = _atom->v[i][0];
 			vel[i][1] = _atom->v[i][1];
 			vel[i][2] = _atom->v[i][2];
+
+			//Temp needs to be fixed.
+			flags[i][0] = 0.0;
+			flags[i][1] = 0.0;
+			flags[i][2] = 0.0;
 			
 			ids[i] = _atom->tag[i];
 			types[i] = _atom->type[i];

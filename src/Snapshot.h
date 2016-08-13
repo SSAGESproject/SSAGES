@@ -203,7 +203,7 @@ namespace SSAGES
 		/*!
 		 * \return List of particle image flags
 		 */
-		const std::vector<Vector3>& GetImageFlags() const { return _positions; }
+		const std::vector<Vector3>& GetImageFlags() const { return _images; }
 
 		//! \copydoc Snapshot::GetImageFlags() const
 		std::vector<Vector3>& GetImageFlags() 
