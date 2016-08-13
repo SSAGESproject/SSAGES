@@ -3,8 +3,8 @@
 #include <vector>
 #include <array>
 #include <math.h>
+#include "../types.h"
 #include <stdexcept>
-
 #include "config.h"
 
 namespace SSAGES
@@ -58,12 +58,14 @@ namespace SSAGES
 	 *
 	 * \ingroup Utility
 	 */
-		std::array<std::array<double,3>,3> uc_c2f(const std::array<double, 6>& LC)
+		std::array<Vector3,3> uc_c2f(const std::array<double, 6>& LC)
 		{
+
+			std::array<Vector3,3> c2f;
+			
 			// Test for illegal input parameters
 			verifyLatticeConstants(LC);
 
-			std::array<std::array<double,3>,3> c2f;
 			double v=0;
 
 			v = sqrt(1-cos(LC[3])*cos(LC[3])-cos(LC[4])*cos(LC[4])-cos(LC[5])*cos(LC[5])+2*cos(LC[3])*cos(LC[4])*cos(LC[5]));
@@ -91,12 +93,13 @@ namespace SSAGES
 		 *
 		 * \ingroup Utility
 		 */
-		std::array<std::array<double,3>,3> uc_f2c(const std::array<double, 6>& LC)
+		std::array<Vector3,3> uc_f2c(const std::array<double, 6>& LC)
 		{
+
+			std::array<Vector3,3> f2c;
+
 			// Test for illegal input parameters
 			verifyLatticeConstants(LC);
-
-			std::array<std::array<double,3>,3> f2c;
 
 			f2c[0][0] = LC[0];
 			f2c[1][0] = 0;

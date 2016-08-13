@@ -1,0 +1,28 @@
+{
+	"type" : "object",
+	"varname" : "AngleCV",
+	"properties" : {
+		"type" : { 
+			"type" : "string",
+			"enum" : ["Angle"]
+		},
+		"atom ids" : {
+			"type" : "array",
+			"minItems" : 3,
+			"maxItems" : 3,
+			"items" : {
+				"type" : "integer"
+			}
+		},
+		"bounds" : {
+			"type" : "array",
+			"minItems" : 2,
+			"maxItems" : 2,
+			"items" : {
+				"type" : "number"
+					}
+		}	
+	},
+	"required": ["type", "atom ids"],
+	"additionalProperties": false
+}

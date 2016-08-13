@@ -4,6 +4,8 @@
 
 #include <array>
 #include <cmath>
+#include "../Utility/UnitCellConversion.h"
+#include "../Utility/NearestNeighbor.h"
 
 namespace SSAGES
 {
@@ -119,9 +121,9 @@ namespace SSAGES
 			}
 
 			//Calculate pertinent vectors
-			auto F = xi - xj;
-			auto G = xj - xk;
-			auto H = xl - xk;
+			auto F = NearestNeighbor(snapshot.GetLatticeConstants(),xi, xj); //xi - xj;
+			auto G = NearestNeighbor(snapshot.GetLatticeConstants(),xj, xk); //xj - xk;
+			auto H = NearestNeighbor(snapshot.GetLatticeConstants(),xl, xk); //xl - xk;
 			auto A = F.cross(G);
 			auto B = H.cross(G);
 			

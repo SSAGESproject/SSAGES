@@ -76,7 +76,7 @@ TEST_F(UnitCellConversionTest, IllegalArgumentsTest)
 TEST_F(UnitCellConversionTest, cartesian2FractionalTest)
 {
     // Test cubic cell (1.0, 1.0, 1.0, piOver2, piOver2, piOver2)
-    std::array<std::array<double,3>,3> cubic_matrix = uc_c2f(cubic);
+    std::array<Vector3,3> cubic_matrix = uc_c2f(cubic);
 
     EXPECT_NEAR(cubic_matrix[0][0], 1.0, eps);
     EXPECT_NEAR(cubic_matrix[0][1], 0.0, eps);
@@ -91,7 +91,7 @@ TEST_F(UnitCellConversionTest, cartesian2FractionalTest)
     EXPECT_NEAR(cubic_matrix[2][2], 1.0, eps);
 
     // Test orthorombic cell (3.2, 1.4, 1.1, piOver2, piOver2, piOver2)
-    std::array<std::array<double,3>,3> orthorombic_matrix = uc_c2f(orthorombic);
+    std::array<Vector3,3> orthorombic_matrix = uc_c2f(orthorombic);
 
     EXPECT_NEAR(orthorombic_matrix[0][0], 0.3125, eps);
     EXPECT_NEAR(orthorombic_matrix[0][1], 0.0, eps);
@@ -106,7 +106,7 @@ TEST_F(UnitCellConversionTest, cartesian2FractionalTest)
     EXPECT_NEAR(orthorombic_matrix[2][2], 0.9090909091, eps);
 
     // Test monoclinic cell (3.2, 1.4, 1.1, piOver2, 1.05, piOver2)
-    std::array<std::array<double,3>,3> monoclinic_matrix = uc_c2f(monoclinic);
+    std::array<Vector3,3> monoclinic_matrix = uc_c2f(monoclinic);
 
     EXPECT_NEAR(monoclinic_matrix[0][0], 0.3125, eps);
     EXPECT_NEAR(monoclinic_matrix[0][1], 0.0, eps);
@@ -121,7 +121,7 @@ TEST_F(UnitCellConversionTest, cartesian2FractionalTest)
     EXPECT_NEAR(monoclinic_matrix[2][2], 1.0480361630, eps);
 
     // Test triclinic cell (3.2, 1.4, 1.1, 1.2, 1.05, 0.5)
-    std::array<std::array<double,3>,3> triclinic_matrix = uc_c2f(triclinic);
+    std::array<Vector3,3> triclinic_matrix = uc_c2f(triclinic);
 
     EXPECT_NEAR(triclinic_matrix[0][0], 0.3125, eps);
     EXPECT_NEAR(triclinic_matrix[0][1], -0.5720274130, eps);
@@ -139,7 +139,7 @@ TEST_F(UnitCellConversionTest, cartesian2FractionalTest)
 TEST_F(UnitCellConversionTest, fractional2CartesianTest)
 {
     // Test cubic cell (1.0, 1.0, 1.0, piOver2, piOver2, piOver2)
-    std::array<std::array<double,3>,3> cubic_matrix = uc_f2c(cubic);
+    std::array<Vector3,3> cubic_matrix = uc_f2c(cubic);
 
     EXPECT_NEAR(cubic_matrix[0][0], 1.0, eps);
     EXPECT_NEAR(cubic_matrix[0][1], 0.0, eps);
@@ -154,7 +154,7 @@ TEST_F(UnitCellConversionTest, fractional2CartesianTest)
     EXPECT_NEAR(cubic_matrix[2][2], 1.0, eps);
 
     // Test orthorombic cell (3.2, 1.4, 1.1, piOver2, piOver2, piOver2)
-    std::array<std::array<double,3>,3> orthorombic_matrix = uc_f2c(orthorombic);
+    std::array<Vector3,3> orthorombic_matrix = uc_f2c(orthorombic);
 
     EXPECT_NEAR(orthorombic_matrix[0][0], 3.2, eps);
     EXPECT_NEAR(orthorombic_matrix[0][1], 0.0, eps);
@@ -169,7 +169,7 @@ TEST_F(UnitCellConversionTest, fractional2CartesianTest)
     EXPECT_NEAR(orthorombic_matrix[2][2], 1.1, eps);
 
     // Test monoclinic cell (3.2, 1.4, 1.1, piOver2, 1.05, piOver2)
-    std::array<std::array<double,3>,3> monoclinic_matrix = uc_f2c(monoclinic);
+    std::array<Vector3,3> monoclinic_matrix = uc_f2c(monoclinic);
 
     EXPECT_NEAR(monoclinic_matrix[0][0], 3.2, eps);
     EXPECT_NEAR(monoclinic_matrix[0][1], 0.0, eps);
@@ -184,7 +184,7 @@ TEST_F(UnitCellConversionTest, fractional2CartesianTest)
     EXPECT_NEAR(monoclinic_matrix[2][2], 0.9541655482, eps);
 
     // Test triclinic cell (3.2, 1.4, 1.1, 1.2, 1.05, 0.5)
-    std::array<std::array<double,3>,3> triclinic_matrix = uc_f2c(triclinic);
+    std::array<Vector3,3> triclinic_matrix = uc_f2c(triclinic);
 
     EXPECT_NEAR(triclinic_matrix[0][0], 3.2, eps);
     EXPECT_NEAR(triclinic_matrix[0][1], 1.2286155866, eps);
