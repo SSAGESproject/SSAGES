@@ -191,9 +191,9 @@ namespace LAMMPS_NS
 		
 		// Get H-matrix.
 		Matrix3 H;
-		H << domain->h[0],            0,            0,
-		     domain->h[5], domain->h[1],            0,
-		     domain->h[4], domain->h[3], domain->h[2];
+		H << domain->h[0], domain->h[5], domain->h[4],
+		                0, domain->h[1], domain->h[3],
+		                0,            0, domain->h[2];
 
 		_snapshot->SetHMatrix(H);
 		_snapshot->SetKb(force->boltz);
@@ -225,13 +225,26 @@ namespace LAMMPS_NS
 			types[i] = _atom->type[i];
 		}
 
+
 		auto& comm = _snapshot->GetCommunicator();
-		allgatherv_serialize(comm, pos, pos);
-		allgatherv_serialize(comm, frc, frc);
-		allgatherv_serialize(comm, masses, masses);
-		allgatherv_serialize(comm, vel, vel);
-		allgatherv_serialize<int,int>(comm, ids, ids);
-		allgatherv_serialize<int,int>(comm, types, types);
+
+		std::vector<Vector3> gpos, gvel, gfrc;
+		std::vector<double> gmasses;
+		std::vector<int> gids, gtypes; 
+		
+		allgatherv_serialize(comm, pos, gpos);
+		allgatherv_serialize(comm, vel, gvel);
+		allgatherv_serialize(comm, frc, gfrc);
+		allgatherv_serialize(comm, masses, gmasses);
+		allgatherv_serialize<int,int>(comm, ids, gids);
+		allgatherv_serialize<int,int>(comm, types, gtypes);
+
+		pos = gpos; 
+		vel = gvel;
+		frc = gfrc; 
+		masses = gmasses;
+		ids = gids; 
+		types = gtypes;
 	}
 
 	void FixSSAGES::SyncToEngine() //put Snapshot values -> LAMMPS
