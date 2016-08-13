@@ -8,7 +8,7 @@
 
 namespace SSAGES
 {
-	inline double anint(double x)
+	inline double roundf(double x)
 	{
     	return ( x >= 0 ) ? floor( x + 0.5 ) : ceil( x - 0.5 );
   	}
@@ -284,16 +284,16 @@ namespace SSAGES
 			return _Hinv*v;
 		}
 
-		//! Wrap a vector according to periodic boundary conditions
+		//! Apply minimum image to a vector according to periodic boundary conditions
 		/*!
 		 * \param v Vector of interest
 		 */
-		void WrapVector(Vector3* v)
+		void ApplyMinimumImage(Vector3* v)
 		{
 			Vector3 scaled = ScaleVector(*v);
 			
 			for(int i = 0; i < 3; ++i)
-				scaled[i] -= anint(scaled[i]);
+				scaled[i] -= roundf(scaled[i]);
 
 			*v = _H*scaled;
 		}
