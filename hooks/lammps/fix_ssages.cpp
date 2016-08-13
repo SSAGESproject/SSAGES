@@ -198,8 +198,6 @@ namespace LAMMPS_NS
 		_snapshot->SetHMatrix(H);
 		_snapshot->SetKb(force->boltz);
 
-		_snapshot->GetLatticeConstants() = ConvertToLatticeConstant(GatherLAMMPSVectors());
-
 		// First we sync local data, then gather.
 		// we gather data across all processors.
 		for (int i = 0; i < n; ++i)
@@ -298,20 +296,4 @@ namespace LAMMPS_NS
 		// from snapshot to engine.
 		// However, this will change in the future.
 	}
-
-	const std::array<double, 6> FixSSAGES::GatherLAMMPSVectors() const
-	{
-
-		std::array<double, 6> box;
-
-		box[0] = domain->boxhi[0] - domain->boxlo[0];
-		box[1] = domain->boxhi[1] - domain->boxlo[1];
-		box[2] = domain->boxhi[2] - domain->boxlo[2];
-		box[3] = domain->xy;
-		box[4] = domain->xz;
-		box[5] = domain->yz;
-
-		return box;
-	}
-
 }

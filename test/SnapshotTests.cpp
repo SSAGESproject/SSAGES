@@ -1,6 +1,5 @@
 #include "../src/Snapshot.h"
 #include "gtest/gtest.h"
-#include "../src/Utility/UnitCellConversion.h"
 
 using namespace SSAGES;
 

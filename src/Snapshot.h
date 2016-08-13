@@ -38,7 +38,6 @@ namespace SSAGES
 		std::vector<Vector3> _velocities; //!< Velocities
 		std::vector<Vector3> _forces; //!< Forces
 		std::vector<double> _masses; //!< Masses
-		std::array<double, 6> _lattice; //!<lattice constants a, b, c, alpha, beta, gamma
 		Label _atomids; //!< List of Atom IDs
 		Label _types; //!< List of Atom types
 
@@ -255,31 +254,12 @@ namespace SSAGES
 			return _masses; 
 		}
 
-		//! Access the Lattice Constants
-		/*!
-		 * \return List of Lattice constants
-		 *
-		 * The lattice constants are:
-		 * ax, ay, az
-		 * bx, by, bz
-		 * cx, cy, cz
-		 * alpha, beta, gamma
-		 */
-		const std::array<double, 6>& GetLatticeConstants() const { return _lattice; }
-
-		//! \copydoc Snapshot::GetLatticeConstants() const
-		std::array<double, 6>& GetLatticeConstants()
-		{
-			_changed = true; 
-			return _lattice; 
-		}
-
 		//! Scale a vector into fractional coordinates
 		/*! 
 		 * \param v Vector of interest
 		 * \return Scaled vector in fractional coordinates
 		 */
-		Vector3 ScaleVector(const Vector3& v)
+		Vector3 ScaleVector(const Vector3& v) const
 		{
 			return _Hinv*v;
 		}
@@ -288,10 +268,10 @@ namespace SSAGES
 		/*!
 		 * \param v Vector of interest
 		 */
-		void ApplyMinimumImage(Vector3* v)
+		void ApplyMinimumImage(Vector3* v) const
 		{
 			Vector3 scaled = ScaleVector(*v);
-			
+
 			for(int i = 0; i < 3; ++i)
 				scaled[i] -= roundf(scaled[i]);
 

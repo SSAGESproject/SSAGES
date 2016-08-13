@@ -6,11 +6,7 @@ set(TEST_DEPS
 
 set  (UNIT_TESTS "AtomPositionCVTests"
                  "GridTests"
-                 "NearestNeighborTests"
                  "TorsionalCVTests"
-                 "UCVectorTests"
-                 "UnitCellConversionTests"
-                 "UnwrapCoordinatesTests"
                  "SnapshotTests")
 
 foreach (TEST ${UNIT_TESTS})
