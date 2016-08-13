@@ -10,7 +10,8 @@ set  (UNIT_TESTS "AtomPositionCVTests"
                  "TorsionalCVTests"
                  "UCVectorTests"
                  "UnitCellConversionTests"
-                 "UnwrapCoordinatesTests")
+                 "UnwrapCoordinatesTests"
+                 "SnapshotTests")
 
 foreach (TEST ${UNIT_TESTS})
     add_executable (${TEST} ${TEST}.cpp)
