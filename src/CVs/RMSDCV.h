@@ -1,26 +1,11 @@
 #pragma once 
 
 #include "CollectiveVariable.h"
-
-#include "../Utility/UnitCellConversion.h"
-#include "../Utility/NearestNeighbor.h"
-#include "../Utility/UnwrapCoordinates.h"
 #include "../Utility/ReadFile.h"
 #include <array>
-#include <math.h>
-#include <assert.h>
-#include <iostream>
-#include <fstream>
-#include <string.h>
-#include <stdlib.h>
-
-#include <sstream>
-#include <string>
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
 
-using Eigen::MatrixXd;
-using namespace Eigen;
 namespace SSAGES
 {
 	//! Collective variable to calculate root mean square displacement.
@@ -124,9 +109,7 @@ namespace SSAGES
 				{
 					if(ids[i] == _atomids[j])
 					{
-						mass_pos_prod_ref[0] += mass[i]*_refcoord[j][0];
-						mass_pos_prod_ref[1] += mass[i]*_refcoord[j][1];
-						mass_pos_prod_ref[2] += mass[i]*_refcoord[j][2];
+						mass_pos_prod_ref += mass[i]*_refcoord[j];
 						total_mass += mass[i];
 						break;
 					}
@@ -156,11 +139,9 @@ namespace SSAGES
 					if(ids[i] == _atomids[j])
 					{
 						_pertatoms[j] = i;
-						auto u_coord = UnwrapCoordinates(snapshot.GetLatticeConstants(), image_flags[i], pos[i]);
+						auto u_coord = pos[i]; //UnwrapCoordinates(snapshot.GetLatticeConstants(), image_flags[i], pos[i]);
 
-						mass_pos_prod[0] += mass[i]*u_coord[0];
-						mass_pos_prod[1] += mass[i]*u_coord[1];
-						mass_pos_prod[2] += mass[i]*u_coord[2];
+						mass_pos_prod += mass[i]*u_coord;
 						total_mass += mass[i];
 						break;
 					}
@@ -190,9 +171,7 @@ namespace SSAGES
 			_COM = mass_pos_prod/total_mass;
 
 			// Build correlation matrix
-
-			MatrixXd R(3,3);
-			R.setZero(3,3);
+			Matrix3 R;
 
 			Vector3 diff;
 			Vector3 diff_ref;
@@ -201,7 +180,7 @@ namespace SSAGES
 			for( size_t j = 0; j < _pertatoms.size(); ++j)
 			{
 				i = _pertatoms[j];
-				auto u_coord = UnwrapCoordinates(snapshot.GetLatticeConstants(), image_flags[i], pos[i]);
+				auto u_coord = pos[i]; //UnwrapCoordinates(snapshot.GetLatticeConstants(), image_flags[i], pos[i]);
 
 				diff = u_coord -_COM;
 				diff_ref = _refcoord[j] - _COMref;
@@ -223,7 +202,7 @@ namespace SSAGES
 				part_RMSD += (normdiff2 + normref2);
 			}
 
-			Matrix4d F(4,4);
+			Eigen::Matrix4d F;
 			F(0,0)= R(0,0) + R(1,1) + R(2,2);
 			F(1,0)= R(1,2) - R(2,1);
 			F(2,0)= R(2,0) - R(0,2);
@@ -245,7 +224,7 @@ namespace SSAGES
 			F(3,3)= -R(0,0) - R(1,1) + R(2,2);
 			
 			//Find eigenvalues
-			EigenSolver<MatrixXd> es(F);
+			Eigen::EigenSolver<Eigen::Matrix4d> es(F);
 			//EigenSolver<F> es;
 			//es.compute(F);
 			//auto max_lambda = es.eigenvalues().maxCoeff();
@@ -275,7 +254,7 @@ namespace SSAGES
 			auto q2 = eigenvector[2].real();
 			auto q3 = eigenvector[3].real();
 
-			Matrix3d RotMatrix(3,3);
+			Matrix3 RotMatrix(3,3);
 			RotMatrix(0,0) = q0*q0+q1*q1-q2*q2-q3*q3;
 			RotMatrix(1,0) = 2*(q1*q2+q0*q3);
 			RotMatrix(2,0) = 2*(q1*q3-q0*q2);
@@ -294,7 +273,7 @@ namespace SSAGES
 				auto trans = RotMatrix.transpose()*_refcoord[j];
 
 				i = _pertatoms[j];
-				auto u_coord = UnwrapCoordinates(snapshot.GetLatticeConstants(), image_flags[i], pos[i]);
+				auto u_coord = pos[i]; //UnwrapCoordinates(snapshot.GetLatticeConstants(), image_flags[i], pos[i]);
 
 				_grad[i][0] = (u_coord[0] - trans[0])/((_atomids.size())*_val);
 				_grad[i][1] = (u_coord[1] - trans[1])/((_atomids.size())*_val);

@@ -96,8 +96,7 @@ namespace SSAGES
 			}
 
 			// Account for PBCs
-			Vector3 rij = pos1 - pos2;	
-			snapshot.ApplyMinimumImage(&rij);
+			Vector3 rij = snapshot.ApplyMinimumImage(pos1 - pos2);	
 
 			// Compute norm and gradient.
 			auto r = rij.norm();

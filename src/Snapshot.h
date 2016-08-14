@@ -34,7 +34,7 @@ namespace SSAGES
 		Matrix3 _Hinv; //!< Parinello-Rahman box inverse.
 
 		std::vector<Vector3> _positions; //!< Positions
-		std::vector<Vector3> _images; //!< Unwrapped positions
+		std::vector<Integer3> _images; //!< Unwrapped positions
 		std::vector<Vector3> _velocities; //!< Velocities
 		std::vector<Vector3> _forces; //!< Forces
 		std::vector<double> _masses; //!< Masses
@@ -203,10 +203,10 @@ namespace SSAGES
 		/*!
 		 * \return List of particle image flags
 		 */
-		const std::vector<Vector3>& GetImageFlags() const { return _images; }
+		const std::vector<Integer3>& GetImageFlags() const { return _images; }
 
 		//! \copydoc Snapshot::GetImageFlags() const
-		std::vector<Vector3>& GetImageFlags() 
+		std::vector<Integer3>& GetImageFlags() 
 		{ 
 			_changed = true;
 			return _images; 
@@ -276,6 +276,26 @@ namespace SSAGES
 				scaled[i] -= roundf(scaled[i]);
 
 			*v = _H*scaled;
+		}
+		
+		//! Apply minimum image to a vector according to periodic boundary conditions
+		/*!
+		 * \param v Vector of interest
+		 */
+		Vector3 ApplyMinimumImage(const Vector3& v) const
+		{
+			Vector3 scaled = ScaleVector(v);
+
+			for(int i = 0; i < 3; ++i)
+				scaled[i] -= roundf(scaled[i]);
+
+			return _H*scaled;	
+		}
+
+		//! Compute the center of mass of a group of atoms based on index. 
+		Vector3& CenterOfMass(const Label& idx) const
+		{
+
 		}
 
 		//! Access the atom IDs
