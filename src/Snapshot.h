@@ -33,6 +33,8 @@ namespace SSAGES
 		Matrix3 _H; //!< Parrinello-Rahman box H-matrix.
 		Matrix3 _Hinv; //!< Parinello-Rahman box inverse.
 
+		Vector3 _origin; //!< Box origin.
+
 		std::vector<Vector3> _positions; //!< Positions
 		std::vector<Integer3> _images; //!< Unwrapped positions
 		std::vector<Vector3> _velocities; //!< Velocities
@@ -59,10 +61,10 @@ namespace SSAGES
 		 * correpsonding walker ID.
 		 */
 		Snapshot(boost::mpi::communicator& comm, unsigned wid) :
-		_comm(comm), _wid(wid), _H(), _Hinv(), _positions(0), _velocities(0), 
-		_forces(0), _atomids(0), _types(0), 
-		_iteration(0), _temperature(0), _pressure(0), 
-		_energy(0), _kb(0)
+		_comm(comm), _wid(wid), _H(), _Hinv(), _origin({0,0,0}), 
+		_positions(0), _images(0), _velocities(0), _forces(0), 
+		_masses(0), _atomids(0), _types(0), _iteration(0), 
+		_temperature(0), _pressure(0), _energy(0), _kb(0)
 		{}
 
 		//! Get the current iteration
@@ -94,6 +96,12 @@ namespace SSAGES
 		 * \return Parrinello-Rahman H-matrix of simulation box
 		 */
 		const Matrix3& GetHMatrix() const { return _H; }
+
+		//! Get origin of the system.
+		/*! 
+		 * \return Vector containing coordinates of box origin.
+		 */
+		const Vector3& GetOrigin() const { return _origin; }
 
 		//! Get system volume
 		/*!
@@ -173,6 +181,16 @@ namespace SSAGES
 		{
 			_H = hmat;
 			_Hinv = hmat.inverse();
+			_changed = true;
+		}
+
+		//! Change the box origin.
+		/*!
+		 * \param origin New origin for the system
+		 */
+		void SetOrigin(const Vector3& origin)
+		{
+			_origin = origin; 
 			_changed = true;
 		}
 
@@ -261,7 +279,7 @@ namespace SSAGES
 		 */
 		Vector3 ScaleVector(const Vector3& v) const
 		{
-			return _Hinv*v;
+			return _Hinv*(v-_origin);
 		}
 
 		//! Unwrap a vector's real coordinates according to its image replica count. 
@@ -271,18 +289,14 @@ namespace SSAGES
 		 * 
 		 * \return Vector3 Unwrapped vector in real coordinates.
 		 * This function takes a set of (wrapped) coordinates and returns the unwrapped
-	     * coordinates. This is achieved by converting the Cartesian coordinates to
-	     * fractional coordinates, adjusting the fractional coordinates to the
-	     * appropriate mirror box, and then converting back to Cartesian coordinates.
+	     * coordinates. 
 	     *
 	     * \note This function does not require the initial coordinates to be within
 	     *       the simulation box.
 		 */
 		Vector3 UnwrapVector(const Vector3& v, const Integer3& image) const
 		{
-			Vector3 scaled = ScaleVector(v);
-			scaled += image.cast<double>();
-			return _H*scaled;
+			return _H*image.cast<double>()+v;
 		}
 
 		//! Apply minimum image to a vector according to periodic boundary conditions

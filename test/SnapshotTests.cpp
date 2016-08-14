@@ -17,6 +17,9 @@ protected:
 	// Vectors.
 	Vector3 inBox1, inBox2, outOfBox1;
 
+	// Origins.
+	Vector3 origin1, origin2;
+
 	// Image flags (mirrors).
 	Integer3 inBox1Mirrors, inBox2Mirrors, outOfBox1Mirrors;
 
@@ -54,6 +57,9 @@ protected:
         inBox1Mirrors = {0, 0, 0};
         inBox2Mirrors = {1, 1, -1};
         outOfBox1Mirrors = {1, -2, 0};
+
+        origin1 = {0, 0, 0};
+        origin2 = {-0.5, -0.3, -0.1};
 	}
 };
 
@@ -272,4 +278,19 @@ TEST_F(SnapshotTest, UnwrapTriclinicBoxTest)
 	EXPECT_NEAR(result3[0], 4.9427688267, eps);
 	EXPECT_NEAR(result3[1], -5.0423915081, eps);
 	EXPECT_NEAR(result3[2], -0.1, eps);	
+}
+
+TEST_F(SnapshotTest, OriginCubicBoxTest)
+{
+	cubic->SetOrigin(origin1);
+	auto result1 = cubic->ScaleVector(inBox1);
+	EXPECT_NEAR(result1[0], 0.2, eps);
+	EXPECT_NEAR(result1[1], 0.3, eps);
+	EXPECT_NEAR(result1[2], 0.9, eps);
+
+	cubic->SetOrigin(origin2);
+	auto result2 = cubic->ScaleVector(inBox1);
+	EXPECT_NEAR(result2[0], 0.7, eps);
+	EXPECT_NEAR(result2[1], 0.6, eps);
+	EXPECT_NEAR(result2[2], 1.0, eps);
 }

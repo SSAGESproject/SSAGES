@@ -188,6 +188,27 @@ namespace LAMMPS_NS
 		_snapshot->SetHMatrix(H);
 		_snapshot->SetKb(force->boltz);
 
+		// Get box origin. 
+		Vector3 origin;
+		if(domain->triclinic == 0)
+		{
+			origin = {
+				domain->boxlo[0], 
+				domain->boxlo[1], 
+				domain->boxlo[2]
+			};
+		}
+		else
+		{
+			origin = {
+				domain->boxlo_bound[0], 
+				domain->boxlo_bound[1], 
+				domain->boxlo_bound[2]
+			};
+		}
+		_snapshot->SetOrigin(origin);
+		std::cout << "Origin " << origin[0] << " " << origin[1] << " " << origin[2] << std::endl;
+
 		// First we sync local data, then gather.
 		// we gather data across all processors.
 		for (int i = 0; i < n; ++i)
