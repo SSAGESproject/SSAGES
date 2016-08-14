@@ -16,20 +16,6 @@ using namespace SSAGES;
 using namespace LAMMPS_NS::FixConst;
 using namespace boost;
 
-#if BOOST_VERSION < 105600
-namespace boost 
-{
-	namespace serialization 
-	{
-		template<class Archive, class T, size_t N>
-		void serialize(Archive & ar, std::array<T,N> & a, const unsigned int)
-		{
-		  ar & boost::serialization::make_array(a.data(), a.size());
-		}
-	} // namespace serialization
-} // namespace boost
-#endif
-
 namespace LAMMPS_NS
 {
 	// Copyright (C) 2015 Lorenz Hübschle-Schneider <lorenz@4z2.de>
@@ -223,11 +209,11 @@ namespace LAMMPS_NS
 			vel[i][1] = _atom->v[i][1];
 			vel[i][2] = _atom->v[i][2];
 
-			//Temp needs to be fixed.
-			flags[i][0] = 0.0;
-			flags[i][1] = 0.0;
-			flags[i][2] = 0.0;
-			
+			// Image flags. 
+			flags[i][0] = (_atom->image[i] & IMGMASK) - IMGMAX;;
+			flags[i][1] = (_atom->image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+			flags[i][2] = (_atom->image[i] >> IMG2BITS) - IMGMAX;
+
 			ids[i] = _atom->tag[i];
 			types[i] = _atom->type[i];
 		}

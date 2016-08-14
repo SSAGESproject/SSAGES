@@ -264,6 +264,27 @@ namespace SSAGES
 			return _Hinv*v;
 		}
 
+		//! Unwrap a vector's real coordinates according to its image replica count. 
+		/*!
+		 * \param v Vector of interest
+		 * \param image Integer vector representing mirror images in the three dimensions.
+		 * 
+		 * \return Vector3 Unwrapped vector in real coordinates.
+		 * This function takes a set of (wrapped) coordinates and returns the unwrapped
+	     * coordinates. This is achieved by converting the Cartesian coordinates to
+	     * fractional coordinates, adjusting the fractional coordinates to the
+	     * appropriate mirror box, and then converting back to Cartesian coordinates.
+	     *
+	     * \note This function does not require the initial coordinates to be within
+	     *       the simulation box.
+		 */
+		Vector3 UnwrapVector(const Vector3& v, const Integer3& image) const
+		{
+			Vector3 scaled = ScaleVector(v);
+			scaled += image.cast<double>();
+			return _H*scaled;
+		}
+
 		//! Apply minimum image to a vector according to periodic boundary conditions
 		/*!
 		 * \param v Vector of interest

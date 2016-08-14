@@ -17,6 +17,9 @@ protected:
 	// Vectors.
 	Vector3 inBox1, inBox2, outOfBox1;
 
+	// Image flags (mirrors).
+	Integer3 inBox1Mirrors, inBox2Mirrors, outOfBox1Mirrors;
+
 	virtual void SetUp()
 	{
 		Matrix3 H; 
@@ -47,6 +50,10 @@ protected:
 		inBox1 = {0.2, 0.3, 0.9};
         inBox2 = {0.9, 0.7, 0.1};
         outOfBox1 = {4.2, -3.7, -0.1};
+
+        inBox1Mirrors = {0, 0, 0};
+        inBox2Mirrors = {1, 1, -1};
+        outOfBox1Mirrors = {1, -2, 0};
 	}
 };
 
@@ -177,4 +184,92 @@ TEST_F(SnapshotTest, TriclinicBoxTest)
 	EXPECT_NEAR(dx3[0], 0.8996908935, eps);
 	EXPECT_NEAR(dx3[1], -0.2983702783, eps);
 	EXPECT_NEAR(dx3[2], 0.2, eps);
+}
+
+TEST_F(SnapshotTest, UnwrapCubicBoxTest)
+{
+	auto result1 = cubic->UnwrapVector(inBox1, inBox1Mirrors);
+	auto result2 = cubic->UnwrapVector(inBox2, inBox2Mirrors);
+	auto result3 = cubic->UnwrapVector(outOfBox1, outOfBox1Mirrors);
+	
+	// Test inBox1 (0.2, 0.3, 0.9), mirror (0, 0, 0)
+	EXPECT_NEAR(result1[0], 0.2, eps);
+	EXPECT_NEAR(result1[1], 0.3, eps);
+	EXPECT_NEAR(result1[2], 0.9, eps);
+
+	// Test inBox2 (0.9, 0.7, 0.1), mirror (1, 1, -1)
+	EXPECT_NEAR(result2[0], 1.9, eps);
+	EXPECT_NEAR(result2[1], 1.7, eps);
+	EXPECT_NEAR(result2[2], -0.9, eps);
+
+	// Test outOfBox1 (4.2, -3.7, -0.1), mirror (1, -2, 0)
+	EXPECT_NEAR(result3[0], 5.2, eps);
+	EXPECT_NEAR(result3[1], -5.7, eps);
+	EXPECT_NEAR(result3[2], -0.1, eps);
+}
+
+TEST_F(SnapshotTest, UnwrapOrthorhombicBoxTest)
+{
+	auto result1 = orthorhombic->UnwrapVector(inBox1, inBox1Mirrors);
+	auto result2 = orthorhombic->UnwrapVector(inBox2, inBox2Mirrors);
+	auto result3 = orthorhombic->UnwrapVector(outOfBox1, outOfBox1Mirrors);
+	
+	// Test inBox1 (0.2, 0.3, 0.9), mirror (0, 0, 0)
+	EXPECT_NEAR(result1[0], 0.2, eps);
+	EXPECT_NEAR(result1[1], 0.3, eps);
+	EXPECT_NEAR(result1[2], 0.9, eps);
+
+	// Test inBox2 (0.9, 0.7, 0.1), mirror (1, 1, -1)
+	EXPECT_NEAR(result2[0], 4.1, eps);
+	EXPECT_NEAR(result2[1], 2.1, eps);
+	EXPECT_NEAR(result2[2], -1.0, eps);
+
+	// Test outOfBox1 (4.2, -3.7, -0.1), mirror (1, -2, 0)
+	EXPECT_NEAR(result3[0], 7.4, eps);
+	EXPECT_NEAR(result3[1], -6.5, eps);
+	EXPECT_NEAR(result3[2], -0.1, eps);
+}
+
+TEST_F(SnapshotTest, UnwrapMonoclinicBoxTest)
+{
+	auto result1 = monoclinic->UnwrapVector(inBox1, inBox1Mirrors);
+	auto result2 = monoclinic->UnwrapVector(inBox2, inBox2Mirrors);
+	auto result3 = monoclinic->UnwrapVector(outOfBox1, outOfBox1Mirrors);
+	
+	// Test inBox1 (0.2, 0.3, 0.9), mirror (0, 0, 0)
+	EXPECT_NEAR(result1[0], 0.2, eps);
+	EXPECT_NEAR(result1[1], 0.3, eps);
+	EXPECT_NEAR(result1[2], 0.9, eps);
+
+	// Test inBox2 (0.9, 0.7, 0.1), mirror (1, 1, -1)
+	EXPECT_NEAR(result2[0], 3.5526718473, eps);
+	EXPECT_NEAR(result2[1], 2.1, eps);
+	EXPECT_NEAR(result2[2], -0.8541655482, eps);
+
+	// Test outOfBox1 (4.2, -3.7, -0.1), mirror (1, -2, 0)
+	EXPECT_NEAR(result3[0], 7.4, eps);
+	EXPECT_NEAR(result3[1], -6.5, eps);
+	EXPECT_NEAR(result3[2], -0.1, eps);
+}
+
+TEST_F(SnapshotTest, UnwrapTriclinicBoxTest)
+{
+	auto result1 = triclinic->UnwrapVector(inBox1, inBox1Mirrors);
+	auto result2 = triclinic->UnwrapVector(inBox2, inBox2Mirrors);
+	auto result3 = triclinic->UnwrapVector(outOfBox1, outOfBox1Mirrors);
+
+	// Test inBox1 (0.2, 0.3, 0.9), mirror (0, 0, 0)
+	EXPECT_NEAR(result1[0], 0.2, eps);
+	EXPECT_NEAR(result1[1], 0.3, eps);
+	EXPECT_NEAR(result1[2], 0.9, eps);
+
+	// Test inBox2 (0.9, 0.7, 0.1), mirror (1, 1, -1)
+	EXPECT_NEAR(result2[0], 4.7812874340, eps);
+	EXPECT_NEAR(result2[1], 1.5416750171, eps);
+	EXPECT_NEAR(result2[2], -0.8388123956, eps);
+
+	// Test outOfBox1 (4.2, -3.7, -0.1), mirror (1, -2, 0)
+	EXPECT_NEAR(result3[0], 4.9427688267, eps);
+	EXPECT_NEAR(result3[1], -5.0423915081, eps);
+	EXPECT_NEAR(result3[2], -0.1, eps);	
 }

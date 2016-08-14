@@ -103,7 +103,7 @@ namespace SSAGES
 					if(ids[i] == _atomids[j])
 					{
 						_pertatoms[j] = i;
-						auto u_coord = pos[i]; //UnwrapCoordinates(snapshot.GetLatticeConstants(), image_flags[i], pos[i]);
+						auto u_coord = snapshot.UnwrapVector(pos[i], image_flags[i]);
 
 						mass_pos_prod[0] += mass[i]*u_coord[0];
 						mass_pos_prod[1] += mass[i]*u_coord[1];
@@ -125,7 +125,7 @@ namespace SSAGES
 			for(size_t j = 0; j < _pertatoms.size(); ++j)
 			{
 				i = _pertatoms[j];
-				auto u_coord = pos[i]; //UnwrapCoordinates(snapshot.GetLatticeConstants(), image_flags[i], pos[i]);
+				auto u_coord = snapshot.UnwrapVector(pos[i], image_flags[i]);
 
 				auto diff = u_coord - COM;
 				auto diffnorm2 = diff.norm()*diff.norm();
