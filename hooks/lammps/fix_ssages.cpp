@@ -207,7 +207,13 @@ namespace LAMMPS_NS
 			};
 		}
 		_snapshot->SetOrigin(origin);
-		std::cout << "Origin " << origin[0] << " " << origin[1] << " " << origin[2] << std::endl;
+
+		// Set periodicity. 
+		_snapshot->SetPeriodicity({
+			domain->xperiodic, 
+			domain->yperiodic, 
+			domain->zperiodic
+		});
 
 		// First we sync local data, then gather.
 		// we gather data across all processors.

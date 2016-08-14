@@ -35,6 +35,8 @@ namespace SSAGES
 
 		Vector3 _origin; //!< Box origin.
 
+		Bool3 _isperiodic; //!< Periodicity of box.
+
 		std::vector<Vector3> _positions; //!< Positions
 		std::vector<Integer3> _images; //!< Unwrapped positions
 		std::vector<Vector3> _velocities; //!< Velocities
@@ -62,9 +64,9 @@ namespace SSAGES
 		 */
 		Snapshot(boost::mpi::communicator& comm, unsigned wid) :
 		_comm(comm), _wid(wid), _H(), _Hinv(), _origin({0,0,0}), 
-		_positions(0), _images(0), _velocities(0), _forces(0), 
-		_masses(0), _atomids(0), _types(0), _iteration(0), 
-		_temperature(0), _pressure(0), _energy(0), _kb(0)
+		_isperiodic({true, true, true}), _positions(0), _images(0), 
+		_velocities(0), _forces(0), _masses(0), _atomids(0), _types(0), 
+		_iteration(0), _temperature(0), _pressure(0), _energy(0), _kb(0)
 		{}
 
 		//! Get the current iteration
@@ -102,6 +104,12 @@ namespace SSAGES
 		 * \return Vector containing coordinates of box origin.
 		 */
 		const Vector3& GetOrigin() const { return _origin; }
+
+		//! Get periodicity of three dimensions. 
+		/*! 
+		 * \return Three dimensional boolean containing periodicity of each dimension.
+		 */
+		const Bool3& IsPeriodic() const {return _isperiodic; }
 
 		//! Get system volume
 		/*!
@@ -191,6 +199,16 @@ namespace SSAGES
 		void SetOrigin(const Vector3& origin)
 		{
 			_origin = origin; 
+			_changed = true;
+		}
+
+		//! Change the periodicity of the system
+		/*!
+		 * \param isperiodic Periodicity of three dimensions
+		 */
+		void SetPeriodicity(const Bool3& isperiodic)
+		{
+			_isperiodic = isperiodic;
 			_changed = true;
 		}
 
@@ -308,7 +326,7 @@ namespace SSAGES
 			Vector3 scaled = ScaleVector(*v);
 
 			for(int i = 0; i < 3; ++i)
-				scaled[i] -= roundf(scaled[i]);
+				scaled[i] -= _isperiodic[i]*roundf(scaled[i]);
 
 			*v = _H*scaled;
 		}
@@ -322,16 +340,29 @@ namespace SSAGES
 			Vector3 scaled = ScaleVector(v);
 
 			for(int i = 0; i < 3; ++i)
-				scaled[i] -= roundf(scaled[i]);
+				scaled[i] -= _isperiodic[i]*roundf(scaled[i]);
 
 			return _H*scaled;	
 		}
 
-		//! Compute the center of mass of a group of atoms based on index. 
-		Vector3& CenterOfMass(const Label& idx) const
+		//! Compute the total mass of a group of particles based on index. 
+		/*!
+		  * \param indices Indices of particles of interest. 
+		  * \return double Total mass of particles. 
+		  *
+		  * \note This function reduces the mass across the communicator associated
+		  *       with the snapshot. 
+		 */
+		double TotalMass(const Label& indices) const
 		{
 
 		}
+
+		//! Compute the center of mass of a group of atoms based on index. 
+		Vector3& CenterOfMass(const Label& indices) const
+		{
+
+		}	
 
 		//! Access the atom IDs
 		/*!
