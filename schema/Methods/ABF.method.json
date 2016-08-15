@@ -113,6 +113,6 @@
 			"minimum" : 1
 		}
 	},
-	"required": ["type", "CV_minimums", "CV_maximums", "CV_bins", "timestep", "unit_conversion", "print_details", "filename"],
+	"required": ["type", "CV_lower_bounds", "CV_upper_bounds", "CV_bins", "timestep", "unit_conversion", "print_details", "filename"],
 	"additionalProperties": false
 }
