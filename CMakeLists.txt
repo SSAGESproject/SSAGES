@@ -36,6 +36,11 @@ set(GROMACS_SRC "" CACHE STRING "GROMACS source directory")
 
 include(ExternalProject)
 
+
+include_directories("${PROJECT_SOURCE_DIR}/src")
+include_directories("${PROJECT_SOURCE_DIR}/include")
+include_directories("${PROJECT_BINARY_DIR}")
+
 if(LAMMPS_SRC)
 	set(ENABLE_LAMMPS true)
 	# Add lammps as external project
@@ -78,27 +83,40 @@ if(LAMMPS_SRC)
 		hooks/lammps/fix_ssages.cpp
 	)
 elseif(GROMACS_SRC)
-		set(ENABLE_GROMACS true)
+	set(ENABLE_GROMACS true)
 
-		ExternalProject_Add(
-		gromacs
-		SOURCE_DIR ${GROMACS_SRC}
-		PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gromacs
-		CMAKE_ARGS 
-		-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
-		-DGMX_BUILD_OWN_FFTW=ON -DREGRESSIONTEST_DOWNLOAD=ON 
-		-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-		BUILD_IN_SOURCE false
-		INSTALL_DIR ${CMAKE_BINARY_DIR}/gromacs
-		LOG_BUILD ON)
-	#include_directories(${GROMACS_INCLUDE_DIRS})
-	#add_definitions(${GROMACS_DEFINITIONS})
+	set(GRO_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${PROJECT_SOURCE_DIR}/hooks/gromacs")
+
+	# Configure patch.
+	configure_file (
+	"${PROJECT_SOURCE_DIR}/hooks/gromacs/apply_patch.sh.in"
+	"${PROJECT_BINARY_DIR}/apply_patch.sh"
+	)
+
+	ExternalProject_Add(
+	gromacs
+	BUILD_COMMAND $(MAKE)
+	SOURCE_DIR ${GROMACS_SRC}
+	PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gromacs
+	BUILD_ALWAYS true
+	CMAKE_ARGS
+	-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
+	-DGMX_MPI=ON
+	-DCMAKE_CXX_FLAGS=${GRO_CXX_ARGS}
+	-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+	-DGMX_EXTRA_LIBRARIES=${CMAKE_BINARY_DIR}/libssagesgmx.so
+	-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+	BUILD_IN_SOURCE false
+	INSTALL_DIR ${CMAKE_BINARY_DIR}/gromacs
+	PATCH_COMMAND sh ${CMAKE_BINARY_DIR}/apply_patch.sh
+	LOG_BUILD ON)
+
+	set(HOOKSRC
+		hooks/gromacs/GromacsHook.cpp
+		)
+
+	include_directories(${GROMACS_SRC}/src)
 endif()
-
-include_directories("${PROJECT_SOURCE_DIR}/src")
-include_directories("${PROJECT_SOURCE_DIR}/include")
-include_directories("${PROJECT_BINARY_DIR}")
-
 
 # Schema builder.
 add_subdirectory (schema)
@@ -166,8 +184,20 @@ if(LAMMPS_SRC)
 	target_link_libraries(ssages libssages ${LAMMPS_SRC}/liblammps_mpi.so)
 	add_dependencies(ssages lammps)
 elseif(GROMACS_SRC)
-	add_dependencies(gromacs libssages)
-	target_link_libraries(ssages libssages ${CMAKE_BINARY_DIR}/gromacs/lib64/libgromacs.so)
+	
+	# Build custom shared library for dependencies. 
+	add_library(ssagesgmx SHARED ${HOOKSRC} ${SOURCE})
+	target_link_libraries(ssagesgmx ${MPI_CXX_LIBRARIES} ${Boost_LIBRARIES})
+
+	add_dependencies(gromacs ssagesgmx)
+
+	# To determine Gromacs install dir. 
+	include(GNUInstallDirs)
+	target_link_libraries(ssages 
+		ssagesgmx 
+		${CMAKE_BINARY_DIR}/gromacs/${CMAKE_INSTALL_LIBDIR}/libgromacs_mpi.so
+		${CMAKE_BINARY_DIR}/gromacs/${CMAKE_INSTALL_LIBDIR}/libmdrun.a
+		)
 	add_dependencies(ssages gromacs)
 endif()
 

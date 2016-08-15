@@ -78,7 +78,8 @@ namespace SSAGES
 			// Gradient and value. 
 			const auto& pos = snapshot.GetPositions(); 
 			const auto& ids = snapshot.GetAtomIDs();
-			
+			_grad.resize(pos.size());
+
 			// Loop through atom positions
 			for(size_t i = 0; i < pos.size(); ++i)
 			{

@@ -14,6 +14,10 @@
 #include "schema.h"
 #include "config.h"
 
+#ifdef ENABLE_GROMACS
+#include "Drivers/GromacsDriver.h"
+#endif
+
 #ifdef ENABLE_LAMMPS
 #include "Drivers/LammpsDriver.h"
 #endif
@@ -241,6 +245,18 @@ namespace SSAGES
 				{
 						std::cerr << "Unable to dynamic cast engine on node "<<_world.rank()<<" Error occurred" << std::endl;
 						success_build = false;		
+				}
+			}
+			else
+			#endif
+			#ifdef ENABLE_GROMACS
+			if(_MDEngine == "Gromacs")
+			{
+				GromacsDriver* en = new GromacsDriver(_world, _comm, wid);
+				if(!(_MDDriver = static_cast<Driver*>(en)))
+				{
+					std::cout << "Unable to static cast engine on node " << _world.rank() << std::endl;
+					success_build = false;
 				}
 			}
 			else

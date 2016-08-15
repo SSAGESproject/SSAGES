@@ -75,7 +75,8 @@ namespace SSAGES
 			// Gradient and value. 
 			const auto& pos = snapshot.GetPositions(); 
 			const auto& ids = snapshot.GetAtomIDs();
-
+			_grad.resize(pos.size());
+			
 			int iindex, jindex, kindex, lindex;
 
 			iindex = jindex = kindex = lindex = -1;

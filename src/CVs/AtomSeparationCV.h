@@ -70,7 +70,7 @@ namespace SSAGES
 			// Gradient and value. 
 			const auto& pos = snapshot.GetPositions(); 
 			const auto& ids = snapshot.GetAtomIDs();
-			
+
 			// Some temp variables.
 			Vector3 pos1{0, 0, 0};
 			Vector3 pos2{0, 0, 0};

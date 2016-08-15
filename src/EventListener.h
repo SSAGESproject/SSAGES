@@ -1,10 +1,12 @@
-# pragma once 
+#pragma once 
 
-#include "Snapshot.h"
-#include "CVs/CollectiveVariable.h"
+#include "types.h"
 
 namespace SSAGES
 {
+	// Forward declare. 
+	class Snapshot;
+
 	//! Base abstract class for listening in to events fired by "Hook".
 	/*!
 	 * \ingroup Core

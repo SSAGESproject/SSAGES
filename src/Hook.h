@@ -45,6 +45,40 @@ namespace SSAGES
 		 */
 		virtual void SyncToSnapshot() = 0;
 
+	public:
+		//! Constructor
+		/*!
+		 * Initialize a hook with world and walker communicators and
+		 * corresponding walker ID.
+		 */
+		Hook() : 
+		_listeners(0), _MDDriver(nullptr), _snapshot(nullptr)
+		{}
+
+		//! Sets the active snapshot.
+		void SetSnapshot(Snapshot* snapshot);
+
+		//! Sets the active Driver
+		void SetMDDriver(Driver* MDDriver);
+
+		//! Add a listener to the hook.
+		/*!
+		 * \param listener Pointer to the EventListener to be added to the Hook.
+		 *
+		 * Does nothing if the listener is already added.
+		 */
+		void AddListener(EventListener* listener);
+
+		//! Add a CollectiveVariable to the hook.
+		/*!
+		 * \param cv CollectiveVariable to be added to the hook.
+		 *
+		 * Does nothing if the CollectiveVariable is already added.
+		 */
+		void AddCV(CollectiveVariable* cv);
+
+		//! Notify observers of changes in the simulation.
+		void NotifyObservers();
 		//! Pre-simulation hook
 		/*!
 		 * This should be called at the appropriate
@@ -126,41 +160,6 @@ namespace SSAGES
 
 			_snapshot->Changed(false);
 		}
-
-	public:
-		//! Constructor
-		/*!
-		 * Initialize a hook with world and walker communicators and
-		 * corresponding walker ID.
-		 */
-		Hook() : 
-		_listeners(0), _MDDriver(nullptr), _snapshot(nullptr)
-		{}
-
-		//! Sets the active snapshot.
-		void SetSnapshot(Snapshot* snapshot);
-
-		//! Sets the active Driver
-		void SetMDDriver(Driver* MDDriver);
-
-		//! Add a listener to the hook.
-		/*!
-		 * \param listener Pointer to the EventListener to be added to the Hook.
-		 *
-		 * Does nothing if the listener is already added.
-		 */
-		void AddListener(EventListener* listener);
-
-		//! Add a CollectiveVariable to the hook.
-		/*!
-		 * \param cv CollectiveVariable to be added to the hook.
-		 *
-		 * Does nothing if the CollectiveVariable is already added.
-		 */
-		void AddCV(CollectiveVariable* cv);
-
-		//! Notify observers of changes in the simulation.
-		void NotifyObservers();
 
 		//! Destructor
 		virtual ~Hook(){}

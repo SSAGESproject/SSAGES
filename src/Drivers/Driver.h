@@ -75,7 +75,7 @@ namespace SSAGES
 			   boost::mpi::communicator& comm,
 			   int walkerID) : 
 		_world(world), _comm(comm), _wid(walkerID),
-		_hook(), _snapshot(), _method(), _CVs(),
+		_hook(nullptr), _snapshot(nullptr), _method(nullptr), _CVs(),
 		_observers(), _inputfile("none"), _restartname(),
 		_readrestart(), _rd(), _gen(_rd())
 		 {}
@@ -212,15 +212,19 @@ namespace SSAGES
 			// Initialize snapshot. 
 			_snapshot = new Snapshot(_comm, _wid);
 
-			// Set the hook to snapshot
-			_hook->SetSnapshot(_snapshot);
+			/* Remove this later? */
+			if(_hook != nullptr)
+			{
+				// Set the hook to snapshot
+				_hook->SetSnapshot(_snapshot);
 
-			//Set the driver in the hook
-			_hook->SetMDDriver(this);
+				//Set the driver in the hook
+				_hook->SetMDDriver(this);
 
-			_hook->AddListener(_method);
-			for(auto&cv : _CVs)
-				_hook->AddCV(cv);
+				_hook->AddListener(_method);
+				for(auto&cv : _CVs)
+					_hook->AddCV(cv);
+			}
 		}
 
 		//! \copydoc Serializable::Serialize()
