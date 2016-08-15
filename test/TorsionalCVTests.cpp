@@ -5,56 +5,91 @@
 
 using namespace SSAGES;
 
-TEST(TorsionalCV, DefaultBehavior)
+
+// 90 degree angle
+const double piOver2 = 0.5*M_PI;
+
+class TorsionalCVTest : public ::testing::Test {
+protected:
+    virtual void SetUp() 
+    {
+
+    	tortest = new TorsionalCV(1, 2, 3, 4, true);
+    	tortest2 = new TorsionalCV(1, 2, 3, 5, true);
+    	tortest3 = new TorsionalCV(1, 2, 3, 6, true);
+
+        snapshot1 = new Snapshot(comm, 0);
+
+        Matrix3 H; 
+        H << 100.0, 0.0, 0.0,
+             0.0, 100.0, 0.0,
+             0.0, 0.0, 100.0;
+        snapshot1->SetHMatrix(H);
+
+        auto& pos = snapshot1->GetPositions();
+        pos.resize(6);
+        auto& ids = snapshot1->GetAtomIDs();
+        ids.resize(6);
+
+        for(unsigned int i =0; i <ids.size();i++)
+        	ids[i] = i+1;
+
+        pos[0][0] = 0; 
+        pos[0][1] = 0; 
+        pos[0][2] = 0;
+        
+        pos[1][0] = 0;
+        pos[1][1] = 1;
+        pos[1][2] = 0;
+        
+        pos[2][0] = 1;
+        pos[2][1] = 1;
+        pos[2][2] = 0;
+        
+        pos[3][0] = 1;
+        pos[3][1] = 2;
+        pos[3][2] = 0;
+
+        pos[4][0] = 1;
+        pos[4][1] = 1;
+        pos[4][2] = 1;
+
+        pos[5][0] = 1;
+        pos[5][1] = 0;
+        pos[5][2] = 0;
+
+    }
+
+    virtual void TearDown() {
+    	delete tortest;
+    	delete tortest2;
+    	delete tortest3;
+
+    	delete snapshot1;
+
+    }
+
+    TorsionalCV* tortest;
+    TorsionalCV* tortest2;
+    TorsionalCV* tortest3;
+
+    // Initialize atoms and CV.
+    boost::mpi::communicator comm;
+
+    Snapshot* snapshot1;
+
+};
+
+
+TEST_F(TorsionalCVTest, DefaultBehavior)
 {
-	// Initialize atoms and CV.
-	boost::mpi::communicator comm;
+	tortest->Initialize(*snapshot1);
+	tortest2->Initialize(*snapshot1);
+	tortest3->Initialize(*snapshot1);
 
-	auto snap = Snapshot(comm, 0);
-
-	auto& pos = snap.GetPositions();
-	pos.resize(6);
-	auto& ids = snap.GetAtomIDs();
-	ids.resize(6);
-
-	for(unsigned int i =0; i <ids.size();i++)
-		ids[i] = i+1;
-
-	pos[0][0] = 0; 
-	pos[0][1] = 0; 
-	pos[0][2] = 0;
-	
-	pos[1][0] = 0;
-	pos[1][1] = 1;
-	pos[1][2] = 0;
-	
-	pos[2][0] = 1;
-	pos[2][1] = 1;
-	pos[2][2] = 0;
-	
-	pos[3][0] = 1;
-	pos[3][1] = 2;
-	pos[3][2] = 0;
-
-	pos[4][0] = 1;
-	pos[4][1] = 1;
-	pos[4][2] = 1;
-
-	pos[5][0] = 1;
-	pos[5][1] = 0;
-	pos[5][2] = 0;
-
-	TorsionalCV* tortest = new TorsionalCV(1, 2, 3, 4, true);
-	TorsionalCV* tortest2 = new TorsionalCV(1, 2, 3, 5, true);
-	TorsionalCV* tortest3 = new TorsionalCV(1, 2, 3, 6, true);
-
-	tortest->Initialize(snap);
-	tortest2->Initialize(snap);
-	tortest3->Initialize(snap);
-
-	tortest->Evaluate(snap);
-	tortest2->Evaluate(snap);
-	tortest3->Evaluate(snap);
+	tortest->Evaluate(*snapshot1);
+	tortest2->Evaluate(*snapshot1);
+	tortest3->Evaluate(*snapshot1);
 
 
 	auto& grad1 = tortest->GetGradient();

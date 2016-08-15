@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdexcept>
+
 #include "../JSON/Serializable.h"
 #include "json/json.h"
 #include <vector>
@@ -73,8 +75,8 @@ namespace SSAGES
 			   boost::mpi::communicator& comm,
 			   int walkerID) : 
 		_world(world), _comm(comm), _wid(walkerID),
-		_hook(nullptr), _snapshot(), _method(), _CVs(),
-		_observers(), _inputfile(), _restartname(),
+		_hook(nullptr), _snapshot(nullptr), _method(nullptr), _CVs(),
+		_observers(), _inputfile("none"), _restartname(),
 		_readrestart(), _rd(), _gen(_rd())
 		 {}
 
@@ -200,6 +202,13 @@ namespace SSAGES
 		 */
 		void Finalize()
 		{
+			// Check that Hook is not a Null pointer
+			if (!_hook) {
+				throw std::runtime_error(
+					"Trying to finalize simulation with invalid Hook."
+				);
+			}
+
 			// Initialize snapshot. 
 			_snapshot = new Snapshot(_comm, _wid);
 

@@ -8,6 +8,7 @@
 #include "../JSON/JSONLoader.h"
 #include "../JSON/Serializable.h"
 #include <exception>
+#include <stdexcept>
 #include "../Utility/BuildException.h"
 #include "../Validator/ArrayRequirement.h"
 #include "schema.h"
@@ -265,6 +266,11 @@ namespace SSAGES
 				success_build = false;
 			}
 
+			if (!success_build) {
+				// If building the MDEngine failed, don't bother about the rest.
+				return success_build;
+			}
+
 			// Build the driver
 			try{
 				_MDDriver->BuildDriver(JsonDriver, path + "/" + std::to_string(wid));
@@ -351,6 +357,11 @@ namespace SSAGES
 		 */
 		bool BuildCVs(const Json::Value& json, const std::string& path)
 		{
+			// Test if MDDriver has been built
+			if (!_MDDriver) {
+				throw std::runtime_error("Simulation driver needs to be built before CVs.");
+			}
+
 			// Build CV(s).
 			try{
 				_MDDriver->BuildCVs(json.get("CVs", Json::arrayValue), path);
@@ -375,6 +386,11 @@ namespace SSAGES
 		 */
 		bool BuildMethod(const Json::Value& json, const std::string& path)
 		{
+			// Test if MDDriver has been built.
+			if (!_MDDriver) {
+				throw std::runtime_error("Simulation Driver needs to be built before Methods.");
+			}
+
 			// Build method(s).
 			try{
 				_MDDriver->BuildMethod(json.get("method", Json::objectValue), path);
@@ -399,6 +415,13 @@ namespace SSAGES
 		 */
 		bool BuildObservers(const Json::Value& json)
 		{
+			// Check that MDDriver has been built.
+			if (!_MDDriver) {
+				throw std::runtime_error(
+					"Simulation Driver needs to be built before Observers."
+				);
+			}
+
 			// Build method(s).
 			try{
 				_MDDriver->BuildObservers(json.get("observers", Json::objectValue), _nwalkers);
@@ -423,6 +446,11 @@ namespace SSAGES
 		 */
 		bool BuildGrid(const Json::Value& json, const std::string& path)
 		{
+			// Check that MDDriver has been built
+			if (!_MDDriver) {
+				throw std::runtime_error("Simulation Driver needs to be built before Grid.");
+			}
+
 			try{
 				_MDDriver->BuildGrid(json, path);
 			} catch(BuildException& e) {
@@ -443,6 +471,12 @@ namespace SSAGES
 		 */
 		void ReadInputFile()
 		{
+			// Check that MDDriver has been built
+			if (!_MDDriver) {
+				throw std::runtime_error(
+					"Trying to read input file before Simulation Driver was built."
+				);
+			}
 
 			std::string contents ="";
 			std::string localInput = _MDDriver->GetInputFile();
@@ -477,12 +511,20 @@ namespace SSAGES
 		//! Set up listeners and hook
 		void Finalize()
 		{
-			_MDDriver->Finalize();
+			if(_MDDriver)
+				_MDDriver->Finalize();
 		}
 
 		//! Perform simulation run
 		void Run()
 		{
+			// Check that MDDriver has been built
+			if(!_MDDriver) {
+				throw std::runtime_error(
+					"Trying to run simulation before Simulation Driver was built."
+				);
+			}
+
 			_MDDriver->Run();
 		}
 	};

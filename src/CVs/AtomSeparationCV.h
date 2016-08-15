@@ -4,7 +4,6 @@
 
 #include <array>
 #include <math.h>
-#include "../Utility/NearestNeighbor.h"
 
 namespace SSAGES
 {
@@ -71,9 +70,7 @@ namespace SSAGES
 			// Gradient and value. 
 			const auto& pos = snapshot.GetPositions(); 
 			const auto& ids = snapshot.GetAtomIDs();
-			const auto& LatticeConstants = snapshot.GetLatticeConstants();
-			_grad.resize(pos.size());
-					
+
 			// Some temp variables.
 			Vector3 pos1{0, 0, 0};
 			Vector3 pos2{0, 0, 0};
@@ -83,6 +80,8 @@ namespace SSAGES
 			// Loop through atom positions
 			for(size_t i = 0; i < pos.size(); ++i)
 			{
+				_grad[i].setZero();
+
 				// If we are at the atom ID of interest.
 				if(ids[i] == _atomid1)
 				{ 
@@ -94,21 +93,15 @@ namespace SSAGES
 					pos2 = pos[i];
 					index2 = i;
 				}
-				else
-				{
-					_grad[i][0] = 0;
-					_grad[i][1] = 0;
-					_grad[i][2] = 0;
-				}
 			}
 
 			// Account for PBCs
-			Vector3 del = NearestNeighbor(LatticeConstants, pos1, pos2);
+			Vector3 rij = snapshot.ApplyMinimumImage(pos1 - pos2);	
 
 			// Compute norm and gradient.
-			auto r = del.norm();
-			_grad[index1] = del/r;
-			_grad[index2] = -del/r;
+			auto r = rij.norm();
+			_grad[index1] = rij/r;
+			_grad[index2] = -rij/r;
 			_val = r;
 		}
 

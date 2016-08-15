@@ -5,11 +5,6 @@
             "type" : "AtomCoordinate",
             "atom id" : 1,
             "dimension" : "x"
-        },
-        {
-            "type" : "AtomCoordinate",
-            "atom id" : 0,
-            "dimension" : "y"
         }
     ],
     "method" : {
@@ -24,7 +19,7 @@
         {
             "number processors" : 1,
             "type" : "LAMMPS",
-            "MDSteps" : 4000000,
+            "MDSteps" : 40000,
             "logfile" : "node-1"
         }
     ]

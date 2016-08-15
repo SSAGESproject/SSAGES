@@ -4,9 +4,8 @@
 
 namespace SSAGES
 {
-	class JsonSchema
+	namespace JsonSchema
 	{
-	public:
 		//INSERT_DEC_HERE
 		
 	};

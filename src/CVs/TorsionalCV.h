@@ -120,9 +120,9 @@ namespace SSAGES
 			}
 
 			//Calculate pertinent vectors
-			auto F = xi - xj;
-			auto G = xj - xk;
-			auto H = xl - xk;
+			auto F = snapshot.ApplyMinimumImage(xi - xj);
+			auto G = snapshot.ApplyMinimumImage(xj - xk);
+			auto H = snapshot.ApplyMinimumImage(xl - xk);
 			auto A = F.cross(G);
 			auto B = H.cross(G);
 			

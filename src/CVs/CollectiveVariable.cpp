@@ -8,6 +8,10 @@
 #include "AtomPositionCV.h"
 #include "TorsionalCV.h"
 #include "AtomSeparationCV.h"
+#include "AngleCV.h"
+#include "RadiusOfGyrationCV.h"
+#include "CenterofMassDistanceCV.h"
+#include "RMSDCV.h"
 
 using namespace Json;
 
@@ -123,6 +127,83 @@ namespace SSAGES
 
 			auto* c = new AtomSeparationCV(atomid1, atomid2);
 
+			cv = static_cast<CollectiveVariable*>(c);
+		}
+		else if(type == "Angle")
+		{
+			reader.parse(JsonSchema::AngleCV, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+			
+			std::vector<int> atomids;
+			for(auto& s : json["atom ids"])
+				atomids.push_back(s.asInt());
+
+			auto* c = new AngleCV(atomids[0], atomids[1], atomids[2]);
+
+			cv = static_cast<CollectiveVariable*>(c);
+		}
+		else if(type == "RadiusOfGyration")
+		{
+			reader.parse(JsonSchema::RadiusOfGyrationCV, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+			
+			std::vector<int> atomids;
+			for(auto& s : json["atom ids"])
+				atomids.push_back(s.asInt());
+
+			auto* c = new RadiusOfGyrationCV(atomids, json.get("use_range", false).asBool());
+			
+			cv = static_cast<CollectiveVariable*>(c);
+		}
+		else if(type == "CenterofMassDistance")
+		{
+			reader.parse(JsonSchema::CenterofMassDistanceCV, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+			
+			std::vector<int> atomids1;
+			for(auto& s : json["atom ids1"])
+				atomids1.push_back(s.asInt());
+
+			std::vector<int> atomids2;
+			for(auto& s : json["atom ids2"])
+				atomids2.push_back(s.asInt());
+
+			auto* c = new CenterofMassDistanceCV(atomids1, atomids2, json.get("use_range1", false).asBool(), json.get("use_range2", false).asBool());
+			
+			cv = static_cast<CollectiveVariable*>(c);
+		}
+		else if(type == "RMSD")
+		{
+			reader.parse(JsonSchema::RMSDCV, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+			
+			std::vector<int> atomids;
+			for(auto& s : json["atom ids"])
+				atomids.push_back(s.asInt());
+			auto reference = json.get("reference"," ").asString(); 
+
+			auto* c = new RMSDCV(atomids, reference, json.get("use_range", false).asBool());
+			
 			cv = static_cast<CollectiveVariable*>(c);
 		}
 		else

@@ -16,20 +16,6 @@ using namespace SSAGES;
 using namespace LAMMPS_NS::FixConst;
 using namespace boost;
 
-#if BOOST_VERSION < 105600
-namespace boost 
-{
-	namespace serialization 
-	{
-		template<class Archive, class T, size_t N>
-		void serialize(Archive & ar, std::array<T,N> & a, const unsigned int)
-		{
-		  ar & boost::serialization::make_array(a.data(), a.size());
-		}
-	} // namespace serialization
-} // namespace boost
-#endif
-
 namespace LAMMPS_NS
 {
 	// Copyright (C) 2015 Lorenz Hübschle-Schneider <lorenz@4z2.de>
@@ -94,6 +80,8 @@ namespace LAMMPS_NS
 		ids.resize(n);
 		auto& types = _snapshot->GetAtomTypes();
 		types.resize(n);
+		auto& flags = _snapshot->GetImageFlags();
+		flags.resize(n);
 
 		SyncToSnapshot();
 		Hook::PreSimulationHook();
@@ -146,6 +134,8 @@ namespace LAMMPS_NS
 		frc.resize(n);
 		auto& masses = _snapshot->GetMasses();
 		masses.resize(n);
+		auto& flags = _snapshot->GetImageFlags();
+		flags.resize(n);
 
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
@@ -191,14 +181,39 @@ namespace LAMMPS_NS
 		
 		// Get H-matrix.
 		Matrix3 H;
-		H << domain->h[0],            0,            0,
-		     domain->h[5], domain->h[1],            0,
-		     domain->h[4], domain->h[3], domain->h[2];
+		H << domain->h[0], domain->h[5], domain->h[4],
+		                0, domain->h[1], domain->h[3],
+		                0,            0, domain->h[2];
 
 		_snapshot->SetHMatrix(H);
 		_snapshot->SetKb(force->boltz);
 
-		_snapshot->GetLatticeConstants() = ConvertToLatticeConstant(GatherLAMMPSVectors());
+		// Get box origin. 
+		Vector3 origin;
+		if(domain->triclinic == 0)
+		{
+			origin = {
+				domain->boxlo[0], 
+				domain->boxlo[1], 
+				domain->boxlo[2]
+			};
+		}
+		else
+		{
+			origin = {
+				domain->boxlo_bound[0], 
+				domain->boxlo_bound[1], 
+				domain->boxlo_bound[2]
+			};
+		}
+		_snapshot->SetOrigin(origin);
+
+		// Set periodicity. 
+		_snapshot->SetPeriodicity({
+			domain->xperiodic, 
+			domain->yperiodic, 
+			domain->zperiodic
+		});
 
 		// First we sync local data, then gather.
 		// we gather data across all processors.
@@ -220,18 +235,36 @@ namespace LAMMPS_NS
 			vel[i][0] = _atom->v[i][0];
 			vel[i][1] = _atom->v[i][1];
 			vel[i][2] = _atom->v[i][2];
-			
+
+			// Image flags. 
+			flags[i][0] = (_atom->image[i] & IMGMASK) - IMGMAX;;
+			flags[i][1] = (_atom->image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+			flags[i][2] = (_atom->image[i] >> IMG2BITS) - IMGMAX;
+
 			ids[i] = _atom->tag[i];
 			types[i] = _atom->type[i];
 		}
 
+
 		auto& comm = _snapshot->GetCommunicator();
-		allgatherv_serialize(comm, pos, pos);
-		allgatherv_serialize(comm, frc, frc);
-		allgatherv_serialize(comm, masses, masses);
-		allgatherv_serialize(comm, vel, vel);
-		allgatherv_serialize<int,int>(comm, ids, ids);
-		allgatherv_serialize<int,int>(comm, types, types);
+
+		std::vector<Vector3> gpos, gvel, gfrc;
+		std::vector<double> gmasses;
+		std::vector<int> gids, gtypes; 
+		
+		allgatherv_serialize(comm, pos, gpos);
+		allgatherv_serialize(comm, vel, gvel);
+		allgatherv_serialize(comm, frc, gfrc);
+		allgatherv_serialize(comm, masses, gmasses);
+		allgatherv_serialize<int,int>(comm, ids, gids);
+		allgatherv_serialize<int,int>(comm, types, gtypes);
+
+		pos = gpos; 
+		vel = gvel;
+		frc = gfrc; 
+		masses = gmasses;
+		ids = gids; 
+		types = gtypes;
 	}
 
 	void FixSSAGES::SyncToEngine() //put Snapshot values -> LAMMPS
@@ -285,20 +318,4 @@ namespace LAMMPS_NS
 		// from snapshot to engine.
 		// However, this will change in the future.
 	}
-
-	const std::array<double, 6> FixSSAGES::GatherLAMMPSVectors() const
-	{
-
-		std::array<double, 6> box;
-
-		box[0] = domain->boxhi[0] - domain->boxlo[0];
-		box[1] = domain->boxhi[1] - domain->boxlo[1];
-		box[2] = domain->boxhi[2] - domain->boxlo[2];
-		box[3] = domain->xy;
-		box[4] = domain->xz;
-		box[5] = domain->yz;
-
-		return box;
-	}
-
 }
