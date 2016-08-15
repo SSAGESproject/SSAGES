@@ -35,15 +35,13 @@ protected:
     	// Set up snapshot No. 1
         // Snapshot 1 contains three atoms
         snapshot1 = new Snapshot(comm, 0);
+        
+        Matrix3 H; 
+        H << 100.0, 0.0, 0.0,
+             0.0, 100.0, 0.0,
+             0.0, 0.0, 100.0;
 
-        auto& latconst = snapshot1->GetLatticeConstants();
-
-        latconst[0] = 100.0;
-        latconst[1] = 100.0;
-        latconst[2] = 100.0;
-        latconst[3] = piOver2;
-        latconst[4] = piOver2;
-        latconst[5] = piOver2;
+        snapshot1->SetHMatrix(H);
 
         auto& pos1 = snapshot1->GetPositions();
         pos1.resize(3);

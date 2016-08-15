@@ -1,13 +1,8 @@
 #pragma once 
 
 #include "CollectiveVariable.h"
-
 #include <array>
 #include <math.h>
-#include "../Utility/UnitCellConversion.h"
-#include "../Utility/NearestNeighbor.h"
-#include "../Utility/UnwrapCoordinates.h"
-
 
 namespace SSAGES
 {
@@ -112,19 +107,11 @@ namespace SSAGES
 					if(_atomids1[j] == ids[i])
 					{
 						_pertatoms1.push_back(i);
-						std::cout<<image_flags.size()<<std::endl;
-						std::cout<<"image_flags:i "<<image_flags[i][0]<< " " <<image_flags[i][1]<< " " <<image_flags[i][2]<<std::endl;
-						auto u_coord = UnwrapCoordinates(snapshot.GetLatticeConstants(), pos[i], image_flags[i]);
+						auto u_coord = snapshot.UnwrapVector(pos[i], image_flags[i]);
 
 						mass_pos_prod1[0] += mass[i]*u_coord[0];
 						mass_pos_prod1[1] += mass[i]*u_coord[1];
 						mass_pos_prod1[2] += mass[i]*u_coord[2];
-						std::cout<<"mass_pos_prod1: "<<mass_pos_prod1[0]<< " " <<mass_pos_prod1[1]<< " " <<mass_pos_prod1[2]<<std::endl;
-						std::cout<<"mass: "<<mass[i]<<std::endl;
-						std::cout<<"u_coord: "<<u_coord[0]<< " " <<u_coord[1]<< " " <<u_coord[2]<<std::endl; 
-						std::cout<<"pos:i "<<pos[i][0]<< " " <<pos[i][1]<< " " <<pos[i][2]<<std::endl; 
-						std::cout<<"image_flags:i "<<image_flags[i][0]<< " " <<image_flags[i][1]<< " " <<image_flags[i][2]<<std::endl; 
-
 						total_mass1 += mass[i];
 						break;
 					}
@@ -136,14 +123,11 @@ namespace SSAGES
 					if(_atomids2[j] == ids[i])
 					{
 						_pertatoms2.push_back(i);
-						auto u_coord = UnwrapCoordinates(snapshot.GetLatticeConstants(), pos[i], image_flags[i]);
-
+						auto u_coord = snapshot.UnwrapVector(pos[i], image_flags[i]);
+						
 						mass_pos_prod2[0] += mass[i]*u_coord[0];
 						mass_pos_prod2[1] += mass[i]*u_coord[1];
 						mass_pos_prod2[2] += mass[i]*u_coord[2];
-						std::cout<<"mass_pos_prod2: "<<mass_pos_prod2[0]<< " " <<mass_pos_prod2[1]<< " " <<mass_pos_prod2[2]<<std::endl; 
-						std::cout<<"mass: "<<mass[i]<<std::endl;
-						std::cout<<"u_coord: "<<u_coord[0]<< " " <<u_coord[1]<< " " <<u_coord[2]<<std::endl; 
 
 						total_mass2 += mass[i];
 						break;
@@ -157,12 +141,7 @@ namespace SSAGES
 			COM1 = mass_pos_prod1/total_mass1;
 			COM2 = mass_pos_prod2/total_mass2;
 
-			std::cout<<"mass_pos_prod1: "<<mass_pos_prod1[0]<< " " <<mass_pos_prod1[1]<< " " <<mass_pos_prod1[2]<<std::endl; 
-			std::cout<<"mass_pos_prod2: "<<mass_pos_prod2[0]<< " " <<mass_pos_prod2[1]<< " " <<mass_pos_prod2[2]<<std::endl; 
-			std::cout<<"COM1: "<<COM1[0]<< " " <<COM1[1]<< " " <<COM1[2]<<std::endl; 
-			std::cout<<"COM2: "<<COM2[0]<< " " <<COM2[1]<< " " <<COM2[2]<<std::endl; 
-
-			auto del = NearestNeighbor(snapshot.GetLatticeConstants(), COM1, COM2);
+			auto del = snapshot.ApplyMinimumImage(COM1 - COM2);
 			auto r = del.norm();
 			_val = r ; 
 			int i;

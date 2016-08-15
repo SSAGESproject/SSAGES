@@ -4,10 +4,6 @@
 
 #include <array>
 #include <cmath>
-#include "../Utility/UnitCellConversion.h"
-#include "../Utility/NearestNeighbor.h"
-
-
 
 namespace SSAGES
 {
@@ -72,15 +68,9 @@ namespace SSAGES
 		{
 			const auto& pos = snapshot.GetPositions();
 			const auto& ids = snapshot.GetAtomIDs();
-			const auto& LatticeConstants = snapshot.GetLatticeConstants();
 
-			Vector3 atomi;
-			Vector3 atomj;
-			Vector3 atomk;
-
-			int iindex, jindex, kindex;
-			iindex = jindex = kindex = -1;
-
+			Vector3 atomi, atomj, atomk;
+			int iindex = -1, jindex = -1, kindex = -1;
 
 			// Loop through atom positions
 			for( size_t i = 0; i < pos.size(); ++i)
@@ -111,9 +101,8 @@ namespace SSAGES
 			}
 
 			// Two vectors
-			Vector3 rij = NearestNeighbor(LatticeConstants, atomi, atomj);
-			Vector3 rkj = NearestNeighbor(LatticeConstants, atomk, atomj);
-
+			Vector3 rij = snapshot.ApplyMinimumImage(atomi - atomj);
+			Vector3 rkj = snapshot.ApplyMinimumImage(atomk - atomj);
 
 			auto dotP = rij.dot(rkj); //DotProduct(rij, rkj);
 			auto nrij = rij.norm(); //norm(rij);
@@ -124,18 +113,9 @@ namespace SSAGES
 			// Calculate gradients
 			double prefactor = -1.0/(sqrt(1 - dotP/(nrij*nrkj))*nrij*nrkj);
 
-			_grad[iindex][0] = prefactor * (rkj[0] - dotP * rij[0]/(nrij*nrij));	
-			_grad[iindex][1] = prefactor * (rkj[1] - dotP * rij[1]/(nrij*nrij));
-			_grad[iindex][2] = prefactor * (rkj[2] - dotP * rij[2]/(nrij*nrij));	
-
-			_grad[kindex][0] = prefactor * (rij[0] - dotP * rkj[0]/(nrkj*nrkj));
-			_grad[kindex][1] = prefactor * (rij[1] - dotP * rkj[1]/(nrkj*nrkj));	
-			_grad[kindex][0] = prefactor * (rij[2] - dotP * rkj[2]/(nrkj*nrkj));
-
-			_grad[jindex][0] = -_grad[iindex][0] - _grad[kindex][0];
-			_grad[jindex][1] = -_grad[iindex][1] - _grad[kindex][1];
-			_grad[jindex][2] = -_grad[iindex][2] - _grad[kindex][2];
-
+			_grad[iindex] = prefactor*(rkj - dotP*rij/(nrij*nrij));	
+			_grad[kindex] = prefactor*(rij - dotP*rkj/(nrkj*nrkj));
+			_grad[jindex] = -_grad[iindex] - _grad[kindex];
 		}
 
 		//! Return the value of the CV.

@@ -21,6 +21,9 @@ protected:
         // Set up snapshot No. 1
         // Snapshot 1 contains two atoms
         snapshot1 = new Snapshot(comm, 0);
+        Matrix3 H;
+        H << 100, 0, 0, 0, 100, 0, 0, 0, 100;
+        snapshot1->SetHMatrix(H);
 
         auto& pos1 = snapshot1->GetPositions();
         pos1.resize(2);
@@ -40,6 +43,7 @@ protected:
         // Set up snapshot No. 2
         // Positions of snapshot 2 are identical to CV position
         snapshot2 = new Snapshot(comm, 0);
+        snapshot2->SetHMatrix(H);
 
         auto& pos2 = snapshot2->GetPositions();
         pos2.resize(1);

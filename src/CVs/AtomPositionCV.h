@@ -86,10 +86,7 @@ namespace SSAGES
 				if(ids[i] == _atomid)
 				{
 					// Compute distance.
-					Vector3 dx{
-						pos[i][0] - _position[0], 
-						pos[i][1] - _position[1], 
-						pos[i][2] - _position[2]};
+					Vector3 dx = snapshot.ApplyMinimumImage(pos[i] - _position);
 
 					// Set to 0 dimensions we aren't interested in.
 					if(!_fixx) dx[0] = 0;
@@ -106,9 +103,7 @@ namespace SSAGES
 				}
 				else
 				{
-					_grad[i][0] = 0;
-					_grad[i][1] = 0;
-					_grad[i][2] = 0;
+					_grad[i].setZero();
 				}
 			}
 		}

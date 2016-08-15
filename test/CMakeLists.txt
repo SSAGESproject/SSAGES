@@ -6,11 +6,8 @@ set(TEST_DEPS
 
 set  (UNIT_TESTS "AtomPositionCVTests"
                  "GridTests"
-                 "NearestNeighborTests"
                  "TorsionalCVTests"
-                 "UCVectorTests"
-                 "UnitCellConversionTests"
-                 "UnwrapCoordinatesTests"
+                 "SnapshotTests"
                  "COMdist_Test"
                  "Rg_Test"
                  "RMSD_Test"

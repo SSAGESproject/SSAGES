@@ -8,7 +8,7 @@
 
 namespace SSAGES
 {
-	inline double anint(double x)
+	inline double roundf(double x)
 	{
     	return ( x >= 0 ) ? floor( x + 0.5 ) : ceil( x - 0.5 );
   	}
@@ -33,12 +33,15 @@ namespace SSAGES
 		Matrix3 _H; //!< Parrinello-Rahman box H-matrix.
 		Matrix3 _Hinv; //!< Parinello-Rahman box inverse.
 
+		Vector3 _origin; //!< Box origin.
+
+		Bool3 _isperiodic; //!< Periodicity of box.
+
 		std::vector<Vector3> _positions; //!< Positions
-		std::vector<Vector3> _images; //!< Unwrapped positions
+		std::vector<Integer3> _images; //!< Unwrapped positions
 		std::vector<Vector3> _velocities; //!< Velocities
 		std::vector<Vector3> _forces; //!< Forces
 		std::vector<double> _masses; //!< Masses
-		std::array<double, 6> _lattice; //!<lattice constants a, b, c, alpha, beta, gamma
 		Label _atomids; //!< List of Atom IDs
 		Label _types; //!< List of Atom types
 
@@ -60,10 +63,10 @@ namespace SSAGES
 		 * correpsonding walker ID.
 		 */
 		Snapshot(boost::mpi::communicator& comm, unsigned wid) :
-		_comm(comm), _wid(wid), _H(), _Hinv(), _positions(0), _velocities(0), 
-		_forces(0), _atomids(0), _types(0), 
-		_iteration(0), _temperature(0), _pressure(0), 
-		_energy(0), _kb(0)
+		_comm(comm), _wid(wid), _H(), _Hinv(), _origin({0,0,0}), 
+		_isperiodic({true, true, true}), _positions(0), _images(0), 
+		_velocities(0), _forces(0), _masses(0), _atomids(0), _types(0), 
+		_iteration(0), _temperature(0), _pressure(0), _energy(0), _kb(0)
 		{}
 
 		//! Get the current iteration
@@ -95,6 +98,18 @@ namespace SSAGES
 		 * \return Parrinello-Rahman H-matrix of simulation box
 		 */
 		const Matrix3& GetHMatrix() const { return _H; }
+
+		//! Get origin of the system.
+		/*! 
+		 * \return Vector containing coordinates of box origin.
+		 */
+		const Vector3& GetOrigin() const { return _origin; }
+
+		//! Get periodicity of three dimensions. 
+		/*! 
+		 * \return Three dimensional boolean containing periodicity of each dimension.
+		 */
+		const Bool3& IsPeriodic() const {return _isperiodic; }
 
 		//! Get system volume
 		/*!
@@ -177,6 +192,26 @@ namespace SSAGES
 			_changed = true;
 		}
 
+		//! Change the box origin.
+		/*!
+		 * \param origin New origin for the system
+		 */
+		void SetOrigin(const Vector3& origin)
+		{
+			_origin = origin; 
+			_changed = true;
+		}
+
+		//! Change the periodicity of the system
+		/*!
+		 * \param isperiodic Periodicity of three dimensions
+		 */
+		void SetPeriodicity(const Bool3& isperiodic)
+		{
+			_isperiodic = isperiodic;
+			_changed = true;
+		}
+
 		//! Change the kb
 		/*!
 		 * \param kb New value for the kb
@@ -204,10 +239,10 @@ namespace SSAGES
 		/*!
 		 * \return List of particle image flags
 		 */
-		const std::vector<Vector3>& GetImageFlags() const { return _images; }
+		const std::vector<Integer3>& GetImageFlags() const { return _images; }
 
 		//! \copydoc Snapshot::GetImageFlags() const
-		std::vector<Vector3>& GetImageFlags() 
+		std::vector<Integer3>& GetImageFlags() 
 		{ 
 			_changed = true;
 			return _images; 
@@ -255,48 +290,79 @@ namespace SSAGES
 			return _masses; 
 		}
 
-		//! Access the Lattice Constants
-		/*!
-		 * \return List of Lattice constants
-		 *
-		 * The lattice constants are:
-		 * ax, ay, az
-		 * bx, by, bz
-		 * cx, cy, cz
-		 * alpha, beta, gamma
-		 */
-		const std::array<double, 6>& GetLatticeConstants() const { return _lattice; }
-
-		//! \copydoc Snapshot::GetLatticeConstants() const
-		std::array<double, 6>& GetLatticeConstants()
-		{
-			_changed = true; 
-			return _lattice; 
-		}
-
 		//! Scale a vector into fractional coordinates
 		/*! 
 		 * \param v Vector of interest
 		 * \return Scaled vector in fractional coordinates
 		 */
-		Vector3 ScaleVector(const Vector3& v)
+		Vector3 ScaleVector(const Vector3& v) const
 		{
-			return _Hinv*v;
+			return _Hinv*(v-_origin);
 		}
 
-		//! Wrap a vector according to periodic boundary conditions
+		//! Unwrap a vector's real coordinates according to its image replica count. 
+		/*!
+		 * \param v Vector of interest
+		 * \param image Integer vector representing mirror images in the three dimensions.
+		 * 
+		 * \return Vector3 Unwrapped vector in real coordinates.
+		 * This function takes a set of (wrapped) coordinates and returns the unwrapped
+	     * coordinates. 
+	     *
+	     * \note This function does not require the initial coordinates to be within
+	     *       the simulation box.
+		 */
+		Vector3 UnwrapVector(const Vector3& v, const Integer3& image) const
+		{
+			return _H*image.cast<double>()+v;
+		}
+
+		//! Apply minimum image to a vector according to periodic boundary conditions
 		/*!
 		 * \param v Vector of interest
 		 */
-		void WrapVector(Vector3* v)
+		void ApplyMinimumImage(Vector3* v) const
 		{
 			Vector3 scaled = ScaleVector(*v);
-			
+
 			for(int i = 0; i < 3; ++i)
-				scaled[i] -= anint(scaled[i]);
+				scaled[i] -= _isperiodic[i]*roundf(scaled[i]);
 
 			*v = _H*scaled;
 		}
+		
+		//! Apply minimum image to a vector according to periodic boundary conditions
+		/*!
+		 * \param v Vector of interest
+		 */
+		Vector3 ApplyMinimumImage(const Vector3& v) const
+		{
+			Vector3 scaled = ScaleVector(v);
+
+			for(int i = 0; i < 3; ++i)
+				scaled[i] -= _isperiodic[i]*roundf(scaled[i]);
+
+			return _H*scaled;	
+		}
+
+		//! Compute the total mass of a group of particles based on index. 
+		/*!
+		  * \param indices Indices of particles of interest. 
+		  * \return double Total mass of particles. 
+		  *
+		  * \note This function reduces the mass across the communicator associated
+		  *       with the snapshot. 
+		 */
+		double TotalMass(const Label& indices) const
+		{
+
+		}
+
+		//! Compute the center of mass of a group of atoms based on index. 
+		Vector3& CenterOfMass(const Label& indices) const
+		{
+
+		}	
 
 		//! Access the atom IDs
 		/*!

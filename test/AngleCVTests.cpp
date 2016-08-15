@@ -28,14 +28,12 @@ protected:
         auto& ids = snapshot1->GetAtomIDs();
         ids.resize(5);
 
-        auto& latconst = snapshot1->GetLatticeConstants();
+        Matrix3 H; 
+        H << 100.0, 0.0, 0.0,
+             0.0, 100.0, 0.0,
+             0.0, 0.0, 100.0;
 
-        latconst[0] = 100.0;
-        latconst[1] = 100.0;
-        latconst[2] = 100.0;
-        latconst[3] = piOver2;
-        latconst[4] = piOver2;
-        latconst[5] = piOver2;
+        snapshot1->SetHMatrix(H);
 
         for(unsigned int i =0; i <ids.size();i++)
             ids[i] = i+1;
