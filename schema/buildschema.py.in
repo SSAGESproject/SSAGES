@@ -14,7 +14,6 @@ import json
 
 # Definitions
 schemah = "${SCHEMA_H}"
-schemac = "${SCHEMA_CPP}"
 
 folders = [
 	"${CMAKE_CURRENT_SOURCE_DIR}/Methods/",
@@ -74,18 +73,12 @@ def genfiles(folders):
 	# Delete old header/cpp files if they exist.
 	if path.isfile(schemah):
 		os.remove(schemah)
-	if path.isfile(schemac):
-		os.remove(schemac)
 
 	fheader = "${CMAKE_CURRENT_SOURCE_DIR}/headertemplate.h"
-	fcpp = "${CMAKE_CURRENT_SOURCE_DIR}/sourcetemplate.cpp"
 
 	hlines = []
-	cpplines = []
 	with open(fheader, "r") as f:
 		hlines = f.readlines()
-	with open(fcpp, "r") as f:
-		cpplines = f.readlines()
 
 	# Go through folders, load json and write to header.
 	for folder in folders:
@@ -100,21 +93,11 @@ def genfiles(folders):
 					print("Error parsing {0}: {1}".format(fpath, e))
 
 				# Add lines to header and cpp
-				decl = '\t\tstatic std::string ' + varname + ';\n'
+				decl = '\t\tconst std::string ' + varname + ';\n'
 				i = next(j for j, s in enumerate(hlines) if 'INSERT_DEC_HERE' in s)
 				hlines.insert(i+1, decl)
 
-				defn = 'std::string SSAGES::JsonSchema::' + varname + ' = '
-				i = next(j for j, s in enumerate(cpplines) if 'INSERT_DEF_HERE' in s)
-				cpplines.insert(
-					i+1,
-					"\t" + defn + '"' + json.dumps(jobj).replace('"', '\\"') + '";\n'
-				)
-
 	with open(schemah, "w") as f:
 		f.writelines(hlines)
-
-	with open(schemac, "w") as f:
-		f.writelines(cpplines)
 
 genfiles(folders)

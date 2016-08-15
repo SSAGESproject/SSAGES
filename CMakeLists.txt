@@ -101,7 +101,6 @@ include_directories("${PROJECT_BINARY_DIR}")
 
 
 # Schema builder.
-set (SCHEMA_CPP ${CMAKE_CURRENT_BINARY_DIR}/schema/schema.cpp)
 add_subdirectory (schema)
 
 # General source files
@@ -116,7 +115,6 @@ set(SOURCE
     	src/Methods/BasisFunc.cpp
 	src/Validator/RequirementLoader.cpp
 	src/JSON/jsoncpp.cpp
-	${SCHEMA_CPP}
 	src/CVs/CollectiveVariable.cpp
 	src/Methods/Method.cpp
 	src/Grids/Grid.cpp
