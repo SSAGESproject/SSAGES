@@ -85,7 +85,7 @@ if(LAMMPS_SRC)
 elseif(GROMACS_SRC)
 	set(ENABLE_GROMACS true)
 
-	set(GRO_CXX_ARGS "-I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${PROJECT_SOURCE_DIR}/hooks/gromacs")
+	set(GRO_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${PROJECT_SOURCE_DIR}/hooks/gromacs")
 
 	ExternalProject_Add(
 	gromacs
