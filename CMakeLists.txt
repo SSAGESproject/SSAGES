@@ -87,6 +87,12 @@ elseif(GROMACS_SRC)
 
 	set(GRO_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${PROJECT_SOURCE_DIR}/hooks/gromacs")
 
+	# Configure patch.
+	configure_file (
+	"${PROJECT_SOURCE_DIR}/hooks/gromacs/apply_patch.sh.in"
+	"${PROJECT_BINARY_DIR}/apply_patch.sh"
+	)
+
 	ExternalProject_Add(
 	gromacs
 	BUILD_COMMAND $(MAKE)
@@ -102,7 +108,7 @@ elseif(GROMACS_SRC)
 	-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 	BUILD_IN_SOURCE false
 	INSTALL_DIR ${CMAKE_BINARY_DIR}/gromacs
-	PATCH_COMMAND patch -p2 -d ${GROMACS_SRC} < ${PROJECT_SOURCE_DIR}/hooks/gromacs/gmx_diff.patch 
+	PATCH_COMMAND sh ${CMAKE_BINARY_DIR}/apply_patch.sh
 	LOG_BUILD ON)
 
 	set(HOOKSRC

@@ -47,6 +47,27 @@ namespace SSAGES
 			SyncToSnapshot();
 		}
 
+		void SetPeriodicBoundaryConditions(int pbc)
+		{
+			// Definitions taken from Gromacs (enum.h).
+			// enum {epbcXYZ, epbcNONE, epbcXY, epbcSCREW, epbcNR};
+			switch(pbc)
+			{
+				case 0:
+					_snapshot->SetPeriodicity({true, true, true});
+					break;
+				case 1:
+					_snapshot->SetPeriodicity({false, false, false});
+					break;
+				case 2:
+					_snapshot->SetPeriodicity({true, true, false});
+					break;
+				default:
+					std::cerr << "Unsupported PBC specified in Gromacs." << std::endl;
+					exit(-1);
+			}
+		}
+
 		int GetIterationTarget() { return niterations_; }
 		void SetIterationTarget(int niterations) { niterations_ = niterations; }
 
