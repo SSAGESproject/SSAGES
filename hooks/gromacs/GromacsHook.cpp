@@ -70,7 +70,6 @@ namespace SSAGES
 		T forces[][3],
 		T boxmat[3][3],
 		double temperature,
-		double pressure,
 		double potenergy,
 		double kb)
 	{
@@ -103,16 +102,16 @@ namespace SSAGES
 		// Load em up.
 		_snapshot->SetIteration(iteration);
 		_snapshot->SetTemperature(temperature);
-		_snapshot->SetPressure(pressure);
 		_snapshot->SetEnergy(potenergy);
 		_snapshot->SetKb(kb);
 
 		for(int i = 0; i < natoms; ++i)
 		{
+			// Gromacs internally indexes atoms starting from 0.
 			if(indices != nullptr)
-				ids[i] = indices[i];
+				ids[i] = indices[i] + 1;
 			else
-				ids[i] = i;
+				ids[i] = i + 1;
 			typs[i] = types[i];
 
 			mass[i] = masses[i];
@@ -185,8 +184,9 @@ namespace SSAGES
 		
 		for(int i = 0; i < natoms; ++i, ++j)
 		{
+			// Gromacs internally indexes atoms starting from 0.
 			if(indices != nullptr)
-				indices[i] = ids[j];
+				indices[i] = ids[j] - 1;
 			
 			types[i] = typs[j];
 
@@ -220,7 +220,6 @@ template void GromacsHook::PullToSSAGES<float>(
 	float[][3],
 	float[][3],
 	float[3][3],
-	double,
 	double, 
 	double,
 	double);
@@ -244,7 +243,6 @@ template void GromacsHook::PullToSSAGES<double>(
 	double[][3],
 	double[][3],
 	double[3][3],
-	double,
 	double, 
 	double,
 	double);

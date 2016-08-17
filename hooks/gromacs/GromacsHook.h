@@ -85,7 +85,6 @@ namespace SSAGES
 			T forces[][3],
 			T boxmat[3][3],
 			double temperature,
-			double pressure,
 			double potenergy,
 			double kb);
 
