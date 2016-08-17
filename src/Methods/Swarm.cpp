@@ -178,8 +178,8 @@ namespace SSAGES
                 }
                 if(_iterator > _initialize_steps)
                 {
-                    //Harvest a trajectory every ten steps
-                    if(_iterator % 10 == 0)
+                    //Harvest a trajectory every _harvest_length steps
+                    if(_iterator % _harvest_length == 0)
                     {
                         for(size_t k = 0; k < positions.size(); k++)
                         {
