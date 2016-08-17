@@ -174,7 +174,7 @@ namespace SSAGES
                 beta = 1.0 / (snapshot->GetTemperature() * snapshot->GetKb());
 
                 // For systems with poorly defined temperature (ie: 1 particle) the user needs to define their own temperature. This is a hack that may be removed in future versions. 
-                if(beta == 0)
+                if(snapshot->GetTemperature() == 0)
                 {
                     beta = _temperature;
                     if(_temperature == 0)
@@ -343,7 +343,7 @@ namespace SSAGES
                     if(hist.map[k] == 0 || hist.map[k] == _nbins[k]-1)
                         weight /= 2.0;
                 }
-              
+            
                 /*The numerical integration of the biased histogram across the entirety of CV space
                  *All calculations include the normalization as well
                  */
