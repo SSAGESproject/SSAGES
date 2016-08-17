@@ -145,7 +145,6 @@ namespace LAMMPS_NS
 		types.resize(n);
 
 		// Thermo properties:
-		Compute *thermoproperty;
 		int icompute; 
 
 		//Temperature
@@ -153,12 +152,6 @@ namespace LAMMPS_NS
 		icompute = modify->find_compute(id_temp);
 		auto* temperature = modify->compute[icompute];
 		_snapshot->SetTemperature(temperature->compute_scalar());
-		
-		//Pressure
-		const char* id_press = "thermo_press";
-		icompute = modify->find_compute(id_press);
-		thermoproperty = modify->compute[icompute];
-		_snapshot->SetPressure(thermoproperty->compute_scalar());
 		
 		//Energy
 		double etot = 0;

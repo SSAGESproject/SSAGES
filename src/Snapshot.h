@@ -47,7 +47,6 @@ namespace SSAGES
 
 		int _iteration; //!< Iteration of Simulation
 		double _temperature; //!< Current temperature
-		double _pressure; //!< System pressure
 		double _energy; //!< Average per-particle energy
 		double _kb; //!< Kb from the MD driver
 
@@ -66,7 +65,7 @@ namespace SSAGES
 		_comm(comm), _wid(wid), _H(), _Hinv(), _origin({0,0,0}), 
 		_isperiodic({true, true, true}), _positions(0), _images(0), 
 		_velocities(0), _forces(0), _masses(0), _atomids(0), _types(0), 
-		_iteration(0), _temperature(0), _pressure(0), _energy(0), _kb(0)
+		_iteration(0), _temperature(0), _energy(0), _kb(0)
 		{}
 
 		//! Get the current iteration
@@ -80,12 +79,6 @@ namespace SSAGES
 		 * \return System temperature
 		 */
 		double GetTemperature() const {return _temperature; }
-
-		//! Get system pressure
-		/*!
-		 * \return Current system pressure
-		 */
-		double GetPressure() const { return _pressure; }
 
 		//! Get per-particle energy
 		/*!
@@ -158,16 +151,6 @@ namespace SSAGES
 		void SetTemperature(double temperature) 
 		{ 
 			_temperature = temperature;
-			_changed = true;
-		}
-
-		//! Change the pressure
-		/*!
-		 * \param pressure New value for the pressure
-		 */
-		void SetPressure(double pressure) 
-		{ 
-			_pressure = pressure;
 			_changed = true;
 		}
 
@@ -439,7 +422,6 @@ namespace SSAGES
 			
 			json["iteration"] = _iteration; 
 			json["temperature"] = _temperature; 
-			json["pressure"] = _pressure; 
 			json["energy"] = _energy;
 			json["kb"] = _kb;
 
