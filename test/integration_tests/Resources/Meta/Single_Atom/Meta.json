@@ -1,5 +1,5 @@
 {
-    "inputfile" : "in.LAMMPS_Meta_Test",
+    "inputfile" : "LAMMPS_INPUTFILE",
     "CVs" : [
         {
             "type" : "AtomCoordinate",

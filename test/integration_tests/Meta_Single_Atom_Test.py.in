@@ -1,0 +1,89 @@
+import sys
+import subprocess
+import os.path
+import math
+
+def replace(inputfile, outputfile, oldtext, newtext):
+    with open(inputfile) as infile, open(outputfile, 'w') as outfile:
+        for line in infile:
+            line = line.replace(oldtext, newtext)
+            outfile.write(line)
+
+print("Testing vanilla Metadynamics method on single atom.")
+
+ssages_executable = "${CMAKE_BINARY_DIR}/ssages"
+resource_dir = "${CMAKE_CURRENT_SOURCE_DIR}/integration_tests/Resources/Meta/Single_Atom/"
+json_inputfile = "Meta.json"
+
+if not os.path.isfile(resource_dir + json_inputfile):
+    print("Unable to locate JSON input file.")
+    sys.exit(1)
+
+#Add correct directory to LAMMPS input file
+replace(resource_dir + json_inputfile, json_inputfile,
+        "LAMMPS_INPUTFILE", resource_dir + "in.LAMMPS_Meta_Test")
+
+# Run SSAGES
+returnvalue = subprocess.call([ssages_executable, json_inputfile])
+
+# Confirm that SSAGES exited with exit code 0
+if returnvalue is not 0:
+    print("SSAGES exited with non-zero exit code {}".format(returnvalue));
+    # Clean up working directory
+    subprocess.call(["rm", '-f', '*'])
+    sys.exit(returnvalue)
+
+# Confirm that output file has been created
+if not os.path.isfile("hills.out"):
+    print("Output file \"hills.out\" was not created.")
+    # Clean up working directory
+    subprocess.call(["rm", '-f', '*'])
+    sys.exit(2)
+
+# Confirm that output file has the correct format
+with open("hills.out", 'r') as outputFile:
+    firstLine = outputFile.readline()
+    if len(firstLine.split()) != 5:
+        print("Outputfile \"hills.out\" contains {} columns. Expected: 5".format(
+              firstline.split().len()))
+        # Clean up working directory
+        subprocess.call(["rm", '-f', '*'])
+        sys.exit(3)
+
+# Analyse output file
+outputFile = open("hills.out", 'r')
+
+# Create list of 35*35 data points
+result = [((-1.5 + 0.1*x, -1.5 + 0.1*y),0) for x in range(0, 35) for y in range(0, 35)]
+
+# Read output file and calculate hill info
+for line in outputFile:
+    mu_x, mu_y, sigma_x, sigma_y, height = [float(item) for item in line.split()]
+    result = [((x,y), val +
+        1.0/(2.0*math.pi*sigma_x*sigma_y) *
+            math.exp( -0.5*( (x-mu_x)**2/sigma_x**2 + (y-mu_y)**2/sigma_y**2 ) )
+        ) for ((x,y),val) in result]
+
+# Load predefined list
+expectedList = []
+with open(resource_dir + "expected_result.dat") as expectedFile:
+    for line in expectedFile:
+        expectedList.append(float(line))
+
+# Compare with predefined list
+mse = 0.0
+for [val, expected] in zip([val for ((x,y),val) in result], expectedList):
+    mse += (val - expected)**2/len(expectedList)
+
+# Check if Mean Squared Error (mse) is larger than 2.0
+if mse > 2.0:
+    print("Error! Result deviates too strongly from expected value!")
+    print("Mean square error: {}".format(mse))
+    # Clean up working directory
+    subprocess.call(["rm", '-f', '*'])
+    sys.exit(5)
+
+# Clean working directory
+subprocess.call(["rm", '-f', '*'])
+
+sys.exit(0)
