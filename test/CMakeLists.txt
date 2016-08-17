@@ -12,7 +12,8 @@ set  (UNIT_TESTS "AtomPositionCVTests"
                  "Rg_Test"
                  "RMSD_Test"
                  "AngleCVTests"
-                 "ReadFileTest")
+                 "ReadFileTest"
+                 "MockCVTests")
 
 foreach (TEST ${UNIT_TESTS})
     add_executable (${TEST} ${TEST}.cpp)
