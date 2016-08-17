@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 									   << SSAGES_VERSION_TINY << "\n";
 
 	// Define short options, e.g. -h
-	const char *OPT_STRING = "h?!";
+	const char *OPT_STRING = "h!";
 
 	// Define long options, e.g. --help
 	static struct option longOpts[] = {
@@ -53,7 +53,6 @@ int main(int argc, char* argv[])
 	while (opt != -1) {
 		switch (opt) {
 		case 'h' :
-		case '?' :
 			std::cout << helpStream.str();
 			return 0;
 			break;
@@ -62,7 +61,7 @@ int main(int argc, char* argv[])
 			return 0;
 			break;
 		default:
-			std::cerr << "Error! Unknown option " << opt << "\n";
+			// getopt_long has already produced an error message
 			return 1;
 		}
 		opt = getopt_long(argc, argv, OPT_STRING, longOpts, &optionindex);
