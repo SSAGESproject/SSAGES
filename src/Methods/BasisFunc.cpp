@@ -41,6 +41,8 @@ namespace SSAGES
             }
             else if(cvs.size() != _polyords.size())
             {
+                std::cout<<cvs.size()<<std::endl;
+                std::cout<<_polyords.size()<<std::endl;
                 std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
                 std::cout<<"WARNING: The number of polynomial orders is not the same"<<std::endl;
                 std::cout<<"as the number of CVs"<<std::endl;
@@ -142,16 +144,6 @@ namespace SSAGES
         for(size_t i = 0; i < cvs.size(); ++i)
         {
             x[i] = cvs[i]->GetValue();
-            // Change to periodic boundaries here just in case grid doesn't do it too well...
-            if(_grid->GetPeriodic()[i])
-            {
-                double min = _grid->GetLower()[i];
-                double max = _grid->GetUpper()[i];
-                if(x[i] < min)
-                    x[i] += (max-min);
-                else if(x[i] >= max)
-                    x[i] -= (max-min);
-            }
         }
        
         if(_bounds)
@@ -265,7 +257,7 @@ namespace SSAGES
 	}
     
 	// Update the coefficients/bias projection
-	void Basis::UpdateBias(const CVList& cvs, double beta)
+	void Basis::UpdateBias(const CVList& cvs, const double beta)
 	{
         std::vector<double> x(cvs.size(), 0);
         std::vector<double> coeffTemp(_coeff.size(), 0);
@@ -462,14 +454,7 @@ namespace SSAGES
             double min = _grid->GetLower()[j];
             double max = _grid->GetUpper()[j];
 
-            if(_grid->GetPeriodic()[j])
-            {
-                if(x[j] <= min)
-                    x[j] += (max-min);
-                else if(x[j] > max)
-                    x[j] -= (max-min);
-            }
-            else
+            if(!_grid->GetPeriodic()[j])
             {
                 // In order to prevent the index for the histogram from going out of bounds a check is in place
                 if(x[j] > max && _bounds)
