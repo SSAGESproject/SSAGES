@@ -78,7 +78,12 @@ include_directories("${PROJECT_BINARY_DIR}")
 
 if(LAMMPS_SRC)
 	# Get absolute path in case user specified relative path
-	get_filename_component(LAMMPS_SRC ${LAMMPS_SRC} ABSOLUTE)
+	if (IS_ABSOLUTE ${LAMMPS_SRC})
+		get_filename_component(LAMMPS_SRC ${LAMMPS_SRC} ABSOLUTE)
+	else (IS_ABSOLUTE ${LAMMPS_SRC})
+		get_filename_component(LAMMPS_SRC ${CMAKE_CURRENT_BINARY_DIR}/${LAMMPS_SRC}
+							   ABSOLUTE)
+	endif (IS_ABSOLUTE ${LAMMPS_SRC})
 
 	# Check if given LAMMPS directory exists.
 	if (NOT EXISTS ${LAMMPS_SRC})
@@ -152,7 +157,12 @@ if(LAMMPS_SRC)
 	)
 elseif(GROMACS_SRC)
 	# Get absolute path in case user specified relative path
-	get_filename_component(GROMACS_SRC ${GROMACS_SRC} ABSOLUTE)
+	if (IS_ABSOLUTE ${GROMACS_SRC})
+		get_filename_component(GROMACS_SRC ${GROMACS_SRC} ABSOLUTE)
+	else (IS_ABSOLUTE ${GROMACS_SRC})
+		get_filename_component(GROMACS_SRC ${CMAKE_CURRENT_BINARY_DIR}/${GROMACS_SRC}
+							   ABSOLUTE)
+	endif (IS_ABSOLUTE ${GROMACS_SRC})
 
 	# Check if directory GROMACS_SRC exists
 	if (NOT EXISTS ${GROMACS_SRC})
