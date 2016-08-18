@@ -111,7 +111,6 @@ namespace SSAGES
 
 	void JSONObserver::Visit(const Driver& d)
 	{
-		d.WriteRestartFile();
 		d.Serialize(_root);
 	}
 

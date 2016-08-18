@@ -51,9 +51,6 @@ namespace SSAGES
 		 */
 		void SetIteration(int iter) {_iteration = iter;}
 
-		//! Get Method's iteration.
-		int GetIteration() {return _iteration;}
-
 		//! Method call prior to simulation initiation.
 		/*!
 		 * \param snapshot Pointer to the simulation snapshot.
