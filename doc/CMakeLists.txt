@@ -4,7 +4,8 @@ if (DOXYGEN_FOUND)
     if (DOXYGEN_DOT_FOUND)
         set (HAVE_DOT YES)
     else (DOXYGEN_DOT_FOUND)
-        message (WARNING "Please install Graphviz's dot tool for full API documentation.")
+        message (WARNING "\nWARNING: Please install Graphviz's dot tool for "
+                         "full API documentation.")
         set (HAVE_DOT NO)
     endif (DOXYGEN_DOT_FOUND)
 
@@ -15,7 +16,8 @@ if (DOXYGEN_FOUND)
                       COMMAND doxygen ${CMAKE_CURRENT_BINARY_DIR}/doxygen.config
                       COMMENT "Building API Reference Documentation")
 else (DOXYGEN_FOUND)
-    message (WARNING "To generate API documentation, please install Doxygen.")
+    message (WARNING "\nWARNING: To generate API documentation, please install "
+                     "Doxygen.")
 endif (DOXYGEN_FOUND)
 
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR})
@@ -34,7 +36,7 @@ if (SPHINX_FOUND)
                       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Manual
                       COMMENT "Building PDF version of Manual")
 else (SPHINX_FOUND)
-    message (WARNING "To generate User Manual, please install Sphinx.")
+    message (WARNING "\nWARNING: To generate User Manual, please install Sphinx.")
 endif (SPHINX_FOUND)
 
 if (DOXYGEN_FOUND AND SPHINX_FOUND)

@@ -34,6 +34,33 @@ find_package(Boost
 set(LAMMPS_SRC "" CACHE STRING "LAMMPS source directory")
 set(GROMACS_SRC "" CACHE STRING "GROMACS source directory")
 
+# Check that either LAMMPS_SRC or GROMACS_SRC have been set
+if ( NOT(LAMMPS_SRC OR GROMACS_SRC) )
+    message (FATAL_ERROR
+             "\nERROR: SSAGES needs to be built with a simulation engine.\n"
+             "The following simulation engines are supported by SSAGES:\n"
+             "    - LAMMPS\n"
+             "    - Gromacs\n"
+             "Please call cmake using\n"
+             "    cmake .. -DLAMMPS_SRC=/path/to/lammps/src/\n"
+             "or\n"
+             "    cmake .. -DGROMACS_SRC=/path/to/gromacs/\n"
+             "to build with SSAGES for LAMMPS and Gromacs, respectively. In "
+             "this example, \"/path/to/lammps/src/\" and \"/path/to/gromacs/\" "
+             "should point to the local source directory for LAMMPS or Gromacs.")
+elseif (LAMMPS_SRC AND GROMACS_SRC)
+    message (FATAL_ERROR
+             "\nERROR: SSAGES does not (yet) include multi-engine support.\n"
+             "Please use only one of the options "
+             "\"-DLAMMPS_SRC=/path/to/lammps/src/\" *or* "
+             "\"-DGROMACS_SRC=/path/to/gromacs/\". Note, that CMake remembers "
+             "the values specified via \"-DLAMMPS_SRC\" and \"-DGROMACS_SRC\" "
+             "from earlier calls. Thus, if you want to switch simulation "
+             "engines you have to clear the other parameter manually. For "
+             "example, to switch from LAMMPS to Gromacs, call\n"
+             "    cmake .. -DGROMACS_SRC=/path/to/gromacs -DLAMMPS_SRC=\"\"")
+endif ()
+
 include(ExternalProject)
 
 
@@ -42,6 +69,24 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${PROJECT_BINARY_DIR}")
 
 if(LAMMPS_SRC)
+	# Check if given LAMMPS directory exists.
+	if (NOT EXISTS ${LAMMPS_SRC})
+		message (FATAL_ERROR "\nERROR: Directory ${LAMMPS_SRC} does not exist.")
+	endif (NOT EXISTS ${LAMMPS_SRC})
+
+	# Check if directory does contain LAMMPS source files
+	if (NOT EXISTS ${LAMMPS_SRC}/lammps.h)
+		# Check if subdirectory was not specified
+		if (EXISTS ${LAMMPS_SRC}/src/lammps.h)
+			set (LAMMPS_SRC ${LAMMPS_SRC}/src)
+		else (EXISTS ${LAMMPS_SRC}/src/lammps.h)
+			# Directory does not contain LAMMPS source
+			message (FATAL_ERROR "\nERROR: Directory ${LAMMPS_SRC} does not "
+								 "contain LAMMPS source files (file lammps.h "
+								 "not found).")
+		endif (EXISTS ${LAMMPS_SRC}/src/lammps.h)
+	endif (NOT EXISTS ${LAMMPS_SRC}/lammps.h)
+
 	set(ENABLE_LAMMPS true)
 	# Add lammps as external project
 	ExternalProject_Add(
@@ -83,6 +128,11 @@ if(LAMMPS_SRC)
 		hooks/lammps/fix_ssages.cpp
 	)
 elseif(GROMACS_SRC)
+	# Check if directory GROMACS_SRC exists
+	if (NOT EXISTS ${GROMACS_SRC})
+		message (FATAL_ERROR "ERROR: Directory ${GROMACS_SRC} does not exist.")
+	endif (NOT EXISTS ${GROMACS_SRC})
+
 	set(ENABLE_GROMACS true)
 
 	set(GRO_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${PROJECT_SOURCE_DIR}/hooks/gromacs")
