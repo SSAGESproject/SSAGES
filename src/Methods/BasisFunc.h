@@ -176,7 +176,7 @@ namespace SSAGES
          * \param cvs List of collective variables.
          * \param beta Temperature equivalent.
          */
-		void UpdateBias(const CVList& cvs, double beta);
+		void UpdateBias(const CVList& cvs, const double);
 
 		//! Computes the bias force.
         /*!
@@ -188,7 +188,7 @@ namespace SSAGES
         /*!
          * \param cvs List of collective variables.
          */
-		void PrintBias(const CVList& cvs);
+		void PrintBias(const CVList& cvs, const double);
 
         //! Initializes the look up tables for polynomials
         /*!

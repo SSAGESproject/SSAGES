@@ -354,7 +354,7 @@ namespace SSAGES
 
         if(_world.rank() == 0)
             // Write coeff at this step, but only one walker
-            PrintBias(cvs);
+            PrintBias(cvs,beta);
 
         // The convergence tolerance and whether the user wants to exit are incorporated here
         if(sum < _tol)
@@ -372,7 +372,7 @@ namespace SSAGES
      *Additionally, the current basis projection is printed so that the user can view
      *the current free energy space
      */
-    void Basis::PrintBias(const CVList& cvs)
+    void Basis::PrintBias(const CVList& cvs, const double beta)
     {
         std::vector<double> bias(_hist.size(), 0);
         std::vector<double> x(cvs.size(), 0);
@@ -419,7 +419,7 @@ namespace SSAGES
             }
             _basisout << -bias[j] << std::setw(35);
             if(_unbias[j])
-                _basisout << -log(_unbias[j]) << std::setw(35);
+                _basisout << -log(_unbias[j]) / beta  << std::setw(35);
             else
                 _basisout << "0" << std::setw(35);
             _basisout << _unbias[j];
@@ -514,10 +514,10 @@ namespace SSAGES
 
             if(!_grid->GetPeriodic()[j]) 
             {
-                if(x[j] > max)
+                if(x[j] > _boundUp[j])
                     _derivatives[j] -= _restraint[j] * (x[j] - _boundUp[j]);
-                else if(x[j] < min)
-                    _derivatives[j] -= _restraint[j] * (x[j] - _boundUp[j]);
+                else if(x[j] < _boundLow[j])
+                    _derivatives[j] -= _restraint[j] * (x[j] - _boundLow[j]);
             }
         }
     }
