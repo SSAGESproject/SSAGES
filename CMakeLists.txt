@@ -77,6 +77,9 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${PROJECT_BINARY_DIR}")
 
 if(LAMMPS_SRC)
+	# Get absolute path in case user specified relative path
+	get_filename_component(LAMMPS_SRC ${LAMMPS_SRC} ABSOLUTE)
+
 	# Check if given LAMMPS directory exists.
 	if (NOT EXISTS ${LAMMPS_SRC})
 		message (FATAL_ERROR "\nERROR: Directory ${LAMMPS_SRC} does not exist.")
@@ -148,6 +151,9 @@ if(LAMMPS_SRC)
 		hooks/lammps/fix_ssages.cpp
 	)
 elseif(GROMACS_SRC)
+	# Get absolute path in case user specified relative path
+	get_filename_component(LAMMPS_SRC ${LAMMPS_SRC} ABSOLUTE)
+
 	# Check if directory GROMACS_SRC exists
 	if (NOT EXISTS ${GROMACS_SRC})
 		message (FATAL_ERROR "ERROR: Directory ${GROMACS_SRC} does not exist.")
