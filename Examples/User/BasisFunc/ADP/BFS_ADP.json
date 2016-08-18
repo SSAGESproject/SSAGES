@@ -33,20 +33,12 @@
         "convergence_exit" : false,
         "read" : false
     },
-    "grid" : [
-        {
-            "lower" : -3.13,
-            "upper" : 3.13,
-            "number points" : 100,
-            "periodic" : true
-        },
-        {
-            "lower" : -3.13,
-            "upper" : 3.13,
-            "number points" : 100,
-            "periodic" : true
-        }
-    ],
+    "grid" : {
+        "lower" : [-3.13, -3.13],
+        "upper" : [3.13,3.13],
+        "number_points" : [100,100],
+        "periodic" : [true, true]
+    },
     "driver" : [
         {
             "number processors" : 2,

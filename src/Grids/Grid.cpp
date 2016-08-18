@@ -20,12 +20,12 @@ namespace SSAGES
 	Grid* Grid::BuildGrid(const Json::Value &json,
 						const std::string& path)
 	{
-		ArrayRequirement validator;
+		ObjectRequirement validator;
 		Value schema;
 		Value gridjson;
 		Reader reader;
 
-		gridjson = json.get("grid",Json::arrayValue);
+		gridjson = json.get("grid",Json::objectValue);
 		Grid* grid = nullptr;
 
 		if(!json.isMember("grid"))
@@ -44,36 +44,52 @@ namespace SSAGES
 		std::vector<bool> periodic;
 		std::vector<int> num_points;
 
-		for(auto&m : gridjson)
-		{
-			lower.push_back(m.get("lower",0.0).asDouble());
-			upper.push_back(m.get("upper",0.0).asDouble());
-			periodic.push_back(m.get("periodic",false).asBool());
-			num_points.push_back(m.get("number points",0).asInt());
-		}
+		for(auto&m : gridjson["lower"])
+			lower.push_back(m.asDouble());
 
-		if(lower.size() != upper.size() || lower.size() != periodic.size() || 
-			lower.size() != num_points.size())
+		for(auto&m : gridjson["upper"])
+			upper.push_back(m.asDouble());
+
+		for(auto&m : gridjson["number_points"])
+			num_points.push_back(m.asDouble());
+
+		if(lower.size() != upper.size() || lower.size() != num_points.size())
 			throw BuildException({"Grid variables dimensions not the same!"});
 
 		if(lower.size() == 1)
 		{
-			auto* g = new Grid1D(lower, upper, periodic, num_points);
+			auto* g = new Grid1D(lower, upper, num_points);
 			grid = static_cast<Grid*>(g);
 		}
 		else if(lower.size() == 2)
 		{
-			auto* g = new Grid2D(lower, upper, periodic, num_points);
+			auto* g = new Grid2D(lower, upper, num_points);
 			grid = static_cast<Grid*>(g);
 		}
 		else if(lower.size() == 3)
 		{
-			auto* g = new Grid3D(lower, upper, periodic, num_points);
+			auto* g = new Grid3D(lower, upper, num_points);
 			grid = static_cast<Grid*>(g);
 		}
 		else
+			throw BuildException({"SSAGES currently only accepts 1,2, or 3 dimension grids."});
+
+		if(gridjson.isMember("values"))
 		{
-			//throw build error
+			std::vector<double> first_values;
+			for(auto& p : gridjson["values"])
+				first_values.push_back(p.asDouble());
+
+			grid->SetGrid(first_values);
+
+		}
+
+		if(gridjson.isMember("periodic"))
+		{
+			for(auto&m : gridjson["periodic"])
+				periodic.push_back(m.asBool());
+
+			grid->SetPeriodic(periodic);
 		}
 
 		return grid;

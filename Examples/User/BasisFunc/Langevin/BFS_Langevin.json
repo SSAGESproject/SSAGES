@@ -24,20 +24,12 @@
         "convergence_exit" : false,
         "CV_coefficients" : [ 25, 25 ]
     },
-    "grid" : [
-        {
-            "lower" : -1.5,
-            "upper" : 2.0,
-            "number points" : 100,
-            "periodic" : true
-        },
-        {
-            "lower" : -1.5,
-            "upper" : 2.0,
-            "number points" : 100,
-            "periodic" : true
-        }
-    ],
+    "grid" : {
+        "lower" : [-1.5, -1.5],
+        "upper" : [2.0, 2.0],
+        "number_points" : [100, 100],
+        "periodic" : [true, true]
+    },
     "driver" : [
         {
             "number processors" : 1,

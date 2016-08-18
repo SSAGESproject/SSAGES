@@ -159,6 +159,34 @@ namespace SSAGES
 				_flatvector[flatten].first[i+1] = value[i];
 		}
 
+		//! Set the entire grid given two vectors of values and dimension.
+		/*!
+		 * \param first_values Values specifying the grid point value and derivatives/vector field.
+		 */
+		void SetGrid(const std::vector<double>& first_values)
+		{
+			std::cout<<first_values.size()/(_NDim+1)<<" "<<_flatvector.size()<<std::endl;
+			if(first_values.size()/(_NDim+1) != _flatvector.size())
+				throw std::out_of_range("Attempting to set grid with more/less values than grid has.");
+
+			for(size_t i = 0; i < _flatvector.size(); i++)
+				for(int j = 0; j < _NDim + 1; j++)
+					_flatvector[i].first[j] = first_values[i*(_NDim+1) + j];
+		}
+
+		//! Set the entire grid given two vectors of values and dimension.
+		/*!
+		 * \param periodic_values Values specifying the grid PBC.
+		 */
+		void SetPeriodic(const std::vector<bool>& periodic_values)
+		{
+			if(periodic_values.size() != _periodic.size())
+				throw std::out_of_range("Value dimension used to set periodic boundaries are not equal.");
+
+			for(size_t i = 0; i < periodic_values.size(); i++)
+				_periodic[i] = periodic_values[i];
+		}
+
 		//! Write Grid to console
 		/*!
 		 * Currently only for debugging
@@ -298,6 +326,21 @@ namespace SSAGES
 		//! \copydoc Serializable::Serialize()
 		virtual void Serialize(Json::Value& json) const override
 		{
+			for(auto& p : _lower)
+				json["lower"].append(p);
+
+			for(auto& p : _upper)
+				json["upper"].append(p);
+
+			for(auto& p : _num_points)
+				json["number_points"].append(p);
+
+			for(auto p : _periodic)
+				json["periodic"].append(p);
+
+			for(auto& point : _flatvector)
+				for(auto& p : point.first)
+					json["values"].append(p);
 
 		}
 
