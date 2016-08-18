@@ -306,7 +306,7 @@ namespace SSAGES
 		 */
 		void ApplyMinimumImage(Vector3* v) const
 		{
-			Vector3 scaled = ScaleVector(*v);
+			Vector3 scaled = _Hinv*(*v);
 
 			for(int i = 0; i < 3; ++i)
 				scaled[i] -= _isperiodic[i]*roundf(scaled[i]);
@@ -320,7 +320,7 @@ namespace SSAGES
 		 */
 		Vector3 ApplyMinimumImage(const Vector3& v) const
 		{
-			Vector3 scaled = ScaleVector(v);
+			Vector3 scaled = _Hinv*v;
 
 			for(int i = 0; i < 3; ++i)
 				scaled[i] -= _isperiodic[i]*roundf(scaled[i]);
