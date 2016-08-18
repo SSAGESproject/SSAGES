@@ -78,7 +78,7 @@ namespace SSAGES
 	 	_cv_prev.resize(_centers.size());
 	 	_SMD_centers.resize(_centers.size());
 
-		_iterator = 0;
+		_iterator = 1;
 
 		// Used for reparameterization
 	 	_alpha = _mpiid / (_numnodes - 1.0);
@@ -197,13 +197,13 @@ namespace SSAGES
 
 			// Calculate running averages for each CV at each node 
 			for(size_t i = 0; i < _runavgs.size(); i++){
-				_runavgs[i] = _runavgs[i] * (_iteration * _blockiterations + _iterator) + _cv_prev[i];
-				_runavgs[i] /= (_iteration * _blockiterations + _iterator + 1);
+				_runavgs[i] = _runavgs[i] * (_iteration * _blockiterations + _iterator - 1) + _cv_prev[i];
+				_runavgs[i] /= (_iteration * _blockiterations + _iterator);
                 _restartavgs[i] = _runavgs[i];
 			}
 
 			// Update the string, every _blockiterations string method iterations
-			if(_iterator > _blockiterations){
+			if(!(_iterator % _blockiterations)){
 
 				// Write out the string to file
 				PrintString(cvs);
@@ -213,7 +213,7 @@ namespace SSAGES
                 StringUpdate();
                 _world.barrier(); //Wait for all CVs to be updated
 
-				_iterator = 0;
+				_iterator = 1;
 				_iteration++;
 
 				if(_maxiterator && _iteration > _maxiterator){
@@ -282,16 +282,16 @@ namespace SSAGES
 		MPI_Status status;
 
 		if(_mpiid == 0){
-			sendneighbor = 1;
-			recvneighbor = _world.size()-1;
+			sendneighbor = _comm.size();
+			recvneighbor = _world.size() - _comm.size();
 		} 
-		else if (_mpiid == (unsigned int)_world.size() - 1){
+		else if (_mpiid == _world.size() - _comm.size()){
 			sendneighbor = 0;
-			recvneighbor = _world.size() - 2;
+			recvneighbor = _world.size() - 2 * _comm.size();
 		} 
 		else{
-			sendneighbor = _mpiid + 1;
-			recvneighbor = _mpiid - 1;
+			sendneighbor = _mpiid + _comm.size();
+			recvneighbor = _mpiid - _comm.size();
 		}
 
 		MPI_Sendrecv(&_centers[0], centersize, MPI_DOUBLE, sendneighbor, 1234,
