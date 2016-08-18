@@ -116,14 +116,6 @@ namespace SSAGES
 		 */
 		virtual void ExecuteInputFile(std::string contents) = 0;
 
-		//! Write a driver specific restart file
-		/*!
-		 * Write out a restart file using driver specific commands.
-		 * This will most likely be executed by an observer to force
-		 * a write of the restart file.
-		 */
-		virtual void WriteRestartFile() const = 0;
-
 		//! Get the input file contents
 		/*!
 		 * \returns The contents of \c _inputfile.
@@ -142,14 +134,6 @@ namespace SSAGES
 		 * This function sets the name of the input file for the driver.
 		 */
 		void SetInputFile(const std::string filename){ _inputfile = filename;}
-
-		//! Get the Driver's method current iteration
-		/*!
-		 * \returns The drivers \c _method current iterator
-		 *
-		 * This function returns the Driver's methods iterator.
-		 */
-		int GetIteration(){return _method->GetIteration();}
 
 		//! Build CVs
 		/*!
