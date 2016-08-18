@@ -152,7 +152,7 @@ if(LAMMPS_SRC)
 	)
 elseif(GROMACS_SRC)
 	# Get absolute path in case user specified relative path
-	get_filename_component(LAMMPS_SRC ${LAMMPS_SRC} ABSOLUTE)
+	get_filename_component(GROMACS_SRC ${GROMACS_SRC} ABSOLUTE)
 
 	# Check if directory GROMACS_SRC exists
 	if (NOT EXISTS ${GROMACS_SRC})
