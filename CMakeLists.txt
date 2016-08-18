@@ -17,7 +17,15 @@ endif()
 
 string (TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE_NAME)
 
-# list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+# List of supported versions of LAMMPS
+set (SUPPORTED_LAMMPS_VERSIONS "10 Aug 2015"
+                               "7 Dec 2015"
+                               "14 May 2016"
+                               "15 Jul 2016"
+                               "30 Jul 2016")
+
+# List of supported versions of Gromacs
+set (SUPPORTED_GROMACS_VERSIONS "5.1.3")
 
 # Resolve dependencies
 find_package(MPI 1.6 REQUIRED)
@@ -87,6 +95,18 @@ if(LAMMPS_SRC)
 		endif (EXISTS ${LAMMPS_SRC}/src/lammps.h)
 	endif (NOT EXISTS ${LAMMPS_SRC}/lammps.h)
 
+	# Check LAMMPS version
+	set (LAMMPS_VERSION "Version not found")
+	execute_process (COMMAND "sed" "s/^[^\"]*\"\\([^\"]*\\)\".*/\\1/" "${LAMMPS_SRC}/version.h"
+					 OUTPUT_VARIABLE LAMMPS_VERSION
+					 OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+	# Check if LAMMPS version is supported
+	if (NOT ";${SUPPORTED_LAMMPS_VERSIONS};" MATCHES ";${LAMMPS_VERSION};")
+		message(WARNING "\nWARNING: Lammps version \"${LAMMPS_VERSION}\" is not "
+						"officially supported by SSAGES.")
+	endif (NOT ";${SUPPORTED_LAMMPS_VERSIONS};" MATCHES ";${LAMMPS_VERSION};")
+
 	set(ENABLE_LAMMPS true)
 	# Add lammps as external project
 	ExternalProject_Add(
@@ -133,6 +153,28 @@ elseif(GROMACS_SRC)
 		message (FATAL_ERROR "ERROR: Directory ${GROMACS_SRC} does not exist.")
 	endif (NOT EXISTS ${GROMACS_SRC})
 
+	# Get Gromacs versions
+	set (GROMACS_VERSION "Version not found")
+	set (GROMACS_VERSION_INFO ${GROMACS_SRC}/cmake/gmxVersionInfo.cmake)
+	if (NOT EXISTS ${GROMACS_VERSION_INFO})
+		set (GROMACS_VERSION "< 5.1")
+	else (NOT EXISTS ${GROMACS_VERSION_INFO})
+		execute_process (
+			COMMAND "sed" "-n"
+			"s/set(GMX_VERSION_\\(MAJOR\\|MINOR\\|PATCH\\) \\([0-9]\\+\\))/\\2/p"
+			"${GROMACS_SRC}/cmake/gmxVersionInfo.cmake"
+			COMMAND "sed" "-e" ":a" "-e" "N" "-e" "\$!ba" "-e" "s/\\n/./g"
+			OUTPUT_VARIABLE GROMACS_VERSION
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+	endif (NOT EXISTS ${GROMACS_VERSION_INFO})
+
+	# Check if Gromacs version is supported
+	if (NOT ";${SUPPORTED_GROMACS_VERSIONS};" MATCHES ";${GROMACS_VERSION};")
+		message (WARNING "\nWARNING: Gromacs version ${GROMACS_VERSION} is "
+						 "currently not supported by SSAGES.")
+	endif (NOT ";${SUPPORTED_GROMACS_VERSIONS};" MATCHES ";${GROMACS_VERSION};")
+
 	set(ENABLE_GROMACS true)
 
 	set(GRO_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${PROJECT_SOURCE_DIR}/hooks/gromacs")
@@ -142,6 +184,22 @@ elseif(GROMACS_SRC)
 	"${PROJECT_SOURCE_DIR}/hooks/gromacs/apply_patch.sh.in"
 	"${PROJECT_BINARY_DIR}/apply_patch.sh"
 	)
+
+	# Check that files to be patched do exist
+	execute_process (COMMAND "sed" "-n"
+							 "s/^.*gromacs-ssages\\/\\([^t]*\\)\t.*/\\1/p"
+							 "${PROJECT_SOURCE_DIR}/hooks/gromacs/gmx_diff.patch"
+					 COMMAND "sed" "-e" ":a" "-e" "N" "-e" "\$!ba" "-e" "s/\\n/;/g"
+					 OUTPUT_VARIABLE GROMACS_FILES_TO_BE_PATCHED
+					 OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+	foreach (PATCH_FILE ${GROMACS_FILES_TO_BE_PATCHED})
+		if (NOT EXISTS ${GROMACS_SRC}/${PATCH_FILE})
+			message (FATAL_ERROR "\nERROR: File ${PATCH_FILE} does not exist.\n"
+								 "This error is probably caused by an unsupported "
+								 "version of Gromacs.")
+		endif (NOT EXISTS ${GROMACS_SRC}/${PATCH_FILE})
+	endforeach (PATCH_FILE IN LISTS ${GROMACS_FILES_TO_BE_PATCHED})
 
 	ExternalProject_Add(
 	gromacs
