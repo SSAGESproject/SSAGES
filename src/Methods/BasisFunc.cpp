@@ -165,7 +165,8 @@ namespace SSAGES
                 double beta;
                 beta = 1.0 / (snapshot->GetTemperature() * snapshot->GetKb());
 
-                // For systems with poorly defined temperature (ie: 1 particle) the user needs to define their own temperature. This is a hack that may be removed in future versions. 
+                // For systems with poorly defined temperature (ie: 1 particle) the user needs to define their own temperature. This is a hack that will be removed in future versions. 
+
                 if(snapshot->GetTemperature() == 0)
                 {
                     beta = _temperature;
@@ -300,7 +301,7 @@ namespace SSAGES
             /* The evaluation of the biased histogram which projects the histogram to the
              * current bias of CV space.
              */
-            _unbias[i] += hist.value * exp(bias * beta) * _weight / (double)(_cyclefreq); 
+            _unbias[i] += hist.value * exp(bias) * _weight / (double)(_cyclefreq); 
             bias = 0.0;
         }
 
@@ -417,9 +418,9 @@ namespace SSAGES
                 pos = (_hist[j].map[k]+0.5)*(_grid->GetUpper()[k] - _grid->GetLower()[k]) * 1.0 /(double)( _nbins[k]) + _grid->GetLower()[k];
                 _basisout << pos << std::setw(35);
             }
-            _basisout << -bias[j] << std::setw(35);
+            _basisout << -bias[j] * 1.0 / beta << std::setw(35);
             if(_unbias[j])
-                _basisout << -log(_unbias[j]) / beta  << std::setw(35);
+                _basisout << -log(_unbias[j]) / beta << std::setw(35);
             else
                 _basisout << "0" << std::setw(35);
             _basisout << _unbias[j];
