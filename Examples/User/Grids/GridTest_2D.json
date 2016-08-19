@@ -1,5 +1,12 @@
 {
     "inputfile" : "in.LAMMPS_Grid_Test",
+    "observers": [
+        {
+            "file name": "test_restart",
+            "frequency": 10,
+            "type": "JSON"
+        }
+    ],
     "CVs" : [
         {
             "type" : "AtomCoordinate",
@@ -8,22 +15,15 @@
         },
         {
             "type" : "AtomCoordinate",
-            "atom id" : 0,
+            "atom id" : 1,
             "dimension" : "y"
         }
     ],
-    "grid" : [
-        {
-            "lower" : 0,
-            "upper" : 10,
-            "number points" : 11
-        },
-        {
-            "lower" : 0,
-            "upper" : 10,
-            "number points" : 11
-        }
-    ],
+    "grid" : {
+        "lower" : [0, 0],
+        "upper" : [10, 10],
+        "number_points" : [11, 11]
+    },
     "method" : {
         "type" : "GridTest"
     },
@@ -31,7 +31,7 @@
         {
             "number processors" : 1,
             "type" : "LAMMPS",
-            "MDSteps" : 100,
+            "MDSteps" : 52,
             "logfile" : "node-1"
         }
     ]

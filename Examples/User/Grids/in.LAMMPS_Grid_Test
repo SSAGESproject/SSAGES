@@ -11,6 +11,8 @@ create_box        1 box
 #Set mass of all particles
 mass * 1.0
 
+#RESTART
+
 #Set pair potentials
 pair_style lj/cut 3.0
 pair_coeff * * 1.0 1.0 3.0

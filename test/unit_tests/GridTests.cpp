@@ -16,13 +16,19 @@ class GridsTest : public ::testing::Test {
 public:
 	virtual void SetUp() {
 
-		Grid1n = new Grid1D({-1.2}, {0.8}, {false}, {11});
-		Grid1p = new Grid1D({-1.2}, {0.8}, {true}, {11});
+		Grid1n = new Grid1D({-1.2}, {0.8}, {11});
+		Grid1p = new Grid1D({-1.2}, {0.8}, {11});
 
-		Grid2nn = new Grid2D({-109.5, 50.1}, {-60, 100.1}, {false, false}, {11, 101});
-		Grid2np = new Grid2D({-109.5, 50.1}, {-60, 100.1}, {false, true}, {11, 101});
-		Grid2pn = new Grid2D({-109.5, 50.1}, {-60, 100.1}, {true, false}, {11, 101});
-		Grid2pp = new Grid2D({-109.5, 50.1}, {-60, 100.1}, {true, true}, {11, 101});
+		Grid1p->SetPeriodic({true});
+
+		Grid2nn = new Grid2D({-109.5, 50.1}, {-60, 100.1}, {11, 101});
+		Grid2np = new Grid2D({-109.5, 50.1}, {-60, 100.1}, {11, 101});
+		Grid2pn = new Grid2D({-109.5, 50.1}, {-60, 100.1}, {11, 101});
+		Grid2pp = new Grid2D({-109.5, 50.1}, {-60, 100.1}, {11, 101});
+
+		Grid2np->SetPeriodic({false, true});
+		Grid2pn->SetPeriodic({true, false});
+		Grid2pp->SetPeriodic({true, true});
 	}
 	
 	virtual void TearDown() {

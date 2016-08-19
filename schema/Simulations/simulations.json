@@ -9,7 +9,7 @@
 			"type" : "string"
 		},
 		"grid" : {
-			"type" : "array"
+			"type" : "object"
 		},
 		"CVs" : {
 			"type" : "array",

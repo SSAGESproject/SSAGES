@@ -18,18 +18,16 @@ namespace SSAGES
 		/*!
 		 * \param lower List of values for the lower edges of the Grid.
 		 * \param upper List of values for the upper edges of the Grid.
-		 * \param periodic List of periodicity values.
 		 * \param num_points List of how many Grid points in each dimension.
 		 */
-		Grid3D(std::vector<double> lower, std::vector<double> upper,
-			std::vector<bool> periodic, std::vector<int> num_points)
+		Grid3D(std::vector<double> lower, std::vector<double> upper, std::vector<int> num_points)
 		{
 			_NDim = 3;
 			for(size_t i =0; i <lower.size(); i++)
 			{
 				_lower.push_back(lower[i]);
 				_upper.push_back(upper[i]);
-				_periodic.push_back(periodic[i]);
+				_periodic.push_back(false);
 				_num_points.push_back(num_points[i]);
 				_spacing.push_back(0.0);
 			}

@@ -55,11 +55,6 @@ namespace SSAGES
 
 		}
 
-		virtual void WriteRestartFile() const override
-		{
-
-		}
-
 		virtual void BuildDriver(const Json::Value& json, const std::string& path) override
 		{
 			_inputfile = json.get("inputfile","none").asString();

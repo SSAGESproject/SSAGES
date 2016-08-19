@@ -44,6 +44,6 @@ namespace SSAGES
 	{
 		auto& comm = _snapshot->GetCommunicator();
 		if(comm.rank() == 0)
-			_MDDriver->NotifyObservers(SimEvent(_MDDriver, _MDDriver->GetIteration()));
+			_MDDriver->NotifyObservers(SimEvent(_MDDriver, _snapshot->GetIteration()));
 	}
 }

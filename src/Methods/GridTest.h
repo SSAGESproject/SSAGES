@@ -43,6 +43,8 @@ namespace SSAGES
 				_world.abort(-1);
 			}
 			_grid->PrintGrid();
+
+			_iteration = 0;
 		}
 
 		//! Post-integration hook.
@@ -83,6 +85,8 @@ namespace SSAGES
 			for(int i = 0; i<NDim; i++)
 				std::cout<<Indices[i]<<" ";
 			std::cout<<std::endl;
+
+			_iteration ++;
 		}
 
 		//! Post-simulation hook.
@@ -101,6 +105,7 @@ namespace SSAGES
 		 */
 		void Serialize(Json::Value& json) const override
 		{
+			json["type"] = "GridTest";
 
 		}
 

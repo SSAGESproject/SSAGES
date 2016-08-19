@@ -22,14 +22,12 @@
         "CV_restraint_maximums" : [ 10.3 ],
         "CV_restraint_minimums" : [ 1.7 ]
     },
-    "grid" : [
-        {
-            "lower" : 2.0,
-            "upper" : 11.0,
-            "number points" : 500,
-            "periodic" : false
-        }
-    ],
+    "grid" : {
+            "lower" : [2.0],
+            "upper" : [11.0],
+            "number_points" : [500],
+            "periodic" : [false]
+    },
     "driver" : [
         {
             "number processors" : 1,

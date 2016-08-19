@@ -111,7 +111,7 @@ namespace SSAGES
 					JSONObserver* obs = static_cast<JSONObserver*>(o);
 					std::string filename1 = obs->GetPrefix() + "_" + std::to_string(_wid) + ".restart";
 					std::string filename2 = obs->GetPrefix() + "_" + std::to_string(_wid) + "b.restart";
-					_lammps->input->one(("restart 10000000000 " + filename1 + " " + filename2).c_str());
+					_lammps->input->one(("restart  " + std::to_string(obs->GetFrequency()) + " " + filename1 + " " + filename2).c_str());
 				}
 			}
 
@@ -123,17 +123,6 @@ namespace SSAGES
 			{
 				throw BuildException({"Unable to dynamic cast hook on node " + std::to_string(_world.rank())});			
 			}
-		}
-
-		//! Write a driver specific restart file
-		/*!
-		 * Write out a restart file using driver specific commands.
-		 * This will most likely be executed by an observer to force
-		 * a write of the restart file.
-		 */
-		virtual void WriteRestartFile() const override
-		{
-			_lammps->output->write_restart(bigint(_lammps->update->ntimestep));
 		}
 		
 		//! Set up the driver
