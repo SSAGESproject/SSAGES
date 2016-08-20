@@ -38,12 +38,40 @@ find_package(Boost
 	COMPONENTS mpi serialization
 )
 
-# Get lammps source directory
+# Set default values for variables
 set(LAMMPS_SRC "" CACHE STRING "LAMMPS source directory")
 set(GROMACS_SRC "" CACHE STRING "GROMACS source directory")
 
+### Determine which simulation engine to use.
+### Only one of the following values should be set on the command line:
+###
+### * LAMMPS_SRC=/path/to/lammps/src -- Use LAMMPS, use local LAMMPS source.
+### * GROMACS_SRC=/path/to/gromacs   -- Use GROMACS, use local GROMACS source.
+
+## Check if new values have been given on the command line
+if (LAMMPS_SRC AND NOT LAMMPS_SRC_LAST_RUN)
+	# LAMMPS_SRC has been set
+	set (LAMMPS NO CACHE BOOL "Use LAMMPS simulation engine." FORCE)
+	set (GROMACS NO CACHE BOOL "Use GROMACS simulation engine." FORCE)
+	set (GROMACS_SRC "" CACHE STRING "GROMACS source directory." FORCE)
+endif (LAMMPS_SRC AND NOT LAMMPS_SRC_LAST_RUN)
+
+if (GROMACS_SRC AND NOT GROMACS_SRC_LAST_RUN)
+	# GROMACS_SRC has been set
+	set (LAMMPS NO CACHE BOOL "Use GROMACS simulation engine." FORCE)
+	set (GROMACS NO CACHE BOOL "Use GROMACS simulation engine." FORCE)
+	set (LAMMPS_SRC "" CACHE BOOL "LAMMPS source directory." FORCE)
+endif (GROMACS_SRC AND NOT GROMACS_SRC_LAST_RUN)
+
+# Store current values of LAMMPS_SRC and GROMACS_SRC in the
+# cache to be able to determine if they have been changed on the command line
+set (LAMMPS_LAST_RUN ${LAMMPS} CACHE BOOL
+	 "Value of LAMMPS on last cmake run." FORCE)
+set (GROMACS_LAST_RUN ${GROMACS} CACHE BOOL
+	 "Value of GROMACS on last cmake run." FORCE)
+
 # Check that either LAMMPS_SRC or GROMACS_SRC have been set
-if ( NOT(LAMMPS_SRC OR GROMACS_SRC) )
+if ( NOT LAMMPS_SRC AND NOT GROMACS_SRC) )
     message (FATAL_ERROR
              "\nERROR: SSAGES needs to be built with a simulation engine.\n"
              "The following simulation engines are supported by SSAGES:\n"
@@ -56,18 +84,7 @@ if ( NOT(LAMMPS_SRC OR GROMACS_SRC) )
              "to build with SSAGES for LAMMPS and Gromacs, respectively. In "
              "this example, \"/path/to/lammps/src/\" and \"/path/to/gromacs/\" "
              "should point to the local source directory for LAMMPS or Gromacs.")
-elseif (LAMMPS_SRC AND GROMACS_SRC)
-    message (FATAL_ERROR
-             "\nERROR: SSAGES does not (yet) include multi-engine support.\n"
-             "Please use only one of the options "
-             "\"-DLAMMPS_SRC=/path/to/lammps/src/\" *or* "
-             "\"-DGROMACS_SRC=/path/to/gromacs/\". Note, that CMake remembers "
-             "the values specified via \"-DLAMMPS_SRC\" and \"-DGROMACS_SRC\" "
-             "from earlier calls. Thus, if you want to switch simulation "
-             "engines you have to clear the other parameter manually. For "
-             "example, to switch from LAMMPS to Gromacs, call\n"
-             "    cmake .. -DGROMACS_SRC=/path/to/gromacs -DLAMMPS_SRC=\"\"")
-endif ()
+endif ( NOT LAMMPS_SRC AND NOT GROMACS_SRC) )
 
 include(ExternalProject)
 
