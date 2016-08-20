@@ -39,12 +39,16 @@ find_package(Boost
 )
 
 # Set default values for variables
-set(LAMMPS_SRC "" CACHE STRING "LAMMPS source directory")
-set(GROMACS_SRC "" CACHE STRING "GROMACS source directory")
+set(LAMMPS NO CACHE BOOL "Use LAMMPS simulation engine.")
+set(GROMACS NO CACHE BOOL "Use GROMACS simulation engine.")
+set(LAMMPS_SRC "" CACHE STRING "LAMMPS source directory.")
+set(GROMACS_SRC "" CACHE STRING "GROMACS source directory.")
 
 ### Determine which simulation engine to use.
 ### Only one of the following values should be set on the command line:
 ###
+### * LAMMPS=YES
+### * GROMACS=YES
 ### * LAMMPS_SRC=/path/to/lammps/src -- Use LAMMPS, use local LAMMPS source.
 ### * GROMACS_SRC=/path/to/gromacs   -- Use GROMACS, use local GROMACS source.
 
@@ -63,28 +67,51 @@ if (GROMACS_SRC AND NOT GROMACS_SRC_LAST_RUN)
 	set (LAMMPS_SRC "" CACHE BOOL "LAMMPS source directory." FORCE)
 endif (GROMACS_SRC AND NOT GROMACS_SRC_LAST_RUN)
 
+if (LAMMPS AND NOT LAMMPS_LAST_RUN)
+	# LAMMPS has been set to YES
+	set (GROMACS NO CACHE BOOL "Use GROMACS simulation engine." FORCE)
+	set (LAMMPS_SRC "" CACHE BOOL "LAMMPS source directory." FORCE)
+	set (GROMACS_SRC "" CACHE STRING "GROMACS source directory." FORCE)
+endif (LAMMPS AND NOT LAMMPS_LAST_RUN)
+
+if (GROMACS AND NOT GROMACS_LAST_RUN)
+	# GROMACS has been set to YES
+	set (LAMMPS NO CACHE BOOL "Use GROMACS simulation engine." FORCE)
+	set (LAMMPS_SRC "" CACHE BOOL "LAMMPS source directory." FORCE)
+	set (GROMACS_SRC "" CACHE STRING "GROMACS source directory." FORCE)
+endif (GROMACS AND NOT GROMACS_LAST_RUN)
+
 # Store current values of LAMMPS_SRC and GROMACS_SRC in the
 # cache to be able to determine if they have been changed on the command line
 set (LAMMPS_LAST_RUN ${LAMMPS} CACHE BOOL
-	 "Value of LAMMPS on last cmake run." FORCE)
+	"Value of LAMMPS on last cmake run." FORCE)
 set (GROMACS_LAST_RUN ${GROMACS} CACHE BOOL
-	 "Value of GROMACS on last cmake run." FORCE)
+	"Value of GROMACS on last cmake run." FORCE)
+set (LAMMPS_SRC_LAST_RUN ${LAMMPS_SRC} CACHE BOOL
+	"Use GROMACS simulation engine." FORCE)
+set (GROMACS_SRC_LAST_RUN ${GROMACS_SRC} CACHE BOOL
+	"Use GROMACS simulation engine." FORCE)
 
 # Check that either LAMMPS_SRC or GROMACS_SRC have been set
-if ( NOT LAMMPS_SRC AND NOT GROMACS_SRC) )
+if ( NOT LAMMPS AND NOT GROMACS AND NOT LAMMPS_SRC AND NOT GROMACS_SRC )
     message (FATAL_ERROR
              "\nERROR: SSAGES needs to be built with a simulation engine.\n"
              "The following simulation engines are supported by SSAGES:\n"
              "    - LAMMPS\n"
              "    - Gromacs\n"
-             "Please call cmake using\n"
-             "    cmake .. -DLAMMPS_SRC=/path/to/lammps/src/\n"
-             "or\n"
-             "    cmake .. -DGROMACS_SRC=/path/to/gromacs/\n"
-             "to build with SSAGES for LAMMPS and Gromacs, respectively. In "
-             "this example, \"/path/to/lammps/src/\" and \"/path/to/gromacs/\" "
-             "should point to the local source directory for LAMMPS or Gromacs.")
-endif ( NOT LAMMPS_SRC AND NOT GROMACS_SRC) )
+             "Please call cmake with \"-DLAMMPS=YES\" or \"-DGROMACS=YES\" to "
+             "build with SSAGES for LAMMPS and Gromacs, respectively.\n"
+             "Alternatively, you can call with the option "
+             "\"-DLAMMPS_SRC=/path/to/lammps/src\" or "
+             "\"-DGROMACS_SRC=/path/to/gromacs\", where "
+             "\"/path/to/lammps/src/\" and \"/path/to/gromacs/\" points to the "
+             "local directory containing the source code for LAMMPS or Gromacs."
+    )
+endif ( NOT LAMMPS AND NOT GROMACS AND NOT LAMMPS_SRC AND NOT GROMACS_SRC )
+
+if (LAMMPS OR GROMACS)
+    message(FATAL_ERROR "Auto-download of LAMMPS or GROMACS not yet supported.")
+endif (LAMMPS OR GROMACS)
 
 include(ExternalProject)
 
@@ -93,44 +120,48 @@ include_directories("${PROJECT_SOURCE_DIR}/src")
 include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${PROJECT_BINARY_DIR}")
 
-if(LAMMPS_SRC)
-	# Get absolute path in case user specified relative path
-	if (IS_ABSOLUTE ${LAMMPS_SRC})
-		get_filename_component(LAMMPS_SRC ${LAMMPS_SRC} ABSOLUTE)
-	else (IS_ABSOLUTE ${LAMMPS_SRC})
-		get_filename_component(LAMMPS_SRC ${CMAKE_CURRENT_BINARY_DIR}/${LAMMPS_SRC}
-							   ABSOLUTE)
-	endif (IS_ABSOLUTE ${LAMMPS_SRC})
+if(LAMMPS OR LAMMPS_SRC)
+    if (LAMMPS_SRC)
+		# Get absolute path in case user specified relative path
+		if (IS_ABSOLUTE ${LAMMPS_SRC})
+			get_filename_component(LAMMPS_SRC ${LAMMPS_SRC} ABSOLUTE)
+		else (IS_ABSOLUTE ${LAMMPS_SRC})
+			get_filename_component(LAMMPS_SRC ${CMAKE_CURRENT_BINARY_DIR}/${LAMMPS_SRC}
+								   ABSOLUTE)
+		endif (IS_ABSOLUTE ${LAMMPS_SRC})
 
-	# Check if given LAMMPS directory exists.
-	if (NOT EXISTS ${LAMMPS_SRC})
-		message (FATAL_ERROR "\nERROR: Directory ${LAMMPS_SRC} does not exist.")
-	endif (NOT EXISTS ${LAMMPS_SRC})
+		# Check if given LAMMPS directory exists.
+		if (NOT EXISTS ${LAMMPS_SRC})
+			message (FATAL_ERROR "\nERROR: Directory ${LAMMPS_SRC} does not exist.")
+		endif (NOT EXISTS ${LAMMPS_SRC})
 
-	# Check if directory does contain LAMMPS source files
-	if (NOT EXISTS ${LAMMPS_SRC}/lammps.h)
-		# Check if subdirectory was not specified
-		if (EXISTS ${LAMMPS_SRC}/src/lammps.h)
-			set (LAMMPS_SRC ${LAMMPS_SRC}/src)
-		else (EXISTS ${LAMMPS_SRC}/src/lammps.h)
-			# Directory does not contain LAMMPS source
-			message (FATAL_ERROR "\nERROR: Directory ${LAMMPS_SRC} does not "
-								 "contain LAMMPS source files (file lammps.h "
-								 "not found).")
-		endif (EXISTS ${LAMMPS_SRC}/src/lammps.h)
-	endif (NOT EXISTS ${LAMMPS_SRC}/lammps.h)
+		# Check if directory does contain LAMMPS source files
+		if (NOT EXISTS ${LAMMPS_SRC}/lammps.h)
+			# Check if subdirectory was not specified
+			if (EXISTS ${LAMMPS_SRC}/src/lammps.h)
+				set (LAMMPS_SRC ${LAMMPS_SRC}/src)
+			else (EXISTS ${LAMMPS_SRC}/src/lammps.h)
+				# Directory does not contain LAMMPS source
+				message (FATAL_ERROR "\nERROR: Directory ${LAMMPS_SRC} does not "
+									 "contain LAMMPS source files (file lammps.h "
+									 "not found).")
+			endif (EXISTS ${LAMMPS_SRC}/src/lammps.h)
+		endif (NOT EXISTS ${LAMMPS_SRC}/lammps.h)
 
-	# Check LAMMPS version
-	set (LAMMPS_VERSION "Version not found")
-	execute_process (COMMAND "sed" "s/^[^\"]*\"\\([^\"]*\\)\".*/\\1/" "${LAMMPS_SRC}/version.h"
-					 OUTPUT_VARIABLE LAMMPS_VERSION
-					 OUTPUT_STRIP_TRAILING_WHITESPACE)
+		# Check LAMMPS version
+		set (LAMMPS_VERSION "Version not found")
+		execute_process (COMMAND "sed" "s/^[^\"]*\"\\([^\"]*\\)\".*/\\1/" "${LAMMPS_SRC}/version.h"
+						 OUTPUT_VARIABLE LAMMPS_VERSION
+						 OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-	# Check if LAMMPS version is supported
-	if (NOT ";${SUPPORTED_LAMMPS_VERSIONS};" MATCHES ";${LAMMPS_VERSION};")
-		message(WARNING "\nWARNING: Lammps version \"${LAMMPS_VERSION}\" is not "
-						"officially supported by SSAGES.")
-	endif (NOT ";${SUPPORTED_LAMMPS_VERSIONS};" MATCHES ";${LAMMPS_VERSION};")
+		# Check if LAMMPS version is supported
+		if (NOT ";${SUPPORTED_LAMMPS_VERSIONS};" MATCHES ";${LAMMPS_VERSION};")
+			message(WARNING "\nWARNING: Lammps version \"${LAMMPS_VERSION}\" is not "
+							"officially supported by SSAGES.")
+		endif (NOT ";${SUPPORTED_LAMMPS_VERSIONS};" MATCHES ";${LAMMPS_VERSION};")
+	else (LAMMPS_SRC)
+		set (LAMMPS_SRC "${CMAKE_CURRENT_BINARY_DIR}/lammps_source/src")
+	endif (LAMMPS_SRC)
 
 	set(ENABLE_LAMMPS true)
 	# Add lammps as external project
@@ -172,41 +203,45 @@ if(LAMMPS_SRC)
 	set(HOOKSRC
 		hooks/lammps/fix_ssages.cpp
 	)
-elseif(GROMACS_SRC)
-	# Get absolute path in case user specified relative path
-	if (IS_ABSOLUTE ${GROMACS_SRC})
-		get_filename_component(GROMACS_SRC ${GROMACS_SRC} ABSOLUTE)
-	else (IS_ABSOLUTE ${GROMACS_SRC})
-		get_filename_component(GROMACS_SRC ${CMAKE_CURRENT_BINARY_DIR}/${GROMACS_SRC}
-							   ABSOLUTE)
-	endif (IS_ABSOLUTE ${GROMACS_SRC})
+elseif(GROMACS OR GROMACS_SRC)
+    if (GROMACS_SRC)
+		# Get absolute path in case user specified relative path
+		if (IS_ABSOLUTE ${GROMACS_SRC})
+			get_filename_component(GROMACS_SRC ${GROMACS_SRC} ABSOLUTE)
+		else (IS_ABSOLUTE ${GROMACS_SRC})
+			get_filename_component(GROMACS_SRC ${CMAKE_CURRENT_BINARY_DIR}/${GROMACS_SRC}
+								   ABSOLUTE)
+		endif (IS_ABSOLUTE ${GROMACS_SRC})
 
-	# Check if directory GROMACS_SRC exists
-	if (NOT EXISTS ${GROMACS_SRC})
-		message (FATAL_ERROR "ERROR: Directory ${GROMACS_SRC} does not exist.")
-	endif (NOT EXISTS ${GROMACS_SRC})
+		# Check if directory GROMACS_SRC exists
+		if (NOT EXISTS ${GROMACS_SRC})
+			message (FATAL_ERROR "ERROR: Directory ${GROMACS_SRC} does not exist.")
+		endif (NOT EXISTS ${GROMACS_SRC})
 
-	# Get Gromacs versions
-	set (GROMACS_VERSION "Version not found")
-	set (GROMACS_VERSION_INFO ${GROMACS_SRC}/cmake/gmxVersionInfo.cmake)
-	if (NOT EXISTS ${GROMACS_VERSION_INFO})
-		set (GROMACS_VERSION "< 5.1")
-	else (NOT EXISTS ${GROMACS_VERSION_INFO})
-		execute_process (
-			COMMAND "sed" "-n"
-			"s/set(GMX_VERSION_\\(MAJOR\\|MINOR\\|PATCH\\) \\([0-9]\\+\\))/\\2/p"
-			"${GROMACS_SRC}/cmake/gmxVersionInfo.cmake"
-			COMMAND "sed" "-e" ":a" "-e" "N" "-e" "\$!ba" "-e" "s/\\n/./g"
-			OUTPUT_VARIABLE GROMACS_VERSION
-			OUTPUT_STRIP_TRAILING_WHITESPACE
-		)
-	endif (NOT EXISTS ${GROMACS_VERSION_INFO})
+		# Get Gromacs versions
+		set (GROMACS_VERSION "Version not found")
+		set (GROMACS_VERSION_INFO ${GROMACS_SRC}/cmake/gmxVersionInfo.cmake)
+		if (NOT EXISTS ${GROMACS_VERSION_INFO})
+			set (GROMACS_VERSION "< 5.1")
+		else (NOT EXISTS ${GROMACS_VERSION_INFO})
+			execute_process (
+				COMMAND "sed" "-n"
+				"s/set(GMX_VERSION_\\(MAJOR\\|MINOR\\|PATCH\\) \\([0-9]\\+\\))/\\2/p"
+				"${GROMACS_SRC}/cmake/gmxVersionInfo.cmake"
+				COMMAND "sed" "-e" ":a" "-e" "N" "-e" "\$!ba" "-e" "s/\\n/./g"
+				OUTPUT_VARIABLE GROMACS_VERSION
+				OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
+		endif (NOT EXISTS ${GROMACS_VERSION_INFO})
 
-	# Check if Gromacs version is supported
-	if (NOT ";${SUPPORTED_GROMACS_VERSIONS};" MATCHES ";${GROMACS_VERSION};")
-		message (WARNING "\nWARNING: Gromacs version ${GROMACS_VERSION} is "
-						 "currently not supported by SSAGES.")
-	endif (NOT ";${SUPPORTED_GROMACS_VERSIONS};" MATCHES ";${GROMACS_VERSION};")
+		# Check if Gromacs version is supported
+		if (NOT ";${SUPPORTED_GROMACS_VERSIONS};" MATCHES ";${GROMACS_VERSION};")
+			message (WARNING "\nWARNING: Gromacs version ${GROMACS_VERSION} is "
+							 "currently not supported by SSAGES.")
+		endif (NOT ";${SUPPORTED_GROMACS_VERSIONS};" MATCHES ";${GROMACS_VERSION};")
+	else (GROMACS_SRC)
+		set (GROMACS_SRC ${CMAKE_CURRENT_BINARY_DIR}/gromacs_source/)
+	endif (GROMACS_SRC)
 
 	set(ENABLE_GROMACS true)
 
@@ -214,8 +249,8 @@ elseif(GROMACS_SRC)
 
 	# Configure patch.
 	configure_file (
-	"${PROJECT_SOURCE_DIR}/hooks/gromacs/apply_patch.sh.in"
-	"${PROJECT_BINARY_DIR}/apply_patch.sh"
+		"${PROJECT_SOURCE_DIR}/hooks/gromacs/apply_patch.sh.in"
+		"${PROJECT_BINARY_DIR}/apply_patch.sh"
 	)
 
 	# Check that files to be patched do exist
