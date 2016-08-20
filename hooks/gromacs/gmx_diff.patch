@@ -88,7 +88,6 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
 +            f,
 +            state->box,
 +            enerd->term[F_TEMP], 
-+            enerd->term[F_PRES], 
 +            enerd->term[F_EPOT], 
 +            BOLTZ);
 +    });
