@@ -109,10 +109,6 @@ if ( NOT LAMMPS AND NOT GROMACS AND NOT LAMMPS_SRC AND NOT GROMACS_SRC )
     )
 endif ( NOT LAMMPS AND NOT GROMACS AND NOT LAMMPS_SRC AND NOT GROMACS_SRC )
 
-if (LAMMPS OR GROMACS)
-    message(FATAL_ERROR "Auto-download of LAMMPS or GROMACS not yet supported.")
-endif (LAMMPS OR GROMACS)
-
 include(ExternalProject)
 
 
@@ -160,13 +156,28 @@ if(LAMMPS OR LAMMPS_SRC)
 							"officially supported by SSAGES.")
 		endif (NOT ";${SUPPORTED_LAMMPS_VERSIONS};" MATCHES ";${LAMMPS_VERSION};")
 	else (LAMMPS_SRC)
-		set (LAMMPS_SRC "${CMAKE_CURRENT_BINARY_DIR}/lammps_source/src")
+		set (LAMMPS_SRC "${CMAKE_CURRENT_BINARY_DIR}/lammps-download-prefix/src/lammps-download/src")
 	endif (LAMMPS_SRC)
 
 	set(ENABLE_LAMMPS true)
+
+	if (LAMMPS)
+        ExternalProject_Add(
+            lammps-download
+            DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
+			GIT_REPOSITORY git://git.lammps.org/lammps-ro.git
+			GIT_TAG r15407
+			TIMEOUT 600
+			CONFIGURE_COMMAND ""
+			BUILD_COMMAND ""
+			INSTALL_COMMAND ""
+		)
+	endif (LAMMPS)
+
 	# Add lammps as external project
 	ExternalProject_Add(
 		lammps
+		DOWNLOAD_COMMAND ""
 		SOURCE_DIR ${LAMMPS_SRC}
 		CONFIGURE_COMMAND ""
 		BUILD_COMMAND $(MAKE) mpi mode=shlib 
@@ -180,7 +191,6 @@ if(LAMMPS OR LAMMPS_SRC)
 		LIB+=${CMAKE_BINARY_DIR}/libssages.a
 		INSTALL_COMMAND ""
 		BUILD_IN_SOURCE true
-		LOG_BUILD ON
 	)
 
 	ExternalProject_Add_Step(
@@ -239,8 +249,24 @@ elseif(GROMACS OR GROMACS_SRC)
 			message (WARNING "\nWARNING: Gromacs version ${GROMACS_VERSION} is "
 							 "currently not supported by SSAGES.")
 		endif (NOT ";${SUPPORTED_GROMACS_VERSIONS};" MATCHES ";${GROMACS_VERSION};")
+
+		# Check that files to be patched do exist
+		execute_process (COMMAND "sed" "-n"
+								 "s/^.*gromacs-ssages\\/\\([^t]*\\)\t.*/\\1/p"
+								 "${PROJECT_SOURCE_DIR}/hooks/gromacs/gmx_diff.patch"
+						 COMMAND "sed" "-e" ":a" "-e" "N" "-e" "\$!ba" "-e" "s/\\n/;/g"
+						 OUTPUT_VARIABLE GROMACS_FILES_TO_BE_PATCHED
+						 OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+		foreach (PATCH_FILE ${GROMACS_FILES_TO_BE_PATCHED})
+			if (NOT EXISTS ${GROMACS_SRC}/${PATCH_FILE})
+				message (FATAL_ERROR "\nERROR: File ${PATCH_FILE} does not exist.\n"
+									 "This error is probably caused by an unsupported "
+									 "version of Gromacs.")
+			endif (NOT EXISTS ${GROMACS_SRC}/${PATCH_FILE})
+		endforeach (PATCH_FILE IN LISTS ${GROMACS_FILES_TO_BE_PATCHED})
 	else (GROMACS_SRC)
-		set (GROMACS_SRC ${CMAKE_CURRENT_BINARY_DIR}/gromacs_source/)
+		set (GROMACS_SRC ${CMAKE_CURRENT_BINARY_DIR}/gromacs-download-prefix/src/gromacs-download)
 	endif (GROMACS_SRC)
 
 	set(ENABLE_GROMACS true)
@@ -253,44 +279,42 @@ elseif(GROMACS OR GROMACS_SRC)
 		"${PROJECT_BINARY_DIR}/apply_patch.sh"
 	)
 
-	# Check that files to be patched do exist
-	execute_process (COMMAND "sed" "-n"
-							 "s/^.*gromacs-ssages\\/\\([^t]*\\)\t.*/\\1/p"
-							 "${PROJECT_SOURCE_DIR}/hooks/gromacs/gmx_diff.patch"
-					 COMMAND "sed" "-e" ":a" "-e" "N" "-e" "\$!ba" "-e" "s/\\n/;/g"
-					 OUTPUT_VARIABLE GROMACS_FILES_TO_BE_PATCHED
-					 OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-	foreach (PATCH_FILE ${GROMACS_FILES_TO_BE_PATCHED})
-		if (NOT EXISTS ${GROMACS_SRC}/${PATCH_FILE})
-			message (FATAL_ERROR "\nERROR: File ${PATCH_FILE} does not exist.\n"
-								 "This error is probably caused by an unsupported "
-								 "version of Gromacs.")
-		endif (NOT EXISTS ${GROMACS_SRC}/${PATCH_FILE})
-	endforeach (PATCH_FILE IN LISTS ${GROMACS_FILES_TO_BE_PATCHED})
+	if (GROMACS)
+        ExternalProject_Add(
+			gromacs-download
+			DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/gromacs_source/
+			GIT_REPOSITORY git://git.gromacs.org/gromacs.git
+			GIT_TAG v5.1.3
+			TIMEOUT 600
+			CONFIGURE_COMMAND ""
+			BUILD_COMMAND ""
+			INSTALL_COMMAND ""
+		)
+	endif (GROMACS)
 
 	ExternalProject_Add(
-	gromacs
-	BUILD_COMMAND $(MAKE)
-	SOURCE_DIR ${GROMACS_SRC}
-	PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gromacs
-	CMAKE_ARGS
-	-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
-	-DGMX_MPI=ON
-	-DCMAKE_CXX_FLAGS=${GRO_CXX_ARGS}
-	-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-	-DGMX_EXTRA_LIBRARIES=${CMAKE_BINARY_DIR}/libssagesgmx.so
-	-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-	-DCUDA_PROPAGATE_HOST_FLAGS=OFF
-	-DCUDA_NVCC_FLAGS="-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${PROJECT_SOURCE_DIR}/hooks/gromacs"
-	BUILD_IN_SOURCE false
-	INSTALL_DIR ${CMAKE_BINARY_DIR}/gromacs
-	PATCH_COMMAND sh ${CMAKE_BINARY_DIR}/apply_patch.sh
-	LOG_BUILD ON)
+		gromacs
+		DOWNLOAD_COMMAND ""
+		BUILD_COMMAND $(MAKE)
+		SOURCE_DIR ${GROMACS_SRC}
+		PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gromacs
+		CMAKE_ARGS
+		-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+		-DGMX_MPI=ON
+		-DCMAKE_CXX_FLAGS=${GRO_CXX_ARGS}
+		-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+		-DGMX_EXTRA_LIBRARIES=${CMAKE_BINARY_DIR}/libssagesgmx.so
+		-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+		-DCUDA_PROPAGATE_HOST_FLAGS=OFF
+		-DCUDA_NVCC_FLAGS="-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${PROJECT_SOURCE_DIR}/hooks/gromacs"
+		BUILD_IN_SOURCE false
+		INSTALL_DIR ${CMAKE_BINARY_DIR}/gromacs
+		PATCH_COMMAND sh ${CMAKE_BINARY_DIR}/apply_patch.sh
+	)
 
 	set(HOOKSRC
 		hooks/gromacs/GromacsHook.cpp
-		)
+	)
 
 	include_directories(${GROMACS_SRC}/src)
 endif()
@@ -356,17 +380,24 @@ configure_file (
 
 # Dependencies
 add_dependencies(libssages schema)
-if(LAMMPS_SRC)
+if(LAMMPS OR LAMMPS_SRC)
 	add_dependencies(lammps libssages)
+	if (LAMMPS)
+		add_dependencies(libssages lammps-download)
+	endif (LAMMPS)
 	target_link_libraries(ssages libssages ${LAMMPS_SRC}/liblammps_mpi.so)
 	add_dependencies(ssages lammps)
-elseif(GROMACS_SRC)
+elseif(GROMACS OR GROMACS_SRC)
 	
 	# Build custom shared library for dependencies. 
 	add_library(ssagesgmx SHARED ${HOOKSRC} ${SOURCE})
 	target_link_libraries(ssagesgmx ${MPI_CXX_LIBRARIES} ${Boost_LIBRARIES})
 
 	add_dependencies(gromacs ssagesgmx)
+
+	if (GROMACS)
+		add_dependencies(ssagesgmx gromacs-download)
+	endif (GROMACS)
 
 	# To determine Gromacs install dir. 
 	include(GNUInstallDirs)
