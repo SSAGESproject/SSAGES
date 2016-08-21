@@ -5,6 +5,7 @@
 #include "compute.h"
 #include "modify.h"
 #include "force.h"
+#include "pair.h"
 #include "update.h"
 #include "domain.h"
 #include <boost/mpi.hpp>
@@ -68,6 +69,17 @@ namespace LAMMPS_NS
 		// resize later.
 
 		auto n = atom->nlocal;
+		auto ntype = atom->ntypes;
+
+		int dim;
+		const auto* _sigma = (force->pair->extract("sigma", dim));
+
+		if (_sigma==NULL)
+		{
+			std::cout<<"Could not locate sigma from force->pair->extract"<<std::endl;
+			exit(-1);
+		}
+
 		auto& pos = _snapshot->GetPositions();
 		pos.resize(n);
 		auto& vel = _snapshot->GetVelocities();
@@ -80,6 +92,14 @@ namespace LAMMPS_NS
 		ids.resize(n);
 		auto& types = _snapshot->GetAtomTypes();
 		types.resize(n);
+		auto& charges = _snapshot->GetCharges();
+		charges.resize(n);
+
+		auto& sigmas = _snapshot->GetSigmas();
+		sigmas.resize(ntype);
+		for (auto& sig : sigmas)
+			sig.resize(ntype);
+
 		auto& flags = _snapshot->GetImageFlags();
 		flags.resize(n);
 
@@ -124,6 +144,15 @@ namespace LAMMPS_NS
 		// change.
 		const auto* _atom = atom;
 
+		int dim;
+		const auto* _sigma = (double**)(force->pair->extract("sigma", dim));
+
+		if (_sigma==NULL)
+		{
+			std::cout<<"Could not locate sigma from force->pair->extract"<<std::endl;
+			exit(-1);
+		}
+
 		auto n = atom->nlocal;
 
 		auto& pos = _snapshot->GetPositions();
@@ -137,12 +166,18 @@ namespace LAMMPS_NS
 		auto& flags = _snapshot->GetImageFlags();
 		flags.resize(n);
 
+		auto& sigmas = _snapshot->GetSigmas();
+		sigmas.resize(n);
+
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
 		auto& ids = _snapshot->GetAtomIDs();
 		ids.resize(n);
 		auto& types = _snapshot->GetAtomTypes();
 		types.resize(n);
+
+		auto& charges = _snapshot->GetCharges();
+		charges.resize(n);
 
 		// Thermo properties:
 		int icompute; 
@@ -171,6 +206,13 @@ namespace LAMMPS_NS
 		
 		// Get iteration.
 		_snapshot->SetIteration(update->ntimestep);
+
+		_snapshot->SetDielectric(force->dielectric);
+
+		_snapshot->Setqqrd2e(force->qqrd2e);
+
+		_snapshot->SetNumAtoms(n);
+
 		
 		// Get H-matrix.
 		Matrix3 H;
@@ -236,19 +278,25 @@ namespace LAMMPS_NS
 
 			ids[i] = _atom->tag[i];
 			types[i] = _atom->type[i];
+			charges[i] = _atom->q[i];
 		}
 
+		for (int i = 0; i < sigmas.size(); ++i)
+			for (int j = 0; j <sigmas[i].size(); ++j)
+				sigmas[i][j] = _sigma[i][j];
 
 		auto& comm = _snapshot->GetCommunicator();
 
 		std::vector<Vector3> gpos, gvel, gfrc;
-		std::vector<double> gmasses;
+		std::vector<double> gmasses
+        std::vector<double> gcharges;
 		std::vector<int> gids, gtypes; 
 		
 		allgatherv_serialize(comm, pos, gpos);
 		allgatherv_serialize(comm, vel, gvel);
 		allgatherv_serialize(comm, frc, gfrc);
 		allgatherv_serialize(comm, masses, gmasses);
+		allgatherv_serialize(comm, charges, gcharges);
 		allgatherv_serialize<int,int>(comm, ids, gids);
 		allgatherv_serialize<int,int>(comm, types, gtypes);
 
@@ -256,6 +304,7 @@ namespace LAMMPS_NS
 		vel = gvel;
 		frc = gfrc; 
 		masses = gmasses;
+        charges = gcharges;
 		ids = gids; 
 		types = gtypes;
 	}
@@ -270,6 +319,8 @@ namespace LAMMPS_NS
 		const auto& vel = _snapshot->GetVelocities();
 		const auto& frc = _snapshot->GetForces();
 		const auto& masses = _snapshot->GetMasses();
+		const auto& charges = _snapshot->GetCharges();
+		const auto& sigmas = _snapshot->GetSigmas();
 
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
@@ -298,6 +349,7 @@ namespace LAMMPS_NS
 			atom->v[i][2] = vel[j][2]; //velocity->z
 			atom->tag[i] = ids[j];
 			atom->type[i] = types[j];
+			atom->q[i] = charges[j];
 			
 			// Current masses can only be changed if using
 			// per atom masses in lammps
@@ -312,3 +364,4 @@ namespace LAMMPS_NS
 		// However, this will change in the future.
 	}
 }
+

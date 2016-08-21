@@ -2,6 +2,7 @@
 
 #include "../Drivers/Driver.h"
 #include "../Grids/Grid.h"
+#include "../Constraints/Constraint.h"
 #include "../JSON/Serializable.h"
 #include "json/json.h"
 #include <boost/mpi.hpp>
@@ -282,12 +283,14 @@ namespace SSAGES
 		        success_build = false;
 			}
 
-			if(!json.isMember("CVs") && !JsonDriver.isMember("CVs"))
-			{
-				DumpErrorsToConsole({"Need global CVs or per driver CVs"},_notw);
-				success_build = false;
-			}
-			else if(JsonDriver.isMember("CVs"))
+            // Build the CVs
+			//if(!json.isMember("CVs") && !JsonDriver.isMember("CVs"))
+			//{
+			//	DumpErrorsToConsole({"Need global CVs or per driver CVs"},_notw);
+			//	success_build = false;
+			//}
+			//else if(JsonDriver.isMember("CVs"))
+			if(JsonDriver.isMember("CVs"))
 			{
 				if(!BuildCVs(JsonDriver, "#/CVs"))
 					success_build = false;
@@ -298,21 +301,24 @@ namespace SSAGES
 					success_build = false;
 			}
 
-			if(!json.isMember("method") && !JsonDriver.isMember("method"))			{
-				DumpErrorsToConsole({"Need global method or per driver method"},_notw);
-				success_build = false;
-			}
-			else if (JsonDriver.isMember("method"))
+			// Build the method
+			//if(!json.isMember("method") && !JsonDriver.isMember("method"))			{
+			//	DumpErrorsToConsole({"Need global method or per driver method"},_notw);
+			//	success_build = false;
+			//}
+			//else if (JsonDriver.isMember("method"))
+			if (JsonDriver.isMember("method"))
 			{
 				if(!BuildMethod(JsonDriver, "#/Methods"))
 					success_build = false;
 			}
-			else
+			else if (json.isMember("method"))
 			{
 				if(!BuildMethod(json,"#/Methods"))
 					success_build = false;
 			}
 
+			// Build the grid if it exists
 			if(JsonDriver.isMember("grid"))
 			{
 				if(!BuildGrid(JsonDriver,"#/Grids"))
@@ -332,6 +338,26 @@ namespace SSAGES
 			else if (json.isMember("observers"))
 			{
 				if(!BuildObservers(json))
+					success_build = false;
+			}
+
+			if(_comm.rank()==0)
+			{
+				if(success_build)
+					std::cout << std::setw(_notw) << std::right << "\033[32mMDEngine " << wid <<  " pass!\033[0m\n";
+				else
+					std::cout << std::setw(_notw) << std::right << "\033[32mMDEngine " << wid <<  " FAIL!\033[0m\n";
+			}
+
+			// Build the constraints if they exist
+			if(JsonDriver.isMember("constraints"))
+			{
+				if(!BuildConstraints(JsonDriver, "#/Constraints"))
+					success_build = false;
+			}
+			else if (json.isMember("constraints"))
+			{
+				if(!BuildConstraints(json, "#/Constraints"))
 					success_build = false;
 			}
 
@@ -365,6 +391,22 @@ namespace SSAGES
 			// Build CV(s).
 			try{
 				_MDDriver->BuildCVs(json.get("CVs", Json::arrayValue), path);
+			} catch(BuildException& e) {
+				DumpErrorsToConsole(e.GetErrors(), _notw);
+				return false;
+			} catch(std::exception& e) {
+				DumpErrorsToConsole({e.what()}, _notw);
+				return false;
+			}
+
+			return true;
+		}
+
+		bool BuildConstraints(const Json::Value& json, const std::string& path)
+		{
+			// Build CV(s).
+			try{
+				_MDDriver->BuildConstraints(json.get("constraints", Json::arrayValue), path);
 			} catch(BuildException& e) {
 				DumpErrorsToConsole(e.GetErrors(), _notw);
 				return false;

@@ -140,6 +140,8 @@ set(SOURCE
 	src/Simulations/SimObserver.cpp
 	src/Simulations/SimObservable.cpp
 	src/Hook.cpp
+	src/Constraints/Constraint.cpp
+	src/Constraints/COPSSImage.cpp
 )
 
 # Include the directory with the newly generated schema header file

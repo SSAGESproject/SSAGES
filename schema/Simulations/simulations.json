@@ -20,6 +20,9 @@
 		},
 		"observers" : {
 			"type" : "array"
+		},
+		"constraints" : {
+			"type" : "array"
 		}
 	},
 	"required" : ["driver"],

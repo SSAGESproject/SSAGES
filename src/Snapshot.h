@@ -27,6 +27,7 @@ namespace SSAGES
 		boost::mpi::communicator _comm;
 
 		unsigned _wid; //!< Walker ID.
+		unsigned _nlocal; //!< Number of atoms located on this snapshot
 
 		std::string _ID; //!< ID string
 
@@ -42,14 +43,18 @@ namespace SSAGES
 		std::vector<Vector3> _velocities; //!< Velocities
 		std::vector<Vector3> _forces; //!< Forces
 		std::vector<double> _masses; //!< Masses
+		std::vector<double> _charges; //!< Charges
 		Label _atomids; //!< List of Atom IDs
 		Label _types; //!< List of Atom types
+		std::vector<std::vector<double> > _sigma; //!< Sigma
 
 		int _iteration; //!< Iteration of Simulation
 		double _temperature; //!< Current temperature
 		double _energy; //!< Average per-particle energy
 		double _kb; //!< Kb from the MD driver
 
+		double _dielectric; //!< Dielectric
+		double _qqrd2e; //!<qqrd2e
 		bool _changed; //!< \c TRUE is Simulation state changed
 
 	public:
@@ -115,6 +120,10 @@ namespace SSAGES
 		 * \return Kb of the current simulation box
 		 */
 		double GetKb() const { return _kb; }
+
+		double GetDielectric() const { return _dielectric; }
+
+		double Getqqrd2e() const { return _qqrd2e; }
 		
 		//! Get communicator for group (walker).
 		/*!
@@ -133,6 +142,13 @@ namespace SSAGES
 		 * \return ID of the Walker
 		 */
 		unsigned GetWalkerID() const { return _wid; }
+
+
+		//! Get number of atoms in this snapshot.
+		/*!
+		 * \return Number of atoms in this snapshot
+		 */
+		unsigned GetNumAtoms() const { return _nlocal; }
 
 		//! Set the iteration
 		/*!
@@ -205,6 +221,24 @@ namespace SSAGES
 			_changed = true;
 		}
 		
+		void SetDielectric(double dielectric) 
+		{ 
+			_dielectric = dielectric;
+			_changed = true;
+		}
+	
+		void Setqqrd2e(double qqrd2e) 
+		{ 
+			_qqrd2e = qqrd2e;
+			_changed = true;
+		}
+
+		//! Set number of atoms in this snapshot.
+		/*!
+		 * \param Number of atoms in this snapshot
+		 */
+		void SetNumAtoms(unsigned int natoms) { _nlocal = natoms; }
+
 		//! Access the particle positions
 		/*!
 		 * \return List of particle positions
@@ -359,6 +393,17 @@ namespace SSAGES
 			_changed = true;
 			return _atomids;
 		}
+
+		//! Access the atom charges
+		/*!
+		 * \return List of atom charges
+		 */
+		const std::vector<double>& GetCharges() const { return _charges; }
+		std::vector<double>& GetCharges()
+		{
+			_changed = true;
+			return _charges;
+		}
 		
 		//! Access the atom types
 		/*!
@@ -371,6 +416,17 @@ namespace SSAGES
 		{
 			_changed = true; 
 			return _types; 
+		}
+
+		//! Access the atom sigmas
+		/*!
+		 * \return List of atom sigmas
+		 */
+		const std::vector<std::vector<double>>& GetSigmas() const { return _sigma; }
+		std::vector<std::vector<double>>& GetSigmas() 
+		{
+			_changed = true; 
+			return _sigma;
 		}
 
 		//! Access the snapshot ID
@@ -434,3 +490,4 @@ namespace SSAGES
 		~Snapshot(){}
 	};
 }
+

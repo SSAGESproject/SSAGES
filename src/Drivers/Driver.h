@@ -9,6 +9,7 @@
 #include <random>
 #include "../Hook.h"
 #include "../Methods/Method.h"
+#include "../Constraints/Constraint.h"
 #include "../Snapshot.h"
 #include "../JSON/JSONLoader.h"
 #include "../Grids/Grid.h"
@@ -48,6 +49,9 @@ namespace SSAGES
 
 		//! The observers that will be used for this driver
 		ObserverList _observers;
+
+		// The constraints to use
+		ConstraintList _constraints;
 
 		//! Local input file
 		std::string _inputfile;
@@ -95,6 +99,11 @@ namespace SSAGES
 			delete _snapshot;
 
 			delete _method;
+
+			for(auto& constraint : _constraints)
+				delete constraint;
+
+			_constraints.clear();
 		}
 
 		//! Run simulation
@@ -143,6 +152,12 @@ namespace SSAGES
 		void BuildCVs(const Json::Value& json, const std::string& path)
 		{
 			CollectiveVariable::BuildCV(json, _CVs, path);
+		}
+
+		// Build CVs
+		void BuildConstraints(const Json::Value& json, const std::string& path)
+		{
+			Constraint::BuildConstraint(json, _constraints, _comm, path);
 		}
 
 		//! Build method(s).
@@ -205,7 +220,12 @@ namespace SSAGES
 				//Set the driver in the hook
 				_hook->SetMDDriver(this);
 
-				_hook->AddListener(_method);
+			    if(_method)
+				    _hook->AddListener(_method);
+
+			    for(auto&c : _constraints)
+				    _hook->AddListener(c);
+
 				for(auto&cv : _CVs)
 					_hook->AddCV(cv);
 			}

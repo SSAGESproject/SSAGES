@@ -22,6 +22,7 @@ folders = [
 	"${CMAKE_CURRENT_SOURCE_DIR}/Simulations/",
 	"${CMAKE_CURRENT_SOURCE_DIR}/Grids/",
 	"${CMAKE_CURRENT_SOURCE_DIR}/Observers/",
+	"${CMAKE_CURRENT_SOURCE_DIR}/Constraints/",
 ]
 
 exclude = [

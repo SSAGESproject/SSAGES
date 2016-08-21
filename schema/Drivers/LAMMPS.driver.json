@@ -37,6 +37,9 @@
 		},
 		"read restart" : {
 			"type" : "boolean"
+		},
+		"constraints" : {
+			"type" : "object"
 		}
 	},
 	"required" : ["type", "MDSteps"],
