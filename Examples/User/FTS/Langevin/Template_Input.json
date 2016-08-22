@@ -1,0 +1,37 @@
+{
+	"inputfile" : "in.LAMMPS_Meta_Test",
+	"driver" : [
+		{
+			"number processors" : 1,
+			"type" : "LAMMPS",
+			"MDSteps" : 10000000,
+			"logfile" : "log",
+			"CVs" : [
+				{
+					"type" : "AtomCoordinate",
+					"atom id" : 1,
+					"dimension" : "x" 
+				},
+				{
+					"type": "AtomCoordinate",
+					"atom id" : 1,
+					"dimension" : "y"
+				}
+			],
+			"method" : {
+				"type" : "FTS",
+				"centers" : [
+						-1.4,
+						1.9
+				],
+				"block iterations" : 50,
+				"number samples" : 16,
+				"kappa" : 0.1,
+				"time step" : 0.1,
+				"frequency" : 1,
+				"spring" : 750,
+				"tol" : 0.0001
+			}
+		}
+	]
+}

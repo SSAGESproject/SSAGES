@@ -1,0 +1,517 @@
+{
+    "driver": [
+        {
+            "MDSteps": 10000000,
+            "number processors": 1,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 16,
+                "spring": 750,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "tol": 0.0001,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    -0.7,
+                    -0.5
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 16,
+                "spring": 750,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "tol": 0.0001,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    -0.607,
+                    -0.4
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 16,
+                "spring": 750,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "tol": 0.0001,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    -0.513,
+                    -0.3
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 16,
+                "spring": 750,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "tol": 0.0001,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    -0.42,
+                    -0.2
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 16,
+                "spring": 750,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "tol": 0.0001,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    -0.327,
+                    -0.1
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 16,
+                "spring": 750,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "tol": 0.0001,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    -0.233,
+                    0.0
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 16,
+                "spring": 750,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "tol": 0.0001,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    -0.14,
+                    0.1
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 16,
+                "spring": 750,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "tol": 0.0001,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    -0.047,
+                    0.2
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 16,
+                "spring": 750,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "tol": 0.0001,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    0.047,
+                    0.3
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 16,
+                "spring": 750,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "tol": 0.0001,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    0.14,
+                    0.4
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 16,
+                "spring": 750,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "tol": 0.0001,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    0.233,
+                    0.5
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 16,
+                "spring": 750,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "tol": 0.0001,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    0.327,
+                    0.6
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 16,
+                "spring": 750,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "tol": 0.0001,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    0.42,
+                    0.7
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 16,
+                "spring": 750,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "tol": 0.0001,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    0.513,
+                    0.8
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 16,
+                "spring": 750,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "tol": 0.0001,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    0.607,
+                    0.9
+                ]
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "x"
+                },
+                {
+                    "type": "AtomCoordinate",
+                    "atom id": 1,
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "number samples": 16,
+                "spring": 750,
+                "time step": 0.1,
+                "block iterations": 50,
+                "frequency": 1,
+                "tol": 0.0001,
+                "kappa": 0.1,
+                "type": "FTS",
+                "centers": [
+                    0.7,
+                    1.0
+                ]
+            }
+        }
+    ],
+    "inputfile": "in.LAMMPS_Meta_Test"
+}
