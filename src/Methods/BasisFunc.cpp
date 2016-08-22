@@ -418,7 +418,7 @@ namespace SSAGES
                 pos = (_hist[j].map[k]+0.5)*(_grid->GetUpper()[k] - _grid->GetLower()[k]) * 1.0 /(double)( _nbins[k]) + _grid->GetLower()[k];
                 _basisout << pos << std::setw(35);
             }
-            _basisout << -bias[j] * 1.0 / beta << std::setw(35);
+            _basisout << -bias[j] << std::setw(35);
             if(_unbias[j])
                 _basisout << -log(_unbias[j]) / beta << std::setw(35);
             else
