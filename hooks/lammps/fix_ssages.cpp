@@ -288,7 +288,7 @@ namespace LAMMPS_NS
 		auto& comm = _snapshot->GetCommunicator();
 
 		std::vector<Vector3> gpos, gvel, gfrc;
-		std::vector<double> gmasses
+		std::vector<double> gmasses;
         std::vector<double> gcharges;
 		std::vector<int> gids, gtypes; 
 		
