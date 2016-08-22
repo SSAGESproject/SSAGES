@@ -2,65 +2,10 @@
 	"type" : "object",
 	"varname" : "FTSMethod",
 	"properties" : {
-		"type" : { 
-			"type" : "string",
-			"enum" : ["FTS"]
-		},
-		"centers" : {
-			"type" : "array",
-			"minItems" : 1,
-			"items" : {
-				"type" : "number"
-			}
-		},
-		"block iterations" : {
-			"type" : "integer",
-			"minimum" : 1
-		},
-		"number samples" : {
-			"type" : "integer",
-			"minimum" : 1
-		},
 		"kappa" : {
 			"type" : "number",
 			"minimum" : 0
-		},
-		"time step" : {
-			"type" : "number",
-			"minimum" : 0,
-			"exclusiveMinimum" : true
-		},
-		"frequency" : {
-			"type" : "integer",
-			"minimum" : 1
-		},
-		"spring" : {
-			"type" : "number",
-			"minimum" : 0
-		},
-		"tol" : {
-			"type" : "number",
-			"minimum" : 0
-		},
-		"max iterations" : {
-			"type" : "integer",
-			"minimum" : 0
-		},
-		"restart" : {
-			"type" : "boolean"
-		},
-		"iteration" : {
-			"type" : "integer"
-		}, 
-		"previous avgs" : {
-			"type" : "array",
-			"minItems" : 1,
-			"items" : {
-				"type" : "number"
-			}
 		}
 	},
-	"required": ["type", "centers", "block iterations", "number samples", 
-	"kappa", "time step", "spring"],
-	"additionalProperties": false
+	"required": ["kappa"]
 }

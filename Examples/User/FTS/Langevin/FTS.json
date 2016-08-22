@@ -18,18 +18,25 @@
             "logfile": "log",
             "type": "LAMMPS",
             "method": {
-                "number samples": 16,
-                "spring": 750,
-                "time step": 0.1,
-                "block iterations": 50,
-                "frequency": 1,
-                "tol": 0.0001,
+                "flavor": "FTS",
                 "kappa": 0.1,
-                "type": "FTS",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "ksprings": [
+                    75,
+                    75
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "block_iterations": 50,
+                "type": "String",
                 "centers": [
                     -0.7,
                     -0.5
-                ]
+                ],
+                "max_iterations": 1000
             }
         },
         {
@@ -50,18 +57,25 @@
             "logfile": "log",
             "type": "LAMMPS",
             "method": {
-                "number samples": 16,
-                "spring": 750,
-                "time step": 0.1,
-                "block iterations": 50,
-                "frequency": 1,
-                "tol": 0.0001,
                 "kappa": 0.1,
-                "type": "FTS",
+                "type": "String",
                 "centers": [
                     -0.607,
                     -0.4
-                ]
+                ],
+                "ksprings": [
+                    75,
+                    75
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 50,
+                "max_iterations": 1000
             }
         },
         {
@@ -82,18 +96,25 @@
             "logfile": "log",
             "type": "LAMMPS",
             "method": {
-                "number samples": 16,
-                "spring": 750,
-                "time step": 0.1,
-                "block iterations": 50,
-                "frequency": 1,
-                "tol": 0.0001,
                 "kappa": 0.1,
-                "type": "FTS",
+                "type": "String",
                 "centers": [
                     -0.513,
                     -0.3
-                ]
+                ],
+                "ksprings": [
+                    75,
+                    75
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 50,
+                "max_iterations": 1000
             }
         },
         {
@@ -114,18 +135,25 @@
             "logfile": "log",
             "type": "LAMMPS",
             "method": {
-                "number samples": 16,
-                "spring": 750,
-                "time step": 0.1,
-                "block iterations": 50,
-                "frequency": 1,
-                "tol": 0.0001,
                 "kappa": 0.1,
-                "type": "FTS",
+                "type": "String",
                 "centers": [
                     -0.42,
                     -0.2
-                ]
+                ],
+                "ksprings": [
+                    75,
+                    75
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 50,
+                "max_iterations": 1000
             }
         },
         {
@@ -146,18 +174,25 @@
             "logfile": "log",
             "type": "LAMMPS",
             "method": {
-                "number samples": 16,
-                "spring": 750,
-                "time step": 0.1,
-                "block iterations": 50,
-                "frequency": 1,
-                "tol": 0.0001,
                 "kappa": 0.1,
-                "type": "FTS",
+                "type": "String",
                 "centers": [
                     -0.327,
                     -0.1
-                ]
+                ],
+                "ksprings": [
+                    75,
+                    75
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 50,
+                "max_iterations": 1000
             }
         },
         {
@@ -178,18 +213,25 @@
             "logfile": "log",
             "type": "LAMMPS",
             "method": {
-                "number samples": 16,
-                "spring": 750,
-                "time step": 0.1,
-                "block iterations": 50,
-                "frequency": 1,
-                "tol": 0.0001,
                 "kappa": 0.1,
-                "type": "FTS",
+                "type": "String",
                 "centers": [
                     -0.233,
                     0.0
-                ]
+                ],
+                "ksprings": [
+                    75,
+                    75
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 50,
+                "max_iterations": 1000
             }
         },
         {
@@ -210,18 +252,25 @@
             "logfile": "log",
             "type": "LAMMPS",
             "method": {
-                "number samples": 16,
-                "spring": 750,
-                "time step": 0.1,
-                "block iterations": 50,
-                "frequency": 1,
-                "tol": 0.0001,
                 "kappa": 0.1,
-                "type": "FTS",
+                "type": "String",
                 "centers": [
                     -0.14,
                     0.1
-                ]
+                ],
+                "ksprings": [
+                    75,
+                    75
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 50,
+                "max_iterations": 1000
             }
         },
         {
@@ -242,18 +291,25 @@
             "logfile": "log",
             "type": "LAMMPS",
             "method": {
-                "number samples": 16,
-                "spring": 750,
-                "time step": 0.1,
-                "block iterations": 50,
-                "frequency": 1,
-                "tol": 0.0001,
                 "kappa": 0.1,
-                "type": "FTS",
+                "type": "String",
                 "centers": [
                     -0.047,
                     0.2
-                ]
+                ],
+                "ksprings": [
+                    75,
+                    75
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 50,
+                "max_iterations": 1000
             }
         },
         {
@@ -274,18 +330,25 @@
             "logfile": "log",
             "type": "LAMMPS",
             "method": {
-                "number samples": 16,
-                "spring": 750,
-                "time step": 0.1,
-                "block iterations": 50,
-                "frequency": 1,
-                "tol": 0.0001,
                 "kappa": 0.1,
-                "type": "FTS",
+                "type": "String",
                 "centers": [
                     0.047,
                     0.3
-                ]
+                ],
+                "ksprings": [
+                    75,
+                    75
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 50,
+                "max_iterations": 1000
             }
         },
         {
@@ -306,18 +369,25 @@
             "logfile": "log",
             "type": "LAMMPS",
             "method": {
-                "number samples": 16,
-                "spring": 750,
-                "time step": 0.1,
-                "block iterations": 50,
-                "frequency": 1,
-                "tol": 0.0001,
                 "kappa": 0.1,
-                "type": "FTS",
+                "type": "String",
                 "centers": [
                     0.14,
                     0.4
-                ]
+                ],
+                "ksprings": [
+                    75,
+                    75
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 50,
+                "max_iterations": 1000
             }
         },
         {
@@ -338,18 +408,25 @@
             "logfile": "log",
             "type": "LAMMPS",
             "method": {
-                "number samples": 16,
-                "spring": 750,
-                "time step": 0.1,
-                "block iterations": 50,
-                "frequency": 1,
-                "tol": 0.0001,
                 "kappa": 0.1,
-                "type": "FTS",
+                "type": "String",
                 "centers": [
                     0.233,
                     0.5
-                ]
+                ],
+                "ksprings": [
+                    75,
+                    75
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 50,
+                "max_iterations": 1000
             }
         },
         {
@@ -370,18 +447,25 @@
             "logfile": "log",
             "type": "LAMMPS",
             "method": {
-                "number samples": 16,
-                "spring": 750,
-                "time step": 0.1,
-                "block iterations": 50,
-                "frequency": 1,
-                "tol": 0.0001,
                 "kappa": 0.1,
-                "type": "FTS",
+                "type": "String",
                 "centers": [
                     0.327,
                     0.6
-                ]
+                ],
+                "ksprings": [
+                    75,
+                    75
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 50,
+                "max_iterations": 1000
             }
         },
         {
@@ -402,18 +486,25 @@
             "logfile": "log",
             "type": "LAMMPS",
             "method": {
-                "number samples": 16,
-                "spring": 750,
-                "time step": 0.1,
-                "block iterations": 50,
-                "frequency": 1,
-                "tol": 0.0001,
                 "kappa": 0.1,
-                "type": "FTS",
+                "type": "String",
                 "centers": [
                     0.42,
                     0.7
-                ]
+                ],
+                "ksprings": [
+                    75,
+                    75
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 50,
+                "max_iterations": 1000
             }
         },
         {
@@ -434,18 +525,25 @@
             "logfile": "log",
             "type": "LAMMPS",
             "method": {
-                "number samples": 16,
-                "spring": 750,
-                "time step": 0.1,
-                "block iterations": 50,
-                "frequency": 1,
-                "tol": 0.0001,
                 "kappa": 0.1,
-                "type": "FTS",
+                "type": "String",
                 "centers": [
                     0.513,
                     0.8
-                ]
+                ],
+                "ksprings": [
+                    75,
+                    75
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 50,
+                "max_iterations": 1000
             }
         },
         {
@@ -466,18 +564,25 @@
             "logfile": "log",
             "type": "LAMMPS",
             "method": {
-                "number samples": 16,
-                "spring": 750,
-                "time step": 0.1,
-                "block iterations": 50,
-                "frequency": 1,
-                "tol": 0.0001,
                 "kappa": 0.1,
-                "type": "FTS",
+                "type": "String",
                 "centers": [
                     0.607,
                     0.9
-                ]
+                ],
+                "ksprings": [
+                    75,
+                    75
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 50,
+                "max_iterations": 1000
             }
         },
         {
@@ -498,18 +603,25 @@
             "logfile": "log",
             "type": "LAMMPS",
             "method": {
-                "number samples": 16,
-                "spring": 750,
-                "time step": 0.1,
-                "block iterations": 50,
-                "frequency": 1,
-                "tol": 0.0001,
                 "kappa": 0.1,
-                "type": "FTS",
+                "type": "String",
                 "centers": [
                     0.7,
                     1.0
-                ]
+                ],
+                "ksprings": [
+                    75,
+                    75
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 50,
+                "max_iterations": 1000
             }
         }
     ],

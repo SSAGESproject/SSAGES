@@ -6,6 +6,7 @@
 #include "../Drivers/DriverException.h"
 #include "ElasticBand.h"
 #include "FiniteTempString.h"
+#include "StringMethod.h"
 #include "Meta.h"
 #include "Umbrella.h"
 #include "ForwardFlux.h"
@@ -268,9 +269,9 @@ namespace SSAGES
 
 			method = static_cast<Method*>(m);
 		}
-		else if(type == "FTS")
+		else if(type == "String")
 		{
-			reader.parse(JsonSchema::FTSMethod, schema);
+			reader.parse(JsonSchema::StringMethod, schema);
 			validator.Parse(schema, path);
 
 			// Validate inputs.
@@ -282,33 +283,54 @@ namespace SSAGES
 			for(auto& s : json["centers"])
 				centers.push_back(s.asDouble());
 
-			auto isteps = json.get("block iterations", 2000).asInt();
-			auto nsamples = json.get("number samples", 20).asInt();
-			auto kappa = json.get("kappa", 0.1).asDouble();
-			auto tau = json.get("time step", 0.1).asDouble();
+			auto maxiterator = json.get("max_iterations", 0).asInt();
+			auto isteps = json.get("block_iterations", 2000).asInt();
+			auto tau = json.get("time_step", 0.1).asDouble();
+
+			std::vector<double> ksprings;
+			for(auto& s : json["ksprings"])
+				ksprings.push_back(s.asDouble());
+
 			auto freq = json.get("frequency", 1).asInt();
-			auto spring = json.get("spring", 100).asDouble();
-			auto tol = json.get("tol", 0).asDouble();
-			auto maxiterator = json.get("max iterations", 0).asInt();
-			auto restart = json.get("restart", 0).asBool();
 
+			// Get stringmethod flavor. 
+			std::string flavor = json.get("flavor", "none").asString();
 
-			std::vector<double> restartavgs;
-			for(auto& s : json["previous avgs"])
-				restartavgs.push_back(s.asDouble());
+			if(flavor == "FTS")
+			{
+				reader.parse(JsonSchema::FTSMethod, schema);
+				validator.Parse(schema, path);
 
-			auto* m = new FiniteTempString(world, comm, isteps, 
-									centers, nsamples, kappa,
-									tau, spring, tol, maxiterator, restart,
-                                    restartavgs, freq);
+				// Validate inputs.
+				validator.Validate(json, path);
+				if(validator.HasErrors())
+					throw BuildException(validator.GetErrors());
 
-			method = static_cast<Method*>(m);
+				auto kappa = json.get("kappa", 0.1).asDouble();
+				auto* m = new FiniteTempString(world, comm, centers, 
+									maxiterator, isteps,
+									tau, ksprings, kappa, freq);
+
+				if(json.isMember("tolerance"))
+				{
+					std::vector<double> tol;
+					for(auto& s : json["tolerance"])
+						tol.push_back(s.asDouble());
+
+					m->SetTolerance(tol);
+				}
+
+				method = static_cast<Method*>(m);
+			}
+			else
+			{
+				throw BuildException({flavor + " is unknown string method type. Please specify correct flavor"});
+			}
             
             if(json.isMember("iteration"))
-                m->SetIteration(json.get("iteration",0).asInt());
+                method->SetIteration(json.get("iteration",0).asInt());
             
 		}
-		
         else if(type == "Basis")
         {
             reader.parse(JsonSchema::BFSMethod, schema);
@@ -402,7 +424,6 @@ namespace SSAGES
 	else
 	{
 		throw BuildException({path + ": Unknown method type specified."});
-		
 	}
 	
 	

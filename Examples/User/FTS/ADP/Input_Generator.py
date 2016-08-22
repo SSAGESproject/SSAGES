@@ -16,8 +16,8 @@ with open('Template_Input.json') as f:
 num = 22
 
 #Start and end location of CVs 1, 2, etc...
-centers_1 = np.linspace(-1.39, 0.87, num)
-centers_2 = np.linspace(1.31, -1.74, num)
+centers_1 = np.linspace(-1.5, 1.0, num)
+centers_2 = np.linspace(1 , -1, num)
 
 # Add on the requested number of objects -1 because we are appending
 for i in range(0,num - 1):
@@ -25,7 +25,7 @@ for i in range(0,num - 1):
 
 for i in range(num):
 	# Change the log file name so each driver uses a different log file
-	root['driver'][i]['logfile'] = "log"
+	root['driver'][i]['logfile'] = "none"
 
 	# Change the node's location
         root['driver'][i]['method']['centers'][0] = round(centers_1[i], 3)

@@ -28,7 +28,7 @@ namespace SSAGES
 		Grid* _grid;
 
 		//! Number of the method iteration.
-		int _iteration;
+		unsigned int _iteration;
 
 	public:
 		//! Constructor

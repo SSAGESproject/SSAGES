@@ -19,18 +19,19 @@
 				}
 			],
 			"method" : {
-				"type" : "FTS",
+				"type" : "String",
 				"centers" : [
-						-1.4,
-						1.9
+						-1.39,
+                        1.31
 				],
-				"block iterations" : 50,
-				"number samples" : 16,
-				"kappa" : 0.1,
-				"time step" : 0.1,
+				"block_iterations": 50,
+				"max_iterations" : 1000,
+				"time_step" : 0.1,
 				"frequency" : 1,
-				"spring" : 750,
-				"tol" : 0.0001
+				"ksprings" : [75,75],
+				"tolerance" : [0.0001, 0.0001],
+				"flavor" : "FTS",
+				"kappa" : 0.1
 			}
 		}
 	]
