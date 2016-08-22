@@ -20,8 +20,6 @@ namespace SSAGES
 		//! String modification parameter
 		double _kappa;
 
-		unsigned int _iterator;
-
 		unsigned int _spring_iter;
 
 		bool InCell(const CVList& cvs) const;
