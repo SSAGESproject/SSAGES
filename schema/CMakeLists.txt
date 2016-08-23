@@ -21,5 +21,6 @@ if (PYTHON_BIN)
                        COMMAND ${PYTHON_BIN} ${BUILDSCHEMA_PY}
                        COMMENT "Updating schema files")
 else (PYTHON_BIN)
-    message (SEND_ERROR "Unable to generate schema files. Python binary not found.")
+    message (SEND_ERROR "\nERROR: Unable to generate schema files. Python "
+                        "binary not found.")
 endif (PYTHON_BIN)
