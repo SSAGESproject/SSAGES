@@ -6,6 +6,7 @@ set(TEST_DEPS
 
 set  (UNIT_TESTS "AtomPositionCVTests"
                  "GridTests"
+                 "ABFTests"
                  "TorsionalCVTests"
                  "SnapshotTests"
                  "COMdist_Test"
