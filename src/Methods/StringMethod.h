@@ -229,7 +229,7 @@ namespace SSAGES
 						Method(frequency, world, comm), _centers(centers), 
 						_maxiterator(maxiterations), 
 						_blockiterations(blockiterations), _tau(tau), 
-						_cvspring(cvspring), _run_SMD(false)
+						_cvspring(cvspring), _iterator(1), _run_SMD(false)
 		{
 			_tol.resize(1, -1.0);
 			_newcenters.resize(_centers.size(), 0);
