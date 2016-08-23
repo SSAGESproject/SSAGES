@@ -53,7 +53,7 @@ namespace SSAGES
 					double kappa,
 			 		unsigned int frequency) : 
 		StringMethod(world, comm, centers, maxiterations, blockiterations,
-		tau, cvspring, frequency), _kappa(kappa), _iterator(1), _spring_iter(1)
+		tau, cvspring, frequency), _kappa(kappa), _spring_iter(1)
 		{
 		}
 
