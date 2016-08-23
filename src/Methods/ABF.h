@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 
+#include <Eigen/Dense>
 
 namespace SSAGES
 {
@@ -27,14 +28,14 @@ namespace SSAGES
 		 * A 1D vector, but will hold N-dimensional data, where N is number of
 		 * CVs +1. This will be size (CVbinNr1*CVbinNr2*..)*3.
 		 */
-		std::vector<double> _F;
+		Eigen::VectorXd _F;
 
 		//! Will hold the global total, synced to every time step. 
 		/*!
 		 * A 1D vector, but will hold N-dimensional data, where N is number of
 		 * CVs +1. This will be size (CVbinNr1*CVbinNr2*..)*3.
 		 */
-		std::vector<double> _Fworld;
+		Eigen::VectorXd _Fworld;
 
 		//! To store number of hits at a given CV bin.
 		/*!
@@ -65,11 +66,11 @@ namespace SSAGES
 		//!_F[i]/max(_N[i],_min).
 		int _min;
 
-		//! To hold last iterations wdotp value for derivative
-		std::vector<double> _wdotpold;
+		//! To hold last two iterations wdotp value for derivative
+		Eigen::VectorXd _wdotp1, _wdotp2;
 
 		//! To hold last iterations _F value for removing bias
-		std::vector<double> _Fold;
+		Eigen::VectorXd _Fold;
 
 		//! Get coordinates of histogram bin corresponding to given list of CVs.
 		/*!
@@ -86,7 +87,7 @@ namespace SSAGES
 		double _beta;
 
 		//! Biases.	
-		std::vector<std::vector<double>> _biases;
+		std::vector<Vector3> _biases;
 
 		//! Number of CVs in system
 		unsigned int _dim;
@@ -142,8 +143,11 @@ namespace SSAGES
 		int _Orthogonalization;
 
 		//! Computes the bias force.
-		void CalcBiasForce(const CVList& cvs, const std::vector<double>& genforce, const Snapshot* snapshot);
+		void CalcBiasForce(const Snapshot* snapshot, const CVList& cvs, int coord);
 		
+		//! Writes out data to file.
+		void WriteData();
+
 		//! Timestep of integration
 		double _timestep;
 
@@ -179,9 +183,9 @@ namespace SSAGES
 			double unitconv,
 			int Orthogonalization,
 			unsigned int frequency) :
-		Method(frequency, world, comm), _F(0), _Fworld(0), _N(0), _Nworld(0),
-		_restraint(restraint), _min(min), _wdotpold(0), _Fold(0), _beta(0),
-		_filename(filename), _biases(0), _dim(0), _mpiid(0), _histdetails(histdetails),
+		Method(frequency, world, comm), _F(), _Fworld(), _N(0), _Nworld(0),
+		_restraint(restraint), _min(min), _wdotp1(), _wdotp2(), _Fold(), _beta(0),
+		_filename(filename), _biases(), _dim(0), _mpiid(0), _histdetails(histdetails),
 		_printdetails(printdetails), _FBackupInterv(FBackupInterv),
 		_unitconv(unitconv), _Orthogonalization(Orthogonalization),
 		_timestep(timestep)
@@ -214,7 +218,7 @@ namespace SSAGES
 		 * \param F Vector containing values for the running total.
 		 * \param N Vector containing number of hits for bin intervals.
 		 */
-		void SetHistogram(const std::vector<double>& F, const std::vector<int>& N)
+		void SetHistogram(const Eigen::VectorXd& F, const std::vector<int>& N)
 		{
 			_F = F;
 			_N = N;
