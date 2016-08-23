@@ -101,7 +101,7 @@ namespace SSAGES
 		    }
 		}
 
-		void GatherNeighbors(std::vector<double> *lcv0, std::vector<double> *ucv0) const
+		void GatherNeighbors(std::vector<double> *lcv0, std::vector<double> *ucv0)
 		{
 			MPI_Status status;
 
