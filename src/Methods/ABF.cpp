@@ -167,38 +167,24 @@ namespace SSAGES
 		//! Coord holds where we are in CV space in current timestep.
 		int coord = histCoords(cvs);
 
-		/**< Vector to keep track of the norm of projector for normalization. 
-		  graddotgrad will start at 0 at the beginning of the loop for each CV, 
-		  and the values of the gradient squared will be added through the loop. 
-		  At the end of the loop, it will be equal to |grad(CV)|^2, and can be used 
-		  to normalize the vector field. Is also used for Gram-Schmidt Orthogonalization, 
-		  if enabled. */
-		std::vector<double> graddotgrad(cvs.size()); 
+		//! Eigen::MatrixXd to hold the CV gradient.
+		Eigen::MatrixXd J(ncv, 3*forces.size());
 
-		//! Vector<vector<double>> to hold the projector vector field.
-		/*! 
-		 * Projector holds w, the projection of the force from generalized 
-		 * coordinates to cartesian. To save a dimension, it holds x, y and z 
-		 * sequentially, and is thus 3xNrAtoms long for each CV.
-		 * If Gram-Schmidt Orthogonalization is enabled, the first projector is 
-		 * grad(CV)/|grad(CV)|^2 and the rest are derived from the algorithm.
-		 * If GSO is disabled, each projector is simply grad(CV)/|grad(CV)|^2.
-		 */
-		Eigen::MatrixXd projector(3*forces.size(), ncv);
-
-		// Fill projector. Each column represents grad(CV) with flattened Cartesian elements. 
+		// Fill J. Each column represents grad(CV) with flattened Cartesian elements. 
 		for(size_t i = 0; i < ncv; ++i)
 		{
 			auto& grad = cvs[i]->GetGradient();
 			for(size_t j = 0; j < forces.size(); ++j)
-				projector.block<3, 1>(3*j, i) = grad[j];
+				J.block<1, 3>(i,3*j) = grad[j];
 		}
 
-		// If orthogonalization is on, orthogonalize. 
-		if(_Orthogonalization) 
-			projector = projector.householderQr().householderQ();
-		else
-			projector.colwise().normalize();
+		/*! 
+		 * W is the projection of the force from generalized 
+		 * coordinates to cartesian.
+		 */
+		// Find projector as the pseudoinverse of grad(CV).
+		Eigen::JacobiSVD<Eigen::MatrixXd> svd(J, Eigen::ComputeThinU | Eigen::ComputeThinV);
+		Eigen::MatrixXd W = svd.pinv();
 
 		// Fill momenta.
 		Eigen::VectorXd momenta(3*vels.size());
@@ -206,8 +192,7 @@ namespace SSAGES
 			momenta.segment<3>(3*i) = mass[i]*vels[i];
 
 		// Compute dot(w,p).
-		Eigen::VectorXd wdotp = projector.transpose()*momenta;
-
+		Eigen::VectorXd wdotp = W*momenta;
 
 		// Compute d(wdotp)/dt second order backwards finite difference. 
 		// Adding old force removes bias. 
