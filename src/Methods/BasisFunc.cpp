@@ -41,6 +41,8 @@ namespace SSAGES
             }
             else if(cvs.size() != _polyords.size())
             {
+                std::cout<<cvs.size()<<std::endl;
+                std::cout<<_polyords.size()<<std::endl;
                 std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
                 std::cout<<"WARNING: The number of polynomial orders is not the same"<<std::endl;
                 std::cout<<"as the number of CVs"<<std::endl;
@@ -142,16 +144,6 @@ namespace SSAGES
         for(size_t i = 0; i < cvs.size(); ++i)
         {
             x[i] = cvs[i]->GetValue();
-            // Change to periodic boundaries here just in case grid doesn't do it too well...
-            if(_grid->GetPeriodic()[i])
-            {
-                double min = _grid->GetLower()[i];
-                double max = _grid->GetUpper()[i];
-                if(x[i] < min)
-                    x[i] += (max-min);
-                else if(x[i] >= max)
-                    x[i] -= (max-min);
-            }
         }
        
         if(_bounds)
@@ -171,10 +163,11 @@ namespace SSAGES
             // Update the basis projection after a predefined number of steps
             if(snapshot->GetIteration()  % _cyclefreq == 0) {	
                 double beta;
-                beta = snapshot->GetTemperature();
+                beta = 1.0 / (snapshot->GetTemperature() * snapshot->GetKb());
 
-                // For systems with poorly defined temperature (ie: 1 particle) the user needs to define their own temperature. This is a hack that may be removed in future versions. 
-                if(beta == 0)
+                // For systems with poorly defined temperature (ie: 1 particle) the user needs to define their own temperature. This is a hack that will be removed in future versions. 
+
+                if(snapshot->GetTemperature() == 0)
                 {
                     beta = _temperature;
                     if(_temperature == 0)
@@ -265,7 +258,7 @@ namespace SSAGES
 	}
     
 	// Update the coefficients/bias projection
-	void Basis::UpdateBias(const CVList& cvs, double beta)
+	void Basis::UpdateBias(const CVList& cvs, const double beta)
 	{
         std::vector<double> x(cvs.size(), 0);
         std::vector<double> coeffTemp(_coeff.size(), 0);
@@ -308,7 +301,7 @@ namespace SSAGES
             /* The evaluation of the biased histogram which projects the histogram to the
              * current bias of CV space.
              */
-            _unbias[i] += hist.value * exp(bias/(double)beta) * _weight / (double)(_cyclefreq); 
+            _unbias[i] += hist.value * exp(bias) * _weight / (double)(_cyclefreq); 
             bias = 0.0;
         }
 
@@ -343,30 +336,26 @@ namespace SSAGES
                     if(hist.map[k] == 0 || hist.map[k] == _nbins[k]-1)
                         weight /= 2.0;
                 }
-              
-                // To make sure that the projection doesn't produce errors, any bins that aren't visited are removed from the evaluation of the coefficients
-                if(_unbias[j])
+            
+                /*The numerical integration of the biased histogram across the entirety of CV space
+                 *All calculations include the normalization as well
+                 */
+                for(size_t l = 0; l < cvs.size(); l++)
                 {
-                    /*The numerical integration of the biased histogram across the entirety of CV space
-                     *All calculations include the normalization as well
-                     */
-                    for(size_t l = 0; l < cvs.size(); l++)
-                    {
-                        basis *= _LUT[l].values[hist.map[l] + coeff.map[l]*(_nbins[l])];
-                        basis *=  1.0 / (_nbins[l])*(2 * coeff.map[l] + 1.0);
-                    }
-                    coeff.value += basis * log(_unbias[j]) * weight/std::pow(2.0,cvs.size());
-                    basis = 1.0;
+                    basis *= _LUT[l].values[hist.map[l] + coeff.map[l]*(_nbins[l])];
+                    basis *=  1.0 / (_nbins[l])*(2 * coeff.map[l] + 1.0);
                 }
+                coeff.value += basis * log(_unbias[j]) * weight/std::pow(2.0,cvs.size());
+                basis = 1.0;
             }
             coeffTemp[i] -= coeff.value;
             _coeff_arr[i] = coeff.value;
             sum += coeffTemp[i]*coeffTemp[i];
         }
 
-        if(_mpiid == 0)
+        if(_world.rank() == 0)
             // Write coeff at this step, but only one walker
-            PrintBias(cvs);
+            PrintBias(cvs,beta);
 
         // The convergence tolerance and whether the user wants to exit are incorporated here
         if(sum < _tol)
@@ -384,7 +373,7 @@ namespace SSAGES
      *Additionally, the current basis projection is printed so that the user can view
      *the current free energy space
      */
-    void Basis::PrintBias(const CVList& cvs)
+    void Basis::PrintBias(const CVList& cvs, const double beta)
     {
         std::vector<double> bias(_hist.size(), 0);
         std::vector<double> x(cvs.size(), 0);
@@ -431,7 +420,7 @@ namespace SSAGES
             }
             _basisout << -bias[j] << std::setw(35);
             if(_unbias[j])
-                _basisout << -log(_unbias[j]) << std::setw(35);
+                _basisout << -log(_unbias[j]) / beta << std::setw(35);
             else
                 _basisout << "0" << std::setw(35);
             _basisout << _unbias[j];
@@ -466,14 +455,7 @@ namespace SSAGES
             double min = _grid->GetLower()[j];
             double max = _grid->GetUpper()[j];
 
-            if(_grid->GetPeriodic()[j])
-            {
-                if(x[j] <= min)
-                    x[j] += (max-min);
-                else if(x[j] > max)
-                    x[j] -= (max-min);
-            }
-            else
+            if(!_grid->GetPeriodic()[j])
             {
                 // In order to prevent the index for the histogram from going out of bounds a check is in place
                 if(x[j] > max && _bounds)
@@ -528,10 +510,15 @@ namespace SSAGES
         // This is where the wall potentials are going to be thrown into the method if the system is not a periodic CV
         for(size_t j = 0; j < cvs.size(); ++j)
         {
+            double min = _grid->GetLower()[j];
+            double max = _grid->GetUpper()[j];
+
             if(!_grid->GetPeriodic()[j]) 
             {
-                _derivatives[j] -= 2 * _restraint[j]*_restraint[j] * exp(-_restraint[j] * (x[j] - _boundUp[j]) * (x[j] - _boundUp[j]) / (2.0 * 0.1*0.1)); 
-                _derivatives[j] -= 2 * _restraint[j]*_restraint[j] * exp(-_restraint[j] * (x[j] - _boundLow[j]) * (x[j] - _boundLow[j]) / (2.0 * 0.1*0.1));
+                if(x[j] > _boundUp[j])
+                    _derivatives[j] -= _restraint[j] * (x[j] - _boundUp[j]);
+                else if(x[j] < _boundLow[j])
+                    _derivatives[j] -= _restraint[j] * (x[j] - _boundLow[j]);
             }
         }
     }
