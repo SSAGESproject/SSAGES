@@ -23,6 +23,7 @@ Contents:
    Contribute to SSAGES
    The SSAGES Cookbook
    Acknowledgements
+   License
 
 Indices and tables
 ==================
