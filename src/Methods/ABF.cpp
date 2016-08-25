@@ -192,7 +192,7 @@ namespace SSAGES
 			momenta.segment<3>(3*i) = mass[i]*vels[i];
 
 		// Compute dot(w,p).
-		Eigen::VectorXd wdotp = W*momenta;
+		Eigen::VectorXd wdotp = W.transpose()*momenta;
 
 		// Compute d(wdotp)/dt second order backwards finite difference. 
 		// Adding old force removes bias. 
