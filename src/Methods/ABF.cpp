@@ -199,7 +199,7 @@ namespace SSAGES
 		Eigen::VectorXd dwdotpdt = _unitconv*(1.5*wdotp - 2.0*_wdotp1 + 0.5*_wdotp2)/_timestep + _Fold;
 
 		// Reduce dot product across processors.
-		MPI_Allreduce(MPI_IN_PLACE, dwdotpdt.data(), dwdotpdt.size(), MPI_DOUBLE, MPI_SUM, _world);
+		//MPI_Allreduce(MPI_IN_PLACE, dwdotpdt.data(), dwdotpdt.size(), MPI_DOUBLE, MPI_SUM, _world);
 
 		// If we are in bounds, sum force into running total.
 		if(coord != -1)
