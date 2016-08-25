@@ -28,7 +28,7 @@ namespace SSAGES
 
 		//! The world's strings centers for each CV.
 		/*!
-		 * _worldstring[cv#][node#]
+		 * _worldstring[node#][cv#]
 		 */
 		std::vector<std::vector<double> > _worldstring;
 
@@ -44,12 +44,6 @@ namespace SSAGES
 		//! Maximum cap on number of string method iterations performed
 		unsigned int _maxiterator;
 
-		//! Number of steps to block average the CV's postions over
-		unsigned int _blockiterations;
-
-		//! Time step of string change
-		double _tau;
-
 		//! Vector of spring constants.
 		std::vector<double> _cvspring;
 
@@ -63,9 +57,7 @@ namespace SSAGES
 		int _sendneigh;
 
 		//! Neighbor to gain info from.
-		int _recneigh;
-
-		bool _run_SMD;
+		int _recneigh; 
 
 		//! Updates the position of the string.
 		virtual void StringUpdate() = 0;
@@ -215,23 +207,19 @@ namespace SSAGES
 		 * \param blockiterations Number of iterations per block averaging.
 		 * \param tau Value of tau (default: 0.1).
 		 * \param cvspring Spring constants for cvs.
-		 * \param run_SMD Run steered MD to direct CV to proper starting configuration.
 		 * \param frequency Frequency with which this method is invoked.
 		 */
 		StringMethod(boost::mpi::communicator& world,
 					boost::mpi::communicator& comm,
 					const std::vector<double>& centers,
 					unsigned int maxiterations,
-					unsigned int blockiterations,
-					double tau,
 					const std::vector<double> cvspring,
 			 		unsigned int frequency) : 
 						Method(frequency, world, comm), _centers(centers), 
 						_maxiterator(maxiterations), 
-						_blockiterations(blockiterations), _tau(tau), 
-						_cvspring(cvspring), _iterator(1), _run_SMD(false)
+						_cvspring(cvspring), _iterator(1) 
+ 
 		{
-			_tol.resize(1, -1.0);
 			_newcenters.resize(_centers.size(), 0);
 		}
 
@@ -247,7 +235,7 @@ namespace SSAGES
 
 			//Set the neighbors
 			_recneigh = -1;
-			_sendneigh = -1;
+			_sendneigh = -1; 
 
 			MPI_Allgather(&_mpiid, 1, MPI_INT, &wiids[0], 1, MPI_INT, _world);
 			_numnodes = int(*std::max_element(wiids.begin(), wiids.end())) + 1;
@@ -285,9 +273,6 @@ namespace SSAGES
 				}
 			}
 
-			//Force _run_SMD for now. Future release will include more details. 
-			_run_SMD = true;
-
 			_worldstring.resize(_numnodes);
 			for(auto& w : _worldstring)
 				w.resize(_centers.size());
@@ -313,23 +298,20 @@ namespace SSAGES
 
 		void Serialize(Json::Value& json) const override
         {
+            json["type"] = "String";
+
             for(size_t i = 0; i < _centers.size(); i++)
                 json["centers"].append(_centers[i]);
-
-            for(auto& nw : _newcenters)
-            	json["running_average"].append(nw);
 
             for(auto& t : _tol)
             	json["tolerance"].append(t);
 
             json["max_iterations"] = _maxiterator;
-            json["block_iterations"] = _blockiterations;
-            json["time_step"] = _tau;
 
             for(auto& s : _cvspring)
             	json["ksprings"].append(s);
 
-            json["run_smd"] = true;
+           json["iteration"] = _iteration; 
         }
 
 		//! Destructor

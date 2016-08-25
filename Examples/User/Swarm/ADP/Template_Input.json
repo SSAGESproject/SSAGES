@@ -4,8 +4,8 @@
 		{
 			"number processors" : 1,
 			"type" : "LAMMPS",
-			"MDSteps" : 10000000,
-			"logfile" : "node-1",
+			"MDSteps" : 100000000,
+			"logfile" : "log",
 			"CVs" : [
 				{
 					"type" : "Torsional",
@@ -29,18 +29,20 @@
 				}
 			],
 			"method" : {
-				"type" : "Swarm",
+				"type" : "String",
 				"centers" : [
 						-1.39,
                         1.31
 				],
-				"number of nodes": 22,
-				"spring" : 1000,
+				"max_iterations" : 100000,
 				"frequency" : 1,
-				"initial steps" : 10000,
-				"harvest length" : 10,
-				"number of trajectories" : 100,
-                "swarm length" : 20
+				"ksprings" : [500,500],
+				"tolerance" : [0.001, 0.001],
+				"flavor" : "SWARM",
+                "initial_steps" : 10000,
+				"harvest_length" : 10,
+				"number_of_trajectories" : 100,
+                "swarm_length" : 20
 			}
 		}
 	]

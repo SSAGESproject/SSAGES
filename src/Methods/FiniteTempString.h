@@ -20,7 +20,15 @@ namespace SSAGES
 		//! String modification parameter
 		double _kappa;
 
+		//! Number of steps to block average the CV's postions over
+		unsigned int _blockiterations;
+
+		//! Time step of string change
+		double _tau;
+
 		unsigned int _spring_iter;
+        
+        bool _run_SMD;
 
 		bool InCell(const CVList& cvs) const;
 
@@ -52,9 +60,10 @@ namespace SSAGES
 					const std::vector<double> cvspring,
 					double kappa,
 			 		unsigned int frequency) : 
-		StringMethod(world, comm, centers, maxiterations, blockiterations,
-		tau, cvspring, frequency), _kappa(kappa), _spring_iter(1)
-		{
+		StringMethod(world, comm, centers, maxiterations, cvspring, frequency), _blockiterations(blockiterations), _tau(tau), _kappa(kappa), _spring_iter(1), _run_SMD(false)
+        {
+			//Force _run_SMD for now. Future release will include more details. 
+			_run_SMD = true;
 		}
 
 		//! Post-integration hook.
@@ -64,13 +73,14 @@ namespace SSAGES
         {
         	StringMethod::Serialize(json);
 
-            json["type"] = "FTS";
+            json["flavor"] = "FTS";
+
             json["kappa"] = _kappa;
+            json["block_iterations"] = _blockiterations;
+            json["time_step"] = _tau;
 
-            // For now must alwasy be true.
-            // This ensures you dont have to print _prev_positions, and _cv_prev
-            json["run_SMD"] = true;
-
+            for(auto& nw : _newcenters)
+            	json["running_average"].append(nw);
         }
 
 		//! Destructor

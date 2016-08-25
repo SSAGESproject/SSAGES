@@ -2,10 +2,19 @@
 	"type" : "object",
 	"varname" : "FTSMethod",
 	"properties" : {
+        "block_iterations" : {
+            "type" : "integer",
+            "minimum" : 1
+        },
+        "time_step" : {
+            "type" : "number",
+            "minimum" : 0,
+            "exclusiveMinimum" : true
+        },
 		"kappa" : {
 			"type" : "number",
 			"minimum" : 0
 		}
 	},
-	"required": ["kappa"]
+	"required": ["kappa", "time_step", "block_iterations"]
 }

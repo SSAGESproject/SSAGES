@@ -10,19 +10,6 @@
 namespace mpi = boost::mpi;
 namespace SSAGES
 {
-
-    //Helper function for calculating distances
-    double Swarm::distance(std::vector<double>& x, std::vector<double>& y)
-    {
-        double distance = 0;
-        for(size_t i = 0; i < x.size(); i++)
-        {
-            //Calculate the distance between each CV in x and y
-            distance += pow((x[i]-y[i]),2.0);
-        }
-        return sqrtl(distance);
-    }
-
     //Helper function to check if CVs are initialized correctly
     bool Swarm::CVInitialized(const CVList& cvs)
     {
@@ -47,64 +34,6 @@ namespace SSAGES
             }
         }
         return false; //e.g. OK to move on to regular sampling
-    }
-
-    //Pre-simulation hook
-    void Swarm::PreSimulation(Snapshot* snapshot, const CVList& cvs)
-    {
-        auto& forces = snapshot->GetForces();
-        auto& positions = snapshot->GetPositions();
-        auto& velocities = snapshot->GetVelocities();
-
-        //Open file for writing
-        _mpiid = snapshot->GetWalkerID();
-        std::ostringstream file;
-        file << "node-" << std::setw(4) << std::setfill('0') << _mpiid << ".log";
-        _stringout.open(file.str());
-        //Sizing vectors
-        _worldstring.resize(_centers.size()); 
-        _cv_start.resize(_centers.size());
-        _cv_drift.resize(_centers.size());
-        _traj_positions.resize(_number_trajectories);
-        _traj_velocities.resize(_number_trajectories);
-        
-        _traj_positions.reserve(_number_trajectories * positions.size());
-        _traj_velocities.reserve(_number_trajectories * velocities.size());
-        
-        for(size_t k = 0; k < _traj_positions.size(); k++)
-        {
-            _traj_positions[k].resize(positions.size());
-            _traj_positions[k].reserve(positions.size());
-        }
-        for(size_t k = 0; k < _traj_velocities.size(); k++)
-        {
-            _traj_velocities[k].resize(velocities.size());
-            _traj_velocities[k].reserve(velocities.size());
-        }
-
-        //Initialize vector values
-        for(size_t i = 0; i < _centers.size(); i++)
-        {
-            _worldstring[i].resize(_numnodes); 
-
-            //_worldstring is indexed as cv followed by node
-            mpi::all_gather(_world, _centers[i], _worldstring[i]);
-
-            _cv_start[i] = 0;
-            _cv_drift[i] = 0; 
-        }
-
-        //Additional initializing
-        _index = 0;  
-        _restrained_steps = _harvest_length*_number_trajectories; 
-        _unrestrained_steps = _swarm_length*_number_trajectories;
-
-        //For reparametrization
-        _alpha = _mpiid / (_numnodes - 1.0);
-
-        PrintString(cvs);
-
-        sampling_started = false;
     }
 
     void Swarm::PostIntegration(Snapshot* snapshot, const CVList& cvs)
@@ -133,7 +62,7 @@ namespace SSAGES
                 auto& grad = cv->GetGradient();
 
                 //Compute dV/dCV
-                auto D = _spring*(cv->GetDifference(_centers[i]));
+                auto D = _cvspring[i]*(cv->GetDifference(_centers[i]));
 
                 //Update forces
                 for(size_t j = 0; j < forces.size(); j++)
@@ -165,7 +94,7 @@ namespace SSAGES
                     auto& grad = cv->GetGradient();
 
                     //Compute dV/dCV
-                    auto D = _spring*(cv->GetDifference(_centers[i]));
+                    auto D = _cvspring[i]*(cv->GetDifference(_centers[i]));
 
                     //Update forces
                     for(size_t j = 0; j < forces.size(); j++)
@@ -270,10 +199,12 @@ namespace SSAGES
             {
                 //Evolve CVs, reparametrize, and reset vectors
                 _iteration++;
-                _world.barrier(); //Wait for all nodes before attempting string update
-                StringUpdate();
-                _world.barrier(); //Wait for all CVs to be updated
+
+
                 PrintString(cvs);
+                StringUpdate();
+                CheckEnd(cvs);
+                UpdateWorldString();
 
                 _iterator = 0;
                 _index = 0;
@@ -286,125 +217,23 @@ namespace SSAGES
         }
     }
 
-    //Post simulation hook
-    void Swarm::PostSimulation(Snapshot*, const CVList&)
-    {
-        _stringout.close();
-    }
-
-    void Swarm::PrintString(const CVList& CV)
-    {
-        //Write node, iteration, centers of the string and current CV value to output file
-        _stringout.precision(8);
-        _stringout << _mpiid << " " << _iteration << " ";
-
-        for(size_t i = 0; i < _centers.size(); i++)
-        {
-            _stringout << _centers[i] << " " << CV[i]->GetValue() << " ";
-        }
-        _stringout << std::endl;
-
-        //Write same info to terminal, omit current CV value
-        std::cout << _mpiid << " " << _iteration << " "; 
-        for(size_t i = 0; i < _centers.size(); i++)
-        {
-            std::cout << _centers[i] << " "; 
-        }
-        std::cout << std::endl;
-    }
-
     void Swarm::StringUpdate()
-    {
-        //Values for reparametrization
-        size_t i;
-        int centersize = _centers.size();
-        double alpha_star;
-        std::vector<double> alpha_star_vector;
-        std::vector<double> cvs_new; 
-        std::vector<double> cvs_new_vector;
+	{
+		std::vector<double> lcv0, ucv0;
+		lcv0.resize(_centers.size(), 0);
+		ucv0.resize(_centers.size(), 0);
 
-        //MPI communication parameters
-        int sendneighbor, recvneighbor;
-        MPI_Status status;
+		GatherNeighbors(&lcv0, &ucv0);
 
-        //Vectors for lower and upper neighbor on the string
-        std::vector<double> lower_cv_neighbor;
-        lower_cv_neighbor.resize(centersize); 
+		double alphastar = sqdist(_centers, lcv0);
 
-        //For reparametrization
-        cvs_new.resize(centersize); //All CVs for a particular nodes
-        alpha_star_vector.resize(_numnodes);
-        cvs_new_vector.resize(_numnodes); //Eventually, all CVs of one dimension from each node
-
-        //Evolve CVs with average drift
-        for(i = 0; i < cvs_new.size(); i++)
-        {
-            cvs_new[i] = _centers[i] + _cv_drift[i];
+		// Update node locations toward running averages:
+		for(size_t i = 0; i < _centers.size(); i++)
+		{
+            //std::cout << _centers[i] << " " << _cv_drift[i] << std::endl;
+            _centers[i] = _centers[i] + _cv_drift[i];
         }
-
-        //Set up nodes to receive from their backward neighbor and send to their forward neighbor, wrapping around at the string ends
-        if(_mpiid == 0)
-        {
-            sendneighbor = 1;
-            recvneighbor = _world.size() - 1;
-        }
-        else if (_mpiid == _world.size() - 1)
-        {
-            sendneighbor = 0;
-            recvneighbor = _world.size() - 2;
-        }
-        else
-        {
-            sendneighbor = _mpiid + 1;
-            recvneighbor = _mpiid - 1;
-        }
-
-        //Copy centers from lower neighbor into lower_cv_neighbor
-        MPI_Sendrecv(&_centers[0], centersize, MPI_DOUBLE, sendneighbor, 1234, &lower_cv_neighbor[0], centersize, MPI_DOUBLE, recvneighbor, 1234, _world, &status);
-
-        //Reparameterization
-        //Alpha star is the uneven mesh, approximated as linear distance between points
-        if(_mpiid == 0)
-        {
-            alpha_star = 0;
-        }
-        else
-        {
-            alpha_star = distance(_centers, lower_cv_neighbor);
-        }
-
-        //Gather each alpha_star into a vector 
-        mpi::all_gather(_world, alpha_star, alpha_star_vector);
-
-        for(i = 1; i < alpha_star_vector.size(); i++)
-        {
-            //Distances should be summed
-            alpha_star_vector[i] = alpha_star_vector[i-1] + alpha_star_vector[i];
-        }
-        
-        for(i = 1; i < alpha_star_vector.size(); i++)
-        {
-            //Distances should be normalized
-            alpha_star_vector[i] /= alpha_star_vector[_numnodes - 1];
-        }
-
-        tk::spline spl; //Cubic spline interpolation
-
-        for(i = 0; i < centersize; i++)
-        {
-            //Take from new CV values in one dimension into a vector
-            //cvs_new_vector is thus the CV value in one dimension at each node
-            mpi::all_gather(_world, cvs_new[i], cvs_new_vector);
-            //spl.setpoints(alpha_star_vector, vector of all new points in one particular dimension)
-            spl.set_points(alpha_star_vector, cvs_new_vector); //Spline initialized with points on uneven mesh
-            //Update CV values to lie on a regular mesh
-            _centers[i] = spl(_alpha); 
-        }
-        for(size_t i = 0; i < _centers.size(); i++)
-        {//Fill up world_string
-            //_worldstring is indexed as cv followed by node
-            mpi::all_gather(_world, _centers[i], _worldstring[i]);
-        }
-    }
+		StringReparam(alphastar);
+	}
 }
 

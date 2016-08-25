@@ -2,49 +2,22 @@
 	"type" : "object",
 	"varname" : "SwarmMethod",
 	"properties" : {
-		"type" : { 
-			"type" : "string",
-			"enum" : ["Swarm"]
-		},
-		"centers" : {
-			"type" : "array",
-			"minItems" : 1,
-			"items" : {
-				"type" : "number"
-			}
-		},
-		"number of nodes" : {
-			"type" : "integer",
-			"minimum" : 1
-		},
-		"spring" : {
+		"initial_steps" : {
 			"type" : "number",
 			"minimum" : 0
 		},
-		"frequency" : {
-			"type" : "integer",
-			"minimum" : 1
-		},
-		"iteration" : {
-			"type" : "integer"
-		}, 
-		"initial steps" : {
+		"harvest_length" : {
 			"type" : "number",
 			"minimum" : 0
 		},
-		"harvest length" : {
+		"number_of_trajectories" : {
 			"type" : "number",
 			"minimum" : 0
 		},
-		"number of trajectories" : {
-			"type" : "number",
-			"minimum" : 0
-		},
-		"swarm length" : {
+		"swarm_length" : {
 			"type" : "number",
 			"minimum" : 0
 		}
     },
-	"required": ["type", "centers", "number of nodes", "spring", "initial steps", "harvest length", "number of trajectories", "swarm length"],
-	"additionalProperties": false
+	"required": ["initial_steps", "harvest_length", "number_of_trajectories", "swarm_length"]
 }
