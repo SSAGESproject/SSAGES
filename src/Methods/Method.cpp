@@ -205,10 +205,12 @@ namespace SSAGES
 
 			if(json.isMember("F") && json.isMember("N"))
 				{
-				std::vector<double> F;
+				Eigen::VectorXd F;
 				std::vector<int> N;
-				for(auto& f : json["F"])
-					F.push_back(f.asDouble());
+				F.resize(json["F"].size());
+				for(int i = 0; i < (int)json["F"].size(); ++i)
+					F[i] = json["F"][i].asDouble();
+
 				for(auto& n : json["N"])
 					N.push_back(n.asInt());
 
