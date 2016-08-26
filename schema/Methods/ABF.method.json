@@ -64,14 +64,6 @@
 		"filename" : {
 			"type" : "string"
 		},
-
-		"print_details" : {
-			"type" : "array",
-			"minItems" : 9,
-			"items" : {
-				"type" : "integer"
-			}
-		},
 		
 		"backup_frequency" : {
 			"type" : "integer",
@@ -83,9 +75,10 @@
 			"minimum" : 0
 		},
 
-		"orthogonalization" : {
+		"projector_calculation_method" : {
 			"type" : "integer",
-			"minimum" : 0
+			"minimum" : 0,
+			"maximum" : 3
 		},
 
 		"F" : {
@@ -113,6 +106,6 @@
 			"minimum" : 1
 		}
 	},
-	"required": ["type", "CV_lower_bounds", "CV_upper_bounds", "CV_bins", "timestep", "unit_conversion", "print_details", "filename"],
+	"required": ["type", "CV_lower_bounds", "CV_upper_bounds", "CV_restraint_minimums", "CV_restraint_maximums", "CV_restraint_spring_constants", "CV_bins", "timestep", "unit_conversion"],
 	"additionalProperties": false
 }
