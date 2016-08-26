@@ -160,23 +160,20 @@ namespace SSAGES
 			std::vector<double> springkrestCV;
 			for(auto& bins : json["CV_restraint_spring_constants"])
 				springkrestCV.push_back(bins.asDouble());
-
-			std::vector<int> printdetails;
-			for(auto& bins : json["print_details"])
-				printdetails.push_back(bins.asDouble());
-
-			if(printdetails.size()!=9)
-				{
-				std::cout << "Print details not provided, or entered incorrectly. Defaulting to presets.";
-				std::vector<int> preset = {1000, 1, 1, 1, 1, 1, 1, 1, 1};
-				printdetails = preset;
-				}
-
+			
+			if(!(minsCV.size() 	== maxsCV.size() && 
+			     maxsCV.size() 	== binsCV.size() &&
+			     binsCV.size()	== minsrestCV.size() &&
+			     minsrestCV.size()	== maxsrestCV.size() &&
+			     maxsrestCV.size()  == springkrestCV.size()))
+			throw BuildException({"CV lower bounds, upper bounds, bins, restrain minimums, restrains maximums and spring constants must all have the size == number of CVs defined."});
+			
+			     
 			int FBackupInterv = json.get("backup_frequency", 1000).asInt();
 
 			double unitconv = json.get("unit_conversion", 0).asDouble();
 		
-			int Orthogonalization = json.get("orthogonalization", 0).asInt();
+			int Wcalc = json.get("projector_calculation_method", 1).asInt();
 
 			double timestep = json.get("timestep",2).asDouble();
 
@@ -199,7 +196,7 @@ namespace SSAGES
 
 			std::string filename = json.get("filename", "F_out").asString();
 
-			auto* m = new ABF(world, comm, histdetails, restraint, timestep, min, filename, printdetails, FBackupInterv, unitconv, Orthogonalization, freq);
+			auto* m = new ABF(world, comm, histdetails, restraint, timestep, min, filename, FBackupInterv, unitconv, Wcalc, freq);
 
 			method = static_cast<Method*>(m);
 
@@ -286,6 +283,8 @@ namespace SSAGES
 				centers.push_back(s.asDouble());
 
 			auto maxiterator = json.get("max_iterations", 0).asInt();
+			auto isteps = json.get("block_iterations", 2000).asInt();
+			auto tau = json.get("time_step", 0.1).asDouble();
 
 			std::vector<double> ksprings;
 			for(auto& s : json["ksprings"])
@@ -305,14 +304,11 @@ namespace SSAGES
 				validator.Validate(json, path);
 				if(validator.HasErrors())
 					throw BuildException(validator.GetErrors());
-    			auto isteps = json.get("block_iterations", 2000).asInt();
-		    	auto tau = json.get("time_step", 0.1).asDouble();
+
 				auto kappa = json.get("kappa", 0.1).asDouble();
-				auto springiter = json.get("umbrella_iterations",2000).asDouble();
 				auto* m = new FiniteTempString(world, comm, centers, 
 									maxiterator, isteps,
-									tau, ksprings, kappa,
-									springiter, freq);
+									tau, ksprings, kappa, freq);
 
 				if(json.isMember("tolerance"))
 				{
@@ -325,35 +321,6 @@ namespace SSAGES
 
 				method = static_cast<Method*>(m);
 			}
-            else if(flavor == "SWARM")
-            {
-                reader.parse(JsonSchema::SwarmMethod, schema);
-                validator.Parse(schema, path);
-                
-                //Validate input
-                validator.Validate(json, path);
-                if(validator.HasErrors())
-                    throw BuildException(validator.GetErrors());
- 
-                auto InitialSteps = json.get("initial_steps", 2500).asInt();
-                auto HarvestLength = json.get("harvest_length", 10).asInt();
-                auto NumberTrajectories = json.get("number_of_trajectories", 250).asInt();
-                auto SwarmLength = json.get("swarm_length", 20).asInt();
-                
-                auto* m = new Swarm(world, comm, centers, maxiterator, ksprings, freq, InitialSteps, HarvestLength, NumberTrajectories, SwarmLength); 
-                method = static_cast<Method*>(m);
-            
-                if(json.isMember("tolerance"))
-				{
-					std::vector<double> tol;
-					for(auto& s : json["tolerance"])
-						tol.push_back(s.asDouble());
-
-					m->SetTolerance(tol);
-				}
-                
-                method = static_cast<Method*>(m);
-            }
 			else
 			{
 				throw BuildException({flavor + " is unknown string method type. Please specify correct flavor"});
@@ -424,6 +391,34 @@ namespace SSAGES
 	{
 		auto* m = new GridTest(world, comm, 1);
 		method = static_cast<Method*>(m);
+	}
+	else if(type == "Swarm")
+	{
+		reader.parse(JsonSchema::SwarmMethod, schema);
+		validator.Parse(schema, path);
+		
+		//Validate input
+		validator.Validate(json, path);
+		if(validator.HasErrors())
+            throw BuildException(validator.GetErrors());
+		std::vector<double> centers;
+		for(auto& s: json["centers"])
+			centers.push_back(s.asDouble());
+			
+		auto NumNodes = json.get("number of nodes", 20).asInt();
+		auto spring = json.get("spring", 10).asDouble();
+		auto freq = json.get("frequency", 1).asInt();
+		auto InitialSteps = json.get("initial steps", 2500).asInt();
+		auto HarvestLength = json.get("harvest length", 10).asInt();
+		auto NumberTrajectories = json.get("number of trajectories", 250).asInt();
+		auto SwarmLength = json.get("swarm length", 20).asInt();
+		
+		auto* m = new Swarm(world, comm, centers, NumNodes, spring, freq, InitialSteps, HarvestLength, NumberTrajectories, SwarmLength); 
+		method = static_cast<Method*>(m);
+        
+        if(json.isMember("iteration"))
+            m->SetIteration(json.get("iteration",0).asInt());
+		
 	}
 	else
 	{

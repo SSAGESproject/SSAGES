@@ -58,6 +58,18 @@ namespace SSAGES
 	// 2) Mapping from N dimensions to one dimension.
 	// -> Simply constructed by writing out all members of the fictitious object in a line. This is a vector of length equal to the product of number of bins in each dimension.
 	// -> For the above example, this is 3.5 = 15 members. First 5 members are Y = [1 2 3 4 5] bins with X = 1. Next 5 members are Y = [1 2 3 4 5] with X = 2 ....
+
+	void removeColumn(Eigen::MatrixXd& matrix, unsigned int colToRemove)
+	{
+	    unsigned int numRows = matrix.rows();
+	    unsigned int numCols = matrix.cols()-1;
+
+	    if( colToRemove < numCols )
+		matrix.block(0,colToRemove,numRows,numCols-colToRemove) = matrix.block(0,colToRemove+1,numRows,numCols-colToRemove);
+
+	    matrix.conservativeResize(numRows,numCols);
+	}
+
 	int ABF::histCoords(const CVList& cvs)
 	{
 		// Histogram details: This is a 2 Dimensional object set up as the following:
@@ -117,31 +129,32 @@ namespace SSAGES
 
 		if(_mpiid == 0)
 		 	_worldout.open(_filename.c_str());
-		
+
 		// Convenience. Number of CVs.
-		_dim = cvs.size();
+		_ncv = cvs.size();
 
 		// Size and initialize _Fold
-		_Fold.setZero(_dim);
+		_Fold.setZero(_ncv);
 		
 		// Size and initialize _Fworld and _Nworld		
 		auto nel = 1;
-		for(auto i = 0; i < _dim; ++i)
+		for(auto i = 0; i < _ncv; ++i)
 			nel *= _histdetails[i][2];
 
-		_Fworld.setZero(nel*_dim);
+		_Fworld.setZero(nel*_ncv);
 		_Nworld.resize(nel, 0);
 
 		// If F or N are empty, size appropriately. 
-		if(_F.size() == 0) _F.setZero(nel*_dim);
+		if(_F.size() == 0) _F.setZero(nel*_ncv);
 		if(_N.size() == 0) _N.resize(nel, 0);
 
 		// Initialize biases.
 		_biases.resize(snapshot->GetPositions().size(), Vector3{0, 0, 0});
 		
 		// Initialize w \dot p's for finite difference. 
-		_wdotp1.setZero(_dim);
-		_wdotp2.setZero(_dim);
+		_wdotp1.setZero(_ncv);
+		_wdotp2.setZero(_ncv);
+		
 	}
 
 	//! Post-integration hook.
@@ -162,49 +175,98 @@ namespace SSAGES
 		auto& mass = snapshot->GetMasses();
 		auto& forces = snapshot->GetForces();
 
-		auto ncv = cvs.size();
-
 		//! Coord holds where we are in CV space in current timestep.
 		int coord = histCoords(cvs);
 
 		//! Eigen::MatrixXd to hold the CV gradient.
-		Eigen::MatrixXd J(ncv, 3*forces.size());
+		Eigen::MatrixXd J(_ncv, 3*forces.size());
 
 		// Fill J. Each column represents grad(CV) with flattened Cartesian elements. 
-		for(size_t i = 0; i < ncv; ++i)
+		for(size_t i = 0; i < _ncv; ++i)
 		{
 			auto& grad = cvs[i]->GetGradient();
 			for(size_t j = 0; j < forces.size(); ++j)
 				J.block<1, 3>(i,3*j) = grad[j];
 		}
+		
+		Eigen::MatrixXd Wt;		
 
-		/*! 
-		 * W is the projection of the force from generalized 
-		 * coordinates to cartesian.
-		 */
-		// Find projector as the pseudoinverse of grad(CV).
-		Eigen::JacobiSVD<Eigen::MatrixXd> svd(J, Eigen::ComputeThinU | Eigen::ComputeThinV);
-		Eigen::MatrixXd W = svd.pinv();
+		//* Calculate projector matrix W according to user input.
 
+		//* 0 - Calculate the pseudoinverse of J; J = d(CVi)/d(xj) matrix.
+		//* 1 - Calculate W using Darve's approach (http://mc.stanford.edu/cgi-bin/images/0/06/Darve_2008.pdf) - DEFAULT
+		//* 2 - Calculate W using Ciccotti's orthonormalization approach (http://www.chem.utoronto.ca/~rkapral/Papers/ericCK-cppc-2005.pdf)
+		//* 3 - Calculate W by columnwise normalizing J with |J|^2
+		if(_Wcalc == 0) 
+			{
+			/*! 
+			 * W is the projection of the force from generalized 
+			 * coordinates to cartesian.
+			 */
+			// Find projector as the pseudoinverse of grad(CV).
+			Eigen::JacobiSVD<Eigen::MatrixXd> svd(J, Eigen::ComputeThinU | Eigen::ComputeThinV);
+
+			Wt = (svd.pinv()).transpose();
+			}
+		else if(_Wcalc == 1)
+			{
+			Eigen::MatrixXd Jmass = J.transpose();
+			
+			for(size_t i = 0; i < forces.size(); ++i)
+				Jmass.block(3*i,0,3,_ncv) = Jmass.block(3*i,0,3,_ncv)/mass[i];
+								
+			Eigen::MatrixXd Minv = J*Jmass;
+
+			//MPI_Allreduce(MPI_IN_PLACE, Minv.data(), Minv.size(), MPI_DOUBLE, MPI_SUM, _comm);
+
+			Wt = (Minv.inverse())*(Jmass.transpose());	
+
+			// Hythem: 
+			// If I did the math right, Minv and wdotp are the only pieces that need to be communicated, and Minv is only ncv by ncv so quite tiny. 
+			// Furthermore, all that needs to be done is entrywise summing contributions from different processors, there are no cross atom terms in prior calculations.
+			// Even for the Wt step, a local Wt made from the communicated Minv and the local Jmass should work, as long as wdotp is also allreduce summed.
+			// Let me know if this is incorrect.
+			}
+		else if(_Wcalc == 2)
+			{			
+			Wt = Eigen::MatrixXd::Zero(_ncv,3*forces.size());
+			for(unsigned int i = 0; i < _ncv; ++i)
+				{
+				Eigen::MatrixXd Jtrunc = J.transpose();
+				removeColumn(Jtrunc, i);
+				Eigen::HouseholderQR<Eigen::MatrixXd> qr(Jtrunc);
+				Eigen::MatrixXd N = qr.householderQ()*Eigen::MatrixXd::Identity(3*forces.size(),_ncv-1);
+				Eigen::MatrixXd Qj = Eigen::MatrixXd::Identity(3*forces.size(),3*forces.size()) - N*N.transpose();
+				Wt.row(i) = ( Qj*( (J.row(i)).transpose() ) )/( (Qj*( (J.row(i)).transpose() ) ).squaredNorm());				
+				}			
+			}
+		
+		else
+			{
+			Wt = J;
+			for(unsigned int i = 0; i < _ncv; ++i)
+				Wt.row(i) = Wt.row(i)/((J.row(i)).squaredNorm());			
+			}	
+			
 		// Fill momenta.
 		Eigen::VectorXd momenta(3*vels.size());
 		for(size_t i = 0; i < vels.size(); ++i)
 			momenta.segment<3>(3*i) = mass[i]*vels[i];
 
 		// Compute dot(w,p).
-		Eigen::VectorXd wdotp = W.transpose()*momenta;
+		Eigen::VectorXd wdotp = Wt*momenta;
+
+		// Reduce dot product across processors.
+		//MPI_Allreduce(MPI_IN_PLACE, wdotp.data(), wdotp.size(), MPI_DOUBLE, MPI_SUM, _world);
 
 		// Compute d(wdotp)/dt second order backwards finite difference. 
 		// Adding old force removes bias. 
 		Eigen::VectorXd dwdotpdt = _unitconv*(1.5*wdotp - 2.0*_wdotp1 + 0.5*_wdotp2)/_timestep + _Fold;
 
-		// Reduce dot product across processors.
-		//MPI_Allreduce(MPI_IN_PLACE, dwdotpdt.data(), dwdotpdt.size(), MPI_DOUBLE, MPI_SUM, _world);
-
 		// If we are in bounds, sum force into running total.
 		if(coord != -1)
 		{
-			_F.segment(ncv*coord, ncv) += dwdotpdt;
+			_F.segment(_ncv*coord, _ncv) += dwdotpdt;
 			++_N[coord];
 		}
 
@@ -214,7 +276,7 @@ namespace SSAGES
 
 		// If we are in bounds, store the old summed force.
 		if(coord != -1)
-			_Fold = _Fworld.segment(ncv*coord, ncv)/std::max(_min, _Nworld[coord]);
+			_Fold = _Fworld.segment(_ncv*coord, _ncv)/std::max(_min, _Nworld[coord]);
 	
 		// Update finite difference time derivatives.
 		_wdotp2 = _wdotp1;
@@ -243,8 +305,6 @@ namespace SSAGES
 
 	void ABF::CalcBiasForce(const Snapshot* snapshot, const CVList& cvs, int coord)
 	{	
-		int ncv = cvs.size();
-
 		// Reset the bias.
 		for(auto& b : _biases)
 			b.setZero();
@@ -252,16 +312,16 @@ namespace SSAGES
 		// Compute bias if within bounds
 		if(coord != -1)
 		{
-			for(size_t i = 0; i < ncv; ++i)
+			for(size_t i = 0; i < _ncv; ++i)
 			{
 				auto& grad = cvs[i]->GetGradient();
 				for(size_t j = 0; j < _biases.size(); ++j)
-					_biases[j] -= _Fworld[ncv*coord+i]*grad[j]/std::max(_min, _Nworld[coord]);
+					_biases[j] -= _Fworld[_ncv*coord+i]*grad[j]/std::max(_min, _Nworld[coord]);
 			}
 		}
 		else
 		{
-			for(size_t i = 0; i < ncv; ++i)
+			for(size_t i = 0; i < _ncv; ++i)
 			{
 				auto k = 0.;
 				auto x0 = 0.;
@@ -318,8 +378,8 @@ namespace SSAGES
 				index = index % modulo;
 			}
 
-			for(size_t j = 0; j < _dim; ++j)
-				_worldout << _Fworld[_dim*i+j]/std::max(_Nworld[i],_min) << " ";
+			for(size_t j = 0; j < _ncv; ++j)
+				_worldout << _Fworld[_ncv*i+j]/std::max(_Nworld[i],_min) << " ";
 		}
 
 		_worldout << std::endl;
