@@ -160,23 +160,20 @@ namespace SSAGES
 			std::vector<double> springkrestCV;
 			for(auto& bins : json["CV_restraint_spring_constants"])
 				springkrestCV.push_back(bins.asDouble());
-
-			std::vector<int> printdetails;
-			for(auto& bins : json["print_details"])
-				printdetails.push_back(bins.asDouble());
-
-			if(printdetails.size()!=9)
-				{
-				std::cout << "Print details not provided, or entered incorrectly. Defaulting to presets.";
-				std::vector<int> preset = {1000, 1, 1, 1, 1, 1, 1, 1, 1};
-				printdetails = preset;
-				}
-
+			
+			if(!(minsCV.size() 	== maxsCV.size() && 
+			     maxsCV.size() 	== binsCV.size() &&
+			     binsCV.size()	== minsrestCV.size() &&
+			     minsrestCV.size()	== maxsrestCV.size() &&
+			     maxsrestCV.size()  == springkrestCV.size()))
+			throw BuildException({"CV lower bounds, upper bounds, bins, restrain minimums, restrains maximums and spring constants must all have the size == number of CVs defined."});
+			
+			     
 			int FBackupInterv = json.get("backup_frequency", 1000).asInt();
 
 			double unitconv = json.get("unit_conversion", 0).asDouble();
 		
-			int Orthogonalization = json.get("orthogonalization", 0).asInt();
+			int Wcalc = json.get("projector_calculation_method", 1).asInt();
 
 			double timestep = json.get("timestep",2).asDouble();
 
@@ -199,7 +196,7 @@ namespace SSAGES
 
 			std::string filename = json.get("filename", "F_out").asString();
 
-			auto* m = new ABF(world, comm, histdetails, restraint, timestep, min, filename, printdetails, FBackupInterv, unitconv, Orthogonalization, freq);
+			auto* m = new ABF(world, comm, histdetails, restraint, timestep, min, filename, FBackupInterv, unitconv, Wcalc, freq);
 
 			method = static_cast<Method*>(m);
 
@@ -435,3 +432,4 @@ namespace SSAGES
 	return method;
 	}
 }
+

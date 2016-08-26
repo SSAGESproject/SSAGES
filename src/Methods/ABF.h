@@ -115,15 +115,6 @@ namespace SSAGES
 		*/ 
 		std::vector<std::vector<double>> _histdetails;
 
-		//! Vector to hold print out information
-		/*! 
-		 * [Print every how many timesteps?, Print CVs?, Print
-		 * Orthogonalization Correction?, Print Normalization Factor?, Print
-		 * Gradient?, Print Genforce?, Print Coords?, Print Restraint info?,
-		 * Print Biases?]
-		 */
-		std::vector<int> _printdetails;
-
 		//! Integer to hold F estimate backup information
 		/*!
 		 * Print every how many timesteps? ; -1: Do not backup during simulation
@@ -139,8 +130,16 @@ namespace SSAGES
 		 */
 		double _unitconv;
 	
-		//! Enable or Disable Gram-Schmidt Orthogonalization
-		int _Orthogonalization;
+		//! Which method to use to calculate the projector matrix W.
+		/*!
+		 * Default is calculating the pseudoinvers of J, the grad(CV) matrix.
+		 * Options are:
+		 * 0 = Pseudoinverse of J
+		 * 1 = Orthogonormal basis from J and normalization (Cicotti et al.)
+		 * 2 = Use MJM^(-1) (Darve et al.)
+		 * 4 = Columnwise normalize - Fast but does NOT work for non-orthogonal CVs
+		 */
+		int _Wcalc;
 
 		//! Computes the bias force.
 		void CalcBiasForce(const Snapshot* snapshot, const CVList& cvs, int coord);
@@ -150,6 +149,12 @@ namespace SSAGES
 
 		//! Timestep of integration
 		double _timestep;
+
+		//! Number of cvs
+		int _ncv = 0;
+
+		//! Mass vector. Empty unless required.
+		Eigen::VectorXd _mass;
 
 	public: 
 		//! Constructor 
@@ -178,16 +183,15 @@ namespace SSAGES
 			double timestep,
 			double min,
 			std::string filename,
-			std::vector<int> printdetails,
 			int FBackupInterv,
 			double unitconv,
-			int Orthogonalization,
+			int Wcalc,
 			unsigned int frequency) :
 		Method(frequency, world, comm), _F(), _Fworld(), _N(0), _Nworld(0),
 		_restraint(restraint), _min(min), _wdotp1(), _wdotp2(), _Fold(), _beta(0),
-		_filename(filename), _biases(), _dim(0), _mpiid(0), _histdetails(histdetails),
-		_printdetails(printdetails), _FBackupInterv(FBackupInterv),
-		_unitconv(unitconv), _Orthogonalization(Orthogonalization),
+		_filename(filename), _biases(), _dim(0), _mpiid(0), _histdetails(histdetails), 
+		_FBackupInterv(FBackupInterv),
+		_unitconv(unitconv), _Wcalc(Wcalc),
 		_timestep(timestep)
 		{
 		}
@@ -256,15 +260,12 @@ namespace SSAGES
 			json["timestep"] = _timestep;
 
 			json["minimum_count"] = _min;
-
-			for(size_t i = 0; i < _printdetails.size(); ++i)
-				json["print_details"].append(_printdetails[i]);
 			 
 			json["backup_frequency"] = _FBackupInterv;
 			
 			json["unit_conversion"] = _unitconv;
 
-			json["orthogonalization"] = _Orthogonalization;			
+			json["projector_calculation_method"] = _Wcalc;		
 		
 			for(size_t i = 0; i < _F.size(); ++i)
 				json["F"].append(_F[i]);
