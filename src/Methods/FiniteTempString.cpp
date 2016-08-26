@@ -16,7 +16,7 @@ namespace SSAGES
 		// Record the difference between all cvs and all nodes
 		for (size_t i = 0; i < _numnodes; i++)
 			for(size_t j = 0; j < cvs.size(); j++)
-				dists[i]+=(cvs[j]->GetValue() - _worldstring[i][j])*(cvs[j]->GetValue() - _worldstring[i][j]);
+				dists[i]+=cvs[j]->GetDifference(_worldstring[i][j])*cvs[j]->GetDifference(_worldstring[i][j]);
 		
 		if(std::min_element(dists.begin(), dists.end()) - dists.begin() == _mpiid)
 			return true;
@@ -28,25 +28,51 @@ namespace SSAGES
 	void FiniteTempString::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
 		auto& forces = snapshot->GetForces();
-		auto inside = InCell(cvs);
+		auto& positions = snapshot->GetPositions();
+		auto insidecell = InCell(cvs);
 
-		if(!inside)
+		if(_run_umbrella)
 		{
-			for(size_t i = 0; i < cvs.size(); i++)
+			if(insidecell && _umbrella_iter >= _min_num_umbrella_steps)
 			{
-				// Get current cv and gradient
-				auto& cv = cvs[i];
-				auto& grad = cv->GetGradient();
-
-				// Compute dV/dCV, slowly increase spring strength to ensure don't get stuck.
-				auto D = _cvspring[i]*(1.0 + _spring_iter/100.0)*(cv->GetDifference(_centers[i]));
-
-				// Update forces
-				for(size_t j = 0; j < forces.size(); j++)
-					for(size_t k = 0; k < forces[j].size(); k++)
-						forces[j][k] -= D*grad[j][k];
+				_run_umbrella = false;
+				_umbrella_iter = 0;
 			}
-			_spring_iter++;
+			else
+			{
+				for(size_t i = 0; i < cvs.size(); i++)
+				{
+					// Get current cv and gradient
+					auto& cv = cvs[i];
+					auto& grad = cv->GetGradient();
+
+					// Compute dV/dCV
+					auto D = _cvspring[i]*(cv->GetDifference(_centers[i]));
+
+					// Update forces
+					for(size_t j = 0; j < forces.size(); j++)
+							forces[j] -= D*grad[j];
+				}
+				_umbrella_iter++;
+				return;
+			}
+		}
+
+		if(!insidecell)
+		{
+			for(auto& force : forces)
+				force.setZero();
+
+			//temporary implementation, will need to be fixed when snapshot gather_all no longer occurs.
+			for(size_t i = 0; i < positions.size(); i++)
+				positions[i] = _prev_positions[i];
+
+			// Calculate running averages for each CV at each node based on previous CV
+			for(size_t i = 0; i < _newcenters.size(); i++)
+			{
+				_newcenters[i] = _newcenters[i] * (_iteration * _blockiterations + _iterator - 1) + _prev_CVs[i];
+				_newcenters[i] /= (_iteration * _blockiterations + _iterator);
+			}
 		}
 		else
 		{
@@ -57,24 +83,33 @@ namespace SSAGES
 				_newcenters[i] /= (_iteration * _blockiterations + _iterator);
 			}
 
-			// Update the string, every _blockiterations string method iterations
-			if(_iterator % _blockiterations == 0)
-			{
-				PrintString(cvs);
-		        StringUpdate();
-		        CheckEnd(cvs);
-				UpdateWorldString();
+			_prev_CVs.clear();
+			for(auto&cv : cvs)
+				_prev_CVs.push_back(cv->GetValue());
 
-				_iterator = 1;
-				_iteration++;
-			}
-			else
-			{
-				_iterator++;
-			}
-			
-			_spring_iter = 1;
+			_prev_positions.resize(positions.size());
+			//temporary implementation, will need to be fixed when snapshot gather_all no longer occurs. 
+			for(size_t i = 0; i < positions.size(); i++)
+				for(int j = 0; j < positions[i].size(); j++)
+					_prev_positions[i][j] = positions[i][j];
 		}
+
+		// Update the string, every _blockiterations string method iterations
+		if(_iterator % _blockiterations == 0)
+		{
+			PrintString(cvs);
+	        StringUpdate();
+	        CheckEnd(cvs);
+			UpdateWorldString();
+
+			_iterator = 0;
+			_iteration++;
+
+			if(!InCell(cvs))
+				_run_umbrella = true;
+		}
+		
+		_iterator++;
 	}
 
 	void FiniteTempString::StringUpdate()

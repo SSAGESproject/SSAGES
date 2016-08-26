@@ -231,7 +231,7 @@ namespace SSAGES
 			sprintf(file, "node-%04d.log",_mpiid);
 		 	_stringout.open(file);
 
-		 	std::vector<int> wiids(_world.size(), 0);
+		 	std::vector<unsigned int> wiids(_world.size(), 0);
 
 			//Set the neighbors
 			_recneigh = -1;

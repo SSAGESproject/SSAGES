@@ -26,12 +26,25 @@ namespace SSAGES
 		//! Time step of string change
 		double _tau;
 
-		unsigned int _spring_iter;
-        
-        bool _run_SMD;
+		//! Minimum number of steps to apply umbrella sampling.
+		unsigned int _min_num_umbrella_steps;
 
+		//! Flag to run umbrella or not during post-integration        
+        bool _run_umbrella;
+
+        //! Iterator that keeps track of umbrella iterations
+		unsigned int _umbrella_iter;
+
+		//! Stores the last positions of the CVs
+		std::vector<double> _prev_CVs;
+
+		//! Steores the last positions of the atoms
+		std::vector<Vector3> _prev_positions;
+
+		//! Checks if CV is in voronoi cell
 		bool InCell(const CVList& cvs) const;
 
+		//! Updates the string according to the FTS method
 		void StringUpdate();
 
 	public:
@@ -59,11 +72,14 @@ namespace SSAGES
 					double tau,
 					const std::vector<double> cvspring,
 					double kappa,
+					unsigned int springiter,
 			 		unsigned int frequency) : 
-		StringMethod(world, comm, centers, maxiterations, cvspring, frequency), _blockiterations(blockiterations), _tau(tau), _kappa(kappa), _spring_iter(1), _run_SMD(false)
+		StringMethod(world, comm, centers, maxiterations, cvspring, frequency),
+		_kappa(kappa), _blockiterations(blockiterations), _tau(tau), 
+		_min_num_umbrella_steps(springiter), _run_umbrella(true),
+		_umbrella_iter(1)
         {
-			//Force _run_SMD for now. Future release will include more details. 
-			_run_SMD = true;
+
 		}
 
 		//! Post-integration hook.
@@ -73,8 +89,8 @@ namespace SSAGES
         {
         	StringMethod::Serialize(json);
 
+            json["umbrella_iterations"] = _min_num_umbrella_steps;
             json["flavor"] = "FTS";
-
             json["kappa"] = _kappa;
             json["block_iterations"] = _blockiterations;
             json["time_step"] = _tau;

@@ -308,9 +308,11 @@ namespace SSAGES
     			auto isteps = json.get("block_iterations", 2000).asInt();
 		    	auto tau = json.get("time_step", 0.1).asDouble();
 				auto kappa = json.get("kappa", 0.1).asDouble();
+				auto springiter = json.get("umbrella_iterations",2000).asDouble();
 				auto* m = new FiniteTempString(world, comm, centers, 
 									maxiterator, isteps,
-									tau, ksprings, kappa, freq);
+									tau, ksprings, kappa,
+									springiter, freq);
 
 				if(json.isMember("tolerance"))
 				{

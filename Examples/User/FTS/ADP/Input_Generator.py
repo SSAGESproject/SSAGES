@@ -25,7 +25,7 @@ for i in range(0,num - 1):
 
 for i in range(num):
 	# Change the log file name so each driver uses a different log file
-	root['driver'][i]['logfile'] = "none"
+	#root['driver'][i]['logfile'] = "none"
 
 	# Change the node's location
         root['driver'][i]['method']['centers'][0] = round(centers_1[i], 3)

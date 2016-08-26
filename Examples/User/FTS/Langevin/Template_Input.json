@@ -28,7 +28,8 @@
 				"max_iterations" : 1000,
 				"time_step" : 0.1,
 				"frequency" : 1,
-				"ksprings" : [75,75],
+				"ksprings" : [750,750],
+				"umbrella_iterations" : 2000,
 				"tolerance" : [0.0001, 0.0001],
 				"flavor" : "FTS",
 				"kappa" : 0.1

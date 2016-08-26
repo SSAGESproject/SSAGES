@@ -30,13 +30,14 @@
             "method": {
                 "flavor": "FTS",
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "tolerance": [
                     0.001,
                     0.001
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -78,14 +79,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     -1.381,
                     0.905
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -127,14 +129,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     -1.262,
                     0.81
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -176,14 +179,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     -1.143,
                     0.714
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -225,14 +229,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     -1.024,
                     0.619
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -274,14 +279,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     -0.905,
                     0.524
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -323,14 +329,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     -0.786,
                     0.429
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -372,14 +379,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     -0.667,
                     0.333
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -421,14 +429,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     -0.548,
                     0.238
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -470,14 +479,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     -0.429,
                     0.143
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -519,14 +529,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     -0.31,
                     0.048
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -568,14 +579,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     -0.19,
                     -0.048
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -617,14 +629,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     -0.071,
                     -0.143
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -666,14 +679,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     0.048,
                     -0.238
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -715,14 +729,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     0.167,
                     -0.333
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -764,14 +779,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     0.286,
                     -0.429
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -813,14 +829,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     0.405,
                     -0.524
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -862,14 +879,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     0.524,
                     -0.619
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -911,14 +929,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     0.643,
                     -0.714
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -960,14 +979,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     0.762,
                     -0.81
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -1009,14 +1029,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     0.881,
                     -0.905
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -1058,14 +1079,15 @@
             "type": "LAMMPS",
             "method": {
                 "kappa": 0.1,
+                "umbrella_iterations": 2000,
                 "type": "String",
                 "centers": [
                     1.0,
                     -1.0
                 ],
                 "ksprings": [
-                    500,
-                    500
+                    1000,
+                    1000
                 ],
                 "frequency": 1,
                 "time_step": 0.1,

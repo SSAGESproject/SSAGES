@@ -14,6 +14,14 @@
 		"kappa" : {
 			"type" : "number",
 			"minimum" : 0
+		},
+		"umbrella_iterations" : {
+			"type" : "integer",
+			"minimum" : 1
+		},
+		"block_iterations" : {
+			"type" : "integer",
+			"minimum" : 1
 		}
 	},
 	"required": ["kappa", "time_step", "block_iterations"]
