@@ -95,38 +95,6 @@ namespace SSAGES
 
 			method = static_cast<Method*>(m);
 		}
-		else if(type == "ElasticBand")
-		{
-			reader.parse(JsonSchema::ElasticBandMethod, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-
-			std::vector<double> ksprings;
-			for(auto& s : json["ksprings"])
-				ksprings.push_back(s.asDouble());
-
-			std::vector<double> centers;
-			for(auto& s : json["centers"])
-				centers.push_back(s.asDouble());
-
-			auto isteps = json.get("max iterations", 2000).asInt();
-			auto eqsteps = json.get("equilibration steps", 20).asInt();
-			auto evsteps = json.get("evolution steps", 20).asInt();
-			auto nsamples = json.get("number samples", 20).asInt();
-			auto stringspring = json.get("kstring", 10.0).asDouble();
-			auto timestep = json.get("time step", 1.0).asDouble();			
-			auto freq = json.get("frequency", 1).asInt();			
-
-			auto* m = new ElasticBand(world, comm, isteps, eqsteps,
-			 						evsteps, nsamples, centers, ksprings,
-			 						stringspring, timestep, freq);
-
-			method = static_cast<Method*>(m);
-		}
 		else if(type == "ABF")
 		{
 			reader.parse(JsonSchema::ABFMethod, schema);
@@ -322,6 +290,38 @@ namespace SSAGES
 
 				method = static_cast<Method*>(m);
 			}
+			else if(flavor == "ElasticBand")
+			{
+				reader.parse(JsonSchema::ElasticBandMethod, schema);
+				validator.Parse(schema, path);
+
+				// Validate inputs.
+				validator.Validate(json, path);
+				if(validator.HasErrors())
+					throw BuildException(validator.GetErrors());
+
+				auto eqsteps = json.get("equilibration_steps", 20).asInt();
+				auto evsteps = json.get("evolution_steps", 5).asInt();
+				auto stringspring = json.get("kstring", 10.0).asDouble();
+    			auto isteps = json.get("block_iterations", 100).asInt();
+		    	auto tau = json.get("time_step", 0.1).asDouble();
+
+				auto* m = new ElasticBand(world, comm, centers, 
+									maxiterator, isteps,
+									tau, ksprings, eqsteps,
+									evsteps, stringspring, freq);
+
+                if(json.isMember("tolerance"))
+				{
+					std::vector<double> tol;
+					for(auto& s : json["tolerance"])
+						tol.push_back(s.asDouble());
+
+					m->SetTolerance(tol);
+				}
+
+				method = static_cast<Method*>(m);
+			}
             else if(flavor == "SWARM")
             {
                 reader.parse(JsonSchema::SwarmMethod, schema);
@@ -348,9 +348,9 @@ namespace SSAGES
 
 					m->SetTolerance(tol);
 				}
-                
-                method = static_cast<Method*>(m);
-            }
+
+				method = static_cast<Method*>(m);
+			}
 			else
 			{
 				throw BuildException({flavor + " is unknown string method type. Please specify correct flavor"});

@@ -2,10 +2,10 @@ echo screen
 dimension 2
 boundary f f p
 units real
-atom_style atomic
+atom_style full
 
 #specify the box for the simulation.
-region box block -1.5 2.0 -1.5 2.0 -1 1 units box
+region box block -2.0 2.0 -2.0 2.0 -1 1 units box
 create_box        1 box
 
 #Set mass of all particles
@@ -92,7 +92,7 @@ compute fya all property/atom fy
 compute fy all reduce sum c_fya
 
 
-timestep 2
+timestep 1
 thermo_style custom step c_xx c_yy c_vx c_vy c_fx c_fy c_ffx c_ffy press
 
 

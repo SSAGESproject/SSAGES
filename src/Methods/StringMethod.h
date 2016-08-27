@@ -217,8 +217,7 @@ namespace SSAGES
 			 		unsigned int frequency) : 
 						Method(frequency, world, comm), _centers(centers), 
 						_maxiterator(maxiterations), 
-						_cvspring(cvspring), _iterator(1) 
- 
+						_cvspring(cvspring), _iterator(1)
 		{
 			_newcenters.resize(_centers.size(), 0);
 		}
@@ -292,6 +291,7 @@ namespace SSAGES
 
 		void SetTolerance(std::vector<double> tol)
 		{
+			_tol.clear();
 			for(auto& t : tol)
 				_tol.push_back(t);
 		}

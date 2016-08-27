@@ -341,14 +341,6 @@ namespace SSAGES
 					success_build = false;
 			}
 
-			if(_comm.rank()==0)
-			{
-				if(success_build)
-					std::cout << std::setw(_notw) << std::right << "\033[32mMDEngine " << wid <<  " pass!\033[0m\n";
-				else
-					std::cout << std::setw(_notw) << std::right << "\033[32mMDEngine " << wid <<  " FAIL!\033[0m\n";
-			}
-
 			// Build the constraints if they exist
 			if(JsonDriver.isMember("constraints"))
 			{

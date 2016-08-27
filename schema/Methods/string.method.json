@@ -8,7 +8,7 @@
 		},
 		"flavor" : {
 			"type" : "string",
-			"enum" : ["FTS", "SWARM", "Elastic"]
+			"enum" : ["FTS", "SWARM", "ElasticBand"]
 		},
 		"centers" : {
 			"type" : "array",

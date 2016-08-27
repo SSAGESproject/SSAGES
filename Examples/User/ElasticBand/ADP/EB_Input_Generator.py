@@ -11,8 +11,8 @@ with open('EB_Template.json') as f:
 	root = json.load(f)
 
 # Create vector of Torsional angle range. -pi to pi
-centers1 = np.linspace(-2.0944, 1.50, num=13)
-centers2 = np.linspace(2.0944, -1.50, num =13)
+centers1 = np.linspace(-2.0944, 1.50, num=17)
+centers2 = np.linspace(2.0944, -1.50, num =17)
 # Periodic torsional CV so remove the last value
 centers1 = centers1[0:-1]
 centers2 = centers2[0:-1]

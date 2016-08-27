@@ -53,12 +53,10 @@ namespace SSAGES
 		 * \param world MPI global communicator.
 		 * \param comm MPI local communicator.
 		 * \param centers List of centers.
-		 * \param NumNodes Number of nodes.
 		 * \param maxiterator Maximum number of iterations.
 		 * \param blockiterations Number of iterations per block averaging.
 		 * \param tau Value of tau (default: 0.1).
 		 * \param cvspring Spring constants for cvs.
-		 * \param run_SMD Run steered MD to direct CV to proper starting configuration.
 		 * \param kappa Value of kappa (default: 0.1).
 		 * \param frequency Frequency with which this method is invoked.
 		 *
@@ -79,7 +77,6 @@ namespace SSAGES
 		_min_num_umbrella_steps(springiter), _run_umbrella(true),
 		_umbrella_iter(1)
         {
-
 		}
 
 		//! Post-integration hook.
