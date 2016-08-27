@@ -1,3 +1,5 @@
+.. _meta-dynamics-methods:
+
 Meta-Dynamics Methods
 =====================
 
@@ -16,19 +18,8 @@ List of Metadynamics Methods (alphabetical order):
    Finite Temperature String
    Forward-Flux
    Generic Metadynamics
+   Image Method
+   Replica Exchange
    Swarm of Trajectories
    Umbrella Sampling
 
-Methods currently under development
------------------------------------
-
-The following methods are currently under development and will be included in
-the next major version of SSAGES:
-
-* Image Method
-* Replica Exchange
-
-.. todo::
-
-    Give developer(s) and current status for methods that did not make the
-    Feature Freeze date.
