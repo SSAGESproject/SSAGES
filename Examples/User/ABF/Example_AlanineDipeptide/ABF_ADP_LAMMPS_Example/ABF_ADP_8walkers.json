@@ -1,53 +1,67 @@
 {
-    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example",
+    "observers": [
+        {
+            "file name": "test_restart",
+            "frequency": 250000,
+            "type": "JSON"
+        }
+    ],
     "driver" : [        
         {
             "number processors" : 1,
             "type" : "LAMMPS",
             "MDSteps" : 500000,
-            "logfile" : "node-1"
+            "logfile" : "node-0",
+	    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example0"
 		},
         {
             "number processors" : 1,
             "type" : "LAMMPS",
             "MDSteps" : 500000,
-            "logfile" : "node-2"
+            "logfile" : "node-1",
+	    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example1"
 		},
         {
             "number processors" : 1,
             "type" : "LAMMPS",
             "MDSteps" : 500000,
-            "logfile" : "node-3"
+            "logfile" : "node-2",
+	    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example2"
 		},
         {
             "number processors" : 1,
             "type" : "LAMMPS",
             "MDSteps" : 500000,
-            "logfile" : "node-4"
+            "logfile" : "node-3",
+	    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example3"
 		},
         {
             "number processors" : 1,
             "type" : "LAMMPS",
             "MDSteps" : 500000,
-            "logfile" : "node-5"
+            "logfile" : "node-4",
+	    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example4"
 		},
         {
             "number processors" : 1,
             "type" : "LAMMPS",
             "MDSteps" : 500000,
-            "logfile" : "node-6"
+            "logfile" : "node-5",
+	    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example5"
 		},
         {
             "number processors" : 1,
             "type" : "LAMMPS",
             "MDSteps" : 500000,
-            "logfile" : "node-7"
+            "logfile" : "node-6",
+	    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example6"
 		},
         {
             "number processors" : 1,
             "type" : "LAMMPS",
             "MDSteps" : 500000,
-            "logfile" : "node-8"
+            "logfile" : "node-7",
+	    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example7"
 		}],
 	"CVs": [
                 {
