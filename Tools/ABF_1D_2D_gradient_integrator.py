@@ -158,9 +158,7 @@ elif shapeinfo[1] == 4:
 	fy = vfield[:,3]
 
 	dx = vfield[ny,0] - vfield[0,0]
-	print(dx)
-	dy = vfield[1,1] - vfield[0,1]
-	print(dy)	
+	dy = vfield[1,1] - vfield[0,1]	
 
 	fhat = intgrad2(fx,fy,nx,ny,dx,dy,1)
 	plot2 = plt.figure()
