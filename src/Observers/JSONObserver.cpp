@@ -69,6 +69,9 @@ namespace SSAGES
 
 	void JSONObserver::PreVisit()
 	{
+		if(_comm.rank() != 0)
+			return;
+
 		std::string Name = _prefix + "_" + std::to_string(_wid) +".json";
 		std::string BckupName = Name + "_backup";
 		std::string tempName = BckupName + "_temp";
@@ -97,6 +100,9 @@ namespace SSAGES
 
 	void JSONObserver::PostVisit()
 	{
+		if(_comm.rank() != 0)
+			return;
+		
 		*_jsonfs;
 		Json::StreamWriterBuilder builder;
 		builder["commentStyle"] = "None";
