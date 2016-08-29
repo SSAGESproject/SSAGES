@@ -91,14 +91,6 @@ namespace SSAGES
 				if(_readrestart && reading_restart)
 					continue;
 
-				std::size_t seedspot = token.find("SEED");
-				std::size_t driverspot = token.find("DRIVER");
-				if(seedspot != std::string::npos)
-					token.replace(seedspot, 4, std::to_string(dis(_gen)));
-
-				if(driverspot != std::string::npos)
-					token.replace(driverspot, 6, std::to_string(_wid));
-
 				_lammps->input->one(token.c_str());
 			}
 
