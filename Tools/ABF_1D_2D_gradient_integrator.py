@@ -134,7 +134,8 @@ if shapeinfo[1] == 2:
 		Asurf.append(temp2)
 
 	for k in range(0,shapeinfo[0]):
-		f.write(vfield[k,0]," ",Asurf[k])
+		f.write("{0:4f} {1:4f} \n".format(vfield[k,0],Asurf[k]))
+	
 	plt.plot(vfield[:,0],Asurf[:])
 	plt.axis([min(vfield[:,0]),max(vfield[:,0]),min(vfield[:,1]),max(vfield[:,1])])
 	plt.show()
@@ -179,3 +180,8 @@ elif shapeinfo[1] == 4:
 	plt.show()
 
 f.close()
+
+else
+	print("Input file does not contain the corrent number of dimensions. This code only support 1D and 2D currently.")
+	f.close()
+	exit()
