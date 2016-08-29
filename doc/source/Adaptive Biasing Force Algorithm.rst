@@ -40,6 +40,8 @@ Adaptive Biasing Force Method
   range. This range should be WIDER than the CV range by at least one bin size
   in each direction. To disable restraints, enter a spring constant k equal to
   or less than zero.
+* Currently, CV restraints cannot handle periodicity, but this feature will be
+  implemented soon.
 
 How to define the ABF Method: ``"type" : "ABF"``
 
@@ -80,6 +82,7 @@ minimum_count
     *integer*.
     Number of hits in a histogram required before the full bias is active for
     that bin. Below this value, the bias linearly decreases to equal 0 at hits = 0.
+    Default = 100, but user should provide a reasonable value for their system.
 
 filename
     *string*.
@@ -97,14 +100,30 @@ unit_conversion
     (gram.angstrom/mole.femtosecond^2 -> kcal/mole.angstrom)
     For GROMACS, this is 1.
 
-Orthogonalization
-    *1 or 0*.
-    Turn on Gram-Schmidt Orthogonalization for the projector vector fields. Best
-    to leave on unless CVs are orthogonal (share no gradient directions)
+projector_calculation_method
+    *integer*.
+    OPTIONAL
+    Calculate projector matrix W according to user input. 1 is highly recommended.
+    0 - Calculate the pseudoinverse of J; J = d(CVi)/d(xj) matrix.
+    1 - Calculate W using Darve's approach (http://mc.stanford.edu/cgi-bin/images/0/06/Darve_2008.pdf) - DEFAULT
+    2 - Calculate W using Ciccotti's orthonormalization approach (http://www.chem.utoronto.ca/~rkapral/Papers/ericCK-cppc-2005.pdf)
+    3 - Calculate W by columnwise normalizing J with |J|^2
 
 frequency
     *1*.
+    OPTIONAL
     Leave at 1.
+
+F
+    *array of doubles bins1xbins2x...binsnCV long*
+    OPTIONAL
+    Option to provide an initial starting histogram. This is the summed force component.
+
+N
+    *array of integers bins1xbins2x...binsnCV long*
+    OPTIONAL
+    Option to provide an initial starting histogram. This is the number of hits component.
+    
 
 Example input
 ^^^^^^^^^^^^^
@@ -122,9 +141,8 @@ Example input
             "timestep" : 0.002,
             "minimum_count" : 200,
             "filename" : "F_out",
-            "backup_frequency" : 1000000,
+            "backup_frequency" : 10000,
             "unit_conversion" : 1,
-            "orthogonalization" : 0,
             "frequency" : 1
     }
 
@@ -161,35 +179,35 @@ components of the Adaptive Force vectors. An example for N=2 is:
 Tutorial
 ^^^^^^^^
 
-Find the following input files in Examples/User/ABF:
+Find the following input files in Examples/User/ABF/Example_AlanineDipeptide:
 
-For LAMMPS:
+For LAMMPS (must be build with RIGID package):
 
-* ``in.ADP_ABF_Example``
+* ``in.ADP_ABF_Example(0-7)`` (9 files)
 * ``example.input``
-* ``ABF_AlaDP_1walker.json``
-* ``ABF_AlaDP_8walkers.json``
+* ``ADP_ABF_1walker.json``
+* ``ADP_ABF_8walkers.json``
 
-1) Put all files in your ssages build folder
+1) Put the ABF_ADP_LAMMPS_Example folder in your ssages build folder
 2) For a single walker example, do:
 
 .. code-block:: bash
 
-    mpirun -np 1 ./ssages -ABF_AlaDP_1walker.json
+    mpirun -np 1 ./ssages -ADP_ABF_1walker.json.json
     
 For 8 walkers, do:
 
 .. code-block:: bash
 
-    mpirun -np 8 ./ssages -ABF_AlaDP_8walkers.json
+    mpirun -np 8 ./ssages -ADP_ABF_8walkers.json
 
-Multiple walkers initiated from different seeds using ssages’ SEED keyword will
+Multiple walkers initiated from different seeds will
 explore different regions and will all contribute to the same adaptive force.
 
 3) After the run is finished open F_out and copy the last grid that defined the
    Adaptive Force vector field (all numbers in four columns after the last line
    of text)
-4) Paste into any new folder, run ABF_analysis.py (requires numpy, scipy and
+4) Paste into any new folder, run ABF_1D_2D_gradient_integrator.py (requires numpy, scipy and
    matplotlib)
 
 For GROMACS:
@@ -198,15 +216,15 @@ Optional:
 
 * ``adp.gro``
 * ``topol.top``
-* ``nvt1-8.mdp`` (8 files)
+* ``nvt.mdp``
 
 Required:
 
-* ``example1-8.tpr`` (8 files)
-* ``ABF_AlaDP_1walker.json``
-* ``ABF_AlaDP_8walkers.json``
+* ``example_adp(0-7).tpr`` (9 files)
+* ``ADP_ABF_1walker.json``
+* ``ADP_ABF_8walkers.json``
 
-1) Put all files in your ssages build folder
+1) Put the ABF_ADP_Gromacs_Example in your ssages build folder
 2) For a single walker example, do:
 
 .. code-block:: bash
@@ -224,15 +242,10 @@ prepare input files yourself using GROMACS tools:
 
 .. code-block:: bash
 
-    gmx grompp -f nvt1.mdp -p topol.top -c adp.gro -o example1.tpr
-    gmx grompp -f nvt2.mdp -p topol.top -c adp.gro -o example2.tpr
-    .
-    .
-    gmx grompp -f nvt8.mdp -p topol.top -c adp.gro -o example8.tpr
+    gmx grompp -f nvt.mdp -p topol.top -c adp.gro -o example1.tpr
 
-The only difference between .mdp files is the seed for random velocity
-generation, so walkers can explore different places on the free energy
-surface.
+Be sure to change the seed in .mdp files for random velocity generation, 
+so walkers can explore different places on the free energy surface.
 
 Developer
 ^^^^^^^^^

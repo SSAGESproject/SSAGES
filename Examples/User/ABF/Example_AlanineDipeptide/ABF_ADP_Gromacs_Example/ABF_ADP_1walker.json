@@ -1,12 +1,13 @@
 {
-    "inputfile" : "in.ADP_FTS_Test",
-    "driver" : [
+    "inputfile" : "ABF_ADP_Gromacs_Example/example_adp.tpr",
+    "driver" : [        
         {
             "number processors" : 1,
-            "type" : "LAMMPS",
-            "MDSteps" : 500000000,
-            "logfile" : "node-1",
-			"CVs": [
+            "type" : "Gromacs",
+            "MDSteps" : 500000,
+            "logfile" : "node-1"
+		}],
+	"CVs": [
                 {
                     "periodic": true,
                     "type": "Torsional",
@@ -30,20 +31,19 @@
             ],
             "method" : {
                 "type" : "ABF",
-  				"CV minimums" : [-3.13, -3.13],
-                "CV maximums" : [3.13, 3.13],
-				"CV bins" : [79, 79],
-  				"CV restraint minimums" : [-5, -5],
-                "CV restraint maximums" : [5, 5],
-				"CV restraint spring constants" : [0, 0],
-				"timestep" : 2,
-				"minimum count" : 2000,
-				"F from file" : "out (copy).dat",
-				"Print details" : [200000, 1, 1, 1, 1, 1, 1, 1, 1],
-				"Backup interval" : 200000,
-				"Unit conversion" : 2390.06,
-				"Orthogonalization" : 1,
-				"frequency" : 1
+  		"CV_lower_bounds" : [-3.13, -3.13],
+                "CV_upper_bounds" : [3.13,3.13],
+		"CV_bins" : [61,61],
+  		"CV_restraint_minimums" : [-5,-5],
+                "CV_restraint_maximums" : [5,5],
+		"CV_restraint_spring_constants" : [0,0],
+		"timestep" : 0.002,
+		"minimum_count" : 50,
+		"filename" : "F_out",
+		"projector_calculation_method" : 1,
+		"backup_frequency" : 10000,
+		"unit_conversion" : 1,
+		"frequency" : 1
             }
         }
     ]
