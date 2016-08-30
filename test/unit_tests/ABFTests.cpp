@@ -109,7 +109,7 @@ protected:
 			restraint.push_back(temp2);
 		}
 
-		Method = new ABF(world, comm, histdetails, restraint, 1, 5, "testout", printdetails, 10, 1, 0, 1);	
+		Method = new ABF(world, comm, histdetails, restraint, 1, 5, "testout", 10, 1, 1, 1);	
 	}
 
 	virtual void TearDown() 
@@ -141,18 +141,19 @@ protected:
 	CVList cvlist;
 };
 
-TEST_F(ABFTest,dummytest)
+TEST_F(ABFTest,Initialization)
 {
 	// Initialize CVs.	
 	CV1->MockCV::Initialize(*snapshot1);
 	CV2->MockCV::Initialize(*snapshot1);
 	CV3->MockCV::Initialize(*snapshot1);
 
+	// Initialize Method.
 	Method->ABF::PreSimulation(snapshot1, cvlist);
 
 	// Test dimensionality is correct.
-	EXPECT_TRUE(Method->_dim == 3);
-	int dim = Method->_dim;
+	EXPECT_TRUE(Method->_ncv == 3);
+	int dim = Method->_ncv;
 
 	// Check for correct initialization.
 	EXPECT_TRUE(Method->_N.size() == 8);
@@ -167,6 +168,11 @@ TEST_F(ABFTest,dummytest)
 		EXPECT_TRUE(Method->_F[dim*i+2] == 0);
 	}
 
+}
+TEST_F(ABFTest,Getters_Setters)
+{
+	Method->ABF::PreSimulation(snapshot1, cvlist);
+
 	// Check Setters
 	Eigen::VectorXd F(2);
 	F << 1,1;
@@ -175,24 +181,17 @@ TEST_F(ABFTest,dummytest)
 	EXPECT_TRUE(Method->_N[1] == 1);
 	EXPECT_TRUE(Method->_F[0] == 1);
 	EXPECT_TRUE(Method->_F[1] == 1);
+}
+TEST_F(ABFTest,CV_outofboundscheck)
+{
+	// Initialize CVs.	
+	CV1->MockCV::Initialize(*snapshot1);
+	CV2->MockCV::Initialize(*snapshot1);
+	CV3->MockCV::Initialize(*snapshot1);
 
-	// Reset
-	Method->_N.resize(0);
-	Method->_F.resize(0);
+	// Initialize Method.
 	Method->ABF::PreSimulation(snapshot1, cvlist);
-
-	// Check for correct re-initialization.
-	EXPECT_TRUE(Method->_N.size() == 8);
-	EXPECT_TRUE(Method->_F.size() == 24);
-
-	for(size_t i = 0; i < (Method->_N).size() ; ++i)
-	{
-		EXPECT_TRUE(Method->_N[i] == 0);
-
-		EXPECT_TRUE(Method->_F[dim*i] == 0);
-		EXPECT_TRUE(Method->_F[dim*i+1] == 0);
-		EXPECT_TRUE(Method->_F[dim*i+2] == 0);
-	}
+	int dim = Method->_ncv;
 	
 	// Take one MD step.
 	Method->ABF::PostIntegration(snapshot1, cvlist);
@@ -212,11 +211,25 @@ TEST_F(ABFTest,dummytest)
 
 	for(size_t i = 0; i < Method->_biases[0].size() ; ++i)
 		EXPECT_NEAR(-Method->_biases[0][i], bias*CV3->GetGradient()[0][i], eps);
+}
+TEST_F(ABFTest,MD_steps_inboundscheck)
+{
+	// Initialize CVs.	
+	CV1->MockCV::Initialize(*snapshot1);
+	CV2->MockCV::Initialize(*snapshot1);
+	CV3->MockCV::Initialize(*snapshot1);
+
+	// Initialize Method.
+	Method->ABF::PreSimulation(snapshot1, cvlist);
+	int dim = Method->_ncv;	
+	
+	// Take an MD step (Out of bounds).
+	Method->ABF::PostIntegration(snapshot1, cvlist);
 
 	// Put CVs in bound.
 	CV3->_val = -1;
-		
-	// Take two more MD steps
+
+	// Take two more MD steps (in bounds).
 	Method->ABF::PostIntegration(snapshot2, cvlist);
 	Method->ABF::PostIntegration(snapshot3, cvlist);
 
