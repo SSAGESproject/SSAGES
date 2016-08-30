@@ -165,7 +165,7 @@ namespace SSAGES
 		//! Check whether tolerance criteria has been met.
 		bool TolCheck(const CVList& cvs) const
 		{
-			if(_tol.size() == 1 && _tol[0]<0)
+			if(_tol.size() == 0)
 				return false;
 
 			for(size_t i = 0; i < _centers.size(); i++)
