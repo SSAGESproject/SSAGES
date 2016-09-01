@@ -36,6 +36,11 @@ namespace SSAGES
 
 		std::string Name = _prefix + "_" + std::to_string(_wid) +".json";
 		std::string BckupName = Name + "_backup";
+
+		// Don't overwrite JSON file if same name exists
+		int result = rename(Name.c_str(),(Name+"_copy").c_str());
+		if(result == 0)
+			std::cout<<"Same restart file name! Moving " + Name + " to " + Name + "_copy"<<std::endl;
 		
 		_jsonfs = std::unique_ptr<std::ofstream>(
 		new std::ofstream(Name));
