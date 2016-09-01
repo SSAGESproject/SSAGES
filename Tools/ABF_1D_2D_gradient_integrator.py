@@ -151,7 +151,7 @@ elif shapeinfo[1] == 4:
 		print("np.ndim of input file (",shapeinfo[0],") does not match given CV bin dimensions of ",nx," x ",ny," = ",nx*ny)
 		exit()
 	plot1 = plt.figure()
-	plt.quiver(vfield[:,0],vfield[:,1],vfield[:,2],vfield[:,3],scale=2000)
+	plt.quiver(vfield[:,0],vfield[:,1],vfield[:,2],vfield[:,3],width = (0.0002*(vfield[nx*ny-1,0]-vfield[0,0])), headwidth=3)
 	plt.axis([min(vfield[:,0]),max(vfield[:,0]),min(vfield[:,1]),max(vfield[:,1])])
 	plt.title('Gradient Field of the Free Energy')
 
@@ -177,6 +177,10 @@ elif shapeinfo[1] == 4:
 	plt.pcolormesh(X,Y,-fhat)
 	plt.colorbar()
 	plt.axis([min(vfield[:,0]),max(vfield[:,0]),min(vfield[:,1]),max(vfield[:,1])])
+	
+	plot3=plt.figure()
+	CS=plt.contour(X,Y,-fhat,antialiased=True,levels=np.linspace(min(-fhat[:,0]),max(-fhat[:,0]),30))
+
 	plt.show()
 
 else:
