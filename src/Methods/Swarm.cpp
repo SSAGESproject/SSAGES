@@ -1,4 +1,4 @@
--/**        
+/**        
 - * This file is part of        
 - * SSAGES - Suite for Advanced Generalized Ensemble Simulations        
 - *     
