@@ -49,6 +49,8 @@ namespace SSAGES
 	{
 		auto& forces = snapshot->GetForces();
 		auto& positions = snapshot->GetPositions();
+        auto& atomids = snapshot->GetAtomIDs();
+
 		auto insidecell = InCell(cvs);
 
 		if(_run_umbrella)
@@ -84,9 +86,14 @@ namespace SSAGES
 				force.setZero();
 
 			//temporary implementation, will need to be fixed when snapshot gather_all no longer occurs.
-			for(size_t i = 0; i < positions.size(); i++)
-				positions[i] = _prev_positions[i];
-
+            for(size_t i = 0; i < atomids.size(); i++)
+            {
+                int current_id = atomids[i] - 1; //Atom ids are indexed from 1
+                for(size_t j = 0; j < positions[j].size(); j++)
+                {
+                    positions[i][j] = _prev_positions[current_id][j];
+                }
+            }
 			// Calculate running averages for each CV at each node based on previous CV
 			for(size_t i = 0; i < _newcenters.size(); i++)
 			{
@@ -108,10 +115,17 @@ namespace SSAGES
 				_prev_CVs.push_back(cv->GetValue());
 
 			_prev_positions.resize(positions.size());
-			//temporary implementation, will need to be fixed when snapshot gather_all no longer occurs. 
-			for(size_t i = 0; i < positions.size(); i++)
-				for(int j = 0; j < positions[i].size(); j++)
-					_prev_positions[i][j] = positions[i][j];
+            _prev_ids.resize(atomids.size());
+            
+			//temporary implementation, will need to be fixed when snapshot gather_all no longer occurs.
+            for(size_t i = 0; i < atomids.size(); i++)
+            {
+                int current_id = atomids[i] - 1; //Atom ids are indexed from 1
+                for(size_t j = 0; j < positions[current_id].size(); j++)
+                {
+                    _prev_positions[current_id][j] = positions[i][j];
+                }
+            }
 		}
 
 		// Update the string, every _blockiterations string method iterations

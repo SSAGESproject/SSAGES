@@ -61,6 +61,9 @@ namespace SSAGES
 		//! Steores the last positions of the atoms
 		std::vector<Vector3> _prev_positions;
 
+        //! Stores the last step's atom IDs
+        Label _prev_ids;
+
 		//! Checks if CV is in voronoi cell
 		bool InCell(const CVList& cvs) const;
 
