@@ -2,7 +2,7 @@ echo screen
 dimension 2
 boundary f f p
 units real
-atom_style full
+atom_style atomic
 
 #specify the box for the simulation.
 region box block -2.0 2.0 -2.0 2.0 -1 1 units box
