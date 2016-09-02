@@ -2,8 +2,8 @@
  * This file is part of
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
- * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
- *                Hythem Sidky <hsidky@nd.edu>
+ * Copyright 2016 Hythem Sidky <hsidky@nd.edu>
+ *                Ben Sikora <bsikora906@gmail.com>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

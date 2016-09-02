@@ -3,6 +3,7 @@
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
  * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
+ *                Hythem Sidky <hsidky@nd.edu>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

@@ -1,4 +1,10 @@
 /**
+ * This file has been adapted from
+ * SAPHRON - Statistical Applied PHysics through Random On-the-fly Numerics
+ * https://github.com/hsidky/SAPHRON
+ *
+ * Copyright 2016 Hythem Sidky
+ *
  * This file is part of
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
