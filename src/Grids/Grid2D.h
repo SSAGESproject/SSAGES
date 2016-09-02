@@ -107,7 +107,7 @@ namespace SSAGES
 			// one of two directions.
 			double ival  = 0;
 			ival +=  (val[0] - gridpos[0][0])*(val[1] - gridpos[0][1]) * gridval[3];
-			ival += -(val[0] - gridpos[1][0])*(val[1] - gridpos[1][0]) * gridval[2];
+			ival += -(val[0] - gridpos[1][0])*(val[1] - gridpos[1][1]) * gridval[2];
 			ival += -(val[0] - gridpos[2][0])*(val[1] - gridpos[2][1]) * gridval[1];
 			ival +=  (val[0] - gridpos[3][0])*(val[1] - gridpos[3][1]) * gridval[0];
 
@@ -135,7 +135,7 @@ namespace SSAGES
 			// one of two directions.
 			double ival  = 0;
 			ival +=  (val[0] - gridpos[0][0])*(val[1] - gridpos[0][1]) * gridval[3][dim];
-			ival += -(val[0] - gridpos[1][0])*(val[1] - gridpos[1][0]) * gridval[2][dim];
+			ival += -(val[0] - gridpos[1][0])*(val[1] - gridpos[1][1]) * gridval[2][dim];
 			ival += -(val[0] - gridpos[2][0])*(val[1] - gridpos[2][1]) * gridval[1][dim];
 			ival +=  (val[0] - gridpos[3][0])*(val[1] - gridpos[3][1]) * gridval[0][dim];
 

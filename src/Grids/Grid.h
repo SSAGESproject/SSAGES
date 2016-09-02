@@ -195,7 +195,8 @@ namespace SSAGES
 		{
 			for(size_t i = 0; i<_flatvector.size(); i++)
 			{
-				std::cout << _flatvector[i].first[0]<<" ";
+				for(size_t j = 0; j<_flatvector[i].first.size(); j++)
+					std::cout << _flatvector[i].first[j]<<" ";
 				for(size_t j = 0; j<_flatvector[i].second.size(); j++)
 					std::cout<<_flatvector[i].second[j]<< " ";
 				std::cout<<std::endl;

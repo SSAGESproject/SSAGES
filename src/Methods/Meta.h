@@ -57,6 +57,9 @@ namespace SSAGES
 		//! Hill widths.
 		std::vector<double> _widths;
 
+		//! Gridding flag and grid
+		bool _isgrid;
+
 		//! Derivatives.
 		std::vector<double> _derivatives;
 
@@ -83,7 +86,7 @@ namespace SSAGES
 		 * \param hill Hill to be printed.
 		 */
 		void PrintHill(const Hill& hill);
-		
+
 		//! Output stream for hill data.
 		std::ofstream _hillsout;
 
@@ -105,10 +108,11 @@ namespace SSAGES
 			 boost::mpi::communicator& comm,
 			 double height, 
 			 const std::vector<double>& widths, 
-			 unsigned int hillfreq, 
+			 unsigned int hillfreq,
+			 bool isgrid,
 			 unsigned int frequency) : 
 		Method(frequency, world, comm), _hills(), _height(height), _widths(widths), 
-		_derivatives(0), _bias(0), _hillfreq(hillfreq)
+		  _derivatives(0), _bias(0), _isgrid(isgrid), _hillfreq(hillfreq)
 		{
 		}
 
