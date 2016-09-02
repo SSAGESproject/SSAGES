@@ -36,6 +36,11 @@ namespace SSAGES
 
 		std::string Name = _prefix + "_" + std::to_string(_wid) +".json";
 		std::string BckupName = Name + "_backup";
+
+		// Don't overwrite JSON file if same name exists
+		int result = rename(Name.c_str(),(Name+"_copy").c_str());
+		if(result == 0)
+			std::cout<<"Same restart file name! Moving " + Name + " to " + Name + "_copy"<<std::endl;
 		
 		_jsonfs = std::unique_ptr<std::ofstream>(
 		new std::ofstream(Name));
@@ -69,6 +74,9 @@ namespace SSAGES
 
 	void JSONObserver::PreVisit()
 	{
+		if(_comm.rank() != 0)
+			return;
+
 		std::string Name = _prefix + "_" + std::to_string(_wid) +".json";
 		std::string BckupName = Name + "_backup";
 		std::string tempName = BckupName + "_temp";
@@ -97,6 +105,9 @@ namespace SSAGES
 
 	void JSONObserver::PostVisit()
 	{
+		if(_comm.rank() != 0)
+			return;
+		
 		*_jsonfs;
 		Json::StreamWriterBuilder builder;
 		builder["commentStyle"] = "None";
