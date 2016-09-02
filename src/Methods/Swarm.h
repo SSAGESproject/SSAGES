@@ -1,25 +1,5 @@
-/**
- * This file is part of
- * SSAGES - Suite for Advanced Generalized Ensemble Simulations
- *
- * Copyright 2016 Cody Bezik <bezik@uchicago.edu>
- *
- * SSAGES is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * SSAGES is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
- */
-#include "../CVs/CollectiveVariable.h"
-#include "Method.h"
 #include "StringMethod.h"
+#include "../CVs/CollectiveVariable.h"
 #include <fstream>
 #include <iostream>
 
@@ -64,12 +44,18 @@ namespace SSAGES
 
             //! Store velocities for starting trajectories
             std::vector<std::vector<Vector3>> _traj_velocities;
-       
+
+            //! Store atom IDs for starting trajecotires
+            std::vector<Label> _traj_atomids; 
+
             //! Updates the positions of the string
             void StringUpdate();
 
             //! Helper function check if CVs are initialized correctly
             bool CVInitialized(const CVList& cvs);
+
+            //! Reset trajectories before a new unrestrained trajectory is launched
+            void ResetTrajectories(std::vector<Vector3>& positions, std::vector<Vector3>& velocities, std::vector<Vector3>& forces, Label& atomids);
 
             //! Flag for determing whether to perform initialization or not
             bool sampling_started;
@@ -111,7 +97,7 @@ namespace SSAGES
             _cv_drift.resize(_centers.size(), 0);
             _traj_positions.resize(_number_trajectories);
             _traj_velocities.resize(_number_trajectories);
-            
+            _traj_atomids.resize(_number_trajectories);
             //Additional initializing
 
             _index = 0;  
@@ -127,6 +113,7 @@ namespace SSAGES
 		    {
                 auto& positions = snapshot->GetPositions();
                 auto& velocities = snapshot->GetVelocities();
+                auto& atomids = snapshot->GetAtomIDs();
 
                 StringMethod::PreSimulation(snapshot, cvs);
                 for(size_t k = 0; k < _traj_positions.size(); k++)
@@ -136,6 +123,10 @@ namespace SSAGES
                 for(size_t k = 0; k < _traj_velocities.size(); k++)
                 {
                     _traj_velocities[k].resize(velocities.size());
+                }
+                for(size_t k = 0; k < _traj_atomids.size(); k++)
+                {
+                    _traj_atomids[k].resize(atomids.size());
                 }
             }
             //! Post-integration hook
