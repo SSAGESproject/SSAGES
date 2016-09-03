@@ -72,13 +72,6 @@ namespace LAMMPS_NS
 		auto ntype = atom->ntypes;
 
 		int dim;
-		const auto* _sigma = (force->pair->extract("sigma", dim));
-
-		if (_sigma==NULL)
-		{
-			std::cout<<"Could not locate sigma from force->pair->extract"<<std::endl;
-			exit(-1);
-		}
 
 		auto& pos = _snapshot->GetPositions();
 		pos.resize(n);
@@ -94,11 +87,6 @@ namespace LAMMPS_NS
 		types.resize(n);
 		auto& charges = _snapshot->GetCharges();
 		charges.resize(n);
-
-		auto& sigmas = _snapshot->GetSigmas();
-		sigmas.resize(ntype);
-		for (auto& sig : sigmas)
-			sig.resize(ntype);
 
 		auto& flags = _snapshot->GetImageFlags();
 		flags.resize(n);
@@ -145,13 +133,6 @@ namespace LAMMPS_NS
 		const auto* _atom = atom;
 
 		int dim;
-		const auto* _sigma = (double**)(force->pair->extract("sigma", dim));
-
-		if (_sigma==NULL)
-		{
-			std::cout<<"Could not locate sigma from force->pair->extract"<<std::endl;
-			exit(-1);
-		}
 
 		auto n = atom->nlocal;
 
@@ -165,9 +146,6 @@ namespace LAMMPS_NS
 		masses.resize(n);
 		auto& flags = _snapshot->GetImageFlags();
 		flags.resize(n);
-
-		auto& sigmas = _snapshot->GetSigmas();
-		sigmas.resize(n);
 
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
@@ -278,12 +256,12 @@ namespace LAMMPS_NS
 
 			ids[i] = _atom->tag[i];
 			types[i] = _atom->type[i];
-			charges[i] = _atom->q[i];
-		}
 
-		for (int i = 0; i < sigmas.size(); ++i)
-			for (int j = 0; j <sigmas[i].size(); ++j)
-				sigmas[i][j] = _sigma[i][j];
+			if(_atom->q_flag)
+				charges[i] = _atom->q[i];
+			else
+				charges[i] = 0;
+		}
 
 		auto& comm = _snapshot->GetCommunicator();
 
@@ -320,7 +298,6 @@ namespace LAMMPS_NS
 		const auto& frc = _snapshot->GetForces();
 		const auto& masses = _snapshot->GetMasses();
 		const auto& charges = _snapshot->GetCharges();
-		const auto& sigmas = _snapshot->GetSigmas();
 
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
@@ -349,7 +326,8 @@ namespace LAMMPS_NS
 			atom->v[i][2] = vel[j][2]; //velocity->z
 			atom->tag[i] = ids[j];
 			atom->type[i] = types[j];
-			atom->q[i] = charges[j];
+			if(atom->q_flag)
+				atom->q[i] = charges[j];
 			
 			// Current masses can only be changed if using
 			// per atom masses in lammps
