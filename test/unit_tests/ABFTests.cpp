@@ -73,12 +73,15 @@ protected:
 
 		forces1.resize(1);
 		forces1[0].resize(3);
+		forces1[0] = {0,0,0};
 
 		forces2.resize(1);
 		forces2[0].resize(3);
+		forces2[0] = {0,0,0};
 
 		forces3.resize(1);
 		forces3[0].resize(3);
+		forces3[0] = {0,0,0};
 
 		auto& mass1 = snapshot1 -> GetMasses();
 		auto& mass2 = snapshot2 -> GetMasses();
