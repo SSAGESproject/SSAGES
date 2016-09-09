@@ -65,7 +65,7 @@ namespace SSAGES
 			_myout <<" Post simulation"<<std::endl;
 		}
 
-		void Serialize(Json::Value& json) const override
+		void Serialize(Json::Value&) const override
 		{
 
 		}

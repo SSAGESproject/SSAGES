@@ -4,18 +4,19 @@ set(TEST_DEPS
 	${GTEST_LIBRARY_MAIN_PATH}
 	libssages)
 
-set  (UNIT_TESTS "AtomPositionCVTests"
+set  (UNIT_TESTS "ParticlePositionCVTests"
                  "GridTests"
                  "ABFTests"
                  "TorsionalCVTests"
                  "SnapshotTests"
                  "BasisFuncTest"
-                 "COMdist_Test"
-                 "Rg_Test"
+                 "ParticleSeparationCVTests"
+                 "RgCVTests"
                  "RMSD_Test"
                  "AngleCVTests"
                  "ReadFileTest"
-                 "MockCVTests")
+                 "MockCVTests"
+                 "COMTests")
 
 set (INTEGRATION_TESTS "Meta_Single_Atom_Test")
 

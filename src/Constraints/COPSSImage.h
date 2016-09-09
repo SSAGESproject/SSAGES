@@ -65,7 +65,7 @@ namespace SSAGES
 			   double einner, 
 			   int ion_type_start,
 			   std::vector<double> atomTypeRadius):
-		Constraint(frequency, comm), _einner(einner), _ion_type_start(ion_type_start),_atomTypeRadius(atomTypeRadius), _eouter(0), _qqrd2e(1){}
+		Constraint(frequency, comm), _einner(einner), _ion_type_start(ion_type_start), _eouter(0), _qqrd2e(1), _atomTypeRadius(atomTypeRadius){}
 		
 		// gauss integration auxiliary params
 	                //auxiliary variables for image kernel functions

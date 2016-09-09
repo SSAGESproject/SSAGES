@@ -26,13 +26,12 @@
 #include "../Drivers/DriverException.h"
 #include "../Validator/ObjectRequirement.h"
 #include "../Validator/ArrayRequirement.h"
-#include "AtomCoordinateCV.h"
-#include "AtomPositionCV.h"
+#include "ParticleCoordinateCV.h"
+#include "ParticlePositionCV.h"
+#include "ParticleSeparationCV.h"
 #include "TorsionalCV.h"
-#include "AtomSeparationCV.h"
 #include "AngleCV.h"
 #include "RadiusOfGyrationCV.h"
-#include "CenterofMassDistanceCV.h"
 #include "RMSDCV.h"
 
 using namespace Json;
@@ -61,9 +60,9 @@ namespace SSAGES
 		// Get move type. 
 		std::string type = json.get("type", "none").asString();
 
-		if(type == "AtomCoordinate")
+		if(type == "ParticleCoordinate")
 		{
-			reader.parse(JsonSchema::AtomCoordinateCV, schema);
+			reader.parse(JsonSchema::ParticleCoordinateCV, schema);
 			validator.Parse(schema, path);
 
 			// Validate inputs.
@@ -71,27 +70,28 @@ namespace SSAGES
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
 
-			auto atomid = json.get("atom id", -1).asInt();
+			Label atomids;
+			for(auto& id : json["atom_ids"])
+				atomids.push_back(id.asInt());
+
 			auto indextype = json.get("dimension","x").asString();
 
-			int index = -1;
-
+			Dimension index;
 			if(indextype == "x")
-				index = 0;
+				index = Dimension::x;
 			else if(indextype == "y")
-				index = 1;
+				index = Dimension::y;
 			else if(indextype == "z")
-				index = 2;
+				index = Dimension::z;
 			else
-				throw BuildException({"Could not obtain AtomCoordinate specified."});
+				throw BuildException({"Could not obtain ParticleCoordinate dimension specified."});
 
-			auto* c = new AtomCoordinateCV(atomid, index);
-
+			auto* c = new ParticleCoordinateCV(atomids, index);
 			cv = static_cast<CollectiveVariable*>(c);
 		}
-		else if(type == "AtomPosition")
+		else if(type == "ParticlePosition")
 		{
-			reader.parse(JsonSchema::AtomPositionCV, schema);
+			reader.parse(JsonSchema::ParticlePositionCV, schema);
 			validator.Parse(schema, path);
 
 			// Validate inputs.
@@ -99,18 +99,20 @@ namespace SSAGES
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
 			
-			auto atomid = json.get("atom id", -1).asInt();
+			Label atomids;
+			for(auto& id : json["atom_ids"])
+				atomids.push_back(id.asInt());
+			
 			Vector3 position;
+			position[0] = json["position"][0].asDouble();
+			position[1] = json["position"][1].asDouble();
+			position[2] = json["position"][2].asDouble();
 
-			position[0]=json["position"][0].asDouble();
-			position[1]=json["position"][1].asDouble();
-			position[2]=json["position"][2].asDouble();
+			auto fixx = json["fix"][0].asBool();
+			auto fixy = json["fix"][1].asBool();
+			auto fixz = json["fix"][2].asBool();
 
-			auto fixx = json.get("fixx", false).asBool();
-			auto fixy = json.get("fixy", false).asBool();
-			auto fixz = json.get("fixz", false).asBool();
-
-			auto* c = new AtomPositionCV(atomid, position, fixx, fixy, fixz);
+			auto* c = new ParticlePositionCV(atomids, position, fixx, fixy, fixz);
 
 			cv = static_cast<CollectiveVariable*>(c);
 		}
@@ -125,7 +127,7 @@ namespace SSAGES
 				throw BuildException(validator.GetErrors());
 
 			std::vector<int> atomids;
-			for(auto& s : json["atom ids"])
+			for(auto& s : json["atom_ids"])
 				atomids.push_back(s.asInt());
 
 			auto periodic = json.get("periodic", true).asBool();
@@ -134,9 +136,9 @@ namespace SSAGES
 
 			cv = static_cast<CollectiveVariable*>(c);
 		}
-		else if(type == "AtomSeparation")
+		else if(type == "ParticleSeparation")
 		{
-			reader.parse(JsonSchema::AtomSeparationCV, schema);
+			reader.parse(JsonSchema::ParticleSeparationCV, schema);
 			validator.Parse(schema, path);
 
 			// Validate inputs.
@@ -144,10 +146,15 @@ namespace SSAGES
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
 			
-			auto atomid1 = json.get("atom id 1", -1).asInt();
-			auto atomid2 = json.get("atom id 2", -1).asInt();
+			std::vector<int> group1, group2;
+			
+			for(auto& s : json["group1"])
+				group1.push_back(s.asInt());
 
-			auto* c = new AtomSeparationCV(atomid1, atomid2);
+			for(auto& s : json["group2"])
+				group2.push_back(s.asInt());
+
+			auto* c = new ParticleSeparationCV(group1, group2);
 
 			cv = static_cast<CollectiveVariable*>(c);
 		}
@@ -162,7 +169,7 @@ namespace SSAGES
 				throw BuildException(validator.GetErrors());
 			
 			std::vector<int> atomids;
-			for(auto& s : json["atom ids"])
+			for(auto& s : json["atom_ids"])
 				atomids.push_back(s.asInt());
 
 			auto* c = new AngleCV(atomids[0], atomids[1], atomids[2]);
@@ -180,32 +187,10 @@ namespace SSAGES
 				throw BuildException(validator.GetErrors());
 			
 			std::vector<int> atomids;
-			for(auto& s : json["atom ids"])
+			for(auto& s : json["atom_ids"])
 				atomids.push_back(s.asInt());
 
-			auto* c = new RadiusOfGyrationCV(atomids, json.get("use_range", false).asBool());
-			
-			cv = static_cast<CollectiveVariable*>(c);
-		}
-		else if(type == "CenterofMassDistance")
-		{
-			reader.parse(JsonSchema::CenterofMassDistanceCV, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-			
-			std::vector<int> atomids1;
-			for(auto& s : json["atom ids1"])
-				atomids1.push_back(s.asInt());
-
-			std::vector<int> atomids2;
-			for(auto& s : json["atom ids2"])
-				atomids2.push_back(s.asInt());
-
-			auto* c = new CenterofMassDistanceCV(atomids1, atomids2, json.get("use_range1", false).asBool(), json.get("use_range2", false).asBool());
+			auto* c = new RadiusOfGyrationCV(atomids);
 			
 			cv = static_cast<CollectiveVariable*>(c);
 		}

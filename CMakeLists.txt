@@ -440,7 +440,9 @@ if (BUILD_TESTS)
 	# http://stackoverflow.com/questions/9689183/cmake-googletest
 	ExternalProject_Add(
 		googletest
-		URL https://github.com/google/googletest/archive/release-1.6.0.zip
+        DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
+		GIT_REPOSITORY https://github.com/google/googletest.git
+		GIT_TAG 800f542
 		# TIMEOUT 10
 		# # Force separate output paths for debug and release builds to allow easy
 		# # identification of correct lib in subsequent TARGET_LINK_LIBRARIES commands

@@ -26,13 +26,19 @@ protected:
              0.0, 0.0, 100.0;
         snapshot1->SetHMatrix(H);
 
+        snapshot1->SetNumAtoms(6);
+        auto& map = snapshot1->GetIDMap();
+
         auto& pos = snapshot1->GetPositions();
         pos.resize(6);
         auto& ids = snapshot1->GetAtomIDs();
         ids.resize(6);
 
         for(unsigned int i =0; i <ids.size();i++)
+        {
         	ids[i] = i+1;
+            map[i+1] = i;
+        }
 
         pos[0][0] = 0; 
         pos[0][1] = 0; 
@@ -119,4 +125,12 @@ TEST_F(TorsionalCVTest, DefaultBehavior)
 	EXPECT_NEAR(tortest->GetValue(), 3.14159, 0.01);
 	EXPECT_NEAR(tortest2->GetValue(), -1.570796, 0.01);
 	EXPECT_NEAR(tortest3->GetValue(), 0, 0.01);
+}
+
+int main(int argc, char *argv[])
+{
+    ::testing::InitGoogleTest(&argc, argv);
+    boost::mpi::environment env(argc,argv);
+    int ret = RUN_ALL_TESTS();
+    return ret;
 }

@@ -2,18 +2,19 @@
     "inputfile" : "LAMMPS_INPUTFILE",
     "CVs" : [
         {
-            "type" : "AtomCoordinate",
-            "atom id" : 1,
+            "type" : "ParticleCoordinate",
+            "atom_ids" : [1],
             "dimension" : "x"
         },
         {
-            "type" : "AtomCoordinate",
-            "atom id" : 1,
+            "type" : "ParticleCoordinate",
+            "atom_ids" : [1],
             "dimension" : "y"
         }
     ],
     "method" : {
         "type" : "Metadynamics",
+        "use_grid" : false,
         "widths" : [
             0.05,
             0.05

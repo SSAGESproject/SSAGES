@@ -5,44 +5,6 @@ using namespace boost;
 
 namespace SSAGES
 {
-	// Copyright (C) 2015 Lorenz Hübschle-Schneider <lorenz@4z2.de>
-	// Helper function for variable MPI_allgather.
-	template <typename T, typename transmit_type = uint64_t>
-	void allgatherv_serialize(const mpi::communicator &comm, std::vector<T> &in, std::vector<T> &out) 
-	{
-		// Step 1: exchange sizes
-		// We need to compute the displacement array, specifying for each PE
-		// at which position in out to place the data received from it
-		// Need to cast to int because this is what MPI uses as size_t...
-		const int factor = sizeof(T) / sizeof(transmit_type);
-		const int in_size = static_cast<int>(in.size()) * factor;
-		std::vector<int> sizes(comm.size());
-		mpi::all_gather(comm, in_size, sizes.data());
-
-		// Step 2: calculate displacements from sizes
-		// Compute prefix sum to compute displacements from sizes
-		std::vector<int> displacements(comm.size() + 1);
-		displacements[0] = 0;
-		std::partial_sum(sizes.begin(), sizes.end(), displacements.begin() + 1);
-
-		// divide by factor by which T is larger than transmit_type
-		out.resize(displacements.back() / factor);
-		
-		// Step 3: MPI_Allgatherv
-		transmit_type *sendptr = reinterpret_cast<transmit_type*>(in.data());
-		transmit_type *recvptr = reinterpret_cast<transmit_type*>(out.data());
-		const MPI_Datatype datatype = mpi::get_mpi_datatype<transmit_type>();
-		int status = MPI_Allgatherv(sendptr, in_size, datatype, recvptr,
-									sizes.data(), displacements.data(),
-									datatype, comm);
-		if (status != 0) 
-		{
-			std::cerr << "PE " << comm.rank() << ": MPI_Allgatherv returned "
-			<< status << ", errno " << errno << std::endl;
-			exit(-1);
-		}
-	}
-
 	void GromacsHook::SyncToEngine()
 	{
 		gmxpush_();
@@ -86,6 +48,7 @@ namespace SSAGES
 		ids.resize(natoms);
 		auto& typs = _snapshot->GetAtomTypes();
 		typs.resize(natoms);
+		auto& idmap = _snapshot->GetIDMap();
 
 		// Reduce temperature/pressure/energy.
 		auto& comm = _snapshot->GetCommunicator();
@@ -104,6 +67,7 @@ namespace SSAGES
 		_snapshot->SetTemperature(temperature);
 		_snapshot->SetEnergy(potenergy);
 		_snapshot->SetKb(kb);
+		_snapshot->SetNumAtoms(natoms);
 
 		for(int i = 0; i < natoms; ++i)
 		{
@@ -129,6 +93,8 @@ namespace SSAGES
 			frc[i][0] = forces[i][0];
 			frc[i][1] = forces[i][1];
 			frc[i][2] = forces[i][2];			
+
+			idmap[ids[i]] = i;
 		}
 		
 		Matrix3 H;
@@ -136,24 +102,6 @@ namespace SSAGES
 		     boxmat[1][0], boxmat[1][1], boxmat[1][2],
 		     boxmat[2][0], boxmat[2][1], boxmat[2][2];
 		_snapshot->SetHMatrix(H);
-
-		std::vector<Vector3> gpos, gvel, gfrc;
-		std::vector<double> gmass;
-		std::vector<int> gids, gtyps; 
-		
-		allgatherv_serialize(comm, pos, gpos);
-		allgatherv_serialize(comm, vel, gvel);
-		allgatherv_serialize(comm, frc, gfrc);
-		allgatherv_serialize(comm, mass, gmass);
-		allgatherv_serialize<int,int>(comm, ids, gids);
-		allgatherv_serialize<int,int>(comm, typs, gtyps);
-
-		pos = gpos; 
-		vel = gvel;
-		frc = gfrc; 
-		mass = gmass;
-		ids = gids; 
-		typs = gtyps;
 	}
 
  	template<typename T>
@@ -173,38 +121,29 @@ namespace SSAGES
 		const auto& ids = _snapshot->GetAtomIDs();
 		const auto& typs = _snapshot->GetAtomTypes();
 
-		// Sync back only local atom data. all_gather guarantees 
-		// sorting of data in vector based on rank. Compute offset
-		// based on rank and sync back only the appropriate data.
-		std::vector<int> allatoms;
-		auto& comm = _snapshot->GetCommunicator();
-		allatoms.reserve(comm.size());
-		boost::mpi::all_gather(comm, natoms, allatoms);
-		auto j = std::accumulate(allatoms.begin(), allatoms.begin() + comm.rank(), 0);
-		
-		for(int i = 0; i < natoms; ++i, ++j)
+		for(int i = 0; i < natoms; ++i)
 		{
 			// Gromacs internally indexes atoms starting from 0.
 			if(indices != nullptr)
-				indices[i] = ids[j] - 1;
+				indices[i] = ids[i] - 1;
 			
-			types[i] = typs[j];
+			types[i] = typs[i];
 
-			masses[i] = mass[j];
-			masses[i] = mass[j];
-			masses[i] = mass[j];
+			masses[i] = mass[i];
+			masses[i] = mass[i];
+			masses[i] = mass[i];
 
-			positions[i][0] = pos[j][0];
-			positions[i][1] = pos[j][1];
-			positions[i][2] = pos[j][2];
+			positions[i][0] = pos[i][0];
+			positions[i][1] = pos[i][1];
+			positions[i][2] = pos[i][2];
 
-			velocities[i][0] = vel[j][0];
-			velocities[i][1] = vel[j][1];
-			velocities[i][2] = vel[j][2];
+			velocities[i][0] = vel[i][0];
+			velocities[i][1] = vel[i][1];
+			velocities[i][2] = vel[i][2];
 
-			forces[i][0] = frc[j][0];
-			forces[i][1] = frc[j][1];
-			forces[i][2] = frc[j][2];
+			forces[i][0] = frc[i][0];
+			forces[i][1] = frc[i][1];
+			forces[i][2] = frc[i][2];
 		}
 	}
 

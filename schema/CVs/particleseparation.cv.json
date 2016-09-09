@@ -1,22 +1,26 @@
 {
 	"type" : "object",
-	"varname" : "TorsionalCV",
+	"varname" : "ParticleSeparationCV",
 	"properties" : {
 		"type" : { 
 			"type" : "string",
-			"enum" : ["Torsional"]
+			"enum" : ["ParticleSeparation"]
 		},
-		"atom_ids" : {
+		"group1" : {
 			"type" : "array",
-			"minItems" : 4,
-			"maxItems" : 4,
+			"minItems" : 1,
 			"items" : {
 				"type" : "integer",
 				"minimum" : 0
 			}
 		},
-		"periodic" : {
-			"type" : "boolean"
+		"group2" : {
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "integer",
+				"minimum" : 0
+			}
 		},
 		"bounds" : {
 			"type" : "array",
@@ -24,9 +28,9 @@
 			"maxItems" : 2,
 			"items" : {
 				"type" : "number"
-					}
-		}	
+			}
+		}
 	},
-	"required": ["type", "atom_ids"],
+	"required": ["type", "group1", "group2"],
 	"additionalProperties": false
 }

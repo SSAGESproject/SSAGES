@@ -267,7 +267,7 @@ namespace SSAGES
              const double weight,
              bool converge) : 
 		Method(frequency, world, comm), _hist(), _histlocal(), _histglobal(),
-        _coeff(), _unbias(), _LUT(), _derivatives(), _polyords(polyord), _coeff_arr(),
+        _coeff(), _unbias(), _coeff_arr(), _LUT(), _derivatives(), _polyords(polyord),
         _nbins(), _restraint(restraint), _boundUp(boundUp), _boundLow(boundLow),
         _cyclefreq(cyclefreq), _mpiid(0), _weight(weight),
         _temperature(temperature), _tol(tol),

@@ -6,12 +6,13 @@
 			"type" : "string",
 			"enum" : ["Angle"]
 		},
-		"atom ids" : {
+		"atom_ids" : {
 			"type" : "array",
 			"minItems" : 3,
 			"maxItems" : 3,
 			"items" : {
-				"type" : "integer"
+				"type" : "integer",
+				"minimum": 0
 			}
 		},
 		"bounds" : {
@@ -23,6 +24,6 @@
 					}
 		}	
 	},
-	"required": ["type", "atom ids"],
+	"required": ["type", "atom_ids"],
 	"additionalProperties": false
 }

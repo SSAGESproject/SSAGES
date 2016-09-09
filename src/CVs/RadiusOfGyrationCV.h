@@ -18,13 +18,11 @@
  * You should have received a copy of the GNU General Public License
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #pragma once 
 
 #include "CollectiveVariable.h"
-
-#include <array>
-#include <math.h>
+#include "Drivers/DriverException.h"
+#include <cmath>
 
 namespace SSAGES
 {
@@ -38,52 +36,20 @@ namespace SSAGES
 	class RadiusOfGyrationCV : public CollectiveVariable
 	{
 	private:
-		
-		std::vector<int> _atomids; //!< IDs of the atoms used for Rg calculation
-
-		std::vector<int> _pertatoms; //!< Array to store indicies of atoms of interest
-
-		//! Current value of the CV.
-		double _val;
-		
-		//! Gradient of the CV, dRg/dxi.
-		std::vector<Vector3> _grad;
-
-		//! Bounds on CV.
-		std::array<double, 2> _bounds;
+		Label _atomids; //!< IDs of the atoms used for Rg calculation
 
 	public:
 		//! Constructor.
 		/*!
 		 * \param atomids IDs of the atoms defining Rg.
-		 * \param userange If \c True Use range of atoms defined by the two atoms in atomids.
 		 *
 		 * Construct a radius of gyration CV.
 		 *
-		 * \todo Bounds needs to be an input and periodic boundary conditions
+		 * \todo Bounds needs to be an input
 		 */
-		RadiusOfGyrationCV(std::vector<int> atomids, bool use_range = false) :
-		_atomids(atomids), _val(0), _grad(0), _bounds{{0,0}}
+		RadiusOfGyrationCV(const Label& atomids) :
+		_atomids(atomids)
 		{
-			if(use_range)
-			{
-				if(atomids.size() != 2)
-				{
-					std::cout<<"RgCV: If using range, must define only two atoms!"<<std::endl;
-					exit(0);
-				}
-
-				_atomids.clear();
-
-				if(atomids[0] >= atomids[1])
-				{
-					std::cout<<"RgCV: Please reverse atom range or check that atom range is not equal!"<<std::endl;
-					exit(0);
-				}
-
-				for(int i = atomids[0]; i <= atomids[1];i++)
-					_atomids.push_back(i);
-			}
 		}
 
 		//! Initialize necessary variables.
@@ -92,11 +58,27 @@ namespace SSAGES
 		 */
 		void Initialize(const Snapshot& snapshot) override
 		{
-			// Initialize gradient
-			auto n = snapshot.GetPositions().size();
-			_grad.resize(n);
-			auto m = _atomids.size();
-			_pertatoms.resize(m);
+			using std::to_string;
+
+			auto n = _atomids.size();
+
+			// Make sure atom ID's are on at least one processor. 
+			std::vector<int> found(n, 0);
+			for(size_t i = 0; i < n; ++i)
+			{
+				if(snapshot.GetLocalIndex(_atomids[i]) != -1)
+					found[i] = 1;
+			}
+
+			MPI_Allreduce(MPI_IN_PLACE, found.data(), n, MPI_INT, MPI_SUM, snapshot.GetCommunicator());
+			unsigned ntot = std::accumulate(found.begin(), found.end(), 0, std::plus<int>());
+			if(ntot != n)
+				throw BuildException({
+					"RadiusOfGyrationCV: Expected to find " + 
+					to_string(n) + 
+					" atoms, but only found " + 
+					to_string(ntot) + "."
+				});			
 		}
 
 		//! Evaluate the CV.
@@ -105,119 +87,37 @@ namespace SSAGES
 		 */
 		void Evaluate(const Snapshot& snapshot) override
 		{
+			// Get local atom indices and compute COM. 
+			std::vector<int> idx;
+			snapshot.GetLocalIndices(_atomids, &idx);
+
+			// Get data from snapshot. 
+			auto n = snapshot.GetNumAtoms();
+			const auto& masses = snapshot.GetMasses();
 			const auto& pos = snapshot.GetPositions();
-			const auto& ids = snapshot.GetAtomIDs();
-			const auto& mass = snapshot.GetMasses();
-			const auto& image_flags = snapshot.GetImageFlags();
 
-			// Calculate center of mass
-			Vector3 mass_pos_prod = {0,0,0}; //= std::vector<double>(3,0.0);
-			double total_mass = 0;
-
-			// Loop through atom positions
-			for( size_t i = 0; i < pos.size(); ++i)
+			// Initialize gradient.
+			_grad.resize(n, Vector3{0,0,0});
+			
+			// Compute total and center of mass.
+			auto masstot = snapshot.TotalMass(idx);
+			Vector3 com = snapshot.CenterOfMass(idx, masstot);		
+			auto mrsq = 0.;
+			for(auto& i : idx)
 			{
-				_grad[i].setZero();
-				// Loop through pertinent atoms
-				for(size_t j = 0; j < _atomids.size(); j++)
-				{
-					if(ids[i] == _atomids[j])
-					{
-						_pertatoms[j] = i;
-						auto u_coord = snapshot.UnwrapVector(pos[i], image_flags[i]);
+				Vector3 ricm = snapshot.ApplyMinimumImage(pos[i] - com);
+				mrsq += masses[i]*ricm.squaredNorm();
 
-						mass_pos_prod[0] += mass[i]*u_coord[0];
-						mass_pos_prod[1] += mass[i]*u_coord[1];
-						mass_pos_prod[2] += mass[i]*u_coord[2];
-						total_mass += mass[i];
-						break;
-					}
-				}
+				// Pre-compute part of gradient for efficiency.
+				auto mfrac = masses[i]/masstot;
+				_grad[i] = mfrac*ricm*(1.-mfrac);
 			}
 
-			Vector3 COM;
-			for(size_t i = 0; i<COM.size(); i++)
-				COM[i] = mass_pos_prod[i]/total_mass;
+			MPI_Allreduce(MPI_IN_PLACE, &mrsq, 1, MPI_DOUBLE, MPI_SUM, snapshot.GetCommunicator());
+			_val = std::sqrt(mrsq/masstot);
 
-			// Compute Radius of Gyration
-			double num_gyr=0;
-			int i;
-
-			for(size_t j = 0; j < _pertatoms.size(); ++j)
-			{
-				i = _pertatoms[j];
-				auto u_coord = snapshot.UnwrapVector(pos[i], image_flags[i]);
-
-				auto diff = u_coord - COM;
-				auto diffnorm2 = diff.norm()*diff.norm();
-
-				num_gyr += mass[i]*diffnorm2;
-
-				auto massratio = mass[i]/total_mass;
-				_grad[i] = massratio*diffnorm2*diff*(1.0-massratio);
-			}
-
-			//Radius of gyration
-			_val = sqrt(num_gyr/total_mass);
-
-			// Calculate gradients
-			for(size_t j = 0; j < _pertatoms.size(); ++j)
-			{
-				i = _pertatoms[j];
-				_grad[i] *= (1./_val);
-			}
-		}
-
-		//! Return the value of the CV.
-		/*!
-		 * \return Current value of the CV.
-		 */
-		double GetValue() const override 
-		{ 
-			return _val; 
-		}
-
-		//! Return value taking periodic boundary conditions into account.
-		/*!
-		 * \return Input value
-		 *
-		 * The Rg CV does not consider periodic boundary
-		 * conditions. Thus, this function always returns the input value.
-		 */
-		double GetPeriodicValue(double Location) const override
-		{
-			return Location;
-		}
-
-		//! Return the gradient of the CV.
-		/*!
-		 * \return Gradient of the CV.
-		 */
-		const std::vector<Vector3>& GetGradient() const override
-		{
-			return _grad;
-		}
-
-		//! Return the boundaries of the CV.
-		/*!
-		 * \return Values of the lower and upper boundary.
-		 */
-		const std::array<double, 2>& GetBoundaries() const override
-		{
-			return _bounds;
-		}
-
-		//! Return difference considering periodic boundaries.
-		/*!
-		 * \return Direct difference.
-		 *
-		 * As the Rg CV does not consider periodic boundary
-		 * conditions, the difference between the current value of the CV and
-		 * another value is always the direct difference.
-		 */
-		double GetDifference(const double Location) const override
-		{
-			return _val - Location;
+			for(auto& i : idx)
+				_grad[i] /= _val;
 		}
 
 		//! Serialize this CV for restart purposes.
@@ -227,10 +127,11 @@ namespace SSAGES
 		virtual void Serialize(Json::Value& json) const override
 		{
 			json["type"] = "RadiusOfGyration";
-			for(size_t i=0; i < _atomids.size(); ++i)
-				json["atom ids"].append(_atomids[i]);
-			for(size_t i = 0; i < _bounds.size(); ++i)
-				json["bounds"].append(_bounds[i]);
-		}
+			
+			for(auto& id : _atomids)
+				json["atom_ids"].append(id);
+
+			for(auto& bound : _bounds)
+				json["bounds"].append(bound);		}
 	};
 }

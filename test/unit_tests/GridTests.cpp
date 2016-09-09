@@ -2,7 +2,7 @@
 #include "../src/Grids/Grid1D.h"
 #include "../src/Grids/Grid2D.h"
 #include "../src/Grids/Grid3D.h"
-#include "../src/Utility/BuildException.h"
+#include "../src/Drivers/DriverException.h"
 #include "gtest/gtest.h"
 #include <boost/mpi.hpp>
 

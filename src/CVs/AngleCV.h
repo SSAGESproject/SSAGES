@@ -21,6 +21,7 @@
 
 #pragma once 
 
+#include "Drivers/DriverException.h"
 #include "CollectiveVariable.h"
 
 #include <array>
@@ -28,28 +29,12 @@
 
 namespace SSAGES
 {
-	// Collective variable to calculate radius of gyration.
-
+	// Collective variable to calculate angle.
 	class AngleCV : public CollectiveVariable
 	{
 	private:
-		// ID of first atom
-		int _atomid1;
-
-		// ID of second atom 
-		int _atomid2;
-
-		// ID of third atom
-		int _atomid3;
-
-		// Current value of the CV.
-		double _val;
-
-		// Gradient of the CV, dRg/dxi.
-		std::vector<Vector3> _grad;
-
-		// Bounds on CV.
-		std::array<double, 2> _bounds;
+		// Vector of 3 atom ID's of interest.
+		Label _atomids;
 
 	public:
 
@@ -65,8 +50,9 @@ namespace SSAGES
 		 * \todo Bounds needs to be an input and periodic boundary conditions
 		 */
 		AngleCV(int atomid1, int atomid2, int atomid3) :
-		_atomid1(atomid1),_atomid2(atomid2), _atomid3(atomid3), _val(0), _grad(0), _bounds{{0,M_PI}}
+		_atomids({atomid1, atomid2, atomid3})
 		{
+			_bounds = {{0,M_PI}};
 		}
 
 		//! Initialize necessary variables.
@@ -75,10 +61,20 @@ namespace SSAGES
 		 */
 		void Initialize(const Snapshot& snapshot) override
 		{
-			// Initialize gradient
-			auto n = snapshot.GetPositions().size();
-			_grad.resize(n);
-
+			using std::to_string;
+			
+			std::vector<int> found;
+			snapshot.GetLocalIndices(_atomids, &found);
+			int nfound = found.size();
+			MPI_Allreduce(MPI_IN_PLACE, &nfound, 1, MPI_INT, MPI_SUM, snapshot.GetCommunicator());
+			
+			if(nfound != 3)
+				throw BuildException({
+					"TorsionalCV: Expected to find " + 
+					to_string(3) + 
+					" atoms, but only found " + 
+					to_string(nfound) + "."
+				});	
 		}
 
 		//! Evaluate the CV.
@@ -87,126 +83,63 @@ namespace SSAGES
 		 */
 		void Evaluate(const Snapshot& snapshot) override
 		{
+			// Get data from snapshot. 
+			auto n = snapshot.GetNumAtoms();
 			const auto& pos = snapshot.GetPositions();
-			const auto& ids = snapshot.GetAtomIDs();
+			auto& comm = snapshot.GetCommunicator();
 
-			Vector3 atomi, atomj, atomk;
-			int iindex = -1, jindex = -1, kindex = -1;
+			// Initialize gradient.
+			_grad.resize(n, Vector3{0,0,0});
 
-			// Loop through atom positions
-			for( size_t i = 0; i < pos.size(); ++i)
-			{
-				_grad[i].setZero();
-				
-				if( ids[i] == _atomid1)
-				{
-					atomi = pos[i];
-					iindex=i;
-				}
-				else if( ids[i] == _atomid2)
-				{
-					atomj = pos[i];
-					jindex=i;
-				}
-				else if(ids[i] == _atomid3)
-				{
-					atomk = pos[i];
-					kindex=i;
-				}
-			}
+			Vector3 xi{0, 0, 0}, xj{0, 0, 0}, xk{0, 0, 0};
 
-			if(iindex < 0 || jindex < 0 || kindex < 0 )
-			{
-				std::cout<<"Out of bounds index, could not locate an ID"<<std::endl;
-				exit(0);
-			}
+			auto iindex = snapshot.GetLocalIndex(_atomids[0]);
+			auto jindex = snapshot.GetLocalIndex(_atomids[1]);
+			auto kindex = snapshot.GetLocalIndex(_atomids[2]);
+
+			if(iindex != -1) xi = pos[iindex];
+			if(jindex != -1) xj = pos[jindex];
+			if(kindex != -1) xk = pos[kindex];
+
+			// By performing a reduce, we actually collect all. This can 
+			// be converted to a more intelligent allgater on rank then bcast. 
+			MPI_Allreduce(MPI_IN_PLACE, xi.data(), 3, MPI_DOUBLE, MPI_SUM, comm);
+			MPI_Allreduce(MPI_IN_PLACE, xj.data(), 3, MPI_DOUBLE, MPI_SUM, comm);
+			MPI_Allreduce(MPI_IN_PLACE, xk.data(), 3, MPI_DOUBLE, MPI_SUM, comm);
 
 			// Two vectors
-			Vector3 rij = snapshot.ApplyMinimumImage(atomi - atomj);
-			Vector3 rkj = snapshot.ApplyMinimumImage(atomk - atomj);
+			auto rij = snapshot.ApplyMinimumImage(xi - xj);
+			auto rkj = snapshot.ApplyMinimumImage(xk - xj);
 
-			auto dotP = rij.dot(rkj); //DotProduct(rij, rkj);
-			auto nrij = rij.norm(); //norm(rij);
-			auto nrkj = rkj.norm(); //norm(rkj);
+			auto dotP = rij.dot(rkj);
+			auto nrij = rij.norm();
+			auto nrkj = rkj.norm();
 
 			_val = acos(dotP/(nrij*nrkj));
 
 			// Calculate gradients
-			double prefactor = -1.0/(sqrt(1 - dotP/(nrij*nrkj))*nrij*nrkj);
+			auto prefactor = -1.0/(sqrt(1. - dotP/(nrij*nrkj))*nrij*nrkj);
 
-			_grad[iindex] = prefactor*(rkj - dotP*rij/(nrij*nrij));	
-			_grad[kindex] = prefactor*(rij - dotP*rkj/(nrkj*nrkj));
-			_grad[jindex] = -_grad[iindex] - _grad[kindex];
-		}
-
-		//! Return the value of the CV.
-		/*!
-		 * \return Current value of the CV.
-		 */
-		double GetValue() const override 
-		{ 
-			return _val; 
-		}
-
-		//! Return value taking periodic boundary conditions into account.
-		/*!
-		 * \param Location Input value.
-		 * \return Original value.
-		 *
-		 * The atom position CV does not take periodic boundary conditions into
-		 * account. Thus, this function will always return the unmodified input
-		 * value.
-		 */
-		double GetPeriodicValue(double Location) const override
-		{
-			return Location;
-		}
-
-		//! Return the gradient of the CV.
-		/*!
-		 * \return Gradient of the CV.
-		 */
-		const std::vector<Vector3>& GetGradient() const override
-		{
-			return _grad;
-		}
-
-		//! Return the boundaries of the CV.
-		/*!
-		 * \return Values of the lower and upper boundaries of this CV.
-		 */
-		const std::array<double, 2>& GetBoundaries() const override
-		{
-			return _bounds;
-		}
-
-		//! Get difference taking periodic boundary conditions into account.
-		/*!
-		 * \param Location Input value.
-		 * \return Simple difference between current value of CV and Location.
-		 *
-		 * The atom position CV does not take periodic boundary conditions into
-		 * account. Thus, this function returns the simple difference between
-		 * the current value of the CV and the input value.
-		 */
-		double GetDifference(const double Location) const override
-		{
-			return _val - Location;
+			if(iindex != -1) _grad[iindex] = prefactor*(rkj - dotP*rij/(nrij*nrij));	
+			if(kindex != -1) _grad[kindex] = prefactor*(rij - dotP*rkj/(nrkj*nrkj));
+			MPI_Allreduce(MPI_IN_PLACE, _grad[iindex].data(), 3, MPI_DOUBLE, MPI_SUM, comm);
+			MPI_Allreduce(MPI_IN_PLACE, _grad[kindex].data(), 3, MPI_DOUBLE, MPI_SUM, comm);
+			if(jindex != -1) _grad[jindex] = -_grad[iindex] - _grad[kindex];
 		}
 
 		//! Serialize this CV for restart purposes.
 		/*!
 		 * \param json JSON value
 		 */
-		virtual void Serialize(Json::Value& json) const override
+		void Serialize(Json::Value& json) const override
 		{
 			json["type"] = "Angle";
-			json["atom ids"][0] = _atomid1;
-			json["atom ids"][1] = _atomid2;
-			json["atom ids"][2] = _atomid3;
-			for(size_t i = 0; i < _bounds.size(); ++i)
-				json["bounds"].append(_bounds[i]);
 
+			for(auto& id : _atomids)
+				json["atom_ids"].append(id);
+
+			for(auto& bound : _bounds)
+				json["bounds"].append(bound);
 		}
 
 	};

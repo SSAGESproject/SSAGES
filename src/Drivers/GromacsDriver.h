@@ -32,6 +32,8 @@ namespace SSAGES
 	{
 	private:
 		int nwalkers_;
+		int MDSteps_;
+
 	public:
 		GromacsDriver(mpi::communicator& world_comm, 
 					  mpi::communicator& local_comm,
@@ -70,25 +72,29 @@ namespace SSAGES
 			gmx::CommandLineModuleManager::runAsMainCMain(argc, largs, &gmx_mdrun);
 		}
 
-		virtual void ExecuteInputFile(std::string contents) override
+		virtual void ExecuteInputFile(std::string) override
 		{
 
 		}
 
-		virtual void BuildDriver(const Json::Value& json, const std::string& path) override
+		virtual void BuildDriver(const Json::Value& json, const std::string&) override
 		{
 			_inputfile = json.get("inputfile","none").asString();
-			auto iterations = json.get("MDSteps", 1).asInt();
+			MDSteps_ = json.get("MDSteps", 1).asInt();
 
 			// Set hook. 
 			auto& hook = GromacsHook::Instance();
-			hook.SetIterationTarget(iterations);
+			hook.SetIterationTarget(MDSteps_);
 			_hook = dynamic_cast<Hook*>(&hook);
 		}
 
 		virtual void Serialize(Json::Value& json) const override
 		{
+			// Call parent first.
+			Driver::Serialize(json);
 
+			json["MDSteps"] = MDSteps_;
+			json["type"] = "Gromacs";
 		}
 	};
 }

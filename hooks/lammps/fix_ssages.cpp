@@ -19,44 +19,6 @@ using namespace boost;
 
 namespace LAMMPS_NS
 {
-	// Copyright (C) 2015 Lorenz Hübschle-Schneider <lorenz@4z2.de>
-	// Helper function for variable MPI_allgather.
-	template <typename T, typename transmit_type = uint64_t>
-	void allgatherv_serialize(const mpi::communicator &comm, std::vector<T> &in, std::vector<T> &out)
-	{
-		// Step 1: exchange sizes
-		// We need to compute the displacement array, specifying for each PE
-		// at which position in out to place the data received from it
-		// Need to cast to int because this is what MPI uses as size_t...
-		const int factor = sizeof(T) / sizeof(transmit_type);
-		const int in_size = static_cast<int>(in.size()) * factor;
-		std::vector<int> sizes(comm.size());
-		mpi::all_gather(comm, in_size, sizes.data());
-
-		// Step 2: calculate displacements from sizes
-		// Compute prefix sum to compute displacements from sizes
-		std::vector<int> displacements(comm.size() + 1);
-		displacements[0] = 0;
-		std::partial_sum(sizes.begin(), sizes.end(), displacements.begin() + 1);
-
-		// divide by factor by which T is larger than transmit_type
-		out.resize(displacements.back() / factor);
-
-		// Step 3: MPI_Allgatherv
-		transmit_type *sendptr = reinterpret_cast<transmit_type*>(in.data());
-		transmit_type *recvptr = reinterpret_cast<transmit_type*>(out.data());
-		const MPI_Datatype datatype = mpi::get_mpi_datatype<transmit_type>();
-		int status = MPI_Allgatherv(sendptr, in_size, datatype, recvptr,
-									sizes.data(), displacements.data(),
-									datatype, comm);
-		if (status != 0) 
-		{
-			std::cerr << "PE " << comm.rank() << ": MPI_Allgatherv returned "
-			<< status << ", errno " << errno << std::endl;
-			exit(-1);
-		}
-	}
-
 	FixSSAGES::FixSSAGES(LAMMPS *lmp, int narg, char **arg) : 
 	Fix(lmp, narg, arg), Hook()
 	{
@@ -67,11 +29,7 @@ namespace LAMMPS_NS
 		// Allocate vectors for snapshot.
 		// Here we size to local number of atoms. We will 
 		// resize later.
-
 		auto n = atom->nlocal;
-		auto ntype = atom->ntypes;
-
-		int dim;
 
 		auto& pos = _snapshot->GetPositions();
 		pos.resize(n);
@@ -132,8 +90,6 @@ namespace LAMMPS_NS
 		// change.
 		const auto* _atom = atom;
 
-		int dim;
-
 		auto n = atom->nlocal;
 
 		auto& pos = _snapshot->GetPositions();
@@ -146,6 +102,8 @@ namespace LAMMPS_NS
 		masses.resize(n);
 		auto& flags = _snapshot->GetImageFlags();
 		flags.resize(n);
+		auto& idmap = _snapshot->GetIDMap();
+		idmap.clear();
 
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
@@ -190,7 +148,6 @@ namespace LAMMPS_NS
 		_snapshot->Setqqrd2e(force->qqrd2e);
 
 		_snapshot->SetNumAtoms(n);
-
 		
 		// Get H-matrix.
 		Matrix3 H;
@@ -203,22 +160,12 @@ namespace LAMMPS_NS
 
 		// Get box origin. 
 		Vector3 origin;
-		if(domain->triclinic == 0)
-		{
-			origin = {
-				domain->boxlo[0], 
-				domain->boxlo[1], 
-				domain->boxlo[2]
-			};
-		}
-		else
-		{
-			origin = {
-				domain->boxlo_bound[0], 
-				domain->boxlo_bound[1], 
-				domain->boxlo_bound[2]
-			};
-		}
+		origin = {
+			domain->boxlo[0], 
+			domain->boxlo[1], 
+			domain->boxlo[2]
+		};
+	
 		_snapshot->SetOrigin(origin);
 
 		// Set periodicity. 
@@ -261,30 +208,9 @@ namespace LAMMPS_NS
 				charges[i] = _atom->q[i];
 			else
 				charges[i] = 0;
+
+			idmap[ids[i]] = i;
 		}
-
-		auto& comm = _snapshot->GetCommunicator();
-
-		std::vector<Vector3> gpos, gvel, gfrc;
-		std::vector<double> gmasses;
-        std::vector<double> gcharges;
-		std::vector<int> gids, gtypes; 
-		
-		allgatherv_serialize(comm, pos, gpos);
-		allgatherv_serialize(comm, vel, gvel);
-		allgatherv_serialize(comm, frc, gfrc);
-		allgatherv_serialize(comm, masses, gmasses);
-		allgatherv_serialize(comm, charges, gcharges);
-		allgatherv_serialize<int,int>(comm, ids, gids);
-		allgatherv_serialize<int,int>(comm, types, gtypes);
-
-		pos = gpos; 
-		vel = gvel;
-		frc = gfrc; 
-		masses = gmasses;
-        charges = gcharges;
-		ids = gids; 
-		types = gtypes;
 	}
 
 	void FixSSAGES::SyncToEngine() //put Snapshot values -> LAMMPS
@@ -304,36 +230,27 @@ namespace LAMMPS_NS
 		const auto& ids = _snapshot->GetAtomIDs();
 		const auto& types = _snapshot->GetAtomTypes();
 
-		// Sync back only local atom data. all_gather guarantees 
-		// sorting of data in vector based on rank. Compute offset
-		// based on rank and sync back only the appropriate data.
-		std::vector<int> natoms;
-		auto& comm = _snapshot->GetCommunicator();
-		natoms.reserve(comm.size());
-		boost::mpi::all_gather(comm, atom->nlocal, natoms);
-		auto j = std::accumulate(natoms.begin(), natoms.begin() + comm.rank(), 0);
-
-		for (int i = 0; i < atom->nlocal; ++i, ++j)
+		for (int i = 0; i < atom->nlocal; ++i)
 		{
-			atom->x[i][0] = pos[j][0]; //x 
-			atom->x[i][1] = pos[j][1]; //y
-			atom->x[i][2] = pos[j][2]; //z
-			atom->f[i][0] = frc[j][0]; //force->x
-			atom->f[i][1] = frc[j][1]; //force->y
-			atom->f[i][2] = frc[j][2]; //force->z
-			atom->v[i][0] = vel[j][0]; //velocity->x
-			atom->v[i][1] = vel[j][1]; //velocity->y
-			atom->v[i][2] = vel[j][2]; //velocity->z
-			atom->tag[i] = ids[j];
-			atom->type[i] = types[j];
+			atom->x[i][0] = pos[i][0]; //x 
+			atom->x[i][1] = pos[i][1]; //y
+			atom->x[i][2] = pos[i][2]; //z
+			atom->f[i][0] = frc[i][0]; //force->x
+			atom->f[i][1] = frc[i][1]; //force->y
+			atom->f[i][2] = frc[i][2]; //force->z
+			atom->v[i][0] = vel[i][0]; //velocity->x
+			atom->v[i][1] = vel[i][1]; //velocity->y
+			atom->v[i][2] = vel[i][2]; //velocity->z
+			atom->tag[i] = ids[i];
+			atom->type[i] = types[i];
+			
 			if(atom->q_flag)
-				atom->q[i] = charges[j];
+				atom->q[i] = charges[i];
 			
 			// Current masses can only be changed if using
 			// per atom masses in lammps
 			if(atom->rmass_flag)
-				atom->rmass[i] = masses[j];
-			
+				atom->rmass[i] = masses[i];			
 		}
 
 		// LAMMPS computes will reset thermo data based on

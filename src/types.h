@@ -20,6 +20,7 @@
 #pragma once 
 #include <Eigen/Dense>
 #include <vector>
+#include <map>
 
 namespace SSAGES
 {    
@@ -38,9 +39,18 @@ namespace SSAGES
 	//! 3x3 matrix. 
 	using Matrix3 = Eigen::Matrix3d;
 
+	//! nx3 matrix. 
+	using Matrix3N = Eigen::MatrixX3d;
+
 	//! List of integers.
 	using Label = std::vector<int>;
 
 	//! List of Collective Variables.
 	using CVList = std::vector<CollectiveVariable*>;
+
+	//! ID to index map. 
+	using IDMap = std::map<int, int>;
+
+	// Enum for dimension. 
+	enum class Dimension{ x = 0, y = 1, z = 2};
 }

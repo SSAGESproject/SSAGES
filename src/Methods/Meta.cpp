@@ -22,7 +22,7 @@
 #include "Meta.h"
 #include <math.h>
 #include <iostream>
-#include "../Utility/BuildException.h"
+#include "Drivers/DriverException.h"
 
 namespace SSAGES
 {

@@ -2,8 +2,8 @@
  * This file is part of
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
- * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
- *                Hythem Sidky <hsidky@nd.edu>
+ * Copyright 2016 Hythem Sidky <hsidky@nd.edu>
+ *                Ben Sikora <bsikora906@gmail.com>
  *                Emre Sevgen <sesevgen@uchicago.edu>
  *
  * SSAGES is free software: you can redistribute it and/or modify
@@ -22,6 +22,7 @@
 
 #pragma once 
 
+#include "Drivers/DriverException.h"
 #include "CollectiveVariable.h"
 
 #include <array>
@@ -41,22 +42,11 @@ namespace SSAGES
 	class TorsionalCV : public CollectiveVariable
 	{
 	private:
-		int _atomid1; //!< ID of the first atom defining the torsion angle.
-		int _atomid2; //!< ID of the second atom defining the torsion angle.
-		int _atomid3; //!< ID of the third atom defining the torsion angle.
-		int _atomid4; //!< ID of the forth atom defining the torsion angle.
-
-		//! Current value of the CV.
-		double _val;
+		// Vector of 4 atom ID's of interest.
+		Label _atomids;
 
 		//! If \c True, use periodic boundary conditions.
 		bool _periodic;
-
-		//! Gradients of the Dihedral CV, dtheta/dri, dtheta/drj, dtheta/drk, dtheta/drl.
-		std::vector<Vector3> _grad;
-
-		//! Bounds on CV.
-		std::array<double, 2> _bounds;
 
 	public:
 		//! Constructor.
@@ -72,8 +62,7 @@ namespace SSAGES
 		 * \todo Bounds needs to be an input and periodic boundary conditions
 		 */
 		TorsionalCV(int atomid1, int atomid2, int atomid3, int atomid4, bool periodic) : 
-		_atomid1(atomid1), _atomid2(atomid2), _atomid3(atomid3), _atomid4(atomid4),
-		_val(0), _periodic(periodic), _grad(0), _bounds{{0,0}}
+		_atomids({atomid1, atomid2, atomid3, atomid4}), _periodic(periodic)
 		{
 		}
 
@@ -83,9 +72,20 @@ namespace SSAGES
 		 */
 		void Initialize(const Snapshot& snapshot) override
 		{
-			// Initialize gradient. 
-			auto n = snapshot.GetPositions().size();		
-			_grad.resize(n);
+			using std::to_string;
+			
+			std::vector<int> found;
+			snapshot.GetLocalIndices(_atomids, &found);
+			int nfound = found.size();
+			MPI_Allreduce(MPI_IN_PLACE, &nfound, 1, MPI_INT, MPI_SUM, snapshot.GetCommunicator());
+			
+			if(nfound != 4)
+				throw BuildException({
+					"TorsionalCV: Expected to find " + 
+					to_string(4) + 
+					" atoms, but only found " + 
+					to_string(nfound) + "."
+				});		
 		}
 
 		//! Evaluate the CV.
@@ -94,53 +94,33 @@ namespace SSAGES
 		 */
 		void Evaluate(const Snapshot& snapshot) override
 		{
-			// Gradient and value. 
-			const auto& pos = snapshot.GetPositions(); 
-			const auto& ids = snapshot.GetAtomIDs();
-			_grad.resize(pos.size());
+			// Get data from snapshot. 
+			auto n = snapshot.GetNumAtoms();
+			const auto& pos = snapshot.GetPositions();
+			auto& comm = snapshot.GetCommunicator();
+
+			// Initialize gradient.
+			_grad.resize(n, Vector3{0,0,0});
+
+			Vector3 xi{0, 0, 0}, xj{0, 0, 0}, xk{0, 0, 0}, xl{0, 0, 0};
+
+			auto iindex = snapshot.GetLocalIndex(_atomids[0]);
+			auto jindex = snapshot.GetLocalIndex(_atomids[1]);
+			auto kindex = snapshot.GetLocalIndex(_atomids[2]);
+			auto lindex = snapshot.GetLocalIndex(_atomids[3]);
+
+			if(iindex != -1) xi = pos[iindex];
+			if(jindex != -1) xj = pos[jindex];
+			if(kindex != -1) xk = pos[kindex];
+			if(lindex != -1) xl = pos[lindex];
+
+			// By performing a reduce, we actually collect all. This can 
+			// be converted to a more intelligent allgater on rank then bcast. 
+			MPI_Allreduce(MPI_IN_PLACE, xi.data(), 3, MPI_DOUBLE, MPI_SUM, comm);
+			MPI_Allreduce(MPI_IN_PLACE, xj.data(), 3, MPI_DOUBLE, MPI_SUM, comm);
+			MPI_Allreduce(MPI_IN_PLACE, xk.data(), 3, MPI_DOUBLE, MPI_SUM, comm);
+			MPI_Allreduce(MPI_IN_PLACE, xl.data(), 3, MPI_DOUBLE, MPI_SUM, comm);
 			
-			int iindex, jindex, kindex, lindex;
-
-			iindex = jindex = kindex = lindex = -1;
-			Vector3 xi, xj, xk, xl;
-			
-			// Loop through atom positions
-			for(size_t i = 0; i < pos.size(); ++i)
-			{
-				_grad[i].setZero();
-				// If we are at the atom ID of interest, grab coordinates
-				if(ids[i] == _atomid1)
-				{
-					//coordinates for atom i
-					xi = pos[i];
-					iindex = i;
-				}
-				if(ids[i] == _atomid2)
-				{
-					//coordinates for atom j
-					xj = pos[i];
-					jindex = i;
-				}
-				if(ids[i] == _atomid3)
-				{
-					//coordinates for atom k
-					xk = pos[i];
-					kindex = i;
-				}
-				if(ids[i] == _atomid4)
-				{
-					//coordinates for atom l
-					xl = pos[i];
-					lindex = i;
-				}
-			}
-
-			if(iindex < 0 || jindex < 0 || kindex < 0 || lindex <0)
-			{
-				std::cout<<"Out of bounds index, could not locate an ID"<<std::endl;
-				exit(0);
-			}
-
 			//Calculate pertinent vectors
 			auto F = snapshot.ApplyMinimumImage(xi - xj);
 			auto G = snapshot.ApplyMinimumImage(xj - xk);
@@ -153,23 +133,15 @@ namespace SSAGES
 
 			_val = atan2(y, x);
 
-
 			auto Zed = F.dot(G.normalized())/A.dot(A); 
 			auto Ned = H.dot(G.normalized())/B.dot(B);
 
-			_grad[iindex] = -G.norm()*A/A.dot(A);
-			_grad[lindex] = G.norm()*B/B.dot(B);
-			_grad[jindex] = Zed*A - Ned*B - _grad[iindex];
-			_grad[kindex] = Ned*B  - Zed*A - _grad[lindex];
-		}
-
-		//! Return the value of the CV.
-		/*!
-		 * \return Current value of the CV.
-		 */
-		double GetValue() const override 
-		{ 
-			return _val; 
+			if(iindex != -1) _grad[iindex] = -G.norm()*A/A.dot(A);
+			if(lindex != -1) _grad[lindex] = G.norm()*B/B.dot(B);
+			MPI_Allreduce(MPI_IN_PLACE, _grad[iindex].data(), 3, MPI_DOUBLE, MPI_SUM, comm);
+			MPI_Allreduce(MPI_IN_PLACE, _grad[lindex].data(), 3, MPI_DOUBLE, MPI_SUM, comm);
+			if(jindex != -1) _grad[jindex] = Zed*A - Ned*B - _grad[iindex];
+			if(kindex != -1) _grad[kindex] = Ned*B  - Zed*A - _grad[lindex];
 		}
 
 		//! Return value taking periodic boundary conditions into account
@@ -197,24 +169,6 @@ namespace SSAGES
 				PeriodicLocation -= 2.0*M_PI;
 
 			return PeriodicLocation;
-		}
-
-		//! Return the gradient of the CV.
-		/*!
-		 * \return Gradient of the CV.
-		 */
-		const std::vector<Vector3>& GetGradient() const override
-		{
-			return _grad;
-		}
-
-		//! Return the boundaries of the CV.
-		/*!
-		 * \return Values of the lower and upper boundaries of the CV.
-		 */
-		const std::array<double, 2>& GetBoundaries() const override
-		{
-			return _bounds;
 		}
 
 		//! Get difference taking periodic boundary conditions into account.
@@ -248,17 +202,16 @@ namespace SSAGES
 		/*!
 		 * \param json JSON value
 		 */
-		virtual void Serialize(Json::Value& json) const override
+		void Serialize(Json::Value& json) const override
 		{
 			json["type"] = "Torsional";
 			json["periodic"] = _periodic;
-			json["atom ids"][0] = _atomid1;
-			json["atom ids"][1] = _atomid2;
-			json["atom ids"][2] = _atomid3;
-			json["atom ids"][3] = _atomid4;
-			for(size_t i = 0; i < _bounds.size(); ++i)
-				json["bounds"].append(_bounds[i]);
+			
+			for(auto& id : _atomids)
+				json["atom_ids"].append(id);
 
+			for(auto& bound : _bounds)
+				json["bounds"].append(bound);	
 		}
 	};
 }

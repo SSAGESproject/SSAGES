@@ -50,7 +50,7 @@ namespace SSAGES
         // There are a few error messages / checks that are in place with defining CVs and grids
         else
         {
-            if(_grid->GetDimension() != cvs.size())
+            if(_grid->GetDimension() != (int)cvs.size())
             {
                 std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
                 std::cerr<<"ERROR: Grid dimensions doesn't match number of CVS."<<std::endl;
@@ -529,8 +529,9 @@ namespace SSAGES
         // This is where the wall potentials are going to be thrown into the method if the system is not a periodic CV
         for(size_t j = 0; j < cvs.size(); ++j)
         {
-            double min = _grid->GetLower()[j];
-            double max = _grid->GetUpper()[j];
+            // Are these used?
+            // double min = _grid->GetLower()[j];
+            // double max = _grid->GetUpper()[j];
 
             if(!_grid->GetPeriodic()[j]) 
             {

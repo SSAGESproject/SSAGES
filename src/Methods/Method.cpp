@@ -165,8 +165,6 @@ namespace SSAGES
 
 			double unitconv = json.get("unit_conversion", 0).asDouble();
 		
-			int Wcalc = json.get("projector_calculation_method", 1).asInt();
-
 			double timestep = json.get("timestep",2).asDouble();
 
 			double min = json.get("minimum_count",100).asDouble();
@@ -188,7 +186,7 @@ namespace SSAGES
 
 			std::string filename = json.get("filename", "F_out").asString();
 
-			auto* m = new ABF(world, comm, histdetails, restraint, timestep, min, filename, FBackupInterv, unitconv, Wcalc, freq);
+			auto* m = new ABF(world, comm, histdetails, restraint, timestep, min, filename, FBackupInterv, unitconv, freq);
 
 			method = static_cast<Method*>(m);
 

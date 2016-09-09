@@ -58,6 +58,8 @@ namespace SSAGES
 
 		Bool3 _isperiodic; //!< Periodicity of box.
 
+		IDMap _idxmap; //!< Map from id to index.
+
 		std::vector<Vector3> _positions; //!< Positions
 		std::vector<Integer3> _images; //!< Unwrapped positions
 		std::vector<Vector3> _velocities; //!< Velocities
@@ -88,7 +90,7 @@ namespace SSAGES
 		 */
 		Snapshot(boost::mpi::communicator& comm, unsigned wid) :
 		_comm(comm), _wid(wid), _H(), _Hinv(), _origin({0,0,0}), 
-		_isperiodic({true, true, true}), _positions(0), _images(0), 
+		_isperiodic({true, true, true}), _idxmap(), _positions(0), _images(0), 
 		_velocities(0), _forces(0), _masses(0), _atomids(0), _types(0), 
 		_iteration(0), _temperature(0), _energy(0), _kb(0)
 		{}
@@ -354,7 +356,7 @@ namespace SSAGES
 			return _H*image.cast<double>()+v;
 		}
 
-		//! Apply minimum image to a vector according to periodic boundary conditions
+		//! Apply minimum image to a vector.
 		/*!
 		 * \param v Vector of interest
 		 */
@@ -368,7 +370,7 @@ namespace SSAGES
 			*v = _H*scaled;
 		}
 		
-		//! Apply minimum image to a vector according to periodic boundary conditions
+		//! Apply minimum image to a vector.
 		/*!
 		 * \param v Vector of interest
 		 */
@@ -384,7 +386,7 @@ namespace SSAGES
 
 		//! Compute the total mass of a group of particles based on index. 
 		/*!
-		  * \param indices Indices of particles of interest. 
+		  * \param indices IDs of particles of interest. 
 		  * \return double Total mass of particles. 
 		  *
 		  * \note This function reduces the mass across the communicator associated
@@ -392,17 +394,56 @@ namespace SSAGES
 		 */
 		double TotalMass(const Label& indices) const
 		{
-
+			auto mtot = 0.;
+			for(auto& i : indices)
+				mtot += _masses[i];
+			MPI_Allreduce(MPI_IN_PLACE, &mtot, 1, MPI_DOUBLE, MPI_SUM, _comm);
+			return mtot;
 		}
 
-		//! Compute the center of mass of a group of atoms based on index. 
-		Vector3& CenterOfMass(const Label& indices) const
+		//! Compute center of mass of a group of atoms based on idex with provided 
+		//! Total mass.
+		/*!
+		  * \param indices IDs of particles of interest. 
+		  * \return Vector3 Center of mass of particles.
+		  */ 		
+		Vector3 CenterOfMass(const Label& indices) const
 		{
+			// Get total mass.
+			auto mtot = TotalMass(indices);
 
-		}	
+			return CenterOfMass(indices, mtot);			
+		}
+
+		//! Compute center of mass of a group of atoms based on idex with provided 
+		//! Total mass.
+		/*!
+		  * \param indices IDs of particles of interest. 
+		  * \param mtot Total mass of particle group. 
+		  * \return Vector3 Center of mass of particles.
+		  */ 
+		Vector3 CenterOfMass(const Label& indices, double mtot) const
+		{
+			// Loop through atoms and compute mass weighted sum. 
+			// We march linearly through list and find nearest image
+			// to each successive particle to properly unwrap object.
+			Vector3 xcm = _masses[indices[0]]*_positions[indices[0]];
+
+			for(size_t i = 1; i < indices.size(); ++i)
+			{
+				auto j = indices[i-1]; // Previous particle.
+				auto k = indices[i]; // Current particle.
+				xcm += _masses[k]*(
+					ApplyMinimumImage(_positions[k] - _positions[j]) + _positions[j]
+				);			
+			}
+
+			MPI_Allreduce(MPI_IN_PLACE, xcm.data(), 3, MPI_DOUBLE, MPI_SUM, _comm);
+			return xcm/mtot;
+		}
 
 		//! Access the atom IDs
-		/*!
+		/*!t
 		 * \return List of atom IDs
 		 */
 		const Label& GetAtomIDs() const { return _atomids; }
@@ -412,6 +453,51 @@ namespace SSAGES
 		{
 			_changed = true;
 			return _atomids;
+		}
+
+		//! Access the atom ID to local index map. 
+		/*!
+		 * \return Atom ID to local index map. 
+		 */
+		const IDMap& GetIDMap() const { return _idxmap; }
+		
+		/*! \copydoc Snapshot::GetIDMap() const */
+		IDMap& GetIDMap()
+		{
+			_changed = true; 
+			return _idxmap;
+		}
+
+		//! Gets the local atom index corresponding to an atom ID.
+		/*!
+		 * \param Atom ID. 
+		 * \return Local atom index or -1 if not found.
+		 */
+		int GetLocalIndex(int id) const
+		{
+			auto s = _idxmap.find(id);
+			if(s == _idxmap.end())
+				return -1;
+			else
+				return s->second;
+		}
+
+		//! Gets the local atom indices corresponding to atom IDs in the 
+		//! vector.
+		/*!
+		 * \param ids Vector of atom ID's. 
+		 * \param indices Pointer to container for local atom indices. 
+		 *
+		 * \note If atom does not exist on processor, it will be ignored. 
+		 */
+		void GetLocalIndices(const Label& ids, Label* indices) const
+		{
+			for(auto& id : ids)
+			{
+				auto idx = GetLocalIndex(id);
+				if(idx != -1)
+					indices->push_back(idx);
+			}
 		}
 
 		//! Access the atom charges

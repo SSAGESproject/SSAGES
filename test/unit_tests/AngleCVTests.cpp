@@ -34,9 +34,14 @@ protected:
              0.0, 0.0, 100.0;
 
         snapshot1->SetHMatrix(H);
+        snapshot1->SetNumAtoms(5);
+        auto& map = snapshot1->GetIDMap();
 
         for(unsigned int i =0; i <ids.size();i++)
+        {
             ids[i] = i+1;
+            map[i+1] = i;
+        }
 
         pos[0][0] = 0; 
         pos[0][1] = 0; 
@@ -104,6 +109,7 @@ TEST_F(AngleCVTest, DefaultBehavior)
 int main(int argc, char *argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
+    boost::mpi::environment env(argc,argv);
     int ret = RUN_ALL_TESTS();
     return ret;
 }

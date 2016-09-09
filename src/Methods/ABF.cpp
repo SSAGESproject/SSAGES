@@ -25,45 +25,9 @@
 #include <cassert>
 
 
-//Later, might be quite worthwhile to adopt the EXTENDED DYNAMICS approach instead
-//which works with constraints and multiple CVs easily
-//Then, this code can be used to compare results.
-
-
-//There is a better way by Darve, which uses a time derivative instead of a 2nd order spatial
-//
-//There are also other ways. The dX/dE terms involve a lot of freedom. (inverse gradients)
-//Details supplied below
-//
-//NOTABLY: Convergence RATE likely depends on the choice of expression for F
-//
-//The multiple expressions comes from the inverse gradient term, which can be defined in many ways
-//The propogation of the force to cartesian coordinates can be done through any vector field
-//subject to orthonormality conditions. For details, see above publication and:
-
-//ADD PUBS
-//
-
-
-//I lied. I will use the following definition for a vector field that fits all
-//the orthonormality requirements (from above):
-
-//del(E)/|del(E)|^2
-
-//and use that as w in the equation below:
-
-//F = -d/dt(w.p)
-//where:
-//F is the instantaneous force
-//-d/dt is the time derivative
-//w is any vector field that satisfies w.grad(E) = 1
-//p is momenta
-
-//Equation is from J. Chem. Phys. (2008)
-//"Adaptive biasing force method for scalar and vector free energy calculations"
-//Darve, Rodriguez-Gomez, Pohorille
-
-//I will use a numerical derivative for time at the same order as the verlet integrator.
+// "Adaptive biasing force method for scalar and vector free energy calculations"
+// Darve, Rodriguez-Gomez, Pohorille
+// J. Chem. Phys. (2008)
 
 namespace mpi = boost::mpi;
 namespace SSAGES
@@ -194,80 +158,33 @@ namespace SSAGES
 		auto& vels = snapshot->GetVelocities();
 		auto& mass = snapshot->GetMasses();
 		auto& forces = snapshot->GetForces();
+		auto n = snapshot->GetNumAtoms();
 
 		//! Coord holds where we are in CV space in current timestep.
 		int coord = histCoords(cvs);
 
 		//! Eigen::MatrixXd to hold the CV gradient.
-		Eigen::MatrixXd J(_ncv, 3*forces.size());
+		Eigen::MatrixXd J(_ncv, 3*n);
 
 		// Fill J. Each column represents grad(CV) with flattened Cartesian elements. 
-		for(size_t i = 0; i < _ncv; ++i)
+		for(int i = 0; i < _ncv; ++i)
 		{
 			auto& grad = cvs[i]->GetGradient();
-			for(size_t j = 0; j < forces.size(); ++j)
+			for(size_t j = 0; j < n; ++j)
 				J.block<1, 3>(i,3*j) = grad[j];
 		}
 		
-		Eigen::MatrixXd Wt;		
-
-		//* Calculate projector matrix W according to user input.
-
-		//* 0 - Calculate the pseudoinverse of J; J = d(CVi)/d(xj) matrix.
-		//* 1 - Calculate W using Darve's approach (http://mc.stanford.edu/cgi-bin/images/0/06/Darve_2008.pdf) - DEFAULT
-		//* 2 - Calculate W using Ciccotti's orthonormalization approach (http://www.chem.utoronto.ca/~rkapral/Papers/ericCK-cppc-2005.pdf)
-		//* 3 - Calculate W by columnwise normalizing J with |J|^2
-		if(_Wcalc == 0) 
-			{
-			/*! 
-			 * W is the projection of the force from generalized 
-			 * coordinates to cartesian.
-			 */
-			// Find projector as the pseudoinverse of grad(CV).
-			Eigen::JacobiSVD<Eigen::MatrixXd> svd(J, Eigen::ComputeThinU | Eigen::ComputeThinV);
-
-			Wt = (svd.pinv()).transpose();
-			}
-		else if(_Wcalc == 1)
-			{
-			Eigen::MatrixXd Jmass = J.transpose();
-			
-			for(size_t i = 0; i < forces.size(); ++i)
-				Jmass.block(3*i,0,3,_ncv) = Jmass.block(3*i,0,3,_ncv)/mass[i];
-								
-			Eigen::MatrixXd Minv = J*Jmass;
-
-			//MPI_Allreduce(MPI_IN_PLACE, Minv.data(), Minv.size(), MPI_DOUBLE, MPI_SUM, _comm);
-
-			Wt = (Minv.inverse())*(Jmass.transpose());	
-
-			// Hythem: 
-			// If I did the math right, Minv and wdotp are the only pieces that need to be communicated, and Minv is only ncv by ncv so quite tiny. 
-			// Furthermore, all that needs to be done is entrywise summing contributions from different processors, there are no cross atom terms in prior calculations.
-			// Even for the Wt step, a local Wt made from the communicated Minv and the local Jmass should work, as long as wdotp is also allreduce summed.
-			// Let me know if this is incorrect.
-			}
-		else if(_Wcalc == 2)
-			{			
-			Wt = Eigen::MatrixXd::Zero(_ncv,3*forces.size());
-			for(unsigned int i = 0; i < _ncv; ++i)
-				{
-				Eigen::MatrixXd Jtrunc = J.transpose();
-				removeColumn(Jtrunc, i);
-				Eigen::HouseholderQR<Eigen::MatrixXd> qr(Jtrunc);
-				Eigen::MatrixXd N = qr.householderQ()*Eigen::MatrixXd::Identity(3*forces.size(),_ncv-1);
-				Eigen::MatrixXd Qj = Eigen::MatrixXd::Identity(3*forces.size(),3*forces.size()) - N*N.transpose();
-				Wt.row(i) = ( Qj*( (J.row(i)).transpose() ) )/( (Qj*( (J.row(i)).transpose() ) ).squaredNorm());				
-				}			
-			}
+		//* Calculate W using Darve's approach (http://mc.stanford.edu/cgi-bin/images/0/06/Darve_2008.pdf).
+		Eigen::MatrixXd Jmass = J.transpose();
 		
-		else
-			{
-			Wt = J;
-			for(unsigned int i = 0; i < _ncv; ++i)
-				Wt.row(i) = Wt.row(i)/((J.row(i)).squaredNorm());			
-			}	
-			
+		for(size_t i = 0; i < forces.size(); ++i)
+			Jmass.block(3*i, 0, 3, _ncv) = Jmass.block(3*i, 0, 3, _ncv)/mass[i];
+							
+		Eigen::MatrixXd Minv = J*Jmass;
+		MPI_Allreduce(MPI_IN_PLACE, Minv.data(), Minv.size(), MPI_DOUBLE, MPI_SUM, _comm);
+
+		Eigen::MatrixXd Wt = Minv.inverse()*Jmass.transpose();	
+
 		// Fill momenta.
 		Eigen::VectorXd momenta(3*vels.size());
 		for(size_t i = 0; i < vels.size(); ++i)
@@ -277,7 +194,7 @@ namespace SSAGES
 		Eigen::VectorXd wdotp = Wt*momenta;
 
 		// Reduce dot product across processors.
-		//MPI_Allreduce(MPI_IN_PLACE, wdotp.data(), wdotp.size(), MPI_DOUBLE, MPI_SUM, _world);
+		MPI_Allreduce(MPI_IN_PLACE, wdotp.data(), wdotp.size(), MPI_DOUBLE, MPI_SUM, _comm);
 
 		// Compute d(wdotp)/dt second order backwards finite difference. 
 		// Adding old force removes bias. 
@@ -332,7 +249,7 @@ namespace SSAGES
 		// Compute bias if within bounds
 		if(coord != -1)
 		{
-			for(size_t i = 0; i < _ncv; ++i)
+			for(int i = 0; i < _ncv; ++i)
 			{
 				auto& grad = cvs[i]->GetGradient();
 				for(size_t j = 0; j < _biases.size(); ++j)
@@ -341,7 +258,7 @@ namespace SSAGES
 		}
 		else
 		{
-			for(size_t i = 0; i < _ncv; ++i)
+			for(int i = 0; i < _ncv; ++i)
 			{
 				auto k = 0.;
 				auto x0 = 0.;
@@ -398,7 +315,7 @@ namespace SSAGES
 				index = index % modulo;
 			}
 
-			for(size_t j = 0; j < _ncv; ++j)
+			for(int j = 0; j < _ncv; ++j)
 				_worldout << _Fworld[_ncv*i+j]/std::max(_Nworld[i],_min) << " ";
 		}
 

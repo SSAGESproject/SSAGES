@@ -150,17 +150,6 @@ namespace SSAGES
 		 * 2390.06 (gram.angstrom/mole.femtosecond^2 -> kcal/mole.angstrom)
 		 */
 		double _unitconv;
-	
-		//! Which method to use to calculate the projector matrix W.
-		/*!
-		 * Default is calculating the pseudoinvers of J, the grad(CV) matrix.
-		 * Options are:
-		 * 0 = Pseudoinverse of J
-		 * 1 = Orthogonormal basis from J and normalization (Cicotti et al.)
-		 * 2 = Use MJM^(-1) (Darve et al.)
-		 * 4 = Columnwise normalize - Fast but does NOT work for non-orthogonal CVs
-		 */
-		int _Wcalc;
 
 		//! Computes the bias force.
 		void CalcBiasForce(const Snapshot* snapshot, const CVList& cvs, int coord);
@@ -206,14 +195,11 @@ namespace SSAGES
 			std::string filename,
 			int FBackupInterv,
 			double unitconv,
-			int Wcalc,
 			unsigned int frequency) :
 		Method(frequency, world, comm), _F(), _Fworld(), _N(0), _Nworld(0),
 		_restraint(restraint), _min(min), _wdotp1(), _wdotp2(), _Fold(), _beta(0),
-		_filename(filename), _biases(), _dim(0), _mpiid(0), _histdetails(histdetails), 
-		_FBackupInterv(FBackupInterv),
-		_unitconv(unitconv), _Wcalc(Wcalc),
-		_timestep(timestep)
+		_biases(), _dim(0), _filename(filename), _mpiid(0), _histdetails(histdetails), 
+		_FBackupInterv(FBackupInterv), _unitconv(unitconv), _timestep(timestep)
 		{
 		}
 
@@ -279,24 +265,18 @@ namespace SSAGES
 			}
 
 			json["timestep"] = _timestep;
-
 			json["minimum_count"] = _min;
-			 
-			json["backup_frequency"] = _FBackupInterv;
-			
+			json["backup_frequency"] = _FBackupInterv;			
 			json["unit_conversion"] = _unitconv;
-
-			json["projector_calculation_method"] = _Wcalc;		
-		
-			for(size_t i = 0; i < _F.size(); ++i)
+			json["iteration"] = _iteration;
+			json["filename"] = _filename;		
+				
+			for(int i = 0; i < _F.size(); ++i)
 				json["F"].append(_F[i]);
 
 			for(size_t i = 0; i < _N.size(); ++i)
 				json["N"].append(_N[i]);
-
-			json["iteration"] = _iteration;
-			
-			json["filename"] = _filename;		
+	
 		
 		}
 

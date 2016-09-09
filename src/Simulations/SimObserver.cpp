@@ -30,7 +30,7 @@
 #include "../Validator/ObjectRequirement.h"
 #include "../Validator/ArrayRequirement.h"
 #include "../Observers/JSONObserver.h"
-#include "../Utility/BuildException.h"
+#include "Drivers/DriverException.h"
 
 using namespace Json;
 

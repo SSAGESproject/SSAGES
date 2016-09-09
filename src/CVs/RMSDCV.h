@@ -52,17 +52,6 @@ namespace SSAGES
 		//! Center of mass of reference.
 		Vector3 _COMref;
 
-		//! Gradient of the CV, dRMSD/dxi.
-		std::vector<Vector3> _grad;
-
-		//! Current value of the CV.
-		double _val;
-		
-
-		//! Bounds on CV.
-		std::array<double, 2> _bounds;
-
-
 	public:
 		//! Constructor.
 		/*!
@@ -74,7 +63,7 @@ namespace SSAGES
 		 * \todo Bounds needs to be an input and periodic boundary conditions
 		 */
 		RMSDCV(std::vector<int> atomids, std::string molxyz, bool use_range = false) :
-		_atomids(atomids), _molecule(molxyz), _val(0), _grad(0), _bounds{{0,0}}
+		_atomids(atomids), _molecule(molxyz)
 		{
 			if(use_range)
 			{
@@ -300,33 +289,6 @@ namespace SSAGES
 				_grad[i][1] = (u_coord[1] - trans[1])/((_atomids.size())*_val);
 				_grad[i][2] = (u_coord[2] - trans[2])/((_atomids.size())*_val);
 			}
-		}
-			// Return the value of the CV.
-		double GetValue() const override 
-		{ 
-			return _val; 
-		}
-
-		double GetPeriodicValue(double Location) const override
-		{
-			return Location;
-		}
-
-		// Return the gradient of the CV.
-		const std::vector<Vector3>& GetGradient() const override
-		{
-			return _grad;
-		}
-
-		// Return the boundaries of the CV.
-		const std::array<double, 2>& GetBoundaries() const override
-		{
-			return _bounds;
-		}
-
-		double GetDifference(const double Location) const override
-		{
-			return _val - Location;
 		}
 
 		//! Serialize this CV for restart purposes.

@@ -1,4 +1,4 @@
-#include "../src/CVs/CenterofMassDistanceCV.h"
+#include "../src/CVs/ParticleSeparationCV.h"
 #include "../src/Snapshot.h"
 #include <iostream>
 #include <fstream>
@@ -10,16 +10,12 @@ using namespace SSAGES;
 // Test up to accuracy of 10^-10
 const double eps = 1e-10;
 
-// 90 degree angle
-const double piOver2 = 0.5*M_PI;
-
-class COMdist_Test : public ::testing::Test {
+class ParticleSeparationCVTests : public ::testing::Test {
 protected:
     virtual void SetUp() 
     {
 
-        COM_dist = new CenterofMassDistanceCV({1,3}, {4,6}, true, true);
-        no_range_COM_dist = new CenterofMassDistanceCV({1,2,3}, {4,5,6}, false, false);
+        COMDist = new ParticleSeparationCV({1,2,3}, {4,5,6});
 
     	// Set up snapshot No. 1
         // Snapshot 1 contains six atoms
@@ -30,6 +26,15 @@ protected:
              0.0, 100.0, 0.0,
              0.0, 0.0, 100.0;
         snapshot1->SetHMatrix(H);
+        snapshot1->SetNumAtoms(6);
+
+        auto& map = snapshot1->GetIDMap();
+        map[1] = 0;
+        map[2] = 1;
+        map[3] = 2;
+        map[4] = 3;
+        map[5] = 4;
+        map[6] = 5;
 
         auto& pos1 = snapshot1->GetPositions();
         pos1.resize(6);
@@ -77,44 +82,25 @@ protected:
 
     }
 
-    CenterofMassDistanceCV *COM_dist;
-    CenterofMassDistanceCV *no_range_COM_dist;
+    ParticleSeparationCV *COMDist;
 
     boost::mpi::communicator comm;
 
     Snapshot *snapshot1;
 };
 
-TEST_F(COMdist_Test, compareCOM_dist)
+TEST_F(ParticleSeparationCVTests, compareCOMDist)
 {
-	COM_dist->Initialize(*snapshot1);
-    COM_dist->Evaluate(*snapshot1);
+	COMDist->Initialize(*snapshot1);
+    COMDist->Evaluate(*snapshot1);
 
-    EXPECT_NEAR(COM_dist->GetValue(), 6.39609255718, 1E-8);
+    EXPECT_NEAR(COMDist->GetValue(), 6.596547918756026, eps);
 }
-
-TEST_F(COMdist_Test, TestRange)
-{
-    COM_dist->Initialize(*snapshot1);
-    no_range_COM_dist->Initialize(*snapshot1);
-
-    COM_dist->Evaluate(*snapshot1);
-    no_range_COM_dist->Evaluate(*snapshot1);
-
-    EXPECT_EQ(COM_dist->GetValue(), no_range_COM_dist->GetValue());
-}
-
-TEST_F(COMdist_Test, BadRange)
-{
-    EXPECT_ANY_THROW(new CenterofMassDistanceCV({1,2,3}, {4,5,6}, true, false));
-    EXPECT_ANY_THROW(new CenterofMassDistanceCV({1,2,3}, {4,5,6}, false, true));
-    EXPECT_ANY_THROW(new CenterofMassDistanceCV({1,2,3}, {4,5,6}, true, true));
-}
-
 
 int main(int argc, char *argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
+    boost::mpi::environment env(argc,argv);
     int ret = RUN_ALL_TESTS();
     return ret;
 }

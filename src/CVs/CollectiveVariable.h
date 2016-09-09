@@ -39,7 +39,20 @@ namespace SSAGES
 	 */
 	class CollectiveVariable: public Serializable
 	{
+	protected:
+		//! Gradient vector dCv/dxi.
+		std::vector<Vector3> _grad;
+		
+	 	//! Current value of CV.
+		double _val;				
+
+		// Bounds on CV.
+		std::array<double, 2> _bounds;		
 	public:
+		//! Constructor.
+		CollectiveVariable() : 
+		_grad(0), _val(0), _bounds{{0,0}}
+		{}
 
 		//! Destructor.
 		virtual ~CollectiveVariable(){}
@@ -69,11 +82,14 @@ namespace SSAGES
 		 * Returns the current value of the CV which has been computed before
 		 * via the call to CollectiveVariable::Evaluate().
 		 */
-		virtual double GetValue() const = 0;
+		double GetValue() const
+		{
+			return _val;
+		}
 
 		//! Apply periodic boundaries to a given value.
 		/*!
-		 * \param Location Value to which the periodic boundaries should be applied.
+		 * \param location Value to which the periodic boundaries should be applied.
 		 * \return Correct value.
 		 *
 		 * Takes location and applies periodic boundaries of the CV on it and
@@ -81,18 +97,24 @@ namespace SSAGES
 		 * bounds at pi and -pi. If location = 2pi, GetPeriodicValue(location)
 		 * would return 0.
 		 */
-		virtual double GetPeriodicValue(double Location) const = 0;
+		virtual double GetPeriodicValue(double location) const
+		{
+			return location;
+		}
 
 		//! Get current gradient of the CV.
 		/*!
-		 * \return Per-atom gradient of the CV for.
+		 * \return Per-atom gradient of the CV.
 		 *
 		 * Returns the current value of the CV gradient. This should be an n
 		 * length vector, where n is the number of atoms in the snapshot. Each
 		 * element in the vector is the derivative of the CV with respect to
 		 * the atom's coordinate (dCV/dxi).
 		 */
-		virtual const std::vector<Vector3>& GetGradient() const = 0;
+		const std::vector<Vector3>& GetGradient() const
+		{
+			return _grad;
+		}
 
 		//! Get CV boundaries.
 		/*!
@@ -102,7 +124,10 @@ namespace SSAGES
 		 * which the CV is expected to be constrained. There is no requirement
 		 * on the method to respect the values returned here.
 		 */
-		virtual const std::array<double, 2>& GetBoundaries() const = 0;
+		const std::array<double, 2>& GetBoundaries()
+		{
+			return _bounds;
+		}
 
 		//! Get difference between current CV value and a given value, taking
 		//! periodic boundaries into account.
@@ -116,7 +141,10 @@ namespace SSAGES
 		 * angle has boundaries at pi and -pi, in which the difference beteen
 		 * the angles is 0 not 2pi
 		 */
-		virtual double GetDifference(const double Location) const = 0;
+		virtual double GetDifference(double location) const
+		{
+			return _val - location;
+		}
 
 		//! Set up collective variable.
 		/*!

@@ -20,20 +20,20 @@
  */
 #pragma once
 
-#include "../Drivers/Driver.h"
-#include "../Grids/Grid.h"
-#include "../Constraints/Constraint.h"
-#include "../JSON/Serializable.h"
-#include "json/json.h"
-#include <boost/mpi.hpp>
-#include "../JSON/JSONLoader.h"
-#include "../JSON/Serializable.h"
-#include <exception>
 #include <stdexcept>
-#include "../Utility/BuildException.h"
-#include "../Validator/ArrayRequirement.h"
+#include <exception>
+#include <boost/mpi.hpp>
+#include "json/json.h"
 #include "schema.h"
 #include "config.h"
+#include "../Constraints/Constraint.h"
+#include "../Drivers/Driver.h"
+#include "../Drivers/DriverException.h"
+#include "../Grids/Grid.h"
+#include "../JSON/Serializable.h"
+#include "../JSON/JSONLoader.h"
+#include "../JSON/Serializable.h"
+#include "../Validator/ArrayRequirement.h"
 
 #ifdef ENABLE_GROMACS
 #include "Drivers/GromacsDriver.h"

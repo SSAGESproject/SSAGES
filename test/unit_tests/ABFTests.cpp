@@ -2,9 +2,8 @@
 #include <boost/mpi.hpp>
 
 #include "../src/Snapshot.h"
-
-
 #define private public
+#define protected public
 #include "../src/Methods/ABF.h"
 #include "../src/CVs/MockCV.h"
 
@@ -36,9 +35,13 @@ protected:
 		snapshot2 = new Snapshot(comm, 0);
 		snapshot3 = new Snapshot(comm, 0);		
 
+		snapshot1->SetNumAtoms(1);
+		snapshot2->SetNumAtoms(1);
+		snapshot3->SetNumAtoms(1);
+
 		auto& loc1 = snapshot1 ->GetPositions();
-		auto& loc2 = snapshot1 ->GetPositions();
-		auto& loc3 = snapshot1 ->GetPositions();
+		auto& loc2 = snapshot2 ->GetPositions();
+		auto& loc3 = snapshot3 ->GetPositions();
 
 		loc1.resize(1);
 		loc2.resize(1);
@@ -100,7 +103,6 @@ protected:
 		// Set up ABF method.
 		std::vector<std::vector<double>> histdetails;
 		std::vector<std::vector<double>> restraint;
-		std::vector<int> printdetails = {10, 0, 0, 0, 0, 0, 0, 0, 0};
 		for(size_t i=0; i<cvlist.size(); ++i)
 		{
 			std::vector<double> temp1 = {-1, 1, 2};
@@ -109,7 +111,7 @@ protected:
 			restraint.push_back(temp2);
 		}
 
-		Method = new ABF(world, comm, histdetails, restraint, 1, 5, "testout", 10, 1, 1, 1);	
+		Method = new ABF(world, comm, histdetails, restraint, 1, 5, "testout", 10, 1, 1);	
 	}
 
 	virtual void TearDown() 
@@ -246,10 +248,9 @@ TEST_F(ABFTest,MD_steps_inboundscheck)
 	EXPECT_NEAR(Method->_biases[0][2], 6.56, eps);
 
 	// Check that the biases added to forces correctly
-	EXPECT_TRUE(snapshot3->GetForces()[0][0] == 1.6);
-	EXPECT_TRUE(snapshot3->GetForces()[0][1] == 4.08);
-	EXPECT_TRUE(snapshot3->GetForces()[0][2] == 6.56);
-
+	EXPECT_NEAR(snapshot3->GetForces()[0][0], 1.6, eps);
+	EXPECT_NEAR(snapshot3->GetForces()[0][1], 4.08, eps);
+	EXPECT_NEAR(snapshot3->GetForces()[0][2], 6.56, eps);
 }
 
 int main(int argc, char *argv[])
