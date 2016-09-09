@@ -421,24 +421,60 @@ namespace SSAGES
 		  * \param indices IDs of particles of interest. 
 		  * \param mtot Total mass of particle group. 
 		  * \return Vector3 Center of mass of particles.
+		  * \note Each processor passes in the local indices of the atoms of interest
+		  *       and this function will collect the data and compute the center of mass.
 		  */ 
 		Vector3 CenterOfMass(const Label& indices, double mtot) const
 		{
+			// Store coorinates and masses in vectors to gather. 
+			std::vector<double> pos, mass, gpos, gmass;
+			std::vector<int> pcounts(_comm.size(), 0), mcounts(_comm.size(), 0); 
+			std::vector<int> pdispls(_comm.size()+1, 0), mdispls(_comm.size()+1, 0);
+
+			pcounts[_comm.rank()] = 3*indices.size();
+			mcounts[_comm.rank()] = indices.size();
+
+			// Reduce counts.
+			MPI_Allreduce(MPI_IN_PLACE, pcounts.data(), pcounts.size(), MPI_INT, MPI_SUM, _comm);
+			MPI_Allreduce(MPI_IN_PLACE, mcounts.data(), mcounts.size(), MPI_INT, MPI_SUM, _comm);
+
+			// Compute displacements.
+			std::partial_sum(pcounts.begin(), pcounts.end(), pdispls.begin() + 1);
+			std::partial_sum(mcounts.begin(), mcounts.end(), mdispls.begin() + 1);
+			
+			// Fill up mass and position vectors.
+			for(auto& idx : indices)
+			{
+				auto& p = _positions[idx];
+				pos.push_back(p[0]);
+				pos.push_back(p[1]);
+				pos.push_back(p[2]);
+				mass.push_back(_masses[idx]);
+			}
+
+			// Re-size receiving vectors. 
+			gpos.resize(pdispls.back(), 0);
+			gmass.resize(mdispls.back(), 0);
+
+			// All-gather data.
+			MPI_Allgatherv(pos.data(), pos.size(), MPI_DOUBLE, gpos.data(), pcounts.data(), pdispls.data(), MPI_DOUBLE, _comm);
+			MPI_Allgatherv(mass.data(), mass.size(), MPI_DOUBLE, gmass.data(), mcounts.data(), mdispls.data(), MPI_DOUBLE, _comm);
+
 			// Loop through atoms and compute mass weighted sum. 
 			// We march linearly through list and find nearest image
 			// to each successive particle to properly unwrap object.
-			Vector3 xcm = _masses[indices[0]]*_positions[indices[0]];
+			Vector3 ppos = {gpos[0], gpos[1], gpos[2]}; // Previous unwrapped position.
+			Vector3 cpos = ppos;
+			Vector3 xcm = gmass[0]*cpos;
 
-			for(size_t i = 1; i < indices.size(); ++i)
+			for(size_t i = 1, j = 3; i < gmass.size(); ++i, j += 3)
 			{
-				auto j = indices[i-1]; // Previous particle.
-				auto k = indices[i]; // Current particle.
-				xcm += _masses[k]*(
-					ApplyMinimumImage(_positions[k] - _positions[j]) + _positions[j]
-				);			
+				cpos = {gpos[j], gpos[j+1], gpos[j+2]};
+				cpos = ApplyMinimumImage(cpos - ppos) + ppos;
+				xcm += gmass[i]*cpos;
+				ppos = cpos;
 			}
 
-			MPI_Allreduce(MPI_IN_PLACE, xcm.data(), 3, MPI_DOUBLE, MPI_SUM, _comm);
 			return xcm/mtot;
 		}
 
