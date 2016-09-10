@@ -58,8 +58,6 @@ namespace SSAGES
 
 		Bool3 _isperiodic; //!< Periodicity of box.
 
-		IDMap _idxmap; //!< Map from id to index.
-
 		std::vector<Vector3> _positions; //!< Positions
 		std::vector<Integer3> _images; //!< Unwrapped positions
 		std::vector<Vector3> _velocities; //!< Velocities
@@ -90,7 +88,7 @@ namespace SSAGES
 		 */
 		Snapshot(boost::mpi::communicator& comm, unsigned wid) :
 		_comm(comm), _wid(wid), _H(), _Hinv(), _origin({0,0,0}), 
-		_isperiodic({true, true, true}), _idxmap(), _positions(0), _images(0), 
+		_isperiodic({true, true, true}), _positions(0), _images(0), 
 		_velocities(0), _forces(0), _masses(0), _atomids(0), _types(0), 
 		_iteration(0), _temperature(0), _energy(0), _kb(0)
 		{}
@@ -491,19 +489,6 @@ namespace SSAGES
 			return _atomids;
 		}
 
-		//! Access the atom ID to local index map. 
-		/*!
-		 * \return Atom ID to local index map. 
-		 */
-		const IDMap& GetIDMap() const { return _idxmap; }
-		
-		/*! \copydoc Snapshot::GetIDMap() const */
-		IDMap& GetIDMap()
-		{
-			_changed = true; 
-			return _idxmap;
-		}
-
 		//! Gets the local atom index corresponding to an atom ID.
 		/*!
 		 * \param Atom ID. 
@@ -511,11 +496,12 @@ namespace SSAGES
 		 */
 		int GetLocalIndex(int id) const
 		{
-			auto s = _idxmap.find(id);
-			if(s == _idxmap.end())
+
+			auto s = std::find(_atomids.begin(), _atomids.end(), id);
+			if(s == _atomids.end())
 				return -1;
 			else
-				return s->second;
+				return s - _atomids.begin();
 		}
 
 		//! Gets the local atom indices corresponding to atom IDs in the 

@@ -28,14 +28,6 @@ protected:
         snapshot1->SetHMatrix(H);
         snapshot1->SetNumAtoms(6);
 
-        auto& map = snapshot1->GetIDMap();
-        map[1] = 0;
-        map[2] = 1;
-        map[3] = 2;
-        map[4] = 3;
-        map[5] = 4;
-        map[6] = 5;
-
         auto& pos1 = snapshot1->GetPositions();
         pos1.resize(6);
         pos1[0][0] = 0.5;

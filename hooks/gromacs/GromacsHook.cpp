@@ -48,7 +48,6 @@ namespace SSAGES
 		ids.resize(natoms);
 		auto& typs = _snapshot->GetAtomTypes();
 		typs.resize(natoms);
-		auto& idmap = _snapshot->GetIDMap();
 
 		// Reduce temperature/pressure/energy.
 		auto& comm = _snapshot->GetCommunicator();
@@ -93,8 +92,6 @@ namespace SSAGES
 			frc[i][0] = forces[i][0];
 			frc[i][1] = forces[i][1];
 			frc[i][2] = forces[i][2];			
-
-			idmap[ids[i]] = i;
 		}
 		
 		Matrix3 H;

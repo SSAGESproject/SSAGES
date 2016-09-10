@@ -102,8 +102,6 @@ namespace LAMMPS_NS
 		masses.resize(n);
 		auto& flags = _snapshot->GetImageFlags();
 		flags.resize(n);
-		auto& idmap = _snapshot->GetIDMap();
-		idmap.clear();
 
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
@@ -208,8 +206,6 @@ namespace LAMMPS_NS
 				charges[i] = _atom->q[i];
 			else
 				charges[i] = 0;
-
-			idmap[ids[i]] = i;
 		}
 	}
 

@@ -35,13 +35,9 @@ protected:
 
         snapshot1->SetHMatrix(H);
         snapshot1->SetNumAtoms(5);
-        auto& map = snapshot1->GetIDMap();
 
         for(unsigned int i =0; i <ids.size();i++)
-        {
             ids[i] = i+1;
-            map[i+1] = i;
-        }
 
         pos[0][0] = 0; 
         pos[0][1] = 0; 

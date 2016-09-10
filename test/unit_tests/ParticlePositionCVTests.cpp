@@ -40,10 +40,6 @@ protected:
         ids1[0] = 1;
         ids1[1] = 2;
 
-        auto& map1 = snapshot1->GetIDMap();
-        map1[1] = 0;
-        map1[2] = 1; 
-
         auto& mass1 = snapshot1->GetMasses();
         mass1.push_back(1.0);
 
@@ -53,9 +49,6 @@ protected:
         // Positions of snapshot 2 are identical to CV position
         snapshot2 = new Snapshot(comm, 0);
         snapshot2->SetHMatrix(H);
-
-        auto& map2 = snapshot2->GetIDMap();
-        map2[1] = 0;
 
         auto& pos2 = snapshot2->GetPositions();
         pos2.resize(1);
