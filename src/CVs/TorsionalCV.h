@@ -136,12 +136,15 @@ namespace SSAGES
 			auto Zed = F.dot(G.normalized())/A.dot(A); 
 			auto Ned = H.dot(G.normalized())/B.dot(B);
 
-			if(iindex != -1) _grad[iindex] = -G.norm()*A/A.dot(A);
-			if(lindex != -1) _grad[lindex] = G.norm()*B/B.dot(B);
-			MPI_Allreduce(MPI_IN_PLACE, _grad[iindex].data(), 3, MPI_DOUBLE, MPI_SUM, comm);
-			MPI_Allreduce(MPI_IN_PLACE, _grad[lindex].data(), 3, MPI_DOUBLE, MPI_SUM, comm);
-			if(jindex != -1) _grad[jindex] = Zed*A - Ned*B - _grad[iindex];
-			if(kindex != -1) _grad[kindex] = Ned*B  - Zed*A - _grad[lindex];
+			Vector3 gradi{0,0,0}, gradl{0,0,0}; 
+			if(iindex != -1) gradi = -G.norm()*A/A.dot(A);
+			if(lindex != -1) gradl = G.norm()*B/B.dot(B);
+			MPI_Allreduce(MPI_IN_PLACE, gradi.data(), 3, MPI_DOUBLE, MPI_SUM, comm);
+			MPI_Allreduce(MPI_IN_PLACE, gradl.data(), 3, MPI_DOUBLE, MPI_SUM, comm);
+			if(iindex != -1) _grad[iindex] = gradi;
+			if(lindex != -1) _grad[lindex] = gradl;
+			if(jindex != -1) _grad[jindex] = Zed*A - Ned*B - gradi;
+			if(kindex != -1) _grad[kindex] = Ned*B  - Zed*A - gradl;
 		}
 
 		//! Return value taking periodic boundary conditions into account

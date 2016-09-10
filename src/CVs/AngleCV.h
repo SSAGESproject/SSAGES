@@ -120,11 +120,14 @@ namespace SSAGES
 			// Calculate gradients
 			auto prefactor = -1.0/(sqrt(1. - dotP/(nrij*nrkj))*nrij*nrkj);
 
-			if(iindex != -1) _grad[iindex] = prefactor*(rkj - dotP*rij/(nrij*nrij));	
-			if(kindex != -1) _grad[kindex] = prefactor*(rij - dotP*rkj/(nrkj*nrkj));
-			MPI_Allreduce(MPI_IN_PLACE, _grad[iindex].data(), 3, MPI_DOUBLE, MPI_SUM, comm);
-			MPI_Allreduce(MPI_IN_PLACE, _grad[kindex].data(), 3, MPI_DOUBLE, MPI_SUM, comm);
-			if(jindex != -1) _grad[jindex] = -_grad[iindex] - _grad[kindex];
+			Vector3 gradi{0, 0, 0}, gradk{0, 0, 0};
+			if(iindex != -1) gradi = prefactor*(rkj - dotP*rij/(nrij*nrij));
+			if(kindex != -1) gradk = prefactor*(rij - dotP*rkj/(nrkj*nrkj));
+			MPI_Allreduce(MPI_IN_PLACE, gradi.data(), 3, MPI_DOUBLE, MPI_SUM, comm);
+			MPI_Allreduce(MPI_IN_PLACE, gradk.data(), 3, MPI_DOUBLE, MPI_SUM, comm);
+			if(iindex != -1) _grad[iindex] = gradi;	
+			if(kindex != -1) _grad[kindex] = gradk;
+			if(jindex != -1) _grad[jindex] = -gradi - gradk;
 		}
 
 		//! Serialize this CV for restart purposes.
