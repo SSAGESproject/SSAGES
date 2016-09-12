@@ -58,12 +58,6 @@ namespace SSAGES
             //! For indexing trajectory vectors
             int _index; 
 
-            //! Store positions for starting trajectories
-            std::vector<std::vector<Vector3>> _traj_positions;
-
-            //! Store velocities for starting trajectories
-            std::vector<std::vector<Vector3>> _traj_velocities;
-
             //! Store atom IDs for starting trajecotires
             std::vector<Label> _traj_atomids; 
 
@@ -72,9 +66,6 @@ namespace SSAGES
 
             //! Helper function check if CVs are initialized correctly
             bool CVInitialized(const CVList& cvs);
-
-            //! Reset trajectories before a new unrestrained trajectory is launched
-            void ResetTrajectories(std::vector<Vector3>& positions, std::vector<Vector3>& velocities, std::vector<Vector3>& forces, Label& atomids);
 
             //! Flag for determing whether to perform initialization or not
             bool sampling_started;
@@ -114,9 +105,9 @@ namespace SSAGES
                 _swarm_length(SwarmLength)
         {
             _cv_drift.resize(_centers.size(), 0);
-            _traj_positions.resize(_number_trajectories);
-            _traj_velocities.resize(_number_trajectories);
-            _traj_atomids.resize(_number_trajectories);
+            _prev_positions.resize(_number_trajectories);
+            _prev_velocities.resize(_number_trajectories);
+            _prev_IDs.resize(_number_trajectories);
             //Additional initializing
 
             _index = 0;  
@@ -126,28 +117,7 @@ namespace SSAGES
 
             _iterator = 0; //Override default StringMethod.h initializing
         }
-            
-            //! Pre-simulation hook.
-		    void PreSimulation(Snapshot* snapshot, const CVList& cvs) override
-		    {
-                auto& positions = snapshot->GetPositions();
-                auto& velocities = snapshot->GetVelocities();
-                auto& atomids = snapshot->GetAtomIDs();
 
-                StringMethod::PreSimulation(snapshot, cvs);
-                for(size_t k = 0; k < _traj_positions.size(); k++)
-                {
-                    _traj_positions[k].resize(positions.size());
-                }
-                for(size_t k = 0; k < _traj_velocities.size(); k++)
-                {
-                    _traj_velocities[k].resize(velocities.size());
-                }
-                for(size_t k = 0; k < _traj_atomids.size(); k++)
-                {
-                    _traj_atomids[k].resize(atomids.size());
-                }
-            }
             //! Post-integration hook
             void PostIntegration(Snapshot* snapshot, const CVList& cvs) override; 
 

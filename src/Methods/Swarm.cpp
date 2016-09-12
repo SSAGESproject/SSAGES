@@ -130,19 +130,7 @@ namespace SSAGES
                     //Harvest a trajectory every _harvest_length steps
                     if(_iterator % _harvest_length == 0)
                     {
-                        for(size_t k = 0; k < atomids.size(); k++)
-                        {
-                            int current_id = atomids[k] - 1; //Atom ids are indexed from 1
-                            for(size_t l = 0; l < positions[current_id].size(); l++)
-                            {
-                                _traj_positions[_index][current_id][l] = positions[k][l];
-                            }
-                            for(size_t l = 0; l < velocities[k].size(); l++)
-                            {
-                                _traj_velocities[_index][current_id][l] = velocities[k][l];
-                            }
-                            _traj_atomids[_index][current_id] = current_id + 1;
-                        }
+                        StoreSnapshot(snapshot, _index);
                         _index++;
                     }
                 }
@@ -150,7 +138,11 @@ namespace SSAGES
                 {
                     //Reset positions and forces before first call to unrestrained sampling
                     _index = 0;
-                    ResetTrajectories(positions, velocities, forces, atomids);
+                    for(auto& force: forces)
+                        force.setZero();
+
+                    SetPos(snapshot, _index);
+                    SetVel(snapshot, _index);
                 }
                 _iterator++;
             }
@@ -166,10 +158,14 @@ namespace SSAGES
                     }
                     //Set up for next trajectory
                     _index++;
+
                     if(_index < _number_trajectories)
                     {
-                        //Start of trajectory, reset positions and forces
-                        ResetTrajectories(positions, velocities, forces, atomids);
+                        for(auto& force: forces)
+                            force.setZero();
+
+                        SetPos(snapshot, _index);
+                        SetVel(snapshot, _index);
                     }
                 }
                 _iterator++;
@@ -213,34 +209,5 @@ namespace SSAGES
         }
 		StringReparam(alphastar);
 	}
-
-    void Swarm::ResetTrajectories(std::vector<Vector3>& positions, std::vector<Vector3>& velocities, std::vector<Vector3>& forces, Label& atomids)
-    {
-        //First, check that the system's atom IDs haven't changed before the swap - for now, abort if they have
-        /*for(size_t k = 0; k < atomids.size(); k++)
-        {
-            if(atomids[k] != _traj_atomids[_index][k])
-            {
-                std::cout << "Your atom list has been made out of order!  The system cannot do a positional reset and thus must exit." << std::endl;
-                _world.abort(-1);
-            }
-        }*/
-        //Zero forces
-        for(auto& force: forces)
-            force.setZero();
-        //Then set positions and velocities, taking care that the correct atom is actually reset
-        for(size_t k = 0; k < atomids.size(); k++)
-        {
-            int current_id = atomids[k] - 1; //Atom ids are indexed from 1
-            for(size_t l = 0; l < positions[k].size(); l++)
-            {
-                positions[k][l] = _traj_positions[_index][current_id][l];
-            }
-            for(size_t l = 0; l < velocities[k].size(); l++)
-            {
-                velocities[k][l] = _traj_velocities[_index][current_id][l];
-            }
-        }
-    }
 }
 

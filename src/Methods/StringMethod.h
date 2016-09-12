@@ -76,7 +76,16 @@ namespace SSAGES
 		int _sendneigh;
 
 		//! Neighbor to gain info from.
-		int _recneigh; 
+		int _recneigh;
+
+		//! Store positions for starting trajectories
+		std::vector<std::vector<double>> _prev_positions;
+
+		//! Store velocities for starting trajectories
+		std::vector<std::vector<double>> _prev_velocities;
+
+		//! Store velocities for starting trajectories
+		std::vector<std::vector<int>> _prev_IDs;
 
 		//! Updates the position of the string.
 		virtual void StringUpdate() = 0;
@@ -212,6 +221,93 @@ namespace SSAGES
 			{
 				std::cout << "System has converged within tolerance criteria. Exiting now" <<std::endl;
 				_world.abort(-1);
+			}
+		}
+
+		// StoreSnapShot and SetSnapshot should be put in the snapshot routine.
+		// Furthermore, there can be some efficiency gains made by storing the
+		// local snapshot, and when you need to set the snapshot,
+		// that is when you serialize. 
+		void StoreSnapshot(Snapshot* snapshot, int frame = 0)
+		{
+			auto locatoms = snapshot->GetNumAtoms();
+			const auto& Pos = snapshot->GetPositions();
+			const auto& Vel = snapshot->GetVelocities();
+			const auto& IDs = snapshot->GetAtomIDs();
+
+			std::vector<int> pcounts(_comm.size(), 0), mcounts(_comm.size(), 0); 
+			std::vector<int> pdispls(_comm.size()+1, 0), mdispls(_comm.size()+1, 0);
+
+			pcounts[_comm.rank()] = 3*locatoms;
+			mcounts[_comm.rank()] = locatoms;
+
+			// Reduce counts.
+			MPI_Allreduce(MPI_IN_PLACE, pcounts.data(), pcounts.size(), MPI_INT, MPI_SUM, _comm);
+			MPI_Allreduce(MPI_IN_PLACE, mcounts.data(), mcounts.size(), MPI_INT, MPI_SUM, _comm);
+
+			// Compute displacements.
+			std::partial_sum(pcounts.begin(), pcounts.end(), pdispls.begin() + 1);
+			std::partial_sum(mcounts.begin(), mcounts.end(), mdispls.begin() + 1);
+
+			// Re-size receiving vectors.
+			_prev_positions[frame].resize(pdispls.back(), 0);
+			_prev_velocities[frame].resize(pdispls.back(), 0);
+			_prev_IDs[frame].resize(mdispls.back(), 0);
+
+			std::vector<double> ptemp;
+			std::vector<double> vtemp;
+
+			for(auto& p : Pos)
+			{
+				ptemp.push_back(p[0]);
+				ptemp.push_back(p[1]);
+				ptemp.push_back(p[2]);
+			}
+
+			for(auto& v : Vel)
+			{
+				vtemp.push_back(v[0]);
+				vtemp.push_back(v[1]);
+				vtemp.push_back(v[2]);
+			}
+
+			// All-gather data.
+			MPI_Allgatherv(ptemp.data(), ptemp.size(), MPI_DOUBLE, _prev_positions[frame].data(), pcounts.data(), pdispls.data(), MPI_DOUBLE, _comm);
+			MPI_Allgatherv(vtemp.data(), vtemp.size(), MPI_DOUBLE, _prev_velocities[frame].data(), pcounts.data(), pdispls.data(), MPI_DOUBLE, _comm);
+			MPI_Allgatherv(IDs.data(), IDs.size(), MPI_INT, _prev_IDs[frame].data(), mcounts.data(), mdispls.data(), MPI_INT, _comm);
+		}
+
+		void SetPos(Snapshot* snapshot, int frame = 0)
+		{
+			auto& Pos = snapshot->GetPositions();
+			auto& IDs = snapshot->GetAtomIDs();
+
+			for(size_t i = 0; i < _prev_IDs[frame].size(); i++)
+			{
+				auto localindex = snapshot->GetLocalIndex(_prev_IDs[frame][i]);
+				if(localindex!= -1)
+				{
+					Pos[localindex][0] = _prev_positions[frame][i*3];
+					Pos[localindex][1] = _prev_positions[frame][i*3 + 1];
+					Pos[localindex][2] = _prev_positions[frame][i*3 + 2];
+				}
+			}
+		}
+
+		void SetVel(Snapshot* snapshot, int frame = 0)
+		{
+			auto& Vel = snapshot->GetVelocities();
+			auto& IDs = snapshot->GetAtomIDs();
+
+			for(size_t i = 0; i < _prev_IDs[frame].size(); i++)
+			{
+				auto localindex = snapshot->GetLocalIndex(_prev_IDs[frame][i]);
+				if(localindex!= -1)
+				{
+					Vel[localindex][0] = _prev_velocities[frame][i*3];
+					Vel[localindex][1] = _prev_velocities[frame][i*3 + 1];
+					Vel[localindex][2] = _prev_velocities[frame][i*3 + 2];
+				}
 			}
 		}
 

@@ -2,8 +2,8 @@
  * This file is part of
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
- * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
- *                Ashley Guo <azguo@uchicago.edu>
+ * Copyright 2016 Ashley Guo <azguo@uchicago.edu>
+ *                Ben Sikora <bsikora906@gmail.com>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,8 +48,6 @@ namespace SSAGES
 	void FiniteTempString::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
 		auto& forces = snapshot->GetForces();
-		auto& positions = snapshot->GetPositions();
-        auto& atomids = snapshot->GetAtomIDs();
 
 		auto insidecell = InCell(cvs);
 
@@ -85,15 +83,8 @@ namespace SSAGES
 			for(auto& force : forces)
 				force.setZero();
 
-			//temporary implementation, will need to be fixed when snapshot gather_all no longer occurs.
-            for(size_t i = 0; i < atomids.size(); i++)
-            {
-                int current_id = atomids[i] - 1; //Atom ids are indexed from 1
-                for(size_t j = 0; j < positions[j].size(); j++)
-                {
-                    positions[i][j] = _prev_positions[current_id][j];
-                }
-            }
+			SetPos(snapshot);
+			
 			// Calculate running averages for each CV at each node based on previous CV
 			for(size_t i = 0; i < _newcenters.size(); i++)
 			{
@@ -114,18 +105,7 @@ namespace SSAGES
 			for(auto&cv : cvs)
 				_prev_CVs.push_back(cv->GetValue());
 
-			_prev_positions.resize(positions.size());
-            _prev_ids.resize(atomids.size());
-            
-			//temporary implementation, will need to be fixed when snapshot gather_all no longer occurs.
-            for(size_t i = 0; i < atomids.size(); i++)
-            {
-                int current_id = atomids[i] - 1; //Atom ids are indexed from 1
-                for(size_t j = 0; j < positions[current_id].size(); j++)
-                {
-                    _prev_positions[current_id][j] = positions[i][j];
-                }
-            }
+			StoreSnapshot(snapshot);
 		}
 
 		// Update the string, every _blockiterations string method iterations

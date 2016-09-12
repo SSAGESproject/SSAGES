@@ -2,8 +2,8 @@
  * This file is part of
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
- * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
- *                Cody Bezik <bezik@uchicago.edu>
+ * Copyright 2016 Ashley Guo <azguo@uchicago.edu>
+ *                Ben Sikora <bsikora906@gmail.com>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,9 +58,6 @@ namespace SSAGES
 		//! Stores the last positions of the CVs
 		std::vector<double> _prev_CVs;
 
-		//! Steores the last positions of the atoms
-		std::vector<Vector3> _prev_positions;
-
         //! Stores the last step's atom IDs
         Label _prev_ids;
 
@@ -100,6 +97,14 @@ namespace SSAGES
 		_min_num_umbrella_steps(springiter), _run_umbrella(true),
 		_umbrella_iter(1)
         {
+			//! Store positions for starting trajectories
+			_prev_positions.resize(1);
+
+			//! Store velocities for starting trajectories
+			_prev_velocities.resize(1);
+
+			_prev_IDs.resize(1);
+
 		}
 
 		//! Post-integration hook.
