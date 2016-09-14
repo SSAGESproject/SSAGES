@@ -115,6 +115,7 @@ namespace SSAGES
 			const auto& masses = snapshot.GetMasses();
 
 			// Initialize gradient.
+			std::fill(_grad.begin(), _grad.end(), Vector3{0,0,0});
 			_grad.resize(n, Vector3{0,0,0});
 
 			// Get centers of mass.

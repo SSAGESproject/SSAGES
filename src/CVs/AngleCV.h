@@ -89,6 +89,7 @@ namespace SSAGES
 			auto& comm = snapshot.GetCommunicator();
 
 			// Initialize gradient.
+			std::fill(_grad.begin(), _grad.end(), Vector3{0,0,0});
 			_grad.resize(n, Vector3{0,0,0});
 
 			Vector3 xi{0, 0, 0}, xj{0, 0, 0}, xk{0, 0, 0};
