@@ -62,7 +62,7 @@ namespace SSAGES
 		{
 			PrintString(cvs);
 	        StringUpdate();
-	        CheckEnd(cvs);
+	        CheckEnd();
 			UpdateWorldString(); 
 
 			_iterator = 0;

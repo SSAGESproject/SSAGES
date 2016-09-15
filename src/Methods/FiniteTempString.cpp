@@ -113,7 +113,7 @@ namespace SSAGES
 		{
 			PrintString(cvs);
 	        StringUpdate();
-	        CheckEnd(cvs);
+	        CheckEnd();
 			UpdateWorldString();
 
 			_iterator = 0;
@@ -133,9 +133,7 @@ namespace SSAGES
 		ucv0.resize(_centers.size(), 0);
 
 		GatherNeighbors(&lcv0, &ucv0);
-
-		double alphastar = sqdist(_centers, lcv0);
-
+		
 		// Update node locations toward running averages:
 		for(size_t i = 0; i < _centers.size(); i++)
 		{
@@ -146,6 +144,8 @@ namespace SSAGES
 					(_kappa * _numnodes * _tau * (ucv0[i] + lcv0[i] - 2 * _centers[i]));
 		}
 
+		GatherNeighbors(&lcv0, &ucv0);
+		double alphastar = sqdist(_centers, lcv0);
 		StringReparam(alphastar);
 	}
 }

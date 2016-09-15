@@ -16,7 +16,10 @@ set  (UNIT_TESTS "ParticlePositionCVTests"
                  "AngleCVTests"
                  "ReadFileTest"
                  "MockCVTests"
-                 "COMTests")
+				 "COMTests"
+				 "SwarmTest"
+				 "FTSTest"
+                 "StringMethodTest")
 
 set (INTEGRATION_TESTS "Meta_Single_Atom_Test")
 

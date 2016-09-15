@@ -181,47 +181,57 @@ namespace SSAGES
 				std::vector<double> cvs_new(_numnodes, 0.0);
 
 				if(_comm.rank() == 0)
+                {
 					cvs_new[_mpiid] = _centers[i];
+                }
+
 
 				MPI_Allreduce(MPI::IN_PLACE, &cvs_new[0], _numnodes, MPI::DOUBLE, MPI::SUM, _world);
 
 				for(size_t j = 0; j < _numnodes; j++)
-					_worldstring[j][i] = cvs_new[j];
+                {
+                    _worldstring[j][i] = cvs_new[j];
+                }
 			}
 		}
 
 		//! Check whether tolerance criteria has been met.
-		bool TolCheck(const CVList& cvs) const
+		bool TolCheck() const
 		{
 			if(_tol.size() == 0)
 				return false;
 
 			for(size_t i = 0; i < _centers.size(); i++)
-				if(fabs(_centers[i] - _worldstring[_mpiid][i]) > _tol[i])
+            {
+                if(fabs(_centers[i] - _worldstring[_mpiid][i]) > _tol[i])
+                {
 					return false;
-
+                }
+            }
 
 			return true;
 		}
 
-		void CheckEnd(const CVList& cvs) const
+		bool CheckEnd() const
 		{
 			if(_maxiterator && _iteration > _maxiterator)
 			{
-				std::cout << "System has reached max string method iterations (" << _maxiterator << ") as specified in the input file(s)." << std::endl;
-				std::cout << "Exiting now" << std::endl;
+				std::cout << "System has reached max string method iterations (" << _maxiterator << ") as specified in the input file(s)." << std::endl; 
+				std::cout << "Exiting now" << std::endl; 
 				_world.abort(-1);
 			}
 
-			bool local_tolvalue = TolCheck(cvs);
+            bool local_tolvalue = TolCheck();
 
 			MPI_Allreduce(MPI::IN_PLACE, &local_tolvalue, 1, MPI::BOOL, MPI::LAND, _world);
 
 			if(local_tolvalue)
 			{
-				std::cout << "System has converged within tolerance criteria. Exiting now" <<std::endl;
+				std::cout << "System has converged within tolerance criteria. Exiting now" << std::endl;
 				_world.abort(-1);
 			}
+
+            return true;
 		}
 
 		// StoreSnapShot and SetSnapshot should be put in the snapshot routine.
@@ -332,7 +342,8 @@ namespace SSAGES
 			 		unsigned int frequency) : 
 						Method(frequency, world, comm), _centers(centers), 
 						_maxiterator(maxiterations), 
-						_cvspring(cvspring), _iterator(1)
+						_cvspring(cvspring), _iterator(1) 
+ 
 		{
 			_newcenters.resize(_centers.size(), 0);
 		}
@@ -345,6 +356,33 @@ namespace SSAGES
 			sprintf(file, "node-%04d.log",_mpiid);
 		 	_stringout.open(file);
 
+            SetSendRecvNeighbors();
+
+			_worldstring.resize(_numnodes);
+			for(auto& w : _worldstring)
+				w.resize(_centers.size());
+			UpdateWorldString();
+			PrintString(cvs);
+
+		}
+
+		//! Post-integration hook.
+		virtual void PostIntegration(Snapshot* snapshot, const CVList& cvs) override = 0;
+
+		// Post-simulation hook.
+		void PostSimulation(Snapshot*, const CVList&) override
+		{
+			_stringout.close();
+		}
+
+		void SetTolerance(std::vector<double> tol)
+		{
+			for(auto& t : tol)
+				_tol.push_back(t);
+		}
+
+        void SetSendRecvNeighbors()
+        {
 		 	std::vector<unsigned int> wiids(_world.size(), 0);
 
 			//Set the neighbors
@@ -386,30 +424,7 @@ namespace SSAGES
 						_recneigh = i;
 				}
 			}
-
-			_worldstring.resize(_numnodes);
-			for(auto& w : _worldstring)
-				w.resize(_centers.size());
-			UpdateWorldString();
-			PrintString(cvs);
-
-		}
-
-		//! Post-integration hook.
-		virtual void PostIntegration(Snapshot* snapshot, const CVList& cvs) override = 0;
-
-		// Post-simulation hook.
-		void PostSimulation(Snapshot*, const CVList&) override
-		{
-			_stringout.close();
-		}
-
-		void SetTolerance(std::vector<double> tol)
-		{
-			_tol.clear();
-			for(auto& t : tol)
-				_tol.push_back(t);
-		}
+        }
 
 		void Serialize(Json::Value& json) const override
         {

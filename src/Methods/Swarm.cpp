@@ -33,15 +33,15 @@ namespace SSAGES
     bool Swarm::CVInitialized(const CVList& cvs)
     {
         double threshold = 0.05;
-        const double epsilon = 0.000000001;
+        const double eps = 0.0000000001;
         double diff;
 
         //On the first iteration, check that the CVs are within (threshold*100)% of the center value they're associated to
         for(size_t i = 0; i < cvs.size(); i++)
         {
-            if(_centers[i] <= epsilon)
+            if(_centers[i] <= eps)
             {//e.g. if _centers[i] = 0
-                diff = std::abs((cvs[i]->GetValue() - (_centers[i]+0.01)) / ((cvs[i]->GetValue() + (0.01 + _centers[i]))/2.0));
+                diff = std::abs((cvs[i]->GetValue() - (_centers[i]+eps)) / ((cvs[i]->GetValue() + (eps + _centers[i]))/2.0));
             }
             else
             {
@@ -177,7 +177,7 @@ namespace SSAGES
  
                 StringUpdate();
                 PrintString(cvs);
-                CheckEnd(cvs);
+                CheckEnd();
                 UpdateWorldString();
 
                 _iterator = 0;
@@ -193,21 +193,23 @@ namespace SSAGES
 
     void Swarm::StringUpdate()
 	{
-		std::vector<double> lcv0, ucv0;
-		lcv0.resize(_centers.size(), 0);
-		ucv0.resize(_centers.size(), 0);
-
-		GatherNeighbors(&lcv0, &ucv0);
-
-		double alphastar = sqdist(_centers, lcv0);
-
 		// Update node locations toward running averages:
 		for(size_t i = 0; i < _centers.size(); i++)
 		{
-            //std::cout << _centers[i] << " " << _cv_drift[i] << std::endl;
+         
             _centers[i] = _centers[i] + _cv_drift[i];
         }
+        
+		std::vector<double> lcv0, ucv0;
+		lcv0.resize(_centers.size(), 0);
+		ucv0.resize(_centers.size(), 0);
+     
+		GatherNeighbors(&lcv0, &ucv0);
+    
+		double alphastar = sqdist(_centers, lcv0);
+  
 		StringReparam(alphastar);
+  
 	}
 }
 
