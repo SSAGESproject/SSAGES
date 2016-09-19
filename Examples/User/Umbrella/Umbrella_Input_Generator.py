@@ -27,6 +27,9 @@ for i,center in enumerate(centers):
 	# Change the umbrella's location
 	root['driver'][i]['method']['centers'][0] = round(center,3)
 
+        # Output file for Umbrella
+        root['driver'][i]['method']['file name'] = str("node-" + str(i))
+
 # Convert python dictionary into JSON file
 with open('Umbrella.json', 'w') as f:
 		json.dump(root, f, indent=4, separators=(',', ': '))
