@@ -1,0 +1,36 @@
+#model system
+units           lj
+boundary        m m m
+neighbor        0 bin
+atom_modify     map array
+dimension	3
+
+atom_style	charge
+read_data       data.colloids_ssages
+
+pair_style      lj/cut/coul/cut 30 20
+pair_coeff      * * 0 2
+dielectric      1.0
+
+#variable distance equal "x[1]-x[2]"
+#variable force equal "fx[1]"
+#variable b equal step
+
+fix 1 all nve
+
+fix ssages all ssages
+
+#fix 2 all print 1 "$b ${distance} ${force}" screen no file time_distance_force_pos_pos_without_pol.dat
+
+#dump 1 all xyz  1  dump_2_particle_without_pol.xyz
+#group 2ndAtom id 2
+
+#displace_atoms 2ndAtom move  0.1 0 0 units box
+
+dump dump1 all custom 1 dump.force4 id type x y z fx fy fz
+
+timestep 1
+
+#thermo 1
+
+restart 0

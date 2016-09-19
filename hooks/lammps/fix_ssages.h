@@ -9,6 +9,7 @@ FixStyle(ssages,FixSSAGES)
 #include "fix.h"
 #include "Hook.h"
 
+
 namespace LAMMPS_NS
 {
 	// SSAGES Hook class for LAMMPS implemented as 
@@ -35,6 +36,9 @@ namespace LAMMPS_NS
 
   		// Post-run for post-simulation call.
   		void post_run() override;
+  		
+  		// Post-step for post-step call.
+  		void end_of_step() override;
 
   		// Set mask to let LAMMPS know what triggers we're interested in.
   		int setmask() override;

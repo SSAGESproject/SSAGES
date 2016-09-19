@@ -1,0 +1,44 @@
+{
+    "inputfile" : "in.LAMMPS_Meta_Test",
+    "CVs" : [
+        {
+            "type" : "AtomCoordinate",
+            "atom id" : 1,
+            "dimension" : "x"
+        },
+        {
+            "type" : "AtomCoordinate",
+            "atom id" : 1,
+            "dimension" : "y"
+        }
+    ],
+    "method" : {
+        "type" : "Metadynamics",
+        "widths" : [
+            0.1,
+            0.1
+        ],
+        "height" : 0.1,
+        "use_grid" : true
+    },
+    "driver" : [
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 4000000,
+            "logfile" : "node-1"
+        }
+    ],
+    "grid" : [
+        {
+            "lower" : -1.5,
+            "upper" : 2.0,
+            "number points" : 351
+        },
+        {
+            "lower" : -1.5,
+            "upper" : 2.0,
+            "number points" : 351
+        }
+    ]
+}

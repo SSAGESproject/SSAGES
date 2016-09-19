@@ -1,9 +1,35 @@
+/**
+ * This file has been obtained from
+ * SAPHRON - Statistical Applied PHysics through Random On-the-fly Numerics
+ * https://github.com/hsidky/SAPHRON
+ *
+ * Copyright 2016 Hythem Sidky
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE. 
+*/
 #pragma once 
 
 #include <iostream>
 #include <algorithm>
 #include <list>
 #include <map>
+#include <numeric>
 #include "Requirement.h"
 #include "StringRequirement.h"
 #include "IntegerRequirement.h"
@@ -13,24 +39,40 @@
 
 namespace Json
 {
+	//! Requirements on an object
+	/*!
+	 * \ingroup Json
+	 */
 	class ObjectRequirement : public Requirement
 	{
 	private:
+		//! Map of properties the object needs to have.
 		std::map<std::string, std::unique_ptr<Requirement>> _properties;
+
+		//! Map of patterns the object needs to match.
 		std::map<std::string, std::unique_ptr<Requirement>> _patternProps;
+
+		//! List of requirements.
 		RequireList _extended;
+
+		//! Dependency requirement.
 		std::unique_ptr<DependencyRequirement> _dependency;
 
-		std::vector<std::string> _required;
-		bool _moreProps, _setMin, _setMax;
-		unsigned int _min, _max;
+		std::vector<std::string> _required; //!< List of requirements.
+		bool _moreProps; //!< If \c True, more properties need to be set.
+		bool _setMin; //!< If \c True lower bound is active.
+		bool _setMax; //!< If \c True upper bound is active.
+		unsigned int _min; //!< Lower bound.
+		unsigned int _max; //!< Upper bound.
 
 	public:
+		//! Constructor.
 		ObjectRequirement() : 
 		_properties(), _patternProps(), _extended(0), _dependency(nullptr), _required(),
 		_moreProps(true), _setMin(false), _setMax(false), _min(0), _max(0)
 		{}
 
+		//! Destructor.
 		~ObjectRequirement()
 		{
 			_properties.clear();
@@ -40,6 +82,7 @@ namespace Json
 			_extended.clear();
 		}
 
+		//! Clear errors on all Requirements.
 		virtual void ClearErrors() override
 		{
 			for(auto& c : _properties)
@@ -57,6 +100,7 @@ namespace Json
 			Requirement::ClearErrors();
 		}
 
+		//! Clear notices on all Requirements.
 		virtual void ClearNotices() override
 		{
 			for(auto& c : _properties)
@@ -74,6 +118,7 @@ namespace Json
 			Requirement::ClearNotices();
 		} 
 
+		//! Reset Requirement.
 		virtual void Reset() override
 		{
 			ClearErrors();
@@ -89,6 +134,11 @@ namespace Json
 			_dependency.reset();
 		}
 
+		//! Parse JSON value to generate Requirement(s).
+		/*!
+		 * \param json JSON input value.
+		 * \param path Path for JSON path specification.
+		 */
 		virtual void Parse(Value json, const std::string& path) override
 		{
 			Reset();
@@ -181,6 +231,11 @@ namespace Json
 			}
 		}
 
+		//! Validate JSON value.
+		/*!
+		 * \param json JSON value to be validated.
+		 * \param path Path for JSON path specification.
+		 */
 		virtual void Validate(const Value& json, const std::string& path) override
 		{
 			if(!json.isObject())

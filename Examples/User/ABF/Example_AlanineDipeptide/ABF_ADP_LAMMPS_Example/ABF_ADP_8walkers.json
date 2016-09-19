@@ -1,0 +1,106 @@
+{
+    "observers": [
+        {
+            "file name": "test_restart",
+            "frequency": 250000,
+            "type": "JSON"
+        }
+    ],
+    "driver" : [        
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 500000,
+            "logfile" : "node-0",
+	    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example0"
+		},
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 500000,
+            "logfile" : "node-1",
+	    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example1"
+		},
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 500000,
+            "logfile" : "node-2",
+	    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example2"
+		},
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 500000,
+            "logfile" : "node-3",
+	    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example3"
+		},
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 500000,
+            "logfile" : "node-4",
+	    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example4"
+		},
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 500000,
+            "logfile" : "node-5",
+	    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example5"
+		},
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 500000,
+            "logfile" : "node-6",
+	    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example6"
+		},
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 500000,
+            "logfile" : "node-7",
+	    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example7"
+		}],
+	"CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "method" : {
+                "type" : "ABF",
+  		"CV_lower_bounds" : [-3.13, -3.13],
+                "CV_upper_bounds" : [3.13,3.13],
+		"CV_bins" : [61,61],
+  		"CV_restraint_minimums" : [-5,-5],
+                "CV_restraint_maximums" : [5,5],
+		"CV_restraint_spring_constants" : [0,0],
+		"timestep" : 2,
+		"minimum_count" : 50,
+		"filename" : "F_out",
+		"projector_calculation_method" : 1,
+		"backup_frequency" : 10000,
+		"unit_conversion" : 2390.06,
+		"frequency" : 1
+            }
+        }
+    ]
+}

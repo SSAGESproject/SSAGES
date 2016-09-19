@@ -25,8 +25,23 @@
 		},
 		"method" : {
 			"type" : "object"
+		},
+		"observers" : {
+			"type" : "array"
+		},
+		"grid" : {
+			"type" : "object"
+		},
+		"restart file" : {
+			"type" : "string"
+		},
+		"read restart" : {
+			"type" : "boolean"
+		},
+		"constraints" : {
+			"type" : "object"
 		}
 	},
-	"required" : ["type", "MDSteps", "logfile", "CVs", "method"],
+	"required" : ["type", "MDSteps"],
 	"additionalProperties": false
 }

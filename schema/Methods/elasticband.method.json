@@ -2,55 +2,17 @@
 	"type" : "object",
 	"varname" : "ElasticBandMethod",
 	"properties" : {
-		"type" : { 
-			"type" : "string",
-			"enum" : ["ElasticBand"]
-		},
-		"ksprings" : {
-			"type" : "array",
-			"minItems" : 1,
-			"items" : {
-				"type" : "number"
-			}
-		},
-		"centers" : {
-			"type" : "array",
-			"minItems" : 1,
-			"items" : {
-				"type" : "number"
-			}
-		},
-		"max iterations" : {
+		"equilibration_steps" : {
 			"type" : "integer",
 			"minimum" : 1
 		},
-		"equilibration steps" : {
-			"type" : "integer",
-			"minimum" : 1
-		},
-		"evolution steps" : {
-			"type" : "integer",
-			"minimum" : 1
-		},
-		"number samples" : {
+		"evolution_steps" : {
 			"type" : "integer",
 			"minimum" : 1
 		},
 		"kstring" : {
-			"type" : "number",
-			"minimum" : 0
-		},
-		"time step" : {
-			"type" : "number",
-			"minimum" : 0,
-			"exclusiveMinimum" : true
-		},
-		"frequency" : {
-			"type" : "integer",
-			"minimum" : 1
+			"type" : "number"
 		}
 	},
-	"required": ["type", "springs", "centers", "max iterations", "equilibration steps", 
-				"evolution steps", "number samples", "kstring", "time step"],
-	"additionalProperties": false
+	"required": ["equilibration_steps", "evolution_steps", "kstring"]
 }

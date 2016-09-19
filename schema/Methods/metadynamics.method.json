@@ -25,8 +25,11 @@
 		"hill frequency" : {
 			"type" : "integer",
 			"minimum" : 1
-		}
+		},
+        "use_grid" : {
+        	"type" : "boolean"
+        }
 	},
-	"required": ["type", "widths", "height"],
+        "required": ["type", "widths", "height", "use_grid"],
 	"additionalProperties": false
 }

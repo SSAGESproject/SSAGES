@@ -1,0 +1,49 @@
+{
+	"inputfile" : "in.ADP_Test",
+	"driver" : [
+		{
+			"number processors" : 1,
+			"type" : "LAMMPS",
+			"MDSteps" : 100000000,
+			"logfile" : "log",
+			"CVs" : [
+				{
+					"type" : "Torsional",
+					"atom ids" : [
+						5,
+						7,
+						9,
+						15
+					],
+					"periodic" : true 
+				},
+				{
+					"type": "Torsional",
+					"atom ids" : [
+						7,
+						9,
+						15,
+						17
+					],
+					"periodic" : true
+				}
+			],
+			"method" : {
+				"type" : "String",
+				"centers" : [
+						-1.39,
+                        1.31
+				],
+				"max_iterations" : 100000,
+				"frequency" : 1,
+				"ksprings" : [500,500],
+				"tolerance" : [0.001, 0.001],
+				"flavor" : "SWARM",
+                "initial_steps" : 10000,
+				"harvest_length" : 10,
+				"number_of_trajectories" : 100,
+                "swarm_length" : 20
+			}
+		}
+	]
+}

@@ -1,0 +1,39 @@
+{
+	"inputfile" : "in.LAMMPS_Meta_Test",
+	"driver" : [
+		{
+			"number processors" : 1,
+			"type" : "LAMMPS",
+			"MDSteps" : 10000000,
+			"logfile" : "log",
+			"CVs" : [
+				{
+					"type" : "AtomCoordinate",
+					"atom id" : 1,
+					"dimension" : "x"
+				},
+				{
+					"type": "AtomCoordinate",
+					"atom id" : 1,
+                    "dimension" : "y"
+				}
+			],
+			"method" : {
+				"type" : "String",
+				"centers" : [
+						-1.39,
+                        1.31
+				],	
+				"max_iterations" : 1000,	
+				"frequency" : 1,
+				"ksprings" : [75,75],
+				"tolerance" : [0.0001, 0.0001],
+				"flavor" : "SWARM",
+				"initial_steps" : 1000,
+				"harvest_length" : 10,
+				"number_of_trajectories" : 100,
+                "swarm_length" : 2
+			}
+		}
+	]
+}

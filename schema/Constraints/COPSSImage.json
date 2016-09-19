@@ -1,0 +1,31 @@
+{
+	"type" : "object",
+	"varname" : "COPSSImageConstraint",
+	"properties" : {
+		"type" : { 
+			"type" : "string",
+			"enum" : ["COPSSImage"]
+		
+		},
+		
+		"einner" :{
+			"type" : "number",
+			"minimum" : 1
+		},
+
+		"ion_type_start" :{
+			"type" : "integer",
+			"minimum" : 1
+		},
+
+		"atom type radius" :{
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		}
+	},
+	"required": ["type", "ion_type_start", "einner", "atom type radius"],
+	"additionalProperties": false
+}

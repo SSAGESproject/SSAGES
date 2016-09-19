@@ -1,99 +1,24 @@
 #include <iostream>
+#include <numeric>
 #include "fix_ssages.h"
 #include "atom.h"
 #include "compute.h"
 #include "modify.h"
 #include "force.h"
+#include "pair.h"
 #include "update.h"
 #include "domain.h"
 #include <boost/mpi.hpp>
 #include <boost/version.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
 
 using namespace SSAGES;
 using namespace LAMMPS_NS::FixConst;
 using namespace boost;
 
-#if BOOST_VERSION < 105600
-namespace boost 
-{
-	namespace serialization 
-	{
-		template<class Archive, class T, size_t N>
-		void serialize(Archive & ar, std::array<T,N> & a, const unsigned int)
-		{
-		  ar & boost::serialization::make_array(a.data(), a.size());
-		}
-	} // namespace serialization
-} // namespace boost
-#endif
-
 namespace LAMMPS_NS
 {
-	// Copyright (C) 2015 Lorenz Hübschle-Schneider <lorenz@4z2.de>
-	// Helper function for variable MPI_allgather.
-	template <typename T>
-	void allgatherv_serialize(const mpi::communicator &comm, const std::vector<T> &in, std::vector<T> &out) 
-	{
-		// Step 1: serialize input data
-		mpi::packed_oarchive oa(comm);
-		oa << in;
-
-		// Step 2: exchange sizes (archives' .size() is measured in bytes)
-		// Need to cast to int because this is what MPI uses as size_t...
-		const int in_size = static_cast<int>(in.size()),
-				transmit_size = static_cast<int>(oa.size());
-
-		std::vector<int> in_sizes(comm.size()), transmit_sizes(comm.size());
-		mpi::all_gather(comm, in_size, in_sizes.data());
-		mpi::all_gather(comm, transmit_size, transmit_sizes.data());
-
-		// Step 3: calculate displacements from sizes (prefix sum)
-		std::vector<int> displacements(comm.size() + 1);
-		displacements[0] = sizeof(mpi::packed_iarchive);
-		for (int i = 1; i <= comm.size(); ++i)
-			displacements[i] = displacements[i-1] + transmit_sizes[i-1];
-		
-
-		// Step 4: allocate space for result and MPI_Allgatherv
-		char* recv = new char[displacements.back()];
-		auto sendptr = const_cast<void*>(oa.address());
-		auto sendsize = oa.size();
-
-		int status = MPI_Allgatherv(sendptr, sendsize, MPI_PACKED, recv,
-		                            transmit_sizes.data(), displacements.data(),
-		                            MPI_PACKED, comm);
-
-		if (status != 0) 
-		{
-		    std::cerr << "PE " << comm.rank() << ": MPI_Allgatherv returned "
-		              << status << ", errno " << errno << std::endl;
-		    return;
-		}
-
-		// Step 5: deserialize received data
-		// Preallocate storage to prevent reallocations
-		std::vector<T> temp;
-		size_t largest_size = *std::max_element(in_sizes.begin(), in_sizes.end());
-		temp.reserve(largest_size);
-		out.clear();
-		out.reserve(std::accumulate(in_sizes.begin(), in_sizes.end(), 0));
-
-		// Deserialize archives one by one, inserting elements at the end.
-		for (int i = 0; i < comm.size(); ++i) 
-		{
-			mpi::packed_iarchive archive(comm);
-			archive.resize(transmit_sizes[i]);
-			memcpy(archive.address(), recv + displacements[i], transmit_sizes[i]);
-
-			temp.clear();
-			temp.resize(in_sizes[i]);
-			archive >> temp;
-			out.insert(out.end(), temp.begin(), temp.end());
-		}
-
-		delete[] recv;
-    }
-
 	FixSSAGES::FixSSAGES(LAMMPS *lmp, int narg, char **arg) : 
 	Fix(lmp, narg, arg), Hook()
 	{
@@ -104,8 +29,8 @@ namespace LAMMPS_NS
 		// Allocate vectors for snapshot.
 		// Here we size to local number of atoms. We will 
 		// resize later.
-
 		auto n = atom->nlocal;
+
 		auto& pos = _snapshot->GetPositions();
 		pos.resize(n);
 		auto& vel = _snapshot->GetVelocities();
@@ -118,6 +43,11 @@ namespace LAMMPS_NS
 		ids.resize(n);
 		auto& types = _snapshot->GetAtomTypes();
 		types.resize(n);
+		auto& charges = _snapshot->GetCharges();
+		charges.resize(n);
+
+		auto& flags = _snapshot->GetImageFlags();
+		flags.resize(n);
 
 		SyncToSnapshot();
 		Hook::PreSimulationHook();
@@ -135,12 +65,18 @@ namespace LAMMPS_NS
 		Hook::PostSimulationHook();
 	}
 
+	void FixSSAGES::end_of_step()
+	{
+		Hook::PostStepHook();
+	}
+
 	int FixSSAGES::setmask()
 	{
 		// We are interested in post-force and post run hooks.
 		int mask = 0;
 		mask |= POST_FORCE;
 		mask |= POST_RUN;
+		mask |= END_OF_STEP;
 		return mask;
 	}
 
@@ -164,6 +100,8 @@ namespace LAMMPS_NS
 		frc.resize(n);
 		auto& masses = _snapshot->GetMasses();
 		masses.resize(n);
+		auto& flags = _snapshot->GetImageFlags();
+		flags.resize(n);
 
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
@@ -172,8 +110,10 @@ namespace LAMMPS_NS
 		auto& types = _snapshot->GetAtomTypes();
 		types.resize(n);
 
+		auto& charges = _snapshot->GetCharges();
+		charges.resize(n);
+
 		// Thermo properties:
-		Compute *thermoproperty;
 		int icompute; 
 
 		//Temperature
@@ -181,12 +121,6 @@ namespace LAMMPS_NS
 		icompute = modify->find_compute(id_temp);
 		auto* temperature = modify->compute[icompute];
 		_snapshot->SetTemperature(temperature->compute_scalar());
-		
-		//Pressure
-		const char* id_press = "thermo_press";
-		icompute = modify->find_compute(id_press);
-		thermoproperty = modify->compute[icompute];
-		_snapshot->SetPressure(thermoproperty->compute_scalar());
 		
 		//Energy
 		double etot = 0;
@@ -206,14 +140,38 @@ namespace LAMMPS_NS
 		
 		// Get iteration.
 		_snapshot->SetIteration(update->ntimestep);
+
+		_snapshot->SetDielectric(force->dielectric);
+
+		_snapshot->Setqqrd2e(force->qqrd2e);
+
+		_snapshot->SetNumAtoms(n);
 		
-		// Get volume.
-		double vol = 0.;
-		if (domain->dimension == 3)
-			vol = domain->xprd * domain->yprd * domain->zprd;
-		else
-			vol = domain->xprd * domain->yprd;
-		_snapshot->SetVolume(vol);
+		// Get H-matrix.
+		Matrix3 H;
+		H << domain->h[0], domain->h[5], domain->h[4],
+		                0, domain->h[1], domain->h[3],
+		                0,            0, domain->h[2];
+
+		_snapshot->SetHMatrix(H);
+		_snapshot->SetKb(force->boltz);
+
+		// Get box origin. 
+		Vector3 origin;
+		origin = {
+			domain->boxlo[0], 
+			domain->boxlo[1], 
+			domain->boxlo[2]
+		};
+	
+		_snapshot->SetOrigin(origin);
+
+		// Set periodicity. 
+		_snapshot->SetPeriodicity({
+			domain->xperiodic, 
+			domain->yperiodic, 
+			domain->zperiodic
+		});
 
 		// First we sync local data, then gather.
 		// we gather data across all processors.
@@ -235,19 +193,20 @@ namespace LAMMPS_NS
 			vel[i][0] = _atom->v[i][0];
 			vel[i][1] = _atom->v[i][1];
 			vel[i][2] = _atom->v[i][2];
-			
+
+			// Image flags. 
+			flags[i][0] = (_atom->image[i] & IMGMASK) - IMGMAX;;
+			flags[i][1] = (_atom->image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+			flags[i][2] = (_atom->image[i] >> IMG2BITS) - IMGMAX;
+
 			ids[i] = _atom->tag[i];
 			types[i] = _atom->type[i];
+
+			if(_atom->q_flag)
+				charges[i] = _atom->q[i];
+			else
+				charges[i] = 0;
 		}
-
-		auto& comm = _snapshot->GetCommunicator();
-		allgatherv_serialize(comm, pos, pos);
-		allgatherv_serialize(comm, frc, frc);
-		allgatherv_serialize(comm, masses, masses);
-		allgatherv_serialize(comm, vel, vel);
-		allgatherv_serialize(comm, ids, ids);
-		allgatherv_serialize(comm, types, types);
-
 	}
 
 	void FixSSAGES::SyncToEngine() //put Snapshot values -> LAMMPS
@@ -260,17 +219,13 @@ namespace LAMMPS_NS
 		const auto& vel = _snapshot->GetVelocities();
 		const auto& frc = _snapshot->GetForces();
 		const auto& masses = _snapshot->GetMasses();
+		const auto& charges = _snapshot->GetCharges();
 
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
 		const auto& ids = _snapshot->GetAtomIDs();
 		const auto& types = _snapshot->GetAtomTypes();
 
-		// Loop through all atoms and set their values
-		// Positions. This is predicatd on the fact that the 
-		// allgatherv_serialize keeps local processor information 
-		// FIRST. This means that the first nlocal entries are the 
-		// data corresponding to that on the local processor.
 		for (int i = 0; i < atom->nlocal; ++i)
 		{
 			atom->x[i][0] = pos[i][0]; //x 
@@ -279,15 +234,19 @@ namespace LAMMPS_NS
 			atom->f[i][0] = frc[i][0]; //force->x
 			atom->f[i][1] = frc[i][1]; //force->y
 			atom->f[i][2] = frc[i][2]; //force->z
-			// Current masses can only be changed if using
-			// per atom masses in lammps
-			if(atom->rmass_flag)
-				atom->rmass[i] = masses[i];
 			atom->v[i][0] = vel[i][0]; //velocity->x
 			atom->v[i][1] = vel[i][1]; //velocity->y
 			atom->v[i][2] = vel[i][2]; //velocity->z
 			atom->tag[i] = ids[i];
 			atom->type[i] = types[i];
+			
+			if(atom->q_flag)
+				atom->q[i] = charges[i];
+			
+			// Current masses can only be changed if using
+			// per atom masses in lammps
+			if(atom->rmass_flag)
+				atom->rmass[i] = masses[i];			
 		}
 
 		// LAMMPS computes will reset thermo data based on
@@ -296,3 +255,4 @@ namespace LAMMPS_NS
 		// However, this will change in the future.
 	}
 }
+

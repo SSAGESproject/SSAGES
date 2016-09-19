@@ -6,18 +6,27 @@
 			"type" : "string",
 			"enum" : ["Torsional"]
 		},
-		"atom ids" : {
+		"atom_ids" : {
 			"type" : "array",
 			"minItems" : 4,
 			"maxItems" : 4,
 			"items" : {
-				"type" : "integer"
+				"type" : "integer",
+				"minimum" : 0
 			}
 		},
 		"periodic" : {
 			"type" : "boolean"
-		}
+		},
+		"bounds" : {
+			"type" : "array",
+			"minItems" : 2,
+			"maxItems" : 2,
+			"items" : {
+				"type" : "number"
+					}
+		}	
 	},
-	"required": ["type", "atom ids"],
+	"required": ["type", "atom_ids"],
 	"additionalProperties": false
 }
