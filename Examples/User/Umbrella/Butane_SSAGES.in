@@ -12,7 +12,7 @@ kspace_style    pppm 1.0e-8
 special_bonds   lj/coul 0.0 0.0 0.5
 neighbor        2.0 bin
 neigh_modify    every 1 delay 0 check yes
-read_data       Butane_VMD.data
+read_data       Butane.data
 group           mobile union all
 timestep        1
 thermo_style    custom etotal ke pe ebond eangle edihed eimp evdwl ecoul elong temp press vol
