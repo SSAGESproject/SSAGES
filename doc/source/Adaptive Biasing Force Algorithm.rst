@@ -100,15 +100,6 @@ unit_conversion
     (gram.angstrom/mole.femtosecond^2 -> kcal/mole.angstrom)
     For GROMACS, this is 1.
 
-projector_calculation_method
-    *integer*.
-    OPTIONAL
-    Calculate projector matrix W according to user input. 1 is highly recommended.
-    0 - Calculate the pseudoinverse of J; J = d(CVi)/d(xj) matrix.
-    1 - Calculate W using Darve's approach (http://mc.stanford.edu/cgi-bin/images/0/06/Darve_2008.pdf) - DEFAULT
-    2 - Calculate W using Ciccotti's orthonormalization approach (http://www.chem.utoronto.ca/~rkapral/Papers/ericCK-cppc-2005.pdf)
-    3 - Calculate W by columnwise normalizing J with |J|^2
-
 frequency
     *1*.
     OPTIONAL
@@ -149,16 +140,16 @@ Example input
 Output
 ^^^^^^
 
-The method outputs a vector field, with vectors defined on each point on a grid
-that goes from (min_CV) to (max CV) of each CV in its dimension, with (nr of
-bins) of grid points in each dimension. For example, for 2 CVs defined from
-(-1,1) and (-1,0) with 3 and 2 bins respectively would be a 3x2 grid (6 grid
-points). There are several outputs of the method. For most people, the file
-specified in “file name” should suffice. This file will contain the Adaptive
-Force vector field printed out every 'Backup interval' steps and at the end of a
-simulation in the following format: 2*N number of columns, where N is the number
-of CVs. First N columns are coordinates in CV space, the N+1 to 2N columns are
-components of the Adaptive Force vectors. An example for N=2 is:
+The main output of the method is stored in a file specified in 'filename'. This 
+file will contain the Adaptive Force vector field printed out every 
+'backup_frequency' steps and at the end of a simulation. The method outputs a vector 
+field, with vectors defined on each point on a grid that goes from 
+(CV_lower_bounds) to (CV_upper_bounds) of each CV in its dimension, with (CV_bins) of grid points 
+in each dimension. For example, for 2 CVs defined from (-1,1) and (-1,0) with 3 and
+ 2 bins respectively would be a 3x2 grid (6 grid points). The printout is in the 
+following format: 2*N number of columns, where N is the number of CVs. First N columns 
+are coordinates in CV space, the N+1 to 2N columns are components of the Adaptive Force 
+vectors. An example for N=2 is:
 
 +-----------+-----------+-------------+-------------+
 | CV1 Coord | CV2 Coord | d(A)/d(CV1) | d(A)/d(CV2) |
