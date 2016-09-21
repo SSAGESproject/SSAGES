@@ -47,7 +47,7 @@ Finally, define your CV(s) and Methods, either generally or for each walker. You
 
 	mpirun -np X ./ssages input.json
 
-where X = total number of MPI walkers. For example, for three walkers with “number processors” : 2,  X = 3*2 = 6.
+where X = total number of MPI processes. For example, for three walkers with “number processors” : 2,  X = 3*2 = 6.
 
 Normally, you can also define an observer in .json to automatically generate backups that will save both simulation snapshots as well as method-critical data. 
 However, this feature is not yet implemented for GROMACS.
