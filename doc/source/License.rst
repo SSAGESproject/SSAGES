@@ -33,4 +33,4 @@ Contributors to the documentation (in alphabetical order):
 * Hadi Ramezani-Dakhel
 * Ben Sikora
 * Emre Sevgen
-* Hythem Sydky
+* Hythem Sidky
