@@ -82,7 +82,6 @@
 		"timestep" : 0.002,
 		"minimum_count" : 50,
 		"filename" : "F_out",
-		"projector_calculation_method" : 1,
 		"backup_frequency" : 10000,
 		"unit_conversion" : 1,
 		"frequency" : 1
