@@ -22,14 +22,11 @@
 			"minimum" : 0,
 			"exclusiveMinimum" : true
 		},
-		"hill frequency" : {
+		"hill_frequency" : {
 			"type" : "integer",
 			"minimum" : 1
-		},
-        "use_grid" : {
-        	"type" : "boolean"
-        }
+		}
 	},
-        "required": ["type", "widths", "height", "use_grid"],
+	"required": ["type", "widths", "height", "frequency"],
 	"additionalProperties": false
 }
