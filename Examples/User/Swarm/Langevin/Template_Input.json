@@ -8,13 +8,17 @@
 			"logfile" : "log",
 			"CVs" : [
 				{
-					"type" : "AtomCoordinate",
-					"atom id" : 1,
+					"type" : "ParticleCoordinate",
+					"atom_ids" : [
+						1
+					],
 					"dimension" : "x"
 				},
 				{
-					"type": "AtomCoordinate",
-					"atom id" : 1,
+					"type": "ParticleCoordinate",
+					"atom_ids" : [
+						1
+					],
                     "dimension" : "y"
 				}
 			],
@@ -26,12 +30,12 @@
 				],	
 				"max_iterations" : 1000,	
 				"frequency" : 1,
-				"ksprings" : [75,75],
+				"ksprings" : [500,500],
 				"tolerance" : [0.0001, 0.0001],
 				"flavor" : "SWARM",
 				"initial_steps" : 1000,
 				"harvest_length" : 10,
-				"number_of_trajectories" : 100,
+				"number_of_trajectories" : 200,
                 "swarm_length" : 2
 			}
 		}

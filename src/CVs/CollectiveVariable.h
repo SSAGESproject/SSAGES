@@ -87,6 +87,19 @@ namespace SSAGES
 			return _val;
 		}
 
+        //! Returns the minimum image of a CV based on the input location.
+        /*!
+		 * \param Value against which the minimum image is calculated.
+		 * \return Minimum image of the CV 
+		 *
+         * Takes the input location and applies the periodic boundary conditions to return a minimum image
+         * of the CV.
+		 */
+		virtual double GetMinimumImage(double location) const
+		{
+			return _val;
+		}
+
 		//! Apply periodic boundaries to a given value.
 		/*!
 		 * \param location Value to which the periodic boundaries should be applied.

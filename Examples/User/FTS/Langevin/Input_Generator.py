@@ -14,8 +14,9 @@ with open('Template_Input.json') as f:
 
 num = 16
 
-centers_1 = np.linspace(-0.7, 0.7, num)
-centers_2 = np.linspace(-0.5, 1.0, num)
+#Start and end location of CVs 1, 2, etc...
+centers_1 = np.linspace(-0.98, 0.98, num)
+centers_2 = np.linspace(-0.98, 0.98, num)
 
 # Add on the requested number of objects -1 because we are appending
 for i in range(0,num - 1):

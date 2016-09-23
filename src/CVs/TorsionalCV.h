@@ -164,12 +164,12 @@ namespace SSAGES
 				return Location;
 
 			int n = (int)(Location/(2.0*M_PI));
-			double PeriodicLocation = Location-2.0*n*M_PI;
+			double PeriodicLocation;
 
 			PeriodicLocation = Location - n*M_PI;
 			if(PeriodicLocation < -M_PI)
 				PeriodicLocation += 2.0*M_PI;
-			else if (Location > M_PI)
+			else if (PeriodicLocation > M_PI)
 				PeriodicLocation -= 2.0*M_PI;
 
 			return PeriodicLocation;
@@ -200,6 +200,29 @@ namespace SSAGES
 				PeriodicDiff += 2.0*M_PI;
 
 			return PeriodicDiff;
+		}
+
+        //! Returns the minimum image of a CV based on the input location.
+        /*!
+		 * \param Value against which the minimum image is calculated.
+		 * \return Minimum image of the CV 
+		 *
+         * Takes the input location and applies the periodic boundary conditions to return a minimum image
+         * of the CV.
+		 */
+		double GetMinimumImage(const double Location) const override
+		{
+			double PeriodicDiff = _val - Location;
+
+			if(!_periodic)
+				return _val;	
+
+			if(PeriodicDiff > M_PI)
+				return (_val - 2.0*M_PI);
+			else if(PeriodicDiff < -M_PI)
+				return (_val + 2.0*M_PI);	
+
+            return _val;
 		}
 
 		//! Serialize this CV for restart purposes.

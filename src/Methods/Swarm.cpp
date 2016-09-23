@@ -49,10 +49,10 @@ namespace SSAGES
             }
             if(diff >= threshold)
             {
-                return true; //e.g. proceed to initialize again
+                return true; //proceed to initialize again
             }
         }
-        return false; //e.g. OK to move on to regular sampling
+        return false; //OK to move on to regular sampling
     }
 
     void Swarm::PostIntegration(Snapshot* snapshot, const CVList& cvs)
@@ -153,8 +153,8 @@ namespace SSAGES
                 {
                     //End of trajectory, harvest drift
                     for(size_t i = 0; i < _cv_drift.size(); i++)
-                    {
-                        _cv_drift[i] = (_cv_drift[i]*_index + cvs[i]->GetValue()  - _centers[i]) / (_index+1); //Calculate running average of drifts
+                    { 
+                        _cv_drift[i] = (_cv_drift[i]*_index + cvs[i]->GetMinimumImage(_centers[i])  - _centers[i]) / (_index+1); //Calculate running average of drifts 
                     }
                     //Set up for next trajectory
                     _index++;
@@ -174,11 +174,11 @@ namespace SSAGES
             {
                 //Evolve CVs, reparametrize, and reset vectors
                 _iteration++;
- 
+    
                 StringUpdate();
+                CheckEnd(cvs);
+			    UpdateWorldString(cvs); 
                 PrintString(cvs);
-                CheckEnd();
-                UpdateWorldString();
 
                 _iterator = 0;
                 _index = 0;
@@ -206,7 +206,7 @@ namespace SSAGES
      
 		GatherNeighbors(&lcv0, &ucv0);
     
-		double alphastar = sqdist(_centers, lcv0);
+		double alphastar = distance(_centers, lcv0);
   
 		StringReparam(alphastar);
   

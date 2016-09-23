@@ -36,7 +36,7 @@ namespace SSAGES
 		// Record the difference between all cvs and all nodes
 		for (size_t i = 0; i < _numnodes; i++)
 			for(size_t j = 0; j < cvs.size(); j++)
-				dists[i]+=cvs[j]->GetDifference(_worldstring[i][j])*cvs[j]->GetDifference(_worldstring[i][j]);
+				dists[i]+= pow(cvs[j]->GetDifference(_worldstring[i][j]),2);
 		
 		if(std::min_element(dists.begin(), dists.end()) - dists.begin() == _mpiid)
 			return true;
@@ -97,24 +97,25 @@ namespace SSAGES
 			// Calculate running averages for each CV at each node 
 			for(size_t i = 0; i < _newcenters.size(); i++)
 			{
-				_newcenters[i] = _newcenters[i] * (_iteration * _blockiterations + _iterator - 1) + cvs[i]->GetValue();
+				_newcenters[i] = _newcenters[i] * (_iteration * _blockiterations + _iterator - 1) + cvs[i]->GetMinimumImage(_centers[i]);
 				_newcenters[i] /= (_iteration * _blockiterations + _iterator);
 			}
 
-			_prev_CVs.clear();
-			for(auto&cv : cvs)
-				_prev_CVs.push_back(cv->GetValue());
-
+            _prev_CVs.clear();
+            for(size_t i = 0; i < _centers.size(); i++)
+            {
+                _prev_CVs.push_back(cvs[i]->GetMinimumImage(_centers[i]));
+            }
 			StoreSnapshot(snapshot);
 		}
 
 		// Update the string, every _blockiterations string method iterations
 		if(_iterator % _blockiterations == 0)
 		{
-			PrintString(cvs);
 	        StringUpdate();
-	        CheckEnd();
-			UpdateWorldString();
+            CheckEnd(cvs);
+			UpdateWorldString(cvs); 
+            PrintString(cvs);
 
 			_iterator = 0;
 			_iteration++;
@@ -145,7 +146,7 @@ namespace SSAGES
 		}
 
 		GatherNeighbors(&lcv0, &ucv0);
-		double alphastar = sqdist(_centers, lcv0);
+		double alphastar = distance(_centers, lcv0);
 		StringReparam(alphastar);
 	}
 }

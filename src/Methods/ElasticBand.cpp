@@ -59,11 +59,11 @@ namespace SSAGES
 		// Restart iteration and zero gradients when moving onto
 		// next elastic band iteration
 		if(_iterator > (_equilibrate + _evolution * _nsamples))
-		{
-			PrintString(cvs);
+		{	
 	        StringUpdate();
-	        CheckEnd();
-			UpdateWorldString(); 
+            CheckEnd(cvs);
+			UpdateWorldString(cvs); 
+            PrintString(cvs); 
 
 			_iterator = 0;
 

@@ -96,11 +96,11 @@ namespace SSAGES
 		 * \param y List of coordinates.
 		 * \return Sum of distances between the x-values and y-values.
 		 */
-		double sqdist(const std::vector<double>& x, const std::vector<double>& y) const
+		double distance(const std::vector<double>& x, const std::vector<double>& y) const
 		{
 			double distance = 0;
 			for (size_t i = 0; i < x.size(); i++)
-				distance += (x[i] - y[i]) * (x[i] - y[i]);	
+				distance += pow((x[i] - y[i]),2);
 
 			return sqrt(distance);
 		}
@@ -115,7 +115,7 @@ namespace SSAGES
 		        _stringout << _mpiid << " " << _iteration << " ";
 
 		        for(size_t i = 0; i < _centers.size(); i++)
-		            _stringout << _centers[i] << " " << CV[i]->GetValue() << " ";
+		            _stringout << _worldstring[_mpiid][i] << " " << CV[i]->GetValue() << " ";
 
 		        _stringout << std::endl;
 		    }
@@ -174,7 +174,7 @@ namespace SSAGES
 			}
 		}
 
-		void UpdateWorldString()
+		void UpdateWorldString(const CVList& cvs)
 		{
 			for(size_t i = 0; i < _centers.size(); i++)
 			{
@@ -191,6 +191,8 @@ namespace SSAGES
 				for(size_t j = 0; j < _numnodes; j++)
                 {
                     _worldstring[j][i] = cvs_new[j];
+                    //Represent worldstring in periodic space
+                    _worldstring[j][i] = cvs[i]->GetPeriodicValue(_worldstring[j][i]); 
                 }
 			}
 		}
@@ -212,12 +214,13 @@ namespace SSAGES
 			return true;
 		}
 
-		bool CheckEnd() const
+		bool CheckEnd(const CVList& CV) 
 		{
 			if(_maxiterator && _iteration > _maxiterator)
 			{
 				std::cout << "System has reached max string method iterations (" << _maxiterator << ") as specified in the input file(s)." << std::endl; 
 				std::cout << "Exiting now" << std::endl; 
+                PrintString(CV); //Ensure that the system prints out if it's about to exit
 				_world.abort(-1);
 			}
 
@@ -228,6 +231,7 @@ namespace SSAGES
 			if(local_tolvalue)
 			{
 				std::cout << "System has converged within tolerance criteria. Exiting now" << std::endl;
+                PrintString(CV); //Ensure that the system prints out if it's about to exit
 				_world.abort(-1);
 			}
 
@@ -361,7 +365,7 @@ namespace SSAGES
 			_worldstring.resize(_numnodes);
 			for(auto& w : _worldstring)
 				w.resize(_centers.size());
-			UpdateWorldString();
+			UpdateWorldString(cvs);
 			PrintString(cvs);
 
 		}
