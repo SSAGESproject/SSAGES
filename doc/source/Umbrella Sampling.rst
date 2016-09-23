@@ -1,3 +1,5 @@
+.. _umbrella-sampling:
+
 Umbrella Sampling
 -----------------
 
@@ -27,6 +29,8 @@ centers (required)
 	
 ksprings (required)
 	Array of spring constants to each CV
+
+.. _Umbrella_tutorial:
 
 Tutorial
 ^^^^^^^^

@@ -1,3 +1,4 @@
+.. _adaptive-biasing-force:
 Adaptive Biasing Force Algorithm
 --------------------------------
 
@@ -166,6 +167,8 @@ vectors. An example for N=2 is:
 +-----------+-----------+-------------+-------------+
 | 1         | 0         | 3           | 5           |
 +-----------+-----------+-------------+-------------+
+
+.. _ABF-tutorial:
 
 Tutorial
 ^^^^^^^^

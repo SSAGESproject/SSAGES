@@ -18,8 +18,6 @@ List of Metadynamics Methods (alphabetical order):
    Finite Temperature String
    Forward-Flux
    Generic Metadynamics
-   Image Method
-   Replica Exchange
    Swarm of Trajectories
    Umbrella Sampling
 

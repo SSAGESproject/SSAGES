@@ -1,9 +1,7 @@
-.. _getting_started:
+.. _getting-started:
 
 Getting Started
 ===============
-
-Describe how to get and build source here.
 
 Pre-Reqisites
 -------------
@@ -57,6 +55,10 @@ as it allows you to easily stay up-to-date with the latest version.
 
 To clone the git repository, call
 
+.. todo::
+
+    Link to GitHub release instead of SSAGES development
+
 ```
 git clone https://github.com/jonathankwhitmer/SSAGES.git
 ```
@@ -75,13 +77,27 @@ you can use
     cmake .. -DLAMMPS=YES
     make
 
+or
+
+.. code-block:: bash
+
+    mkdir build/\n`
+    cd build/
+    cmake .. -DGROMACS=YES
+    make
+
 This set of commands will automatically download LAMMPS and build it together
 with SSAGES.
 
 Run SSAGES
 ----------
 
-.. todo::
+In order to run ssages you need to use run the executable followed by the input file.
+For example:
 
-    Give a short, simple example of how to start a SSAGES simulation. A more
-    detailed description can be found under Tutorials.
+.. code-block:: bash
+    
+    mpiexec -np 6 ./ssages Test.json
+
+Where the `-np` flag dictates the total number of processors you need and Test.json is the input file. For specific examples please see the :ref:`Tutorials <tutorials>`.
+ 

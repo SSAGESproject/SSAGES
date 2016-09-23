@@ -1,3 +1,4 @@
+.. _Finite-temperature-string:
 Finite Temperature String
 -------------------------
 
@@ -103,6 +104,8 @@ iteration
     
     Default value is 0 (corresponding to new FTS run). 
 
+.. _FTS_tutorial:
+
 Tutorial
 ^^^^^^^^
 
@@ -177,10 +180,10 @@ The two ends of the string have moved to the two energy minima (at
 :math:`(-0.98, -0.98)` and :math:`(0.98, 0.98)`), and the center of the string
 has curved away from the energy barrier at the origin. 
 
-Developer
-^^^^^^^^^
+Developers
+^^^^^^^^^^
 
-Ashley Guo & Yamil Colon.
+Ashley Guo, Ben Sikora, Yamil Colón
 
 References
 ^^^^^^^^^^

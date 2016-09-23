@@ -23,7 +23,7 @@ license. The full license can be found `here
 Contributors to the documentation (in alphabetical order):
 
 * Cody Bezik
-* Yamil Colon
+* Yamil J. Colón
 * Grant Garner
 * Ashley Guo
 * Julian Helfferich
