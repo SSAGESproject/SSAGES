@@ -24,24 +24,10 @@
 
 namespace SSAGES
 {
-	//! Value of the harmonic potential. Helper function.
-	/*!
-	 * \param k Spring constant.
-	 * \param x0 Equilibrium extension.
-	 * \param x Current extension.
-	 * \return Harmonic potential at extension x.
-	 */
-	double spring(double k, double x0, double x)
-	{
-		return 0.5 * k * (x - x0) * (x - x0);
-	}
-
 	void Umbrella::PreSimulation(Snapshot*, const CVList& cvs)
 	{
 		if(_comm.rank() == 0)
-		{
 		 	_umbrella.open(_filename.c_str(), std::ofstream::out | std::ofstream::app);
-		 }
 	}
 
 	void Umbrella::PostIntegration(Snapshot* snapshot, const CVList& cvs)
@@ -56,7 +42,8 @@ namespace SSAGES
 			auto& grad = cv->GetGradient();
 
 			// Compute dV/dCV.
-			auto D = _kspring[i]*(cv->GetDifference(_centers[i]));
+			auto center = GetCurrentCenter(snapshot->GetIteration(), i);
+			auto D = _kspring[i]*(cv->GetDifference(center));
 
 			// Update forces.
 			for(size_t j = 0; j < forces.size(); ++j)
@@ -72,22 +59,20 @@ namespace SSAGES
 	void Umbrella::PostSimulation(Snapshot*, const CVList&)
 	{
 		if(_comm.rank() ==0)
-		{
 			_umbrella.close();
-		}
 	}
 
-	void Umbrella::PrintUmbrella(const CVList& CV)
+	void Umbrella::PrintUmbrella(const CVList& cvs)
 	{
 		if(_comm.rank() ==0)
 		{
 			_umbrella.precision(8);
 			_umbrella << _iteration << " ";
 
-			for(size_t jj = 0; jj < _centers.size(); jj++)
-				_umbrella<< _centers[jj] << " " << CV[jj]->GetValue()<< " "; 
+			for(size_t i = 0; i < cvs.size(); i++)
+				_umbrella << GetCurrentCenter(_iteration, i) << " " << cvs[i]->GetValue() << " "; 
 
-			_umbrella<<std::endl;
+			_umbrella << std::endl;
 		}
 	}
 }
