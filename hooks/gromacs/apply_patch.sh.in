@@ -1,0 +1,9 @@
+patch -N -p2 --dry-run --silent -d ${GROMACS_SRC} < ${PROJECT_SOURCE_DIR}/hooks/gromacs/gmx_diff.patch 2>/dev/null
+
+#If the patch has not been applied then the $? which is the exit status 
+#for last command would have a success status code = 0
+if [ $? -eq 0 ];
+then
+    #apply the patch
+    patch -N -p2 -d ${GROMACS_SRC} < ${PROJECT_SOURCE_DIR}/hooks/gromacs/gmx_diff.patch
+fi

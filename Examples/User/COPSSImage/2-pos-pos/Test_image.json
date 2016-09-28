@@ -1,0 +1,19 @@
+{
+	"inputfile" : "in.colloids_ssages",
+	"driver" : [
+		{
+			"number processors" : 1,
+			"type" : "LAMMPS",
+			"MDSteps" : 1,
+			"logfile" : "node-1"
+		}
+	],
+	"constraints" : [
+		{
+			"type" : "COPSSImage",
+			"einner" : 15.0,
+			"ion_type_start" : 4,
+			"atom type radius" : [1.0]
+		}
+	]
+}

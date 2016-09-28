@@ -1,322 +1,152 @@
+/**
+ * This file is part of
+ * SSAGES - Suite for Advanced Generalized Ensemble Simulations
+ *
+ * Copyright 2016 Ashley Guo <azguo@uchicago.edu>
+ *                Ben Sikora <bsikora906@gmail.com>
+ *
+ * SSAGES is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * SSAGES is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #include "FiniteTempString.h"
 #include <math.h>
 #include <iostream>
 #include <algorithm>
 #include "../spline.h"
 
-namespace mpi = boost::mpi;
 namespace SSAGES
 { 
-	// need helper function for calculating distances 
-	double sqdist(std::vector<double>& x, std::vector<double>& y)
-	{
-		double distance = 0;
-		for (size_t i = 0; i < x.size(); i++)
-		{
-			distance += (x[i] - y[i]) * (x[i] - y[i]);	
-		}
-		
-		return distance;
-	}
 
-	bool FiniteTempString::InCell(const CVList& cvs)
+
+	// Check whether CV values are within their respective Voronoi cell in CV space
+	bool FiniteTempString::InCell(const CVList& cvs) const
 	{
-		std::vector<double> dists;
-		dists.resize(_worldstring[0].size());
+		std::vector<double> dists (_numnodes, 0);
+
 		// Record the difference between all cvs and all nodes
 		for (size_t i = 0; i < _numnodes; i++)
-		{
-			dists[i] = 0;
 			for(size_t j = 0; j < cvs.size(); j++)
-				dists[i]+=(cvs[j]->GetValue() - _worldstring[j][i])*(cvs[j]->GetValue() - _worldstring[j][i]);
-		}
-
-		if(std::min_element(dists.begin(), dists.end()) - dists.begin() != _mpiid)
-			return false;
-		else
+				dists[i]+= pow(cvs[j]->GetDifference(_worldstring[i][j]),2);
+		
+		if(std::min_element(dists.begin(), dists.end()) - dists.begin() == _mpiid)
 			return true;
 
-	}
-
-	// Pre-simulation hook.
-	void FiniteTempString::PreSimulation(Snapshot* snapshot, const CVList& cvs)
-	{
-		// Open file for writing.
-		_mpiid = snapshot->GetWalkerID();
-		auto& positions = snapshot->GetPositions();
-		char file[1024];
-		sprintf(file, "node-%04d.log",_mpiid);
-	 	_stringout.open(file);
-	 	_prev_positions.resize(positions.size());
-	 	_worldstring.resize(_centers.size());
-	 	_runavgs.resize(_centers.size());
-	 	_cv_prev.resize(_centers.size());
-	 	_SMD_centers.resize(_centers.size());
-	 	_SMD_lengths.resize(_centers.size());
-
-	 	_iterator = 0;
-
-	 	for(size_t i=0; i<positions.size();i++)
-	 	{
-	 		for(size_t j=0; j<positions[i].size();j++)
-	 			_prev_positions[i][j] = positions[i][j];
-	 	}
-
-	 	_alpha = _mpiid / (_numnodes - 1.0);
-
-		// initialize running averages
-		for(size_t i = 0; i< _centers.size(); ++i){
-			_worldstring[i].resize(_numnodes);
-			_runavgs[i] = 0;
-			_cv_prev[i] = cvs[i]->GetValue();
-
-			// gathers into _worldstring, where it is cv followed by node
-			mpi::all_gather(_world, _centers[i], _worldstring[i]);
-		}
-
-		_run_SMD = !InCell(cvs);
+		return false;
 	}
 
 	// Post-integration hook.
 	void FiniteTempString::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
-
 		auto& forces = snapshot->GetForces();
-		auto& positions = snapshot->GetPositions();
 
+		auto insidecell = InCell(cvs);
 
-		// Check to see if cv is still in the correct voronio cell, if not reverse the move
-		// Hard voronoi walls.
-		// Reverse move by moving everything back, and setting force to zero
-		// This should also 'Raondomize' the velocity, given the velocity will be that of the
-		// unaccepted move. Does this follow detailed balance?
-		if(_run_SMD)
+		if(_run_umbrella)
 		{
-			double dist = 0;
-			double length = 0;
-			for(size_t i = 0; i < cvs.size(); ++i)
+			if(insidecell && _umbrella_iter >= _min_num_umbrella_steps)
 			{
-				auto& cv = cvs[i];
-				auto& center = _centers[i];
-
-				dist += (center - cv->GetValue())*(center - cv->GetValue());
-				length += _SMD_lengths[i]*_SMD_lengths[i]; 
-			}
-
-			if(sqrt(dist) < 2*sqrt(length))
-				_run_SMD = false;
-		}
-		if(_run_SMD)
-		{
-			// Run some SMD code
-			double spring = 10;
-
-			// Set up vector for SMD
-			if(_cv_inside_iterator == 0)
-			{
-				for(size_t i = 0; i < cvs.size(); ++i)
-				{
-					auto& cv = cvs[i];
-					auto& center = _centers[i];
-
-					_SMD_lengths[i] = (center - cv->GetValue())/2000.0;
-					_SMD_centers[i] = cv->GetValue() + _SMD_lengths[i];
-				}
-			}
-			else if(_cv_inside_iterator < 2000)
-			{
-				for(size_t i = 0; i < _SMD_centers.size(); ++i)
-					_SMD_centers[i]+=_SMD_lengths[i];
+				_run_umbrella = false;
+				_umbrella_iter = 0;
 			}
 			else
 			{
-				spring += _cv_inside_iterator - 2000;
-			}
+				for(size_t i = 0; i < cvs.size(); i++)
+				{
+					// Get current cv and gradient
+					auto& cv = cvs[i];
+					auto& grad = cv->GetGradient();
 
-			// Typical harmonic spring to adjust forces
-			for(size_t i = 0; i < cvs.size(); ++i)
+					// Compute dV/dCV
+					auto D = _cvspring[i]*(cv->GetDifference(_centers[i]));
+
+					// Update forces
+					for(size_t j = 0; j < forces.size(); j++)
+							forces[j] -= D*grad[j];
+				}
+				_umbrella_iter++;
+				return;
+			}
+		}
+
+		if(!insidecell)
+		{
+			for(auto& force : forces)
+				force.setZero();
+
+			SetPos(snapshot);
+			
+			// Calculate running averages for each CV at each node based on previous CV
+			for(size_t i = 0; i < _newcenters.size(); i++)
 			{
-				// Get current CV and gradient.
-				auto& cv = cvs[i];
-				auto& grad = cv->GetGradient();
-
-				// Compute dV/dCV.
-				auto D = spring*(cv->GetValue() - _SMD_centers[i]);
-
-				// Update forces.
-				for(size_t j = 0; j < forces.size(); ++j)
-					for(size_t k = 0; k < forces[j].size(); ++k)
-						forces[j][k] -= D*grad[j][k];
+				_newcenters[i] = _newcenters[i] * (_iteration * _blockiterations + _iterator - 1) + _prev_CVs[i];
+				_newcenters[i] /= (_iteration * _blockiterations + _iterator);
 			}
-			_cv_inside_iterator++;
 		}
 		else
 		{
-			auto inside = InCell(cvs);
-			// Do everything else
-			if(!inside)
+			// Calculate running averages for each CV at each node 
+			for(size_t i = 0; i < _newcenters.size(); i++)
 			{
-				for(auto& force : forces)
-					for(auto& xyz : force)
-						xyz = 0.0;
-
-				for(size_t i = 0; i < positions.size(); i++)
-					for(size_t j = 0; j < positions[i].size(); j++)
-						positions[i][j] = _prev_positions[i][j];	
-			}
-			else
-			{
-				for(size_t i = 0; i < positions.size(); i++)
-					for(size_t j = 0; j < positions[i].size(); j++)
-						_prev_positions[i][j] = positions[i][j];
-
-				for(size_t i =0; i < cvs.size(); i++)
-					_cv_prev[i] = cvs[i]->GetValue();
+				_newcenters[i] = _newcenters[i] * (_iteration * _blockiterations + _iterator - 1) + cvs[i]->GetMinimumImage(_centers[i]);
+				_newcenters[i] /= (_iteration * _blockiterations + _iterator);
 			}
 
-			// calculate running averages
-			for (size_t i = 0; i < _runavgs.size(); i++)
-			{
-				// calculate running average for each node
-				_runavgs[i] = _runavgs[i] * _iterator + _cv_prev[i];
-				_runavgs[i] /= (_iterator + 1);
-			}
-
-			if(_iterator > _blockiterations)
-			{
-
-				// Write out the string to file
-				PrintString(cvs);
-
-				// Update the string and reparameterize 
-				StringUpdate();
-
-				_iterator = 0;
-				for (auto &cvavg : _runavgs)
-						cvavg = 0;
-
-				for(size_t ii = 0; ii < _centers.size(); ii++)
-					mpi::all_gather(_world, _centers[ii], _worldstring[ii]);
-
-				_currentiter++;
-
-				if(!InCell(cvs))
-				{
-					_run_SMD = true;
-					_cv_inside_iterator = 0;
-				}
-			} 
-			else 
-			{
-				_iterator++;
-				_run_SMD = false;
-			}
+            _prev_CVs.clear();
+            for(size_t i = 0; i < _centers.size(); i++)
+            {
+                _prev_CVs.push_back(cvs[i]->GetMinimumImage(_centers[i]));
+            }
+			StoreSnapshot(snapshot);
 		}
-	}
 
-	// Post-simulation hook.
-	void FiniteTempString::PostSimulation(Snapshot*, const CVList&)
-	{
-		_stringout.close();
-	}
+		// Update the string, every _blockiterations string method iterations
+		if(_iterator % _blockiterations == 0)
+		{
+	        StringUpdate();
+            CheckEnd(cvs);
+			UpdateWorldString(cvs); 
+            PrintString(cvs);
 
-	void FiniteTempString::PrintString(const CVList& CV)
-	{
-		_stringout.precision(8);
-		_stringout << _mpiid << " "<< _currentiter << " ";
+			_iterator = 0;
+			_iteration++;
 
-		for(size_t jj = 0; jj < _centers.size(); jj++)
-			_stringout<< _centers[jj] << " " << CV[jj]->GetValue()<< " "; 
-
-		_stringout<<std::endl;
-
-		std::cout << _mpiid << " "<< _currentiter << " ";
-
-		for(size_t jj = 0; jj < _centers.size(); jj++)
-			std::cout<< _centers[jj] << " " << _runavgs[jj]<< " "; 
-
-		std::cout<<std::endl;
-
+			if(!InCell(cvs))
+				_run_umbrella = true;
+		}
+		
+		_iterator++;
 	}
 
 	void FiniteTempString::StringUpdate()
 	{
-		size_t jj;
-		int centersize = _centers.size();
-		double alpha_star;
-		std::vector<double> alpha_starv;
-		std::vector<double> cvs_new;
-		std::vector<double> cvs_newv; 
-
 		std::vector<double> lcv0, ucv0;
-		lcv0.resize(centersize);
-		ucv0.resize(centersize);
+		lcv0.resize(_centers.size(), 0);
+		ucv0.resize(_centers.size(), 0);
 
-		int sendneighbor, recvneighbor;
-		MPI_Status status;
-
-		if(_mpiid == 0)
-		{
-			sendneighbor = 1;
-			recvneighbor = _world.size()-1;
-		} 
-		else if (_mpiid == _world.size()-1)
-		{
-			sendneighbor = 0;
-			recvneighbor = _world.size() - 2;
-		} 
-		else 
-		{
-			sendneighbor = _mpiid + 1;
-			recvneighbor = _mpiid - 1;
-		}
-
-		MPI_Sendrecv(&_centers[0], centersize, MPI_DOUBLE, sendneighbor, 1234,
-			&lcv0[0], centersize, MPI_DOUBLE, recvneighbor, 1234, 
-			_world, &status);
-
-		MPI_Sendrecv(&_centers[0], centersize, MPI_DOUBLE, recvneighbor, 4321,
-		       &ucv0[0], centersize, MPI_DOUBLE, sendneighbor, 4321, 
-		       _world, &status);
-
-		cvs_new.resize(centersize);
-		alpha_starv.resize(_numnodes);
-		cvs_newv.resize(_numnodes);
-
-		for(jj = 0; jj < cvs_new.size(); jj++)
+		GatherNeighbors(&lcv0, &ucv0);
+		
+		// Update node locations toward running averages:
+		for(size_t i = 0; i < _centers.size(); i++)
 		{
 			if(_mpiid == 0 || _mpiid == _numnodes - 1)
-				cvs_new[jj] = _centers[jj] - _tau * (_centers[jj] - _runavgs[jj]);
+				_centers[i] =_centers[i] - _tau * (_centers[i] - _newcenters[i]);
 			else
-				cvs_new[jj] = _centers[jj] - _tau * (_centers[jj] - _runavgs[jj]) + 
-					(_kappa * _numnodes * _tau * 
-					(ucv0[jj] + lcv0[jj] - 2 * _centers[jj]));
+				_centers[i] = _centers[i] - _tau * (_centers[i] - _newcenters[i]) + 
+					(_kappa * _numnodes * _tau * (ucv0[i] + lcv0[i] - 2 * _centers[i]));
 		}
 
-		if(_mpiid == 0)
-			alpha_star = 0;
-		else
-			alpha_star = sqrt(sqdist(_centers, lcv0));
-
-		mpi::all_gather(_world, alpha_star, alpha_starv);
-
-		for(jj = 1; jj < alpha_starv.size(); jj++)
-		{
-			alpha_starv[jj] = alpha_starv[jj-1] + alpha_starv[jj];
-		}
-
-		for(jj = 1; jj < alpha_starv.size(); jj++){
-			alpha_starv[jj] /= alpha_starv[_numnodes - 1];
-		}
-
-		tk::spline spl;
-
-		for(jj = 0; jj < centersize; jj++)
-		{
-			mpi::all_gather(_world, cvs_new[jj], cvs_newv);
-			//spl.setpoints(alpha_starv, vector of all new points **in one particular dimension**);
-			spl.set_points(alpha_starv, cvs_newv);
-			_centers[jj] = spl(_alpha);
-		}
+		GatherNeighbors(&lcv0, &ucv0);
+		double alphastar = distance(_centers, lcv0);
+		StringReparam(alphastar);
 	}
 }

@@ -1,0 +1,49 @@
+{
+    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example",
+    "driver" : [        
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 500000,
+            "logfile" : "node-1"
+		}],
+	"CVs": [
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "periodic": true,
+                    "type": "Torsional",
+                    "atom ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "method" : {
+                "type" : "ABF",
+  		"CV_lower_bounds" : [-3.13, -3.13],
+                "CV_upper_bounds" : [3.13,3.13],
+		"CV_bins" : [61,61],
+  		"CV_restraint_minimums" : [-5,-5],
+                "CV_restraint_maximums" : [5,5],
+		"CV_restraint_spring_constants" : [0,0],
+		"timestep" : 2,
+		"minimum_count" : 50,
+		"filename" : "F_out",
+		"backup_frequency" : 10000,
+		"unit_conversion" : 2390.06,
+		"frequency" : 1
+            }
+        }
+    ]
+}

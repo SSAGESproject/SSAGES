@@ -1,0 +1,104 @@
+#!/usr/bin/env python
+'''
+buildschema.py - Compiles individual schema files into a single complete
+                 JSON schema and creates a C++ header file containing
+                 the escaped schemas.
+
+                 This is a modified version originally from github hsidky/SAPHRON
+                 https://github.com/hsidky/SAPHRON.git
+'''
+import re
+import os
+from os import path
+import json
+
+# Definitions
+schemah = "${SCHEMA_H}"
+
+folders = [
+	"${CMAKE_CURRENT_SOURCE_DIR}/Methods/",
+	"${CMAKE_CURRENT_SOURCE_DIR}/CVs/",
+	"${CMAKE_CURRENT_SOURCE_DIR}/Drivers/",
+	"${CMAKE_CURRENT_SOURCE_DIR}/Simulations/",
+	"${CMAKE_CURRENT_SOURCE_DIR}/Grids/",
+	"${CMAKE_CURRENT_SOURCE_DIR}/Observers/",
+	"${CMAKE_CURRENT_SOURCE_DIR}/Constraints/",
+]
+
+exclude = [
+
+]
+
+
+def processfile(filename):
+	fpath = path.dirname(filename)
+	with open(filename, 'r') as f:
+		text = f.read()
+		for match in re.findall('"@file[(](.*)[)]"', text):
+			text = text.replace(
+				'"@file(' + match + ')"',
+				processfile(fpath + "/" + match)
+			)
+		return text
+
+
+def headertimestamp():
+	f = schemah
+	if not path.isfile(f):
+		return 0
+	return path.getmtime(f)
+
+
+def jsontimestamps(folders):
+	maxts = 0
+	for folder in folders:
+		for f in os.listdir(folder):
+			if f not in exclude:
+				fpath = path.join(folder, f)
+				tstamp = path.getmtime(fpath)
+				if tstamp > maxts:
+					maxts = tstamp
+	return maxts
+
+
+def genfiles(folders):
+	# Get timestamp of header file
+	htime = headertimestamp()
+	jtime = jsontimestamps(folders)
+
+	# If no files have not been modded since header,
+	# don't do anything.
+	if htime >= jtime:
+		return
+
+	# Delete old header/cpp files if they exist.
+	if path.isfile(schemah):
+		os.remove(schemah)
+
+	fheader = "${CMAKE_CURRENT_SOURCE_DIR}/headertemplate.h"
+
+	hlines = []
+	with open(fheader, "r") as f:
+		hlines = f.readlines()
+
+	# Go through folders, load json and write to header.
+	for folder in folders:
+		for f in os.listdir(folder):
+			if f not in exclude:
+				fpath = path.join(folder, f)
+				try:
+					jobj = json.loads(processfile(fpath))
+					varname = jobj["varname"]
+					jobj.pop("varname", None)
+				except Exception as e:
+					print("Error parsing {0}: {1}".format(fpath, e))
+
+				# Add lines to header
+				decl = '\t\tconst std::string ' + varname + ' = "' + json.dumps(jobj).replace('"', '\\"') + '";\n'
+				i = next(j for j, s in enumerate(hlines) if 'INSERT_DEC_HERE' in s)
+				hlines.insert(i+1, decl)
+
+	with open(schemah, "w") as f:
+		f.writelines(hlines)
+
+genfiles(folders)

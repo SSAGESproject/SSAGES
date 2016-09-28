@@ -1,33 +1,86 @@
-# pragma once 
+/**
+ * This file is part of
+ * SSAGES - Suite for Advanced Generalized Ensemble Simulations
+ *
+ * Copyright 2016 Hythem Sidky <hsidky@nd.edu>
+ *
+ * SSAGES is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * SSAGES is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-#include "Snapshot.h"
-#include "CVs/CollectiveVariable.h"
+#pragma once 
+
+#include "types.h"
 
 namespace SSAGES
 {
-	// Base abstract class for listening in to events fired by "Hook".
+	// Forward declare. 
+	class Snapshot;
+
+	//! Base abstract class for listening in to events fired by "Hook".
+	/*!
+	 * \ingroup Core
+	 */
 	class EventListener
 	{
 	private:
-		unsigned int _frequency;
+		unsigned int _frequency; //!< Frequency for listening.
 	
 	public:
+		//! Constructor
+		/*!
+		 * \param frequency Frequency for listening.
+		 */
 		EventListener(unsigned int frequency) : 
 		_frequency(frequency)
 		{
 
 		}
 
-		// Get frequency of event listener.
+		//! Get frequency of event listener.
+		/*!
+		 * \return Frequency of event listener.
+		 */
 		unsigned int GetFrequency() const { return _frequency; }
 
-		// Method call prior to simulation initiation.
+		//! Method call prior to simulation initiation.
+		/*!
+		 * \param snapshot Pointer to the simulation snapshot.
+		 * \param cvs List of CVs.
+		 *
+		 * This function will be called before the simulation is started.
+		 */
 		virtual void PreSimulation(Snapshot* snapshot, const CVList& cvs) = 0;
 
-		// Method call post integration.
+		//! Method call post integration.
+		/*!
+		 * \param snapshot Pointer to the simulation snapshot.
+		 * \param cvs List of CVs.
+		 *
+		 * This function will be called at the end of each integration step.
+		 */
 		virtual void PostIntegration(Snapshot* snapshot, const CVList& cvs) = 0;
 
-		// Method call post simulation.
+		//! Method call post simulation.
+		/*!
+		 * \param snapshot Pointer to the simulation snapshot.
+		 * \param cvs List of CVs.
+		 *
+		 * This function will be called after the simulation has finished.
+		 */
 		virtual void PostSimulation(Snapshot* snapshot, const CVList& cvs) = 0;
+
+		//! Destructor
+		virtual ~EventListener() { }
 	};
 }

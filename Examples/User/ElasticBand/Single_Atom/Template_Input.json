@@ -1,0 +1,40 @@
+{
+	"inputfile" : "in.LAMMPS_Single_Atom",
+	"driver" : [
+		{
+			"number processors" : 1,
+			"type" : "LAMMPS",
+			"MDSteps" : 10000000,
+			"logfile" : "log",
+			"CVs" : [
+				{
+					"type" : "AtomCoordinate",
+					"atom id" : 1,
+					"dimension" : "x" 
+				},
+				{
+					"type": "AtomCoordinate",
+					"atom id" : 1,
+					"dimension" : "y"
+				}
+			],
+			"method" : {
+				"type" : "String",
+				"centers" : [
+						-1.39,
+                        1.31
+				],
+				"equilibration_steps" : 1000,
+				"evolution_steps" : 50,
+				"kstring" : 1,
+				"block_iterations": 50,
+				"max_iterations" : 100000,
+				"time_step" : 0.1,
+				"frequency" : 1,
+				"ksprings" : [150, 150],
+				"tolerance" : [0.0001, 0.0001],
+				"flavor" : "ElasticBand"
+			}
+		}
+	]
+}

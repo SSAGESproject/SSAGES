@@ -1,39 +1,23 @@
+.. _meta-dynamics-methods:
+
 Meta-Dynamics Methods
 =====================
 
-Here, we explain all Methods in the SSAGES package.
+.. todo::
 
-ABF
----
+    Give a short overview over all SSAGES methods. Not more than 2 paragraphs.
 
-Emre
+List of Metadynamics Methods (alphabetical order):
 
-Forward-Flux
-------------
+.. toctree::
+   :maxdepth: 1
 
-Hadi, Josh L.
+   Adaptive Biasing Force Algorithm
+   Basis Function Sampling
+   Elastic Band
+   Finite Temperature String
+   Forward-Flux
+   Generic Metadynamics
+   Swarm of Trajectories
+   Umbrella Sampling
 
-FTS
----
-
-Ashley, Yamil
-
-Swarm of Trajectories
----------------------
-
-Cody
-
-Basis Sampling
---------------
-
-Josh M.
-
-Image Method
-------------
-
-Jiyuan Li
-
-Replica Exchange
-----------------
-
-Amin

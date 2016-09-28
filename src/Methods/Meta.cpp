@@ -1,17 +1,49 @@
+/**
+ * This file is part of
+ * SSAGES - Suite for Advanced Generalized Ensemble Simulations
+ *
+ * Copyright 2016 Hythem Sidky <hsidky@nd.edu>
+ *                Jonathan K. Whitmer <jwhitme1@nd.edu>
+ *                Ben Sikora <bsikora906@gmail.com>
+ *
+ * SSAGES is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * SSAGES is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #include "Meta.h"
 #include <math.h>
 #include <iostream>
+#include "Drivers/DriverException.h"
 
 namespace SSAGES
 {
-	// Evlauate Gaussian. Helper function.
+	//! Evlauate Gaussian. Helper function.
+	/*!
+	 * \param dx x-value.
+	 * \param sigma Width of Gaussian
+	 * \return Value at x of Gaussian with center at zero and width sigma.
+	 */
 	double gaussian(double dx, double sigma)
 	{
 		double arg = (dx * dx) / (2. * sigma * sigma);
 		return exp(-arg);
 	}
 
-	// Evaluate Gaussian derivative. Helper function.
+	//! Evaluate Gaussian derivative. Helper function.
+	/*!
+	 * \param dx Value of x.
+	 * \param sigma Width of Gaussian.
+	 * \return Derivative at x of Gaussian with center at zero and width sigma.
+	 */
 	double gaussianDerv(double dx, double sigma)
 	{
 		double arg =  (dx * dx) / (2. * sigma * sigma);
@@ -23,7 +55,8 @@ namespace SSAGES
 	void Meta::PreSimulation(Snapshot*, const CVList& cvs)
 	{
 		// Open file for writing and allocate derivatives vector.
-	 	_hillsout.open("hills.out");
+		if(_world.rank() == 0)
+			_hillsout.open("hills.out");
 		_derivatives.resize(cvs.size());	
 	}
 
@@ -57,23 +90,40 @@ namespace SSAGES
 	// Post-simulation hook.
 	void Meta::PostSimulation(Snapshot*, const CVList&)
 	{
-		_hillsout.close();
+		if(_world.rank() == 0)
+			_hillsout.close();	
 	}
 
 	// Drop a new hill.
 	void Meta::AddHill(const CVList& cvs)
 	{
-		std::vector<double> cvals;
+		int n = cvs.size();
 
-		// Get CV values.
-		for(size_t i = 0; i < cvs.size(); ++i)
-			cvals.push_back(cvs[i]->GetValue());
+		// Assume we have the same number of procs per walker.
+		int nwalkers = _world.size()/_comm.size();
 
-		// Note: emplace_back constructs a hill in-place.
-		_hills.emplace_back(cvals, _widths, _height);
+		// We need to exchange CV values across the walkers 
+		// and to each proc on a walker.	
+		std::vector<double> cvals(n*nwalkers, 0);
 
-		// Write hill to file.
-		PrintHill(_hills.back());
+		if(_comm.rank() == 0)
+		{
+			for(auto i = 0, j = _world.rank()/_comm.size()*n; i < n; ++i,++j)
+				cvals[j] = cvs[i]->GetValue();
+		}
+
+		// Reduce across all processors and add hills.
+		MPI_Allreduce(MPI_IN_PLACE, cvals.data(), n*nwalkers, MPI_DOUBLE, MPI_SUM, _world);
+		
+		for(int i = 0; i < n*nwalkers; i += n)
+		{
+			std::vector<double> cval(cvals.begin() + i, cvals.begin() + i + n);
+			_hills.emplace_back(cval, _widths, _height);
+			
+			// Write hill to file.
+			if(_world.rank() == 0)
+				PrintHill(_hills.back());
+		}
 	}
 
 	//Ruthless pragmatism
@@ -82,7 +132,7 @@ namespace SSAGES
 		_hillsout.precision(8);
 		for(auto& cv : hill.center)
 			_hillsout << cv << " ";
-
+		
 		for(auto& w : hill.width)
 			_hillsout << w << " ";
 
@@ -93,8 +143,7 @@ namespace SSAGES
 	{	
 		// Reset bias and derivatives.
 		_bias = 0;
-		for(size_t i = 0; i < _derivatives.size(); ++i)
-			_derivatives[i] = 0;
+		std::fill(_derivatives.begin(), _derivatives.end(), 0);
 
 		// Loop through hills and calculate the bias force.
 		for(auto& hill : _hills)
@@ -102,11 +151,11 @@ namespace SSAGES
 			auto n = hill.center.size();
 			std::vector<double> tder(n, 1.0), dx(n, 1); 
 			auto tbias = 1.;
-			
+
 			// Initialize dx and tbias.
 			for(size_t i = 0; i < n; ++i)
 			{
-				dx[i] = cvs[i]->GetValue() - hill.center[i];
+				dx[i] = cvs[i]->GetDifference(hill.center[i]);
 				tbias *= gaussian(dx[i], hill.width[i]);
 			}
 

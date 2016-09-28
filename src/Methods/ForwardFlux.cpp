@@ -1,3 +1,23 @@
+/**
+ * This file is part of
+ * SSAGES - Suite for Advanced Generalized Ensemble Simulations
+ *
+ * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
+ *                Hythem Sidky <hsidky@nd.edu>
+ *
+ * SSAGES is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * SSAGES is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #include "ForwardFlux.h"
 #include <iostream>
 #include "../FileContents.h"
@@ -10,10 +30,30 @@ namespace SSAGES
 {
 	void ForwardFlux::PreSimulation(Snapshot* snap, const CVList& cvs)
 	{
-		_indexfile.open(_indexfilename.c_str());
-		_resultsfile.open(_resultsfilename.c_str());
+		if(cvs.size() > 1)
+			throw BuildException({"Forwardflux currently only works with one cv."});
+
+		switch(_restart)
+		{
+			case NEW:
+			{
+				_indexfile.open(_indexfilename.c_str(),std::ofstream::out | std::ofstream::trunc);
+				_resultsfile.open(_resultsfilename.c_str(),std::ofstream::out | std::ofstream::trunc);
+				_libraryfile.open(_libraryfilename.c_str(),std::ofstream::out | std::ofstream::trunc);
+				break;
+			}
+			default:
+			{
+				_indexfile.open(_indexfilename.c_str(),std::ofstream::out | std::ofstream::app);
+				_resultsfile.open(_resultsfilename.c_str(),std::ofstream::out | std::ofstream::app);
+				_libraryfile.open(_libraryfilename.c_str(),std::ofstream::out | std::ofstream::app);
+				break;
+			}
+		}
 
 		_currentnode = AtInterface(cvs);
+
+		_iteration = 0;
 	}
 
 	void ForwardFlux::PostIntegration(Snapshot* snapshot, const CVList& cvs)
@@ -27,7 +67,6 @@ namespace SSAGES
 			}
 			case LIBRARY:
 			{
-				_currenthash = 10000*_world.rank();
 				if(_world.rank() == 0 && _currentstartingpoint != 0)
 				{
 					for(auto& value : _successes)
@@ -35,15 +74,21 @@ namespace SSAGES
 					_resultsfile<<"\n";
 				}
 
+				mpi::all_reduce(_world, _totalcontents, _globalcontents, std::plus<std::string>());
+				//Close local and global files
+				if(_world.rank() == 0)
+				{
+					_indexfile<<_globalcontents<<std::endl;
+				}
+				_totalcontents += _indexcontents;
 				_indexcontents = "";
 
-				for(auto& s : _localsuccesses)
-					s = 0;
+				_currentshot = 0;
 
-				for(auto& s : _successes)
-					s = 0;
+				std::fill(_localsuccesses.begin(),_localsuccesses.end(),0);
+				std::fill(_successes.begin(),_successes.end(),0);
 
-				_currentnode = 0;
+				_currentnode = 1;
 
 				std::vector<std::vector<std::string> > tmp;
 				if(!(ExtractInterfaceIndices(0, _librarycontents, tmp)))
@@ -63,45 +108,28 @@ namespace SSAGES
 					_world.abort(0);
 				}
 
-				std::string dumpfilecontents;
 				_shootingconfigfile = tmp[_currentstartingpoint][1];
 				if(_world.rank() == 0)
-					dumpfilecontents = GetFileContents(_shootingconfigfile.c_str());
-				mpi::broadcast(_world, dumpfilecontents, 0);
+					_currentconfig = GetFileContents(_shootingconfigfile.c_str());
+				mpi::broadcast(_world, _currentconfig, 0);
 
-				ReadConfiguration(snapshot, dumpfilecontents);
+				ReadConfiguration(snapshot, _currentconfig);
 				_restart = NONE;
 				_currentstartingpoint++;
 				return;
 			}
-			case RESTART:
-			{
-				if(_world.rank()==0)
-					std::cout<<"Running from restart "<<_restartfilename<<std::endl;
-				std::string dumpfilecontents;
-				_shootingconfigfile = _restartfilename;
-				if(_world.rank() == 0)
-					dumpfilecontents = GetFileContents(_shootingconfigfile.c_str());
-				mpi::broadcast(_world, dumpfilecontents, 0);
-
-				ReadConfiguration(snapshot, dumpfilecontents);
-				_restart = NONE;
-				return;
-			}
-
 			case NEWCONFIG:
 			{
-				_currenthash = 10000*_world.rank();
+				_currentshot = 0;
 				mpi::all_reduce(_world, _indexcontents, _globalcontents, std::plus<std::string>());
 
-				std::string dumpfilecontents;
 				_shootingconfigfile = PickConfiguration(_currentnode, _globalcontents);
 
 				if(_world.rank() == 0)
-					dumpfilecontents = GetFileContents(_shootingconfigfile.c_str());
+					_currentconfig = GetFileContents(_shootingconfigfile.c_str());
 				
-				mpi::broadcast(_world, dumpfilecontents, 0);
-				ReadConfiguration(snapshot, dumpfilecontents);
+				mpi::broadcast(_world, _currentconfig, 0);
+				ReadConfiguration(snapshot, _currentconfig);
 				_restart = NONE;
 
 				return;
@@ -125,12 +153,22 @@ namespace SSAGES
 				ID = "dump_"+std::to_string(_currentnode)+"_"+std::to_string(_currenthash)+".dump";
 				_currenthash++;
 				if(_comm.rank()==0)
+				{
 					WriteConfiguration(snapshot);
-				_localsuccesses[_currentnode]++;
+					_localsuccesses[_currentnode]++;
+				}
+			}
+
+			if(_currentshot < _numshots)
+			{
+				_currentshot++;
+				ReadConfiguration(snapshot, _currentconfig);
+				_currentnode--;
+				_iteration++;
+				return;
 			}
 
 			mpi::all_reduce(_world, _localsuccesses[_currentnode], _successes[_currentnode], std::plus<int>());
-
 			if(_successes[_currentnode] > 0)
 			{
 				_restart = NEWCONFIG;
@@ -143,26 +181,23 @@ namespace SSAGES
 				}
 			}
 			else
-			{
 				_restart = LIBRARY;
-			}
+
+			_iteration++;
 		}
 	}
 
 	void ForwardFlux::PostSimulation(Snapshot*, const CVList&)
 	{
-		// Calculate probabilites for each interface.
-		// Write probabilities and paths to file
-		mpi::all_reduce(_world, mpi::inplace(_globalcontents), std::plus<std::string>());
 		//Close local and global files
 		if(_world.rank() == 0)
 		{
-			_indexfile<<_indexcontents<<std::endl;
 			_resultsfile<<"flux in: "<<_fluxin<<std::endl;
 			_resultsfile<<"flux out: "<<_fluxout<<std::endl;
 
 			_indexfile.close();
 			_resultsfile.close();
+			_libraryfile.close();
 		}
 	}
 
@@ -180,9 +215,11 @@ namespace SSAGES
 			ID = "dump_"+std::to_string(interface)+"_"+std::to_string(_currenthash)+".dump";
 			_currenthash++;
 			if(_comm.rank()==0)
+			{
 				WriteConfiguration(snapshot);
+				_localsuccesses[_currentnode]++;
+			}
 
-			_localsuccesses[_currentnode]++;
 			_fluxout++;
 		}
 		// Flux back in towards A
@@ -199,6 +236,8 @@ namespace SSAGES
 			_restart = LIBRARY;
 			mpi::all_reduce(_world, _indexcontents, _librarycontents, std::plus<std::string>());
 			_currentstartingpoint = 0;
+			if(_world.rank()==0)
+				_libraryfile<<_librarycontents<<std::endl;
 		}
 	}
 
@@ -267,7 +306,7 @@ namespace SSAGES
 
 		ID = _shootingconfigfile;
 
-		//Extract _currentconfig information
+		//Extract currentconfig information
 		std::istringstream f(FileContents);
 		std::string line;
 		while (std::getline(f, line))
@@ -307,8 +346,7 @@ namespace SSAGES
 			velocities[atomindex][2] = std::stod(tokens[6]);
 
 			for(auto& force : forces)
-				for(auto& xyz : force)
-					xyz = 0;
+				force.setZero();
 		}
 	}
 
@@ -337,3 +375,4 @@ namespace SSAGES
 		return configfilename;
 	}
 }
+

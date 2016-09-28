@@ -1,0 +1,23 @@
+{
+	"type" : "object",
+	"varname" : "SwarmMethod",
+	"properties" : {
+		"initial_steps" : {
+			"type" : "number",
+			"minimum" : 0
+		},
+		"harvest_length" : {
+			"type" : "number",
+			"minimum" : 0
+		},
+		"number_of_trajectories" : {
+			"type" : "number",
+			"minimum" : 0
+		},
+		"swarm_length" : {
+			"type" : "number",
+			"minimum" : 0
+		}
+    },
+	"required": ["initial_steps", "harvest_length", "number_of_trajectories", "swarm_length"]
+}

@@ -1,28 +1,36 @@
 {
+    "observers": [
+        {
+            "file name": "test_restart",
+            "frequency": 2,
+            "type": "JSON"
+        }
+    ],
     "inputfile" : "in.LAMMPS_FF_Test",
+    "CVs" : [
+        {
+            "type" : "AtomCoordinate",
+            "atom id" : 1,
+            "dimension" : "x"
+        }
+    ],
+    "method" : {
+        "type" : "ForwardFlux",
+        "index_file" : "index.dat",
+        "library_file" : "library_input.dat", 
+        "results_file" : "results.dat",
+        "shots" : 1,
+        "centers" : [
+        ],
+        "generate_configs" : 10,
+        "frequency" : 1
+    },
     "driver" : [
         {
             "number processors" : 1,
             "type" : "LAMMPS",
             "MDSteps" : 1000000000,
-            "logfile" : "node-1",
-            "CVs" : [
-                {
-                    "type" : "AtomCoordinate",
-                    "atom id" : 1,
-                    "dimension" : "x"
-                }
-            ],
-            "method" : {
-                "type" : "ForwardFlux",
-                "library file" : "library_input.dat", 
-                "results file" : "results.dat",
-                "centers" : [
-                ],
-                "new run" : true,
-                "generate configs" : 20,
-                "frequency" : 1
-            }
+            "logfile" : "node-1"
         }
     ]
 }

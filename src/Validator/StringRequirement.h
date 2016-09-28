@@ -1,3 +1,28 @@
+/**
+ * This file has been obtained from
+ * SAPHRON - Statistical Applied PHysics through Random On-the-fly Numerics
+ * https://github.com/hsidky/SAPHRON
+ *
+ * Copyright 2016 Hythem Sidky
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE. 
+*/
 #pragma once 
 
 #include <regex>
@@ -5,22 +30,31 @@
 
 namespace Json
 {
+	//! Requirements on strings.
+	/*!
+	 * \ingroup Json
+	 */
 	class StringRequirement : public Requirement 
 	{
 	private: 
-		bool _minSet, _maxSet, _rgxSet;
-		size_t _minLength, _maxLength;
-		std::regex _regex;
-		std::string _expr;
-		std::string _path;
-		std::vector<std::string> _enum;
+		bool _minSet; //!< If \c True, minimum length requirement is active.
+		bool _maxSet; //!< If \c True, maximum length requirement is active.
+		bool _rgxSet; //!< If \c True, string has to match regular expression.
+		size_t _minLength; //!< Minimum string length;
+		size_t _maxLength; //!< Maximum string length;
+		std::regex _regex; //!< Regular expression to match string to.
+		std::string _expr; //!< Expression.
+		std::string _path; //!< Path for JSON path specification.
+		std::vector<std::string> _enum; //!< Enum values.
 
 	public:
+		//! Constructor.
 		StringRequirement() : 
 		_minSet(false), _maxSet(false), _rgxSet(false),
 		_minLength(0), _maxLength(0), _regex(), _expr(), _path(), _enum(0)
 		{}
 		
+		//! Reset Requirement.
 		virtual void Reset() override
 		{
 			_minSet = false;
@@ -36,6 +70,11 @@ namespace Json
 			ClearNotices();
 		}
 
+		//! Parse JSON value to generate Requirement.
+		/*!
+		 * \param json JSON input value.
+		 * \param path Path for JSON path specification.
+		 */
 		virtual void Parse(Value json, const std::string& path) override
 		{
 			Reset();
@@ -68,6 +107,16 @@ namespace Json
 			}
 		}
 
+		//! Validate string value.
+		/*!
+		 * \param json JSON value to be validated.
+		 * \param path Path for JSON path specification.
+		 *
+		 * This function tests if the JSON value is of type string and if the
+		 * string meets the requirements loaded via StringRequirement::Parse().
+		 * If the validation fails, one or more errors are appended to the list
+		 * of errors.
+		 */
 		virtual void Validate(const Value& json, const std::string& path) override
 		{
 			if(!json.isString())

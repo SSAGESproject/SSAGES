@@ -1,0 +1,12 @@
+{
+	"type" : "object",
+	"varname" : "COPSSConstraint",
+	"properties" : {
+		"type" : { 
+			"type" : "string",
+			"enum" : ["COPSS"]
+		}
+	},
+	"required": ["type"],
+	"additionalProperties": false
+}

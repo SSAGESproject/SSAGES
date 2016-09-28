@@ -1,0 +1,86 @@
+{
+	"type" : "object",
+	"varname" : "BFSMethod",
+	"properties" : {
+		"type" : { 
+			"type" : "string",
+			"enum" : ["Basis"]
+		},
+		"cycle_frequency" : {
+			"type" : "integer",
+			"minimum" : 1
+		},
+		"frequency" : {
+			"type" : "integer",
+			"minimum" : 1
+		},
+        "iteration" : {
+            "type" : "integer"
+        },
+        "coefficients" : {
+            "type": "array",
+            "minItems" : 1,
+            "items" : {
+                "type" : "number"
+            }
+        },
+        "bias_hist" : {
+            "type": "array",
+            "minItems" : 1,
+            "items" : {
+                "type" : "number"
+            }
+        },
+        "CV_coefficients" : {
+            "type" : "array",
+            "minItems" : 1,
+            "items" : {
+                "type" : "integer"
+            }
+        },
+        "CV_restraint_spring_constants" : {
+            "type" : "array",
+            "minItems" : 1,
+            "items" : {
+                "type" : "number"
+            }
+        },
+        "CV_restraint_maximums" : {
+            "type" : "array",
+            "minItems" : 1,
+            "items" : {
+                "type" : "number"
+            }
+        },
+        "CV_restraint_minimums" : {
+            "type" : "array",
+            "minItems" : 1,
+            "items" : {
+                "type" : "number"
+            }
+        },
+        "basis_filename" : {
+            "type" : "string"
+        },
+        "coeff_filename" : {
+            "type" : "string"
+        },
+        "weight" : {
+            "type" : "number",
+            "minimum" : 0
+        },
+        "temperature" : {
+            "type" : "number",
+            "minimum" : 0
+        },
+        "tolerance" : {
+            "type" : "number",
+            "minimum" : 1e-20
+        },
+        "convergence_exit" : {
+            "type" : "boolean"
+        }
+	},
+	"required": ["type", "CV_coefficients", "cycle_frequency"],
+	"additionalProperties": false
+}

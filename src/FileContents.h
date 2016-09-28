@@ -1,14 +1,44 @@
+/**
+ * This file is part of
+ * SSAGES - Suite for Advanced Generalized Ensemble Simulations
+ *
+ * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
+ *
+ * SSAGES is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * SSAGES is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
 #include <string>
 #include <cstdio>
 #include <cerrno>
 
-// This a collection of random helper functions.
+/*!
+ * \file FileContents.h
+ *
+ * This file contains a collection of random helper functions.
+ */
 namespace SSAGES
 {
-	// Retrieves the contents of a file and returns them
-	// in a string. Throws exception on failure.
+	//! Read contents from a file
+	/*!
+	 * \param filename Name of the file to read from.
+	 * \return String containing the contents of the file.
+	 *
+	 * Retrieves the contents of a file and returns them in a string. Throws
+	 * exception on failure.
+	 */
 	inline std::string GetFileContents(const char *filename)
 	{
 		std::FILE *fp = std::fopen(filename, "rb");
@@ -30,7 +60,11 @@ namespace SSAGES
 		throw(errno);
 	}
 
-	// Gets file path from filename.
+	//! Gets file path from filename.
+	/*!
+	 * \param str String containing the absolute filename.
+	 * \return String containing only the directory path.
+	 */
 	inline std::string GetFilePath(const std::string& str)
 	{
 		size_t found;

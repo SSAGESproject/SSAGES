@@ -1,4 +1,26 @@
-#include "Method.h"
+/**
+ * This file is part of
+ * SSAGES - Suite for Advanced Generalized Ensemble Simulations
+ *
+ * Copyright 2016 Ashley Guo <azguo@uchicago.edu>
+ *                Ben Sikora <bsikora906@gmail.com>
+ *
+ * SSAGES is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * SSAGES is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
+ */
+#pragma once
+
+#include "StringMethod.h"
 #include "../CVs/CollectiveVariable.h"
 #include <fstream>
 
@@ -11,110 +33,98 @@ namespace SSAGES
 	 * Implementation of a multi-walker finite string
 	 * method with hard wall voronoi cells and running block averages.
 	 */
-	class FiniteTempString : public Method
+	class FiniteTempString : public StringMethod
 	{
 	private:	
-		
-		//! Number of steps to block average the CV's postions over
-		unsigned int _blockiterations;
-
-		//! The local method iterator
-		unsigned int _iterator;
-
-		//! Running averages
-		std::vector<double> _runavgs;
-
-		//! CV starting location values
-		std::vector<double> _centers;
-
-		//! Vector of CV values at prevoius step
-		std::vector<double> _cv_prev;
-
-		//! for reparameterization
-		double _alpha;
-
-		//! The node this belongs to
-		unsigned int _mpiid;
-
-		//! The world's strings centers for each CV.
-		/*!
-		 * _worldstring[cv#][node#]
-		 */
-		std::vector<std::vector<double> > _worldstring;
-
-		//! Time step of string change
-		double _tau;
 
 		//! String modification parameter
 		double _kappa;
 
-		//! Previous forces for restarting the position
-		std::vector<Vector3> _prev_positions;
+		//! Number of steps to block average the CV's postions over
+		unsigned int _blockiterations;
 
-		//! Number of nodes on a string
-		unsigned int _numnodes;
+		//! Time step of string change
+		double _tau;
 
-		//! Total iterations run so far
-		unsigned int _currentiter;
-		
-		//! Output stream for string data.
-		std::ofstream _stringout;
+		//! Minimum number of steps to apply umbrella sampling.
+		unsigned int _min_num_umbrella_steps;
 
-		//! Flag for when CV is outside newly paramaterized string voronoi cell
-		bool _run_SMD;
+		//! Flag to run umbrella or not during post-integration        
+        bool _run_umbrella;
 
-		//! Iterator to increase the spring stiffness on the umbrella method
-		int _cv_inside_iterator;
+        //! Iterator that keeps track of umbrella iterations
+		unsigned int _umbrella_iter;
 
-		//! Steered MD centers
-		std::vector<double> _SMD_centers;
+		//! Stores the last positions of the CVs
+		std::vector<double> _prev_CVs;
 
-		//! length to move the steered MD every time step
-		std::vector<double> _SMD_lengths;
+        //! Stores the last step's atom IDs
+        Label _prev_ids;
 
-		//! Updates the position of the string.
+		//! Checks if CV is in voronoi cell
+		bool InCell(const CVList& cvs) const;
+
+		//! Updates the string according to the FTS method
 		void StringUpdate();
-
-		//! Prints the new hill to file
-		void PrintString(const CVList& CV);
-
-		//! Check if current cv values are in the nodes voronoi cell
-		bool InCell(const CVList& CV);
 
 	public:
 		//! Constructor
 		/*!
+		 * \param world MPI global communicator.
+		 * \param comm MPI local communicator.
+		 * \param centers List of centers.
+		 * \param NumNodes Number of nodes.
+		 * \param maxiterator Maximum number of iterations.
+		 * \param blockiterations Number of iterations per block averaging.
+		 * \param tau Value of tau (default: 0.1).
+		 * \param cvspring Spring constants for cvs.
+		 * \param run_SMD Run steered MD to direct CV to proper starting configuration.
+		 * \param kappa Value of kappa (default: 0.1).
+		 * \param frequency Frequency with which this method is invoked.
+		 *
 		 * Constructs an instance of Finite String method.
-		 * isteps = Number Iterations per block averaging
-		 * _tau and _kappa default values of 0.1 (JSON reader for this)
 		 */
 		FiniteTempString(boost::mpi::communicator& world,
-					boost::mpi::communicator& com,
-					unsigned int isteps,
+					boost::mpi::communicator& comm,
 					const std::vector<double>& centers,
-					unsigned int NumNodes,
-					double kappa,
+					unsigned int maxiterations,
+					unsigned int blockiterations,
 					double tau,
+					const std::vector<double> cvspring,
+					double kappa,
+					unsigned int springiter,
 			 		unsigned int frequency) : 
-		Method(frequency, world, com), _blockiterations(isteps), _centers(centers), _cv_prev(), _alpha(),
-		_mpiid(0), _worldstring(), _tau(tau), _kappa(kappa), _prev_positions(), _numnodes(NumNodes), _currentiter(0),
-		_run_SMD(true), _cv_inside_iterator(0)
-		{
-		}
+		StringMethod(world, comm, centers, maxiterations, cvspring, frequency),
+		_kappa(kappa), _blockiterations(blockiterations), _tau(tau), 
+		_min_num_umbrella_steps(springiter), _run_umbrella(true),
+		_umbrella_iter(1)
+        {
+			//! Store positions for starting trajectories
+			_prev_positions.resize(1);
 
-		//! Pre-simulation hook.
-		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override;
+			//! Store velocities for starting trajectories
+			_prev_velocities.resize(1);
+
+			_prev_IDs.resize(1);
+
+		}
 
 		//! Post-integration hook.
 		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
-
-		//! Post-simulation hook.
-		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
-
+        
 		void Serialize(Json::Value& json) const override
-		{
+        {
+        	StringMethod::Serialize(json);
 
-		}
+            json["umbrella_iterations"] = _min_num_umbrella_steps;
+            json["flavor"] = "FTS";
+            json["kappa"] = _kappa;
+            json["block_iterations"] = _blockiterations;
+            json["time_step"] = _tau;
+
+            for(auto& nw : _newcenters)
+            	json["running_average"].append(nw);
+        }
 
 		//! Destructor
 		~FiniteTempString() {}

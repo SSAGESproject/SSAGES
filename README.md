@@ -18,10 +18,17 @@ $ cmake -DLAMMPS_SRC=/path/to/lammps/src ..
 $ make
 ```
 
-This will build and MPI compatible LAMMPS binary which will reside in the LAMMPS source 
-directory. 
+This will build a MPI compatible LAMMPS binary which will reside in the LAMMPS source
+directory.
 
-The build system will is a work in progress. 
+If you want to compile and run unit and integration tests, replace the cmake command
+in the example above with
+
+```bash
+$ cmake -DLAMMPS_SRC=/path/to/lammps/src -DBUILD_TESTS=ON ..
+```
+
+The build system is still a work in progress.
 
 ## Build the documentation
 
