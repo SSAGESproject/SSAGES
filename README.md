@@ -127,7 +127,6 @@ $ firefox doc/Manual/index.html
 ## Known issues 
 **SSAGES** is currently in pre-beta. That means there may be known issues that are not yet resolved. Major issues are listed here. 
 
-- String methods apart from elastic band currently do not work with Gromacs
 - Restart capabilities are currently unimplemented in Gromacs 
 
 ## Contributing 

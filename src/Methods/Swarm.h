@@ -69,6 +69,15 @@ namespace SSAGES
 
             //! Flag for determing whether to perform initialization or not
             bool sampling_started;
+            
+            //! Flag for whether a snapshot was stored in the umbrella sampling
+            bool snapshot_stored;        
+            
+            //! Flag for whether a system is initialized at a given iteration
+            bool initialized;
+
+            //! Flag for whether a system was initialized before it checked whether other systems were
+            bool original_initialized; 
 
         public:
 
@@ -114,6 +123,7 @@ namespace SSAGES
             _restrained_steps = _harvest_length*_number_trajectories; 
             _unrestrained_steps = _swarm_length*_number_trajectories;
             sampling_started = false;
+            snapshot_stored = false;
 
             _iterator = 0; //Override default StringMethod.h initializing
         }

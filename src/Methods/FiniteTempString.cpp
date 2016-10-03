@@ -27,7 +27,6 @@
 namespace SSAGES
 { 
 
-
 	// Check whether CV values are within their respective Voronoi cell in CV space
 	bool FiniteTempString::InCell(const CVList& cvs) const
 	{
@@ -48,38 +47,77 @@ namespace SSAGES
 	void FiniteTempString::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
 		auto& forces = snapshot->GetForces();
+        bool insidecell;
 
-		auto insidecell = InCell(cvs);
+        if(reset_for_umbrella)
+        {
+            //std::cout << "_" << _mpiid << " : Resetting for umbrella on MDStep : " << MDStep << std::endl;
+            //If the system was not going to run the umbrella anymore, reset its position
+            for(auto& force : forces)
+            {
+                force.setZero();
+            }
+            SetPos(snapshot);                       
+        }
+        for(auto& cv : cvs)
+        {
+            //Trigger a rebuild of the CVs since we reset the positions
+            cv->Evaluate(*snapshot);
+        }
+        insidecell = InCell(cvs); 
 
+        MPI_Allreduce(MPI::IN_PLACE, &_run_umbrella, 1, MPI::BOOL, MPI::LOR, _world); 
 		if(_run_umbrella)
-		{
-			if(insidecell && _umbrella_iter >= _min_num_umbrella_steps)
+		{ 
+			if(_umbrella_iter == _min_num_umbrella_steps)
 			{
-				_run_umbrella = false;
-				_umbrella_iter = 0;
+				if(insidecell)
+                {
+                    //std::cout << "_" << _mpiid << " : Inside cell and storing snapshot on MDStep : " << MDStep << std::endl; 
+                    _run_umbrella = false;
+                    reset_for_umbrella = true;
+                    //This node is done initializing; so store this snapshot
+                    StoreSnapshot(snapshot);
+                }
+				_umbrella_iter = 1;	
 			}
 			else
 			{
-				for(size_t i = 0; i < cvs.size(); i++)
-				{
-					// Get current cv and gradient
-					auto& cv = cvs[i];
-					auto& grad = cv->GetGradient();
+                if(!reset_for_umbrella)
+                {
+                    //std::cout << "_" << _mpiid << " : Running umbrella on MDStep: " << MDStep << std::endl;
+                    for(size_t i = 0; i < cvs.size(); i++)
+                    {
+                        // Get current cv and gradient
+                        auto& cv = cvs[i];
+                        auto& grad = cv->GetGradient();
 
-					// Compute dV/dCV
-					auto D = _cvspring[i]*(cv->GetDifference(_centers[i]));
+                        // Compute dV/dCV
+                        auto D = _cvspring[i]*(cv->GetDifference(_centers[i]));
 
-					// Update forces
-					for(size_t j = 0; j < forces.size(); j++)
-							forces[j] -= D*grad[j];
-				}
-				_umbrella_iter++;
-				return;
+                        // Update forces
+                        for(size_t j = 0; j < forces.size(); j++)
+                                forces[j] -= D*grad[j];
+                    }
+                    _umbrella_iter++;    
+                }
+                else
+                {
+                    //std::cout << "_" << _mpiid << " : Waiting for other nodes on MDStep : " << MDStep << std::endl; 
+                    _run_umbrella = false;
+                }
 			}
+            MDStep++;
+            return;
 		}
+        else
+        {
+            reset_for_umbrella = false;
+        }
 
 		if(!insidecell)
 		{
+            //std::cout << "_" << _mpiid << " : Regular sampling, outside cell on MDStep: " << MDStep << std::endl;
 			for(auto& force : forces)
 				force.setZero();
 
@@ -94,6 +132,7 @@ namespace SSAGES
 		}
 		else
 		{
+            //std::cout << "_" << _mpiid << " : Regular sampling, inside cell on MDStep: " << MDStep << std::endl;
 			// Calculate running averages for each CV at each node 
 			for(size_t i = 0; i < _newcenters.size(); i++)
 			{
@@ -112,8 +151,11 @@ namespace SSAGES
 		// Update the string, every _blockiterations string method iterations
 		if(_iterator % _blockiterations == 0)
 		{
+            //std::cout << "_" << _mpiid << " : Before string update on MDStep: " << MDStep << std::endl;
+            MPI_Barrier(_world);
 	        StringUpdate();
             CheckEnd(cvs);
+            MPI_Barrier(_world);
 			UpdateWorldString(cvs); 
             PrintString(cvs);
 
@@ -121,9 +163,14 @@ namespace SSAGES
 			_iteration++;
 
 			if(!InCell(cvs))
-				_run_umbrella = true;
+            {
+                _run_umbrella = true;
+                reset_for_umbrella = false; 
+            }
+			MPI_Allreduce(MPI::IN_PLACE, &_run_umbrella, 1, MPI::BOOL, MPI::LOR, _world);
 		}
-		
+
+		MDStep++;
 		_iterator++;
 	}
 

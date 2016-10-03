@@ -115,7 +115,7 @@ TEST_F(SwarmTest,dummytest)
         Swarm_Method->_cv_drift = {-0.2, -0.5};
     
     //std::cout << " Hello 2 " << std::endl; //Debugging
-    Swarm_Method->UpdateWorldString();
+    Swarm_Method->UpdateWorldString(cvlist_initialized);
     Swarm_Method->SetSendRecvNeighbors();
     Swarm_Method->StringUpdate();
     //std::cout << " Hello 3 " << std::endl; //Debugging
