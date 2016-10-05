@@ -93,15 +93,9 @@ TEST_F(StringMethodTest,dummytest)
 	// only run this test with 3 ~faux walkers~
 	ASSERT_TRUE(3 == world.size()) << "ERROR: String Method unit test must be run with 3 processes" ;
 
-	// Test StringMethod->sqdist()
+	// Test StringMethod->distance()
 	ASSERT_EQ(vec1.size(), vec2.size());
-	EXPECT_NEAR(FTS_Method->sqdist(vec1, vec2), 4.359, sq_dist_eps);
-	// currently stringmethod::sqdist doesnt check if its two inputs are different sizes
-	//
-	// also: somewhere along the way this function stopped returning the squared distance
-	// and returns [the already square-rooted] distance... function name is confusing
-	//
-	// eigen???
+	EXPECT_NEAR(FTS_Method->distance(vec1, vec2), 4.359, sq_dist_eps);
 	
 	// Test StringMethod->TolCheck()
 	// Default is no tolerance defined: _tol is empty
@@ -117,7 +111,7 @@ TEST_F(StringMethodTest,dummytest)
 	EXPECT_TRUE(FTS_Method->TolCheck()) << "ERROR: TolCheck() gives false negative";
 	
 	// Test StringMethod->UpdateWorldString()
-    FTS_Method->UpdateWorldString();
+    FTS_Method->UpdateWorldString(cvlist);
 	for(size_t i = 0; i < FTS_Method->_centers.size(); i++){
 		EXPECT_NEAR(FTS_Method->_worldstring[mpiid][i], FTS_Method->_centers[i], eps) << "ERROR: _worldstring not updated correctly by UpdateWorldString()";
 	}
@@ -129,7 +123,7 @@ TEST_F(StringMethodTest,dummytest)
 	ucv0.resize(FTS_Method->_centers.size(), 0);
 	// A call to UpdateWorldString() will make the values in worldstring identical to centers
 	// Already verified in previous test so this is safe
-    FTS_Method->UpdateWorldString(); 
+    FTS_Method->UpdateWorldString(cvlist); 
     FTS_Method->GatherNeighbors(&lcv0, &ucv0);
     // Now test that each mpiid has the correct value of centers
     if(FTS_Method->_mpiid == 0)
@@ -158,9 +152,9 @@ TEST_F(StringMethodTest,dummytest)
     }
 
 	// Test StringMethod->StringReparam()
-    double alphastar = FTS_Method->sqdist(FTS_Method->_centers, lcv0);
+    double alphastar = FTS_Method->distance(FTS_Method->_centers, lcv0);
     FTS_Method->StringReparam(alphastar); 
-    FTS_Method->UpdateWorldString();
+    FTS_Method->UpdateWorldString(cvlist);
     
     //This test is based on empirical results of actually running stringreparam
     if(mpiid == 0)
@@ -182,14 +176,14 @@ TEST_F(StringMethodTest,dummytest)
 	// Check: iteration not met + tol not met
 	FTS_Method->_tol = {0.0001, 0.0001};
     FTS_Method->_worldstring = worldstring;
-    EXPECT_TRUE(FTS_Method->CheckEnd()) << "ERROR: CheckEnd() exits method earlier than expected";
+    EXPECT_TRUE(FTS_Method->CheckEnd(cvlist)) << "ERROR: CheckEnd() exits method earlier than expected";
 	// Check: iteration met + tol not met
 	FTS_Method->_iteration++;
-    EXPECT_DEATH(FTS_Method->CheckEnd(), "") << "ERROR: CheckEnd() fails to exit when max iterations has been met";
+    EXPECT_DEATH(FTS_Method->CheckEnd(cvlist), "") << "ERROR: CheckEnd() fails to exit when max iterations has been met";
 	// Check: iteration not met + tol met
 	FTS_Method->_iteration--;
 	FTS_Method->_tol = {1, 1};
-    EXPECT_DEATH(FTS_Method->CheckEnd(), "") << "ERROR: CheckEnd() fails to exit when tolerance criteria has been met";
+    EXPECT_DEATH(FTS_Method->CheckEnd(cvlist), "") << "ERROR: CheckEnd() fails to exit when tolerance criteria has been met";
 
     std::cout.clear();
 }

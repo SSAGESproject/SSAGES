@@ -29,10 +29,11 @@
 namespace mpi = boost::mpi;
 namespace SSAGES
 {
+
     //Helper function to check if CVs are initialized correctly
     bool Swarm::CVInitialized(const CVList& cvs)
     {
-        double threshold = 0.05;
+        double threshold = 0.2;
         const double eps = 0.0000000001;
         double diff;
 
@@ -49,10 +50,10 @@ namespace SSAGES
             }
             if(diff >= threshold)
             {
-                return true; //proceed to initialize again
+                return false; //proceed to initialize again
             }
-        }
-        return false; //OK to move on to regular sampling
+        } 
+        return true; //OK to move on to regular sampling
     }
 
     void Swarm::PostIntegration(Snapshot* snapshot, const CVList& cvs)
@@ -62,43 +63,66 @@ namespace SSAGES
         auto& velocities = snapshot->GetVelocities();
         auto& atomids = snapshot->GetAtomIDs();
 
-        bool initialize; //Whether to initialize or not
-
-        if(!sampling_started) 
+        if(snapshot_stored)
         {
-            initialize = CVInitialized(cvs);
+            initialized = true;
         }
         else
         {
-            initialize = false;
+            initialized = CVInitialized(cvs); //Whether to initialize or not
         }
-        if(initialize && !sampling_started)
-        {//On first pass, make sure CVs are initialized well
-            //Do restrained sampling, and do not harvest trajectories 
-            for(size_t i = 0; i < cvs.size(); i++)
+        
+        original_initialized = initialized;
+
+        if(initialized && !sampling_started)
+        {
+            if(!snapshot_stored)
             {
-                //Get current CV and gradient
-                auto& cv = cvs[i];
-                auto& grad = cv->GetGradient();
-
-                //Compute dV/dCV
-                auto D = _cvspring[i]*(cv->GetDifference(_centers[i]));
-
-                //Update forces
-                for(size_t j = 0; j < forces.size(); j++)
+                StoreSnapshot(snapshot, _index);
+                snapshot_stored = true;
+            }
+        }
+        MPI_Allreduce(MPI::IN_PLACE, &initialized, 1, MPI::BOOL, MPI::LAND, _world);
+        if(!initialized && !sampling_started)
+        {//Ensure CVs are initialized well
+            //Do restrained sampling, and do not harvest trajectories 
+            if(!original_initialized)
+            {
+                for(size_t i = 0; i < cvs.size(); i++)
                 {
-                    for(size_t k = 0; k < forces[j].size(); k++)
+                    //Get current CV and gradient
+                    auto& cv = cvs[i];
+                    auto& grad = cv->GetGradient();
+
+                    //Compute dV/dCV
+                    auto D = _cvspring[i]*(cv->GetDifference(_centers[i]));
+
+                    //Update forces
+                    for(size_t j = 0; j < forces.size(); j++)
                     {
-                        forces[j][k] -= (double)D*grad[j][k];
+                        for(size_t k = 0; k < forces[j].size(); k++)
+                        {
+                            forces[j][k] -= (double)D*grad[j][k];
+                        }
                     }
                 }
+            }
+            else
+            {
+                //Reset positions and forces, keeping them at their initialized value
+                _index = 0;
+                for(auto& force: forces)
+                    force.setZero();
+
+                SetPos(snapshot, _index);
+                SetVel(snapshot, _index);
             }
         }
         else
         {
             if(!sampling_started)
             {
-                sampling_started = true; //Flag to prevent unneeded umbrella sampling
+                sampling_started = true; //Flag to prevent unneeded umbrella sampling 
             }
             if(_iterator <= _initialize_steps + _restrained_steps)
             {
@@ -174,21 +198,24 @@ namespace SSAGES
             {
                 //Evolve CVs, reparametrize, and reset vectors
                 _iteration++;
-    
+                
+                MPI_Barrier(_world);
                 StringUpdate();
                 CheckEnd(cvs);
+                MPI_Barrier(_world);
 			    UpdateWorldString(cvs); 
                 PrintString(cvs);
 
                 _iterator = 0;
                 _index = 0;
+                snapshot_stored = false;
 
                 for(size_t i = 0; i < _cv_drift.size(); i++)
                 {
                     _cv_drift[i] = 0; 
                 }
             }
-        }
+        } 
     }
 
     void Swarm::StringUpdate()

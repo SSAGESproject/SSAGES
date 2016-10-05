@@ -66,6 +66,9 @@ namespace SSAGES
 
 		//! Updates the string according to the FTS method
 		void StringUpdate();
+        
+        //! Flag for whether a system was to run umbrella sampling before checking against other systems
+        bool reset_for_umbrella; 
 
 	public:
 		//! Constructor
@@ -97,7 +100,7 @@ namespace SSAGES
 		StringMethod(world, comm, centers, maxiterations, cvspring, frequency),
 		_kappa(kappa), _blockiterations(blockiterations), _tau(tau), 
 		_min_num_umbrella_steps(springiter), _run_umbrella(true),
-		_umbrella_iter(1)
+		_umbrella_iter(1), reset_for_umbrella(false)
         {
 			//! Store positions for starting trajectories
 			_prev_positions.resize(1);
