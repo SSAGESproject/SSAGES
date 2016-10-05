@@ -5,6 +5,9 @@ SSAGES
 It is designed to be easy to use, extendable and extremely versatile. It is currently pre-beta, meaning that there are many rough edges, but we are working rapidly 
 to expand its features and fix any bugs. Keep an eye on this page for future updates and see below on how to contribute!
 
+## What's New (v0.4.1)
+- String method fix for Gromacs
+
 <a id="features"></a>
 ## Features
 **SSAGES** currently works with LAMMPS and Gromacs molecular dynamics engine. It contains a variety of collective variables (CVs) and advanced sampling methods. 
