@@ -1,4 +1,5 @@
 .. _adaptive-biasing-force:
+
 Adaptive Biasing Force Algorithm
 --------------------------------
 
@@ -22,10 +23,10 @@ the free energy surface. 
 Thus, ABF gives a vector field and not a free energy surface.
 
 An excellent write-up on the method can be found
-`here <http://pubs.acs.org/doi/abs/10.1021/jp506633n>`_.
+`here <http://pubs.acs.org/doi/abs/10.1021/jp506633n>`__.
 
 Details on the specific implementation used in SSAGES can be found
-`here <http://mc.stanford.edu/cgi-bin/images/0/06/Darve_2008.pdf>`_.
+`here <http://mc.stanford.edu/cgi-bin/images/0/06/Darve_2008.pdf>`__.
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -147,7 +148,7 @@ file will contain the Adaptive Force vector field printed out every
 field, with vectors defined on each point on a grid that goes from 
 (CV_lower_bounds) to (CV_upper_bounds) of each CV in its dimension, with (CV_bins) of grid points 
 in each dimension. For example, for 2 CVs defined from (-1,1) and (-1,0) with 3 and
- 2 bins respectively would be a 3x2 grid (6 grid points). The printout is in the 
+2 bins respectively would be a 3x2 grid (6 grid points). The printout is in the
 following format: 2*N number of columns, where N is the number of CVs. First N columns 
 are coordinates in CV space, the N+1 to 2N columns are components of the Adaptive Force 
 vectors. An example for N=2 is:

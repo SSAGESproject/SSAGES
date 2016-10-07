@@ -43,7 +43,8 @@ Working on the core SSAGES system
 .. _report_bugs:
 
 Reporting bugs and wishes
-----------------------
+-------------------------
+
 .. todo::
 
     Link to GitHub issue tracker
@@ -52,7 +53,7 @@ Reporting bugs and wishes
 .. _improve_documentation:
 
 Improving the Documentation
--------------------------
+---------------------------
 
 Great documentation and great code produces great software.
 -SSAGE advice
@@ -80,12 +81,12 @@ Here are a few ideas on how you can help:
 * Write a tutorial.
 
 Building the documentation
-^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Before you can work on the documentation, you first have to build it. The
 documentation is part of the SSAGES source code. It is assumed that you have already
 downloaded and built the source code as described in the
-:ref:`Getting Started <getting_started>` section. You will find a
+:ref:`Getting Started <getting-started>` section. You will find a
 collection of rst files comprising the User Manual under ``doc/source/`` where
 the file ending ``rst`` stands for ReStructured Text. The API documentation on
 the other hand resides directly in the header files right next to the classes
@@ -332,7 +333,7 @@ should include
 .. _add_your_method:
 
 Adding your method to SSAGES
--------------------------
+----------------------------
 
 .. seealso::
 
@@ -367,7 +368,8 @@ SSAGES code.
 .. _work_on_core_ssages:
 
 Working on the core classes
-------------------------
+---------------------------
+
 .. todo::
 
     Describe SSAGES development

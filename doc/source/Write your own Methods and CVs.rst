@@ -169,7 +169,7 @@ additionalProperties
     Optional properties.
 
 Integrate the new method into SSAGES
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Once you have provided the header and the schema file, there is one more
 steps to do in order to make SSAGES aware of the newly included method.

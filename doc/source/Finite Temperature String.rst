@@ -1,4 +1,5 @@
 .. _Finite-temperature-string:
+
 Finite Temperature String
 -------------------------
 

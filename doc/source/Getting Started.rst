@@ -6,45 +6,28 @@ Getting Started
 Pre-Reqisites
 -------------
 
-Openmpi
-^^^^^^^
+Before you try to build SSAGES, make sure that you have the following packages
+installed:
 
-SSAGES requires a pre-built MPI environment to achieve the best parallel
-computing performance. You can use a package manager to install related packages
-(openmpi-bin, openmpi-doc, libopenmpi-dev, etc. if you are using ubuntu), or you
-can obtain the source code from https://www.open-mpi.org and build it
-appropriately in your system. Make sure you have a newer version installed, for
-example, openmpi 1.8.
++------------+------------------+-----------------------------------+
+| Package    | Required version | Package name in Ubuntu repository |
++============+==================+===================================+
+| `openmpi`_ | 1.8 or higher    | openmpi-common, libopenmpi-dev    |
++------------+------------------+-----------------------------------+
+| `boost`_   | 1.58 or higher   | libboost-dev                      |
++------------+------------------+-----------------------------------+
+| `gcc`_     | 4.9 or higher    | gcc-4.9                           |
++------------+------------------+-----------------------------------+
+| `cmake`_   | 2.8 or higher    | cmake                             |
++------------+------------------+-----------------------------------+
+| `python`_  | 2.7              | python2.7                         |
++------------+------------------+-----------------------------------+
 
-Boost
-^^^^^
-
-Make sure your have newer version of boost installed (for example, boost 1.60).
-You can obtain the source code and built boost appropriately following
-http://www.boost.org/
-
-Gcc
-^^^
-
-Make sure you have gcc 4.9+ installed on your system. You can install a
-compatible version of gcc using a package manager, for example, apt-get in
-linux, or obtain and build cmake appropriately following https://gcc.gnu.org/.
-
-Cmake
-^^^^^
-
-SSAGES requires a Cmake build system. You can install a compatible version of
-Cmake using a package manager, for example, apt-get in linux, or obtain and
-build cmake appropriately following https://cmake.org. 
-
-Python
-^^^^^^
-
-Python 2.7 is required to enable some built-in tools in SSAGES, for example,
-some python scripts are prepared to generate Json files as inputs in some
-method. You can use a package manager to install it or obtain the source code
-from https://www.python.org/downloads/ and build it appropriately in your
-system. 
+.. _openmpi: https://www.open-mpi.org/
+.. _boost: http://www.boost.org/
+.. _gcc: https://gcc.gnu.org/
+.. _cmake: https://cmake.org/
+.. _python: https://www.python.org/
 
 Get the source code
 -------------------
@@ -55,12 +38,8 @@ as it allows you to easily stay up-to-date with the latest version.
 
 To clone the git repository, call
 
-.. todo::
-
-    Link to GitHub release instead of SSAGES development
-
 ```
-git clone https://github.com/jonathankwhitmer/SSAGES.git
+git clone https://github.com/MICCoM/SSAGES-public.git
 ```
 
 Build SSAGES
@@ -87,7 +66,8 @@ or
     make
 
 This set of commands will automatically download LAMMPS and build it together
-with SSAGES.
+with SSAGES. Alternatively, you can :ref:`build SSAGES using a local copy of the
+MD engine source code <build_ssages_with_local_md_source>`.
 
 Run SSAGES
 ----------
@@ -99,5 +79,24 @@ For example:
     
     mpiexec -np 6 ./ssages Test.json
 
-Where the `-np` flag dictates the total number of processors you need and Test.json is the input file. For specific examples please see the :ref:`Tutorials <tutorials>`.
- 
+Where the `-np` flag dictates the total number of processors you need and Test.json
+is the input file. For specific examples please see the :ref:`Tutorials <tutorials>`.
+
+More information on how to run SSAGES with a specific simulation engine can be found
+here:
+
+* :ref:`How to run SSAGES on LAMMPS <run_ssages_on_lammps>`.
+* :ref:`How to run SSAGES with GROMACS <run_ssages_with_gromacs>`.
+
+Advanced options
+----------------
+
+In case these simple steps do not meet your need, you can find advanced information
+on building and running SSAGES here.
+
+.. toctree::
+   :maxdepth: 1
+
+   Build SSAGES with local copy of MD source
+   How to run SSAGES on LAMMPS
+   How to run SSAGES with GROMACS
