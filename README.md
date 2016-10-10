@@ -5,8 +5,8 @@ SSAGES
 It is designed to be easy to use, extendable and extremely versatile. It is currently pre-beta, meaning that there are many rough edges, but we are working rapidly 
 to expand its features and fix any bugs. Keep an eye on this page for future updates and see below on how to contribute!
 
-## What's New (v0.4.1)
-- String method fix for Gromacs
+## What's New (v0.4.2)
+- String method fix for compiling
 
 <a id="features"></a>
 ## Features
@@ -126,6 +126,9 @@ or
 ```bash
 $ firefox doc/Manual/index.html
 ```
+
+## What's Old (v0.4.1)
+- String method fix for Gromacs
 
 ## Known issues 
 **SSAGES** is currently in pre-beta. That means there may be known issues that are not yet resolved. Major issues are listed here. 
