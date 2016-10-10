@@ -51,7 +51,6 @@ namespace SSAGES
 
         if(reset_for_umbrella)
         {
-            //std::cout << "_" << _mpiid << " : Resetting for umbrella on MDStep : " << MDStep << std::endl;
             //If the system was not going to run the umbrella anymore, reset its position
             for(auto& force : forces)
             {
@@ -73,7 +72,6 @@ namespace SSAGES
 			{
 				if(insidecell)
                 {
-                    //std::cout << "_" << _mpiid << " : Inside cell and storing snapshot on MDStep : " << MDStep << std::endl; 
                     _run_umbrella = false;
                     reset_for_umbrella = true;
                     //This node is done initializing; so store this snapshot
@@ -85,7 +83,6 @@ namespace SSAGES
 			{
                 if(!reset_for_umbrella)
                 {
-                    //std::cout << "_" << _mpiid << " : Running umbrella on MDStep: " << MDStep << std::endl;
                     for(size_t i = 0; i < cvs.size(); i++)
                     {
                         // Get current cv and gradient
@@ -103,11 +100,9 @@ namespace SSAGES
                 }
                 else
                 {
-                    //std::cout << "_" << _mpiid << " : Waiting for other nodes on MDStep : " << MDStep << std::endl; 
                     _run_umbrella = false;
                 }
 			}
-            MDStep++;
             return;
 		}
         else
@@ -117,7 +112,6 @@ namespace SSAGES
 
 		if(!insidecell)
 		{
-            //std::cout << "_" << _mpiid << " : Regular sampling, outside cell on MDStep: " << MDStep << std::endl;
 			for(auto& force : forces)
 				force.setZero();
 
@@ -132,7 +126,6 @@ namespace SSAGES
 		}
 		else
 		{
-            //std::cout << "_" << _mpiid << " : Regular sampling, inside cell on MDStep: " << MDStep << std::endl;
 			// Calculate running averages for each CV at each node 
 			for(size_t i = 0; i < _newcenters.size(); i++)
 			{
@@ -151,7 +144,6 @@ namespace SSAGES
 		// Update the string, every _blockiterations string method iterations
 		if(_iterator % _blockiterations == 0)
 		{
-            //std::cout << "_" << _mpiid << " : Before string update on MDStep: " << MDStep << std::endl;
             MPI_Barrier(_world);
 	        StringUpdate();
             CheckEnd(cvs);
@@ -170,7 +162,6 @@ namespace SSAGES
 			MPI_Allreduce(MPI::IN_PLACE, &_run_umbrella, 1, MPI::BOOL, MPI::LOR, _world);
 		}
 
-		MDStep++;
 		_iterator++;
 	}
 
