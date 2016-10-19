@@ -24,17 +24,39 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR})
 find_package (Sphinx)
 
 if (SPHINX_FOUND)
-    add_custom_target(manual
-                      COMMAND sphinx-build -b html  ${CMAKE_CURRENT_SOURCE_DIR}/source
-                                                    ${CMAKE_CURRENT_BINARY_DIR}/Manual
-                      COMMENT "Building User Manual")
+    execute_process(
+        COMMAND git describe --tag
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        RESULT_VARIABLE GIT_RESULT
+        OUTPUT_VARIABLE RELEASE_STRING
+        ERROR_QUIET
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
 
-    add_custom_target(pdfmanual
-                      COMMAND sphinx-build -b latex ${CMAKE_CURRENT_SOURCE_DIR}/source
-                                                    ${CMAKE_CURRENT_BINARY_DIR}/Manual
-                      COMMAND make
-                      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Manual
-                      COMMENT "Building PDF version of Manual")
+    if (NOT ${GIT_RESULT} EQUAL 0)
+        set (RELEASE_STRING "${SSAGES_VERSION_MAJOR}.${SSAGES_VERSION_MINOR}.${SSAGES_VERSION_TINY}")
+    endif (NOT ${GIT_RESULT} EQUAL 0)
+
+    configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/source/conf.py.in"
+                    "${CMAKE_CURRENT_BINARY_DIR}/conf.py")
+
+    add_custom_target(
+        manual
+        COMMAND sphinx-build -b html -c ${CMAKE_CURRENT_BINARY_DIR}
+                ${CMAKE_CURRENT_SOURCE_DIR}/source
+                ${CMAKE_CURRENT_BINARY_DIR}/Manual
+        COMMENT "Building User Manual"
+    )
+
+    add_custom_target(
+        pdfmanual
+        COMMAND sphinx-build -b latex -c ${CMAKE_CURRENT_BINARY_DIR}
+                ${CMAKE_CURRENT_SOURCE_DIR}/source
+                ${CMAKE_CURRENT_BINARY_DIR}/Manual
+        COMMAND make
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Manual
+        COMMENT "Building PDF version of Manual"
+    )
 else (SPHINX_FOUND)
     message (WARNING "\nWARNING: To generate User Manual, please install Sphinx.")
 endif (SPHINX_FOUND)
