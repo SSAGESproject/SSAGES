@@ -1,4 +1,5 @@
 .. _getting-started:
+
 Getting Started
 ===============
 
@@ -67,6 +68,23 @@ or
 This set of commands will automatically download LAMMPS and build it together
 with SSAGES. Alternatively, you can :ref:`build SSAGES using a local copy of the
 MD engine source code <build_ssages_with_local_md_source>`.
+
+LAMMPS can be built with optional packages. To enable or disable these packages,
+you can call
+
+.. code-block:: bash
+
+    make yes-package
+
+or
+
+.. code-block:: bash
+
+    make no-package
+
+respectively. For more information on optional packages for LAMMPS, refer to
+the `LAMMPS user manual
+<http://lammps.sandia.gov/doc/Section_start.html#making-lammps-with-optional-packages>`_.
 
 Run SSAGES
 ----------

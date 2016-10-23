@@ -174,6 +174,75 @@ if(LAMMPS OR LAMMPS_SRC)
 		)
 	endif (LAMMPS)
 
+    # List of optional LAMMPS packages (as of Oct 2016)
+    set(LAMMPS_PACKAGES "all"      # All packages
+						"standard" # All standard packages
+						"user"     # All user packages
+						# Standard packages:
+						"asphere"
+						"body"
+						"class2"
+						"colloid"
+						"compress"
+						"coreshell"
+						"dipole"
+						"gpu"
+						"granular"
+						"kim"
+						"kokkos"
+						"kspace"
+						"manybody"
+						"mc"
+						"meam"
+						"misc"
+						"molecule"
+						"mpiio"
+						"opt"
+						"peri"
+						"poems"
+						"python"
+						"qeq"
+						"reax"
+						"replica"
+						"rigid"
+						"shock"
+						"snap"
+						"srd"
+						"voronoi"
+						# User packages:
+						"user-atc"
+						"user-awpmd"
+						"user-cg-cmm"
+						"user-colvars"
+						"user-diffraction"
+						"user-dpd"
+						"user-drude"
+						"user-eff"
+						"user-fep"
+						"user-h5md"
+						"user-intel"
+						"user-lb"
+						"user-manifold"
+						"user-mgpt"
+						"user-misc"
+						"user-molfile"
+						"user-omp"
+						"user-phonon"
+						"user-qmmm"
+						"user-qtb"
+						"user-quip"
+						"user-reaxc"
+						"user-smd"
+						"user-smtbq"
+						"user-sph"
+						"user-tally"
+						"user-vtk")
+
+	foreach (PACKAGE ${LAMMPS_PACKAGES})
+		add_custom_target (yes-${PACKAGE} $(MAKE) -C ${LAMMPS_SRC} yes-${PACKAGE})
+		add_custom_target (no-${PACKAGE} $(MAKE) -C ${LAMMPS_SRC} no-${PACKAGE})
+	endforeach (PACKAGE ${LAMMPS_PACKAGES})
+
 	# Add lammps as external project
 	ExternalProject_Add(
 		lammps
