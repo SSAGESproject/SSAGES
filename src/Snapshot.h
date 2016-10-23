@@ -19,6 +19,7 @@
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+#include <numeric>
 #include <vector>
 #include <memory>
 #include <boost/mpi.hpp>

@@ -19,6 +19,8 @@
  */
 #pragma once
 
+#include <numeric>
+
 #include "Method.h"
 #include "../CVs/CollectiveVariable.h"
 #include <fstream>
