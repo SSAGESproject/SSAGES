@@ -29,6 +29,7 @@
 
 namespace SSAGES
 {
+	//! Quick helper function to round a double.
 	inline double roundf(double x)
 	{
     	return ( x >= 0 ) ? floor( x + 0.5 ) : ceil( x - 0.5 );
@@ -142,8 +143,16 @@ namespace SSAGES
 		 */
 		double GetKb() const { return _kb; }
 
+		//! Get dielectric constant.
+		/*!
+		 * \return dielectric constant.
+		 */
 		double GetDielectric() const { return _dielectric; }
 
+		//! Get qqrd2e value.
+		/*!
+		 * \return Value of qqrd2e.
+		 */
 		double Getqqrd2e() const { return _qqrd2e; }
 		
 		//! Get communicator for group (walker).
@@ -241,13 +250,21 @@ namespace SSAGES
 			_kb = kb;
 			_changed = true;
 		}
-		
+
+		//! Set the dielectric constant.
+		/*!
+		 * \param dielectric Value for the dielectric constant.
+		 */
 		void SetDielectric(double dielectric) 
 		{ 
 			_dielectric = dielectric;
 			_changed = true;
 		}
-	
+
+		//! Set the value for qqrd2e
+		/*!
+		 * \param qqrd2e Value for qqrd2e.
+		 */
 		void Setqqrd2e(double qqrd2e) 
 		{ 
 			_qqrd2e = qqrd2e;
@@ -256,7 +273,7 @@ namespace SSAGES
 
 		//! Set number of atoms in this snapshot.
 		/*!
-		 * \param Number of atoms in this snapshot
+		 * \param natoms Number of atoms in this snapshot
 		 */
 		void SetNumAtoms(unsigned int natoms) { _nlocal = natoms; }
 
@@ -372,6 +389,7 @@ namespace SSAGES
 		//! Apply minimum image to a vector.
 		/*!
 		 * \param v Vector of interest
+		 * \return Return new vector.
 		 */
 		Vector3 ApplyMinimumImage(const Vector3& v) const
 		{
@@ -478,7 +496,7 @@ namespace SSAGES
 		}
 
 		//! Access the atom IDs
-		/*!t
+		/*!
 		 * \return List of atom IDs
 		 */
 		const Label& GetAtomIDs() const { return _atomids; }
@@ -492,7 +510,7 @@ namespace SSAGES
 
 		//! Gets the local atom index corresponding to an atom ID.
 		/*!
-		 * \param Atom ID. 
+		 * \param id Atom ID.
 		 * \return Local atom index or -1 if not found.
 		 */
 		int GetLocalIndex(int id) const
@@ -528,6 +546,8 @@ namespace SSAGES
 		 * \return List of atom charges
 		 */
 		const std::vector<double>& GetCharges() const { return _charges; }
+
+		/*! \copydoc Snapshot::GetCharges() const */
 		std::vector<double>& GetCharges()
 		{
 			_changed = true;
@@ -552,6 +572,8 @@ namespace SSAGES
 		 * \return List of atom sigmas
 		 */
 		const std::vector<std::vector<double>>& GetSigmas() const { return _sigma; }
+
+		/*! \copydoc Snapshot::GetSigmas() const */
 		std::vector<std::vector<double>>& GetSigmas() 
 		{
 			_changed = true; 

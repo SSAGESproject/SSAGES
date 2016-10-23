@@ -41,14 +41,14 @@ namespace SSAGES
 		//! IDs of atoms of interest. 
 	 	Label _atomids; 
 
-	 	//! Index of dimnesion.
+		//! Index of dimension.
 	 	Dimension _dim;
 
 	public:
 		//! Constructor.
 		/*!
 		 * \param atomids Atom ID's of interest.
-		 * \param index Index of dimension.
+		 * \param dim Index of dimension.
 		 *
 		 * Construct a particle coordinate CV. The atomids specify a vector of the atom
 		 * ID's of interest, and index specifies the dimension to report (x,y,z).

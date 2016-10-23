@@ -46,7 +46,7 @@ namespace SSAGES
 	 	//! Current value of CV.
 		double _val;				
 
-		// Bounds on CV.
+		//! Bounds on CV.
 		std::array<double, 2> _bounds;		
 	public:
 		//! Constructor.
@@ -89,7 +89,7 @@ namespace SSAGES
 
         //! Returns the minimum image of a CV based on the input location.
         /*!
-		 * \param Value against which the minimum image is calculated.
+		 * \param location Value against which the minimum image is calculated.
 		 * \return Minimum image of the CV 
 		 *
          * Takes the input location and applies the periodic boundary conditions to return a minimum image
@@ -145,7 +145,7 @@ namespace SSAGES
 		//! Get difference between current CV value and a given value, taking
 		//! periodic boundaries into account.
 		/*!
-		 * \param Location Value whose distance from the current CV value should be calculated.
+		 * \param location Value whose distance from the current CV value should be calculated.
 		 * \return Difference taking periodic boundaries into account.
 		 *
 		 * Returns the difference betwen the current cv value and Location:

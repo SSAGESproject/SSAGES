@@ -38,8 +38,8 @@ namespace SSAGES
 	class  ParticleSeparationCV : public CollectiveVariable
 	{
 	private:
-		Label group1_; //! Atom ID's of group 1. 
-		Label group2_; //! Atom ID's of group 2.
+		Label group1_; //!< Atom ID's of group 1.
+		Label group2_; //!< Atom ID's of group 2.
 
 	public:
 		//! Constructor

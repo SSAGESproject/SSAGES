@@ -123,6 +123,11 @@ namespace SSAGES
 		    }
 		}
 
+		//! Gather neighbors over MPI
+		/*!
+		 * \param lcv0 Pointer to store array of lower CV values.
+		 * \param ucv0 Pointer to store array of upper CV values.
+		 */
 		void GatherNeighbors(std::vector<double> *lcv0, std::vector<double> *ucv0)
 		{
 			MPI_Status status;
@@ -142,6 +147,10 @@ namespace SSAGES
 			MPI_Bcast(&(*ucv0)[0],_centers.size(),MPI::DOUBLE,0,_comm);
 		}
 
+		//! Reparameterize the string
+		/*!
+		 * \param alpha_star Factor for reparametrization.
+		 */
 		void StringReparam(double alpha_star)
 		{
 			std::vector<double> alpha_star_vector(_numnodes,0.0);
@@ -176,6 +185,10 @@ namespace SSAGES
 			}
 		}
 
+		//! Update the world string over MPI
+		/*!
+		 * \param cvs List of CVs.
+		 */
 		void UpdateWorldString(const CVList& cvs)
 		{
 			for(size_t i = 0; i < _centers.size(); i++)
@@ -216,6 +229,14 @@ namespace SSAGES
 			return true;
 		}
 
+		//! Check if method reached one of the exit criteria.
+		/*!
+		 * \param CV list of CVs.
+		 * \return True if one of the exit criteria is met.
+		 *
+		 * The string method exits if either the maximum number of iteration has
+		 * been reached or if all CVs are within the given tolerance thresholds.
+		 */
 		bool CheckEnd(const CVList& CV) 
 		{
 			if(_maxiterator && _iteration > _maxiterator)
@@ -240,10 +261,16 @@ namespace SSAGES
             return true;
 		}
 
-		// StoreSnapShot and SetSnapshot should be put in the snapshot routine.
-		// Furthermore, there can be some efficiency gains made by storing the
-		// local snapshot, and when you need to set the snapshot,
-		// that is when you serialize. 
+		//! Store a given snapshot.
+		/*!
+		 * \param snapshot Pointer to the snapshot.
+		 * \param frame Index at which to store the snapshot.
+		 *
+		 * \note StoreSnapShot() and SetSnapshot() should be put in the snapshot
+		 *       routine. Furthermore, there can be some efficiency gains made
+		 *       by storing the local snapshot, and when you need to set the
+		 *       snapshot, that is when you serialize.
+		 */
 		void StoreSnapshot(Snapshot* snapshot, int frame = 0)
 		{
 			auto locatoms = snapshot->GetNumAtoms();
@@ -293,6 +320,11 @@ namespace SSAGES
 			MPI_Allgatherv(IDs.data(), IDs.size(), MPI_INT, _prev_IDs[frame].data(), mcounts.data(), mdispls.data(), MPI_INT, _comm);
 		}
 
+		//! Set the positions in snapshot from a previous frame.
+		/*!
+		 * \param snapshot Pointer to the snapshot that will be modified.
+		 * \param frame Index of the frame to take the positions from.
+		 */
 		void SetPos(Snapshot* snapshot, int frame = 0)
 		{
 			auto& Pos = snapshot->GetPositions();
@@ -310,6 +342,11 @@ namespace SSAGES
 			}
 		}
 
+		//! Set the velocities in a snapshot based on a previous frame.
+		/*!
+		 * \param snapshot Pointer to the snapshot that will be modified.
+		 * \param frame Index of the frame to take the velocities from.
+		 */
 		void SetVel(Snapshot* snapshot, int frame = 0)
 		{
 			auto& Vel = snapshot->GetVelocities();
@@ -333,10 +370,7 @@ namespace SSAGES
 		 * \param world MPI global communicator.
 		 * \param comm MPI local communicator.
 		 * \param centers List of centers.
-		 * \param NumNodes Number of nodes.
-		 * \param maxiterator Maximum number of iterations.
-		 * \param blockiterations Number of iterations per block averaging.
-		 * \param tau Value of tau (default: 0.1).
+		 * \param maxiterations Maximum number of iterations.
 		 * \param cvspring Spring constants for cvs.
 		 * \param frequency Frequency with which this method is invoked.
 		 */
@@ -381,12 +415,20 @@ namespace SSAGES
 			_stringout.close();
 		}
 
+		//! Set the tolerance for quitting method
+		/*!
+		 * \param tol List of tolerances for each CV.
+		 *
+		 * Set the tolerance levels until which the method should run. The method
+		 * quit, when the tolerance level is reached for all CVs.
+		 */
 		void SetTolerance(std::vector<double> tol)
 		{
 			for(auto& t : tol)
 				_tol.push_back(t);
 		}
 
+		//! Communicate neighbor lists over MPI
         void SetSendRecvNeighbors()
         {
 		 	std::vector<unsigned int> wiids(_world.size(), 0);
@@ -432,6 +474,7 @@ namespace SSAGES
 			}
         }
 
+		//! \copydoc Serializable::Serialize()
 		void Serialize(Json::Value& json) const override
         {
             json["type"] = "String";

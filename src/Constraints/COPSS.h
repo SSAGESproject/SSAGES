@@ -28,12 +28,19 @@
 
 namespace SSAGES
 {
+	//! Wrapper class for COPSS simulations.
 	class COPSS : public Constraint
 	{
 	private:
+		//! Output stream for debug output.
 		std::ofstream _myout;
 
 	public:
+		//! Constructor.
+		/*!
+		 * \param comm MPI global communicator.
+		 * \param frequency Frequency with which this constraint is called.
+		 */
 		COPSS(boost::mpi::communicator& comm,
 				   unsigned int frequency) : 
 		Constraint(frequency, comm)
@@ -41,11 +48,13 @@ namespace SSAGES
 			_myout.open("test.out");
 		}
 
+		//! Pre-Simulation Hook.
 		void PreSimulation(Snapshot*, const CVList&) override
 		{
 			_myout<<"In PreSimulation"<<std::endl;
 		}
 
+		//! Post-Integration Hook.
 		void PostIntegration(Snapshot* snapshot, const CVList&) override
 		{
 
@@ -60,16 +69,19 @@ namespace SSAGES
 			f[0][0] = 1.000000*f[0][0];
 		}
 
+		//! Post-Simulation Hook.
 		void PostSimulation(Snapshot*, const CVList&) override
 		{
 			_myout <<" Post simulation"<<std::endl;
 		}
 
-		void Serialize(Json::Value&) const override
+		//! \copydoc Serializable::Serialize()
+		void Serialize(Json::Value& json) const override
 		{
 
 		}
 
+		//! Destructor.
 		~COPSS() { _myout.close(); }
 	};
 }

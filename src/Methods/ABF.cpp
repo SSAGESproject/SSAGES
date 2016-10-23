@@ -43,6 +43,11 @@ namespace SSAGES
 	// -> Simply constructed by writing out all members of the fictitious object in a line. This is a vector of length equal to the product of number of bins in each dimension.
 	// -> For the above example, this is 3.5 = 15 members. First 5 members are Y = [1 2 3 4 5] bins with X = 1. Next 5 members are Y = [1 2 3 4 5] with X = 2 ....
 
+	//! Remove a column from the histogram.
+	/*!
+	 * \param matrix Matrix storing the histogram.
+	 * \param colToRemove Index of the column to be removed.
+	 */
 	void removeColumn(Eigen::MatrixXd& matrix, unsigned int colToRemove)
 	{
 	    unsigned int numRows = matrix.rows();

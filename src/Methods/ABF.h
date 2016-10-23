@@ -87,8 +87,11 @@ namespace SSAGES
 		//!_F[i]/max(_N[i],_min).
 		int _min;
 
-		//! To hold last two iterations wdotp value for derivative
-		Eigen::VectorXd _wdotp1, _wdotp2;
+		//! To hold the last iteration wdotp value for derivative.
+		Eigen::VectorXd _wdotp1
+
+		//! To hold the one-but-last iteration wdotp value for derivative.
+		Eigen::VextorXd _wdotp2;
 
 		//! To hold last iterations _F value for removing bias
 		Eigen::VectorXd _Fold;
@@ -176,10 +179,8 @@ namespace SSAGES
 		 * \param timestep Simulation time step.
 		 * \param min Minimum number of hist in a histogram bin before biasing is applied.
 		 * \param filename Name for output file.
-		 * \param printdetails Set up what information to print and frequency of printing.
 		 * \param FBackupInterv Set how often the adaptive force histogram is saved.
 		 * \param unitconv Unit conversion from d(momentum)/d(time) to force.
-		 * \param Orthogonalization Flag to turn on or off Gram-Schmidt Orthogonalization.
 		 * \param frequency Frequency with which this method is invoked.
 		 *
 		 * Constructs an instance of Adaptive Biasing Force method.

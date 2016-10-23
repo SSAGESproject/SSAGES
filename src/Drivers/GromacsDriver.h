@@ -28,13 +28,25 @@
 
 namespace SSAGES
 {
+	//! Driver for Gromacs simulations.
 	class GromacsDriver : public Driver
 	{
 	private:
+
+		//! Number of walkers.
 		int nwalkers_;
+
+		//! Number of MD steps.
 		int MDSteps_;
 
 	public:
+
+		//! Constructor.
+		/*!
+		 * \param world_comm MPI global communicator.
+		 * \param local_comm MPI local communicator.
+		 * \param walkerID ID of the walker assigned to this driver.
+		 */
 		GromacsDriver(mpi::communicator& world_comm, 
 					  mpi::communicator& local_comm,
 					  int walkerID) : 
@@ -42,6 +54,7 @@ namespace SSAGES
 		nwalkers_(world_comm.size()/local_comm.size())
 		{}
 
+		//! Run simulation.
 		virtual void Run() override
 		{
 			int argc = (nwalkers_ > 1) ? 5 : 3; 
@@ -72,12 +85,22 @@ namespace SSAGES
 			gmx::CommandLineModuleManager::runAsMainCMain(argc, largs, &gmx_mdrun);
 		}
 
+		//! Run Input file.
+		/*!
+		 * In the case of Gromacs, the input file does not need to be parsed for
+		 * special information.
+		 */
 		virtual void ExecuteInputFile(std::string) override
 		{
 
 		}
 
-		virtual void BuildDriver(const Json::Value& json, const std::string&) override
+		//! Set up the driver.
+		/*!
+		 * \param json JSON value containing input information.
+		 * \param path Path for JSON path specification.
+		 */
+		virtual void BuildDriver(const Json::Value& json, const std::string& path) override
 		{
 			_inputfile = json.get("inputfile","none").asString();
 			MDSteps_ = json.get("MDSteps", 1).asInt();
@@ -88,6 +111,7 @@ namespace SSAGES
 			_hook = dynamic_cast<Hook*>(&hook);
 		}
 
+		//! \copydoc Serializable::Serialize()
 		virtual void Serialize(Json::Value& json) const override
 		{
 			// Call parent first.
