@@ -81,17 +81,27 @@ namespace SSAGES
 		 * Second entry of each vector holds the upper bound for that CV restraint.
 		 * Third entry of each vector holds the spring constant for that CV restraint.
 		 */
-		std::vector<std::vector<double>> _restraint;		
+		std::vector<std::vector<double>> _restraint;
+
+		//! For each CV, holds whether that CV has periodic boundaries or not.
+		std::vector<bool> _isperiodic;
+
+		//! Holds periodic boundaries of CVs.
+		/*!
+		 * This is a 2 Dimensional object set up as the following:
+		 * _periodicboundaries is a vector of (nr of CV) vectors, ordered in CV order.
+		 * Each of those vectors are 2 long.
+		 * First entry of each vector holds the lower bound for that CV periodic boundary.
+		 * Second entry of each vector holds the upper bound for that CV periodic boundary.
+		 */
+		std::vector<std::vector<double>> _periodicboundaries;		
 
 		//! The minimum number of hits required before full biasing, bias is
 		//!_F[i]/max(_N[i],_min).
 		int _min;
 
-		//! To hold the last iteration wdotp value for derivative.
-		Eigen::VectorXd _wdotp1
-
-		//! To hold the one-but-last iteration wdotp value for derivative.
-		Eigen::VextorXd _wdotp2;
+		//! To hold last two iterations wdotp value for derivative
+		Eigen::VectorXd _wdotp1, _wdotp2;
 
 		//! To hold last iterations _F value for removing bias
 		Eigen::VectorXd _Fold;
@@ -107,8 +117,8 @@ namespace SSAGES
 		 */
 		int histCoords(const CVList& cvs);
 
-		//! Thermodynamic beta.
-		double _beta;
+		//! Mass weighing of bias enabled/disabled
+		bool _massweigh;
 
 		//! Biases.	
 		std::vector<Vector3> _biases;
@@ -179,8 +189,10 @@ namespace SSAGES
 		 * \param timestep Simulation time step.
 		 * \param min Minimum number of hist in a histogram bin before biasing is applied.
 		 * \param filename Name for output file.
+		 * \param printdetails Set up what information to print and frequency of printing.
 		 * \param FBackupInterv Set how often the adaptive force histogram is saved.
 		 * \param unitconv Unit conversion from d(momentum)/d(time) to force.
+		 * \param Orthogonalization Flag to turn on or off Gram-Schmidt Orthogonalization.
 		 * \param frequency Frequency with which this method is invoked.
 		 *
 		 * Constructs an instance of Adaptive Biasing Force method.
@@ -189,16 +201,20 @@ namespace SSAGES
 		 */ 
 		ABF(boost::mpi::communicator& world,
 			boost::mpi::communicator& comm,
-			const std::vector<std::vector<double>>& histdetails,
 			std::vector<std::vector<double>> restraint,
-			double timestep,
+			std::vector<bool> isperiodic,
+			std::vector<std::vector<double>> periodicboundaries,
 			double min,
+			bool massweigh,
 			std::string filename,
+			const std::vector<std::vector<double>>& histdetails,
 			int FBackupInterv,
 			double unitconv,
+			double timestep,
 			unsigned int frequency) :
 		Method(frequency, world, comm), _F(), _Fworld(), _N(0), _Nworld(0),
-		_restraint(restraint), _min(min), _wdotp1(), _wdotp2(), _Fold(), _beta(0),
+		_restraint(restraint), _isperiodic(isperiodic), _periodicboundaries(periodicboundaries),
+		 _min(min), _wdotp1(), _wdotp2(), _Fold(), _massweigh(massweigh),
 		_biases(), _dim(0), _filename(filename), _mpiid(0), _histdetails(histdetails), 
 		_FBackupInterv(FBackupInterv), _unitconv(unitconv), _timestep(timestep)
 		{
