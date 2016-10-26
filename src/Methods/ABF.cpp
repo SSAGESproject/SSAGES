@@ -245,7 +245,7 @@ namespace SSAGES
 		_walkerout.close();
 	}
 
-	void ABF::CalcBiasForce(const Snapshot* snapshot, const CVList& cvs, int coord)
+	void ABF::CalcBiasForce(const Snapshot* /* snapshot */, const CVList& cvs, int coord)
 	{	
 		// Reset the bias.
 		for(auto& b : _biases)

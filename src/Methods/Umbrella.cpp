@@ -36,7 +36,7 @@ namespace SSAGES
 		return 0.5 * k * (x - x0) * (x - x0);
 	}
 
-	void Umbrella::PreSimulation(Snapshot*, const CVList& cvs)
+	void Umbrella::PreSimulation(Snapshot* /* snapshot */, const CVList& /* cvs */)
 	{
 		if(_comm.rank() == 0)
 		{

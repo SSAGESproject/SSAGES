@@ -50,11 +50,7 @@ namespace SSAGES
 		}
 
 		//! Pre-simulation hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
-		 */
-		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override
+		void PreSimulation(Snapshot* /* snapshot */, const CVList& /* cvs */) override
 		{
 			if(!_grid)
 			{
@@ -67,13 +63,8 @@ namespace SSAGES
 		}
 
 		//! Post-integration hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
-		 */
-		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override
+		void PostIntegration(Snapshot* /* snapshot */, const CVList& /* cvs */) override
 		{
-
 			std::vector<int> Indices;
 			std::vector<double> vals;
 			int NDim = _grid->GetDimension();
@@ -109,11 +100,7 @@ namespace SSAGES
 		}
 
 		//! Post-simulation hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
-		 */
-		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override
+		void PostSimulation(Snapshot* /* snapshot */, const CVList& /* cvs */) override
 		{
 
 		}

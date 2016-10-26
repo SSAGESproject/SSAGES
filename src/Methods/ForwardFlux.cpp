@@ -28,7 +28,7 @@
 
 namespace SSAGES
 {
-	void ForwardFlux::PreSimulation(Snapshot* snap, const CVList& cvs)
+	void ForwardFlux::PreSimulation(Snapshot* /* snap */, const CVList& cvs)
 	{
 		if(cvs.size() > 1)
 			throw BuildException({"Forwardflux currently only works with one cv."});
