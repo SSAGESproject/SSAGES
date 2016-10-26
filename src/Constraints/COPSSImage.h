@@ -110,13 +110,13 @@ namespace SSAGES
 		double Rxij;
 
 		//! Auxiliary variable R_ij (y component).
-		double Ryij
+		double Ryij;
 
 		//! Auxiliary variable R_ij (z component).
 		double Rzij;
 
 		//! Auxiliary variable R_ij squared.
-		double Rij2
+		double Rij2;
 
 		//! Auxiliary variable r_ij.
 		double rij;
