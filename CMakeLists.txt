@@ -312,6 +312,15 @@ elseif(GROMACS OR GROMACS_SRC)
 		INSTALL_DIR ${CMAKE_BINARY_DIR}/gromacs
 	)
 
+	# Always build gromacs
+	ExternalProject_Add_Step(
+		gromacs forcebuild
+		COMMAND echo "Force build gromacs"
+		DEPENDEES configure
+		DEPENDERS build
+		ALWAYS 1
+	)
+
 	set(HOOKSRC
 		hooks/gromacs/GromacsHook.cpp
 	)
