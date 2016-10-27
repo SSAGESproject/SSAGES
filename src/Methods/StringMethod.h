@@ -328,7 +328,6 @@ namespace SSAGES
 		void SetPos(Snapshot* snapshot, int frame = 0)
 		{
 			auto& Pos = snapshot->GetPositions();
-			auto& IDs = snapshot->GetAtomIDs();
 
 			for(size_t i = 0; i < _prev_IDs[frame].size(); i++)
 			{
@@ -350,7 +349,6 @@ namespace SSAGES
 		void SetVel(Snapshot* snapshot, int frame = 0)
 		{
 			auto& Vel = snapshot->GetVelocities();
-			auto& IDs = snapshot->GetAtomIDs();
 
 			for(size_t i = 0; i < _prev_IDs[frame].size(); i++)
 			{

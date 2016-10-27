@@ -59,9 +59,6 @@ namespace SSAGES
     void Swarm::PostIntegration(Snapshot* snapshot, const CVList& cvs)
     {
         auto& forces = snapshot->GetForces();
-        auto& positions = snapshot->GetPositions();
-        auto& velocities = snapshot->GetVelocities();
-        auto& atomids = snapshot->GetAtomIDs();
 
         if(snapshot_stored)
         {
