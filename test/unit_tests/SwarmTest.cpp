@@ -99,8 +99,8 @@ TEST_F(SwarmTest,dummytest)
 
         //Backwards logic could be cleaned up in swarm itself
         //std::cout << Swarm_Method->_centers[0] << " " << Swarm_Method->_centers[1] << std::endl;
-        EXPECT_TRUE(!_should_be_initialized);
-        EXPECT_FALSE(!_should_not_be_initialized);
+        EXPECT_TRUE(_should_be_initialized);
+        EXPECT_FALSE(_should_not_be_initialized);
     }
 
     //Test for string update to work correctly
