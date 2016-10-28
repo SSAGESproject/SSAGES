@@ -56,7 +56,7 @@ namespace SSAGES
             unsigned int _unrestrained_steps;
 
             //! For indexing trajectory vectors
-            int _index; 
+            unsigned int _index;
 
             //! Store atom IDs for starting trajecotires
             std::vector<Label> _traj_atomids; 

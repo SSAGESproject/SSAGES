@@ -97,7 +97,7 @@ namespace SSAGES
                     //Update forces
                     for(size_t j = 0; j < forces.size(); j++)
                     {
-                        for(size_t k = 0; k < forces[j].size(); k++)
+                        for(int k = 0; k < forces[j].size(); k++)
                         {
                             forces[j][k] -= (double)D*grad[j][k];
                         }
@@ -140,7 +140,7 @@ namespace SSAGES
                     //Update forces
                     for(size_t j = 0; j < forces.size(); j++)
                     {
-                        for(size_t k = 0; k < forces[j].size(); k++)
+                        for(int k = 0; k < forces[j].size(); k++)
                         {
                             forces[j][k] -= (double)D*grad[j][k]; 
                         }

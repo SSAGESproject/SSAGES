@@ -142,7 +142,7 @@ namespace SSAGES
 
 		// Locate the interface you are at and check if:
 		// Returned to origin or at next interface
-		int atinter = AtInterface(cvs);
+		unsigned int atinter = AtInterface(cvs);
 		if(atinter == _currentnode + 1 || atinter == 0)
 		{
 			_currentnode++;			
@@ -271,7 +271,7 @@ namespace SSAGES
 
 	// Extract all indices for a given interface and contetns. 
 	// Return false if couldnt locate anything at a given interface
-	bool ForwardFlux::ExtractInterfaceIndices(int interface, const std::string& contents,
+	bool ForwardFlux::ExtractInterfaceIndices(unsigned int interface, const std::string& contents,
 											 std::vector<std::vector<std::string> >& InterfaceIndices)
 	{
 		//Extract configuration indices for a given interface int
@@ -286,7 +286,7 @@ namespace SSAGES
 			while (ss >> buf)
 			    tokens.push_back(buf);
 
-			if(std::stoi(tokens[0]) == interface)
+			if(std::stoul(tokens[0]) == interface)
 				InterfaceIndices.push_back(tokens);
 		}
 
@@ -351,7 +351,7 @@ namespace SSAGES
 	}
 
 	// Pick a random configuration
-	std::string ForwardFlux::PickConfiguration(int interface, const std::string& contents)
+	std::string ForwardFlux::PickConfiguration(unsigned int interface, const std::string& contents)
 	{
 		std::string configfilename;
 		if(_world.rank() == 0)

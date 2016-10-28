@@ -245,14 +245,14 @@ namespace SSAGES
             /*As the values for Legendre polynomials can be defined recursively, \
              *both the derivatives and values are defined at the same time,
              */
-			for (size_t i = 0; i < _nbins[k]; ++i)
+			for (int i = 0; i < _nbins[k]; ++i)
 			{
                 x[i] = 2.0*(i + 0.5)/(double)(_nbins[k]) - 1.0;
 				vals[i] = 1.0;
 				dervs[i] = 0.0;
 			}
 
-			for (size_t i = 0; i < _nbins[k]; ++i)
+			for (int i = 0; i < _nbins[k]; ++i)
 			{
 				vals[i+_nbins[k]] = x[i];
 				dervs[i+_nbins[k]] = 1.0;
@@ -260,7 +260,7 @@ namespace SSAGES
 
 			for (size_t j = 2; j < ncoeff; j++)
 			{
-				for (size_t i = 0; i < _nbins[k]; i++)
+				for (int i = 0; i < _nbins[k]; i++)
 				{
                     //Evaluate the values of the Legendre polynomial at each bin
 					vals[i+j*_nbins[k]] = ((double) ( 2*j - 1 ) * x[i] * vals[i+(j-1)*_nbins[k]]
