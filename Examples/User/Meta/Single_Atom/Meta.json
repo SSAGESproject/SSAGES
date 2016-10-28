@@ -18,7 +18,8 @@
             0.1,
             0.1
         ],
-        "height" : 0.1,
+        "frequency" : 1,
+        "height" : 0.1
     },
     "driver" : [
         {
