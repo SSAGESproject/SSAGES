@@ -43,21 +43,6 @@ namespace SSAGES
 	// -> Simply constructed by writing out all members of the fictitious object in a line. This is a vector of length equal to the product of number of bins in each dimension.
 	// -> For the above example, this is 3.5 = 15 members. First 5 members are Y = [1 2 3 4 5] bins with X = 1. Next 5 members are Y = [1 2 3 4 5] with X = 2 ....
 
-	//! Remove a column from the histogram.
-	/*!
-	 * \param matrix Matrix storing the histogram.
-	 * \param colToRemove Index of the column to be removed.
-	 */
-	void removeColumn(Eigen::MatrixXd& matrix, unsigned int colToRemove)
-	{
-	    unsigned int numRows = matrix.rows();
-	    unsigned int numCols = matrix.cols()-1;
-
-	    if( colToRemove < numCols )
-		matrix.block(0,colToRemove,numRows,numCols-colToRemove) = matrix.block(0,colToRemove+1,numRows,numCols-colToRemove);
-
-	    matrix.conservativeResize(numRows,numCols);
-	}
 
 	int ABF::histCoords(const CVList& cvs)
 	{
@@ -182,8 +167,11 @@ namespace SSAGES
 		//* Calculate W using Darve's approach (http://mc.stanford.edu/cgi-bin/images/0/06/Darve_2008.pdf).
 		Eigen::MatrixXd Jmass = J.transpose();
 		
-		for(size_t i = 0; i < forces.size(); ++i)
-			Jmass.block(3*i, 0, 3, _ncv) = Jmass.block(3*i, 0, 3, _ncv)/mass[i];
+		if(_massweigh)
+		{
+			for(size_t i = 0; i < forces.size(); ++i)
+				Jmass.block(3*i, 0, 3, _ncv) = Jmass.block(3*i, 0, 3, _ncv)/mass[i];
+		}
 							
 		Eigen::MatrixXd Minv = J*Jmass;
 		MPI_Allreduce(MPI_IN_PLACE, Minv.data(), Minv.size(), MPI_DOUBLE, MPI_SUM, _comm);
@@ -229,7 +217,7 @@ namespace SSAGES
 			WriteData();
 		
 		// Calculate the bias from averaged F at current CV coordinates
-		CalcBiasForce(snapshot, cvs, coord);
+		CalcBiasForce(snapshot, cvs, coord);		
 		
 		// Update the forces in snapshot by adding in the force bias from each
 		// CV to each atom based on the gradient of the CV.
@@ -265,15 +253,26 @@ namespace SSAGES
 		{
 			for(int i = 0; i < _ncv; ++i)
 			{
+				double cvVal = cvs[i]->GetValue();
 				auto k = 0.;
 				auto x0 = 0.;
+				
+				if(_isperiodic[i])
+					{
+					double periodsize = _periodicboundaries[i][1]-_periodicboundaries[i][0];
+					double cvRestrMidpoint = (_restraint[i][1]+_restraint[i][0])/2;
+					while((cvVal-cvRestrMidpoint) > periodsize/2)
+						cvVal -= periodsize;
+					while((cvVal-cvRestrMidpoint) < -periodsize/2)
+						cvVal += periodsize;
+					}
 
-				if(cvs[i]->GetValue() < _restraint[i][0] && _restraint[i][2] > 0)
+				if(cvVal < _restraint[i][0] && _restraint[i][2] > 0)
 				{
 					k = _restraint[i][2];
 					x0 = _restraint[i][0];
 				}
-				else if (cvs[i]->GetValue() > _restraint[i][1] && _restraint[i][2] > 0)
+				else if (cvVal > _restraint[i][1] && _restraint[i][2] > 0)
 				{
 					k = _restraint[i][2];
 					x0 = _restraint[i][1];
@@ -281,7 +280,7 @@ namespace SSAGES
 
 				auto& grad = cvs[i]->GetGradient();
 				for(size_t j = 0; j < _biases.size(); ++j)
-					_biases[j] -= (cvs[i]->GetValue() - x0)*k*grad[j];
+					_biases[j] -= (cvVal - x0)*k*grad[j];
 			}	
 		}
 	}

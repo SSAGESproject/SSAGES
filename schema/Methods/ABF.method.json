@@ -44,6 +44,30 @@
 			}
 		},
 
+		"CV_isperiodic" : {
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "boolean"
+			}
+		},
+
+		"CV_periodic_boundary_lower_bounds" : {
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+		
+		"CV_periodic_boundary_upper_bounds" : {
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		}, 
+
 		"CV_restraint_spring_constants" : {
 			"type" : "array",
 			"minItems" : 1,
@@ -51,6 +75,7 @@
 				"type" : "integer"
 			}
 		},
+		
 		"timestep" : {
 			"type" : "number",
 			"minimum" : 0
@@ -81,7 +106,7 @@
 			"items" : {
 				"type" : "number"
 			}
-		}, 
+		},
 		
 		"N" : {
 			"type" : "array",
@@ -93,13 +118,17 @@
 
 		"iteration" : {
 			"type" : "integer"
-		}, 
+		},
+
+		"mass_weighing" : {
+			"type" : "boolean"
+		},
 
 		"frequency" : {
 			"type" : "integer",
 			"minimum" : 1
 		}
 	},
-	"required": ["type", "CV_lower_bounds", "CV_upper_bounds", "CV_restraint_minimums", "CV_restraint_maximums", "CV_restraint_spring_constants", "CV_bins", "timestep", "unit_conversion"],
+	"required": ["type", "CV_lower_bounds", "CV_upper_bounds", "CV_restraint_minimums", "CV_restraint_maximums", "CV_restraint_spring_constants", "CV_bins", "CV_isperiodic", "timestep", "unit_conversion"],
 	"additionalProperties": false
 }
