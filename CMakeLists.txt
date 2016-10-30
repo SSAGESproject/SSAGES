@@ -363,11 +363,10 @@ elseif(GROMACS OR GROMACS_SRC)
 
 	ExternalProject_Add(
 		gromacs
-		DOWNLOAD_COMMAND ""
-		BUILD_COMMAND $(MAKE)
-		SOURCE_DIR ${GROMACS_SRC}
 		PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gromacs
-		BUILD_ALWAYS true
+		DOWNLOAD_COMMAND ""
+		SOURCE_DIR ${GROMACS_SRC}
+		PATCH_COMMAND sh ${CMAKE_BINARY_DIR}/apply_patch.sh
 		CMAKE_ARGS
 		-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
 		-DGMX_MPI=ON
@@ -377,9 +376,18 @@ elseif(GROMACS OR GROMACS_SRC)
 		-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 		-DCUDA_PROPAGATE_HOST_FLAGS=OFF
 		-DCUDA_NVCC_FLAGS="-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${PROJECT_SOURCE_DIR}/hooks/gromacs"
+		BUILD_COMMAND $(MAKE)
 		BUILD_IN_SOURCE false
 		INSTALL_DIR ${CMAKE_BINARY_DIR}/gromacs
-		PATCH_COMMAND sh ${CMAKE_BINARY_DIR}/apply_patch.sh
+	)
+
+	# Always build gromacs
+	ExternalProject_Add_Step(
+		gromacs forcebuild
+		COMMAND echo "Force build gromacs"
+		DEPENDEES configure
+		DEPENDERS build
+		ALWAYS 1
 	)
 
 	set(HOOKSRC
