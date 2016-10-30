@@ -33,7 +33,7 @@ namespace SSAGES
 		std::vector<double> dists (_numnodes, 0);
 
 		// Record the difference between all cvs and all nodes
-		for (size_t i = 0; i < _numnodes; i++)
+		for (int i = 0; i < _numnodes; i++)
 			for(size_t j = 0; j < cvs.size(); j++)
 				dists[i]+= pow(cvs[j]->GetDifference(_worldstring[i][j]),2);
 		

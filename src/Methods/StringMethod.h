@@ -54,13 +54,13 @@ namespace SSAGES
 		std::vector<std::vector<double> > _worldstring;
 
 		//! The node this belongs to
-		unsigned int _mpiid;
+		int _mpiid;
 
 		//! Tolerance criteria for determining when to stop string (default 0 if no tolerance criteria)
 		std::vector<double> _tol;
 
 		//! Number of nodes on a string
-		unsigned int _numnodes;
+		int _numnodes;
 
 		//! Maximum cap on number of string method iterations performed
 		unsigned int _maxiterator;
@@ -203,7 +203,7 @@ namespace SSAGES
 
 				MPI_Allreduce(MPI::IN_PLACE, &cvs_new[0], _numnodes, MPI::DOUBLE, MPI::SUM, _world);
 
-				for(size_t j = 0; j < _numnodes; j++)
+				for(int j = 0; j < _numnodes; j++)
                 {
                     _worldstring[j][i] = cvs_new[j];
                     //Represent worldstring in periodic space
@@ -328,7 +328,6 @@ namespace SSAGES
 		void SetPos(Snapshot* snapshot, int frame = 0)
 		{
 			auto& Pos = snapshot->GetPositions();
-			auto& IDs = snapshot->GetAtomIDs();
 
 			for(size_t i = 0; i < _prev_IDs[frame].size(); i++)
 			{
@@ -350,7 +349,6 @@ namespace SSAGES
 		void SetVel(Snapshot* snapshot, int frame = 0)
 		{
 			auto& Vel = snapshot->GetVelocities();
-			auto& IDs = snapshot->GetAtomIDs();
 
 			for(size_t i = 0; i < _prev_IDs[frame].size(); i++)
 			{
@@ -431,7 +429,7 @@ namespace SSAGES
 		//! Communicate neighbor lists over MPI
         void SetSendRecvNeighbors()
         {
-		 	std::vector<unsigned int> wiids(_world.size(), 0);
+		 	std::vector<int> wiids(_world.size(), 0);
 
 			//Set the neighbors
 			_recneigh = -1;

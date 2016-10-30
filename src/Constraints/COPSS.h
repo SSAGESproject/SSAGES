@@ -75,8 +75,11 @@ namespace SSAGES
 			_myout <<" Post simulation"<<std::endl;
 		}
 
-		//! \copydoc Serializable::Serialize()
-		void Serialize(Json::Value& json) const override
+		//! Serialize the class
+		/*!
+		 * \warning Serialization not yet implemented.
+		 */
+		void Serialize(Json::Value& /* json */) const override
 		{
 
 		}

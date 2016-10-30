@@ -143,7 +143,7 @@ namespace SSAGES
         std::vector<unsigned int> _polyords;
 
         //! Storing number of bins for simplicity and readability of code
-        std::vector<unsigned int> _nbins;
+        std::vector<int> _nbins;
 
         //! Spring constants for restrained system.
         /*!

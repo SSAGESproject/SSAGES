@@ -74,13 +74,13 @@ namespace SSAGES
 		std::vector<int> _localsuccesses;
 
 		//! Current interface FF is shooting from.
-		int _currentnode;
+		unsigned int _currentnode;
 
 		//! The current starting configuration that we are on.
-		int _currentstartingpoint;
+		unsigned int _currentstartingpoint;
 
 		//! User defined number of starting configs needed per walker before starting FF.
-		int _requiredconfigs;
+		unsigned int _requiredconfigs;
 
 		//! Number that keeps track of configs this walker has generated.
 		int _currenthash;
@@ -119,7 +119,7 @@ namespace SSAGES
 				 std::string libraryfilename,
 				 std::string resultsfilename,
 				 std::vector<double> centers,
-				 int requiredconfigs,
+				 unsigned int requiredconfigs,
 				 int numshots,
 				 unsigned int frequency) : 
 		Method(frequency, world, comm), _rd(), _gen(_rd()), _restart(NEW),
@@ -168,7 +168,7 @@ namespace SSAGES
 		 * \param InterfaceIndices List of interface indices.
 		 * \return \c False if nothing could be located at a given interface.
 		 */
-		bool ExtractInterfaceIndices(int interface, const std::string& contents,
+		bool ExtractInterfaceIndices(unsigned int interface, const std::string& contents,
 									 std::vector<std::vector<std::string> >& InterfaceIndices);
 		
 		//! Return the location of the nearest interface
@@ -216,7 +216,7 @@ namespace SSAGES
 		 * \param contents String containing the configuration.
 		 * \return Configuration file name.
 		 */
-		std::string PickConfiguration(int interface, const std::string& contents);
+		std::string PickConfiguration(unsigned int interface, const std::string& contents);
 
 		//! Set restart type.
 		/*!
@@ -252,7 +252,7 @@ namespace SSAGES
 		/*!
 		 * \param lpoint New starting point for the library.
 		 */
-		void SetLibraryPoint(int lpoint){_currentstartingpoint = lpoint;}
+		void SetLibraryPoint(unsigned int lpoint){_currentstartingpoint = lpoint;}
 
 		//! Set hash value.
 		/*!

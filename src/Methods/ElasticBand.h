@@ -101,11 +101,11 @@ namespace SSAGES
 		 */
 		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
 
-		//! \copydoc Serializable::Serialize()
+		//! Serialize the Method
 		/*!
 		 * \warning Serialization not implemented yet!
 		 */
-		void Serialize(Json::Value& json) const override
+		void Serialize(Json::Value& /* json */) const override
 		{
 
 		}

@@ -36,7 +36,7 @@ namespace SSAGES
 		return 0.5 * k * (x - x0) * (x - x0);
 	}
 
-	void Umbrella::PreSimulation(Snapshot*, const CVList& cvs)
+	void Umbrella::PreSimulation(Snapshot* /* snapshot */, const CVList& /* cvs */)
 	{
 		if(_comm.rank() == 0)
 		{
@@ -60,7 +60,7 @@ namespace SSAGES
 
 			// Update forces.
 			for(size_t j = 0; j < forces.size(); ++j)
-				for(size_t k = 0; k < forces[j].size(); ++k)
+				for(int k = 0; k < forces[j].size(); ++k)
 					forces[j][k] -= D*grad[j][k];
 		}
 

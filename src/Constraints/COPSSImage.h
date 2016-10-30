@@ -181,8 +181,11 @@ namespace SSAGES
 		//! Post-simulation hook
 		void PostSimulation(Snapshot*, const CVList&) override;
 
-		//! \copydoc Serializable::Serialize()
-		void Serialize(Json::Value& json) const override {};
+		//! Serialize the class
+		/*!
+		 * \warning Serialization not yet implemented.
+		 */
+		void Serialize(Json::Value& /* json */) const override {};
 	
 		//! Destructor
 		~COPSSImage() {}
