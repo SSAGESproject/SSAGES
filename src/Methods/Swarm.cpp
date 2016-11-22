@@ -58,7 +58,10 @@ namespace SSAGES
 
     void Swarm::PostIntegration(Snapshot* snapshot, const CVList& cvs)
     {
-        auto& forces = snapshot->GetForces();
+         auto& forces = snapshot->GetForces();
+         auto& positions = snapshot->GetPositions();
+         auto& velocities = snapshot->GetVelocities();
+         auto& atomids = snapshot->GetAtomIDs();
 
         if(snapshot_stored)
         {
@@ -75,7 +78,9 @@ namespace SSAGES
         {
             if(!snapshot_stored)
             {
-                StoreSnapshot(snapshot, _index);
+                _prev_positions[_index] = snapshot->SerializePositions();
+                _prev_velocities[_index] = snapshot->SerializeVelocities();
+                _prev_IDs[_index] = snapshot->SerializeIDs();
                 snapshot_stored = true;
             }
         }
@@ -111,8 +116,21 @@ namespace SSAGES
                 for(auto& force: forces)
                     force.setZero();
 
-                SetPos(snapshot, _index);
-                SetVel(snapshot, _index);
+                for(size_t i = 0; i < _prev_IDs[_index].size(); i++)
+                {
+                    auto localindex = snapshot->GetLocalIndex(_prev_IDs[_index][i]);
+                    if(localindex!= -1)
+                    {
+                        positions[localindex][0] = _prev_positions[_index][i*3];
+                        positions[localindex][1] = _prev_positions[_index][i*3 + 1];
+                        positions[localindex][2] = _prev_positions[_index][i*3 + 2];
+
+                        velocities[localindex][0] = _prev_positions[_index][i*3];
+                        velocities[localindex][1] = _prev_positions[_index][i*3 + 1];
+                        velocities[localindex][2] = _prev_positions[_index][i*3 + 2];
+
+                    }
+                }
             }
         }
         else
@@ -151,7 +169,9 @@ namespace SSAGES
                     //Harvest a trajectory every _harvest_length steps
                     if(_iterator % _harvest_length == 0)
                     {
-                        StoreSnapshot(snapshot, _index);
+                        _prev_positions[_index] = snapshot->SerializePositions();
+                        _prev_velocities[_index] = snapshot->SerializeVelocities();
+                        _prev_IDs[_index] = snapshot->SerializeIDs();
                         _index++;
                     }
                 }
@@ -162,8 +182,21 @@ namespace SSAGES
                     for(auto& force: forces)
                         force.setZero();
 
-                    SetPos(snapshot, _index);
-                    SetVel(snapshot, _index);
+                    for(size_t i = 0; i < _prev_IDs[_index].size(); i++)
+                    {
+                        auto localindex = snapshot->GetLocalIndex(_prev_IDs[_index][i]);
+                        if(localindex!= -1)
+                        {
+                            positions[localindex][0] = _prev_positions[_index][i*3];
+                            positions[localindex][1] = _prev_positions[_index][i*3 + 1];
+                            positions[localindex][2] = _prev_positions[_index][i*3 + 2];
+
+                            velocities[localindex][0] = _prev_positions[_index][i*3];
+                            velocities[localindex][1] = _prev_positions[_index][i*3 + 1];
+                            velocities[localindex][2] = _prev_positions[_index][i*3 + 2];
+
+                        }
+                    }
                 }
                 _iterator++;
             }
@@ -185,8 +218,21 @@ namespace SSAGES
                         for(auto& force: forces)
                             force.setZero();
 
-                        SetPos(snapshot, _index);
-                        SetVel(snapshot, _index);
+                        for(size_t i = 0; i < _prev_IDs[_index].size(); i++)
+                        {
+                            auto localindex = snapshot->GetLocalIndex(_prev_IDs[_index][i]);
+                            if(localindex!= -1)
+                            {
+                                positions[localindex][0] = _prev_positions[_index][i*3];
+                                positions[localindex][1] = _prev_positions[_index][i*3 + 1];
+                                positions[localindex][2] = _prev_positions[_index][i*3 + 2];
+
+                                velocities[localindex][0] = _prev_positions[_index][i*3];
+                                velocities[localindex][1] = _prev_positions[_index][i*3 + 1];
+                                velocities[localindex][2] = _prev_positions[_index][i*3 + 2];
+
+                            }
+                        }
                     }
                 }
                 _iterator++;

@@ -56,7 +56,20 @@ namespace SSAGES
             {
                 force.setZero();
             }
-            SetPos(snapshot);                       
+        	
+        	auto& Pos = snapshot->GetPositions();
+        	auto& IDs = snapshot->GetAtomIDs();
+
+        	for(size_t i = 0; i < _prev_IDs[0].size(); i++)
+        	{
+        		auto localindex = snapshot->GetLocalIndex(_prev_IDs[0][i]);
+        		if(localindex!= -1)
+        		{
+        			Pos[localindex][0] = _prev_positions[0][i*3];
+        			Pos[localindex][1] = _prev_positions[0][i*3 + 1];
+        			Pos[localindex][2] = _prev_positions[0][i*3 + 2];
+        		}
+        	}                       
         }
         for(auto& cv : cvs)
         {
@@ -74,8 +87,10 @@ namespace SSAGES
                 {
                     _run_umbrella = false;
                     reset_for_umbrella = true;
+
                     //This node is done initializing; so store this snapshot
-                    StoreSnapshot(snapshot);
+                    _prev_positions[0] = snapshot->SerializePositions();
+                    _prev_IDs[0] = snapshot->SerializeIDs();
                 }
 				_umbrella_iter = 1;	
 			}
@@ -115,7 +130,19 @@ namespace SSAGES
 			for(auto& force : forces)
 				force.setZero();
 
-			SetPos(snapshot);
+			auto& Pos = snapshot->GetPositions();
+			auto& IDs = snapshot->GetAtomIDs();
+
+			for(size_t i = 0; i < _prev_IDs[0].size(); i++)
+			{
+				auto localindex = snapshot->GetLocalIndex(_prev_IDs[0][i]);
+				if(localindex!= -1)
+				{
+					Pos[localindex][0] = _prev_positions[0][i*3];
+					Pos[localindex][1] = _prev_positions[0][i*3 + 1];
+					Pos[localindex][2] = _prev_positions[0][i*3 + 2];
+				}
+			} 
 			
 			// Calculate running averages for each CV at each node based on previous CV
 			for(size_t i = 0; i < _newcenters.size(); i++)
@@ -138,7 +165,8 @@ namespace SSAGES
             {
                 _prev_CVs.push_back(cvs[i]->GetMinimumImage(_centers[i]));
             }
-			StoreSnapshot(snapshot);
+			_prev_positions[0] = snapshot->SerializePositions();
+			_prev_IDs[0] = snapshot->SerializeIDs();
 		}
 
 		// Update the string, every _blockiterations string method iterations

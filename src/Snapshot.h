@@ -605,6 +605,95 @@ namespace SSAGES
 		 */
 		void Changed(bool state) { _changed = state; }
 
+		//! Return the serialized positions across all local cores
+		std::vector<double> SerializePositions()
+		{
+
+			std::vector<int> pcounts(_comm.size(), 0); 
+			std::vector<int> pdispls(_comm.size()+1, 0);
+
+			pcounts[_comm.rank()] = 3*_nlocal;
+
+			// Reduce counts.
+			MPI_Allreduce(MPI_IN_PLACE, pcounts.data(), pcounts.size(), MPI_INT, MPI_SUM, _comm);
+
+			// Compute displacements.
+			std::partial_sum(pcounts.begin(), pcounts.end(), pdispls.begin() + 1);
+
+			// Re-size receiving vectors.
+			std::vector<double> positions;
+			positions.resize(pdispls.back(), 0);
+
+			std::vector<double> ptemp;
+			
+			for(auto& p : _positions)
+			{
+				ptemp.push_back(p[0]);
+				ptemp.push_back(p[1]);
+				ptemp.push_back(p[2]);
+			}
+
+			// All-gather data.
+			MPI_Allgatherv(ptemp.data(), ptemp.size(), MPI_DOUBLE, positions.data(), pcounts.data(), pdispls.data(), MPI_DOUBLE, _comm);
+			return positions;
+		}
+
+		//! Return the serialized velocities across all local cores
+		std::vector<double> SerializeVelocities()
+		{
+			std::vector<int> vcounts(_comm.size(), 0); 
+			std::vector<int> vdispls(_comm.size()+1, 0);
+
+			vcounts[_comm.rank()] = 3*_nlocal;
+
+			// Reduce counts.
+			MPI_Allreduce(MPI_IN_PLACE, vcounts.data(), vcounts.size(), MPI_INT, MPI_SUM, _comm);
+
+			// Compute displacements.
+			std::partial_sum(vcounts.begin(), vcounts.end(), vdispls.begin() + 1);
+
+			// Re-size receiving vectors.
+			std::vector<double> velocities;
+			velocities.resize(vdispls.back(), 0);
+
+			std::vector<double> vtemp;
+			
+			for(auto& v : _velocities)
+			{
+				vtemp.push_back(v[0]);
+				vtemp.push_back(v[1]);
+				vtemp.push_back(v[2]);
+			}
+
+			// All-gather data.
+			MPI_Allgatherv(vtemp.data(), vtemp.size(), MPI_DOUBLE, velocities.data(), vcounts.data(), vdispls.data(), MPI_DOUBLE, _comm);
+			return velocities;
+		}
+
+		//! Return the serialized positions across all local cores
+		std::vector<int> SerializeIDs()
+		{
+			std::vector<int> mcounts(_comm.size(), 0); 
+			std::vector<int> mdispls(_comm.size()+1, 0);
+
+			mcounts[_comm.rank()] = _nlocal;
+
+			// Reduce counts.
+			MPI_Allreduce(MPI_IN_PLACE, mcounts.data(), mcounts.size(), MPI_INT, MPI_SUM, _comm);
+
+			// Compute displacements.
+			std::partial_sum(mcounts.begin(), mcounts.end(), mdispls.begin() + 1);
+
+			// Re-size receiving vectors.
+			std::vector<int> IDs;
+			IDs.resize(mdispls.back(), 0);
+
+			// All-gather data.
+			MPI_Allgatherv(_atomids.data(), _atomids.size(), MPI_INT, IDs.data(), mcounts.data(), mdispls.data(), MPI_INT, _comm);
+			return IDs;
+		}
+
+
 		//! Serialize the Snapshot
 		/*!
 		 * \param json Json value to write serialized state to
