@@ -42,6 +42,10 @@
 #include "Drivers/LammpsDriver.h"
 #endif
 
+#ifdef ENABLE_QBOX
+#include "Drivers/QBoxDriver.h"
+#endif
+
 namespace mpi = boost::mpi;
 using namespace Json;
 namespace SSAGES
@@ -272,6 +276,18 @@ namespace SSAGES
 			if(MDEngine_ == "Gromacs")
 			{
 				GromacsDriver* en = new GromacsDriver(world_, comm_, wid);
+				if(!(MDDriver_ = static_cast<Driver*>(en)))
+				{
+					std::cout << "Unable to static cast engine on node " << world_.rank() << std::endl;
+					success_build = false;
+				}
+			}
+			else
+			#endif
+			#ifdef ENABLE_QBOX
+			if(MDEngine_ == "Qbox")
+			{
+				QBoxDriver* en = new QBoxDriver(world_, comm_, wid);
 				if(!(MDDriver_ = static_cast<Driver*>(en)))
 				{
 					std::cout << "Unable to static cast engine on node " << world_.rank() << std::endl;
