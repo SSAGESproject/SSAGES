@@ -42,7 +42,7 @@ namespace SSAGES
 	class TorsionalCV : public CollectiveVariable
 	{
 	private:
-		// Vector of 4 atom ID's of interest.
+		//! Vector of 4 atom ID's of interest.
 		Label _atomids;
 
 		//! If \c True, use periodic boundary conditions.
@@ -204,7 +204,7 @@ namespace SSAGES
 
         //! Returns the minimum image of a CV based on the input location.
         /*!
-		 * \param Value against which the minimum image is calculated.
+		 * \param Location Value against which the minimum image is calculated.
 		 * \return Minimum image of the CV 
 		 *
          * Takes the input location and applies the periodic boundary conditions to return a minimum image

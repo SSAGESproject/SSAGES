@@ -414,6 +414,13 @@ namespace SSAGES
 			return true;
 		}
 
+		//! Set up Constraints.
+		/*!
+		 * \param json JSON value containing input information.
+		 * \param path Path for JSON path specification.
+		 * \return \c True if all constraints have been successfully built, else
+		 *         return \c False.
+		 */
 		bool BuildConstraints(const Json::Value& json, const std::string& path)
 		{
 			// Build CV(s).

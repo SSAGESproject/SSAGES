@@ -1,4 +1,5 @@
 .. image_method:
+
 Image Method
 ------------
 

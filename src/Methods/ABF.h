@@ -81,7 +81,20 @@ namespace SSAGES
 		 * Second entry of each vector holds the upper bound for that CV restraint.
 		 * Third entry of each vector holds the spring constant for that CV restraint.
 		 */
-		std::vector<std::vector<double>> _restraint;		
+		std::vector<std::vector<double>> _restraint;
+
+		//! For each CV, holds whether that CV has periodic boundaries or not.
+		std::vector<bool> _isperiodic;
+
+		//! Holds periodic boundaries of CVs.
+		/*!
+		 * This is a 2 Dimensional object set up as the following:
+		 * _periodicboundaries is a vector of (nr of CV) vectors, ordered in CV order.
+		 * Each of those vectors are 2 long.
+		 * First entry of each vector holds the lower bound for that CV periodic boundary.
+		 * Second entry of each vector holds the upper bound for that CV periodic boundary.
+		 */
+		std::vector<std::vector<double>> _periodicboundaries;		
 
 		//! The minimum number of hits required before full biasing, bias is
 		//!_F[i]/max(_N[i],_min).
@@ -104,8 +117,8 @@ namespace SSAGES
 		 */
 		int histCoords(const CVList& cvs);
 
-		//! Thermodynamic beta.
-		double _beta;
+		//! Mass weighing of bias enabled/disabled
+		bool _massweigh;
 
 		//! Biases.	
 		std::vector<Vector3> _biases;
@@ -188,16 +201,20 @@ namespace SSAGES
 		 */ 
 		ABF(boost::mpi::communicator& world,
 			boost::mpi::communicator& comm,
-			const std::vector<std::vector<double>>& histdetails,
 			std::vector<std::vector<double>> restraint,
-			double timestep,
+			std::vector<bool> isperiodic,
+			std::vector<std::vector<double>> periodicboundaries,
 			double min,
+			bool massweigh,
 			std::string filename,
+			const std::vector<std::vector<double>>& histdetails,
 			int FBackupInterv,
 			double unitconv,
+			double timestep,
 			unsigned int frequency) :
 		Method(frequency, world, comm), _F(), _Fworld(), _N(0), _Nworld(0),
-		_restraint(restraint), _min(min), _wdotp1(), _wdotp2(), _Fold(), _beta(0),
+		_restraint(restraint), _isperiodic(isperiodic), _periodicboundaries(periodicboundaries),
+		 _min(min), _wdotp1(), _wdotp2(), _Fold(), _massweigh(massweigh),
 		_biases(), _dim(0), _filename(filename), _mpiid(0), _histdetails(histdetails), 
 		_FBackupInterv(FBackupInterv), _unitconv(unitconv), _timestep(timestep)
 		{

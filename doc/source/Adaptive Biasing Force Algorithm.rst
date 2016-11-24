@@ -1,4 +1,5 @@
 .. _adaptive-biasing-force:
+
 Adaptive Biasing Force Algorithm
 --------------------------------
 
@@ -22,10 +23,10 @@ the free energy surface. 
 Thus, ABF gives a vector field and not a free energy surface.
 
 An excellent write-up on the method can be found
-`here <http://pubs.acs.org/doi/abs/10.1021/jp506633n>`_.
+`here <http://pubs.acs.org/doi/abs/10.1021/jp506633n>`__.
 
 Details on the specific implementation used in SSAGES can be found
-`here <http://mc.stanford.edu/cgi-bin/images/0/06/Darve_2008.pdf>`_.
+`here <http://mc.stanford.edu/cgi-bin/images/0/06/Darve_2008.pdf>`__.
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -40,9 +41,12 @@ Adaptive Biasing Force Method
   restraint of user-chosen spring constant will drive the CV back into the
   range. This range should be WIDER than the CV range by at least one bin size
   in each direction. To disable restraints, enter a spring constant k equal to
-  or less than zero.
-* Currently, CV restraints cannot handle periodicity, but this feature will be
-  implemented soon.
+  or less than zero. If restraints are used on a periodic system, one can define
+  the periodic boundaries, so that minimum image convention to CVs can be applied.
+  (CV_periodic_boundary_upper/lower_bounds). For example, on a -pi to pi CV, if the 
+  CV is restrained to -3.14 to -2.36 and the CV crosses the -3.14 boundary to 3.14,
+  this will ensure the restraint is applied correctly back towards -3.14 rather than
+  a large force applied to bring it from 3.14 all the way to -2.36.
 
 How to define the ABF Method: ``"type" : "ABF"``
 
@@ -57,22 +61,42 @@ CV_upper_bounds
     method will be used in order.
 
 CV_bins
-    *array of doubles (cr of CVs) long*.
+    *array of doubles (nr of CVs) long*.
     This array defines the number of histogram bins in each CV dimension in order.
 
 CV_restraint_minimums
-    *array of doubles (cr of CVs) long*.
+    *array of doubles (nr of CVs) long*.
     This array defines the minimum values for the CV restraints in order. 
 
 
 CV_restraint_maximums
-    *array of doubles (cr of CVs) long*.
+    *array of doubles (nr of CVs) long*.
     This array defines the maximum values for the CV restraints in order.
 
 CV_restraint_spring_constants
-    *array of doubles (cr of CVs) long*.
+    *array of doubles (nr of CVs) long*.
     This array defines the spring constants for the CV restraints in order.
     Enter a value equal to or less than zero to turn restraints off.
+
+CV_isperiodic
+	*array of booleans (nr of CVs) long*.
+	This array defines whether a given CV is periodic for restraint purposes.
+	This is only used to apply minimum image convention to CV restraints.
+
+CV_periodic_boundary_lower_bounds
+	*array of doubles (nr of CVs) long*.
+	This array defines the lower end of the period.
+	This only matters if CV_isperiodic is true for the CV.
+
+CV_periodic_boundary_upper_bounds
+	*array of doubles (nr of CVs) long*.
+	This array defines the upper end of the period.
+	This only matters if CV_isperiodic is true for the CV.
+
+mass_weighing
+	*boolean*
+	Turns on/off mass weighing of the adaptive force.
+	Default is off. Keep off if your system has massless sites such as in TIP4P water.
 
 timestep
     *double*.
@@ -130,6 +154,9 @@ Example input
             "CV_restraint_minimums" : [-5,-5],
             "CV_restraint_maximums" : [5,5],
             "CV_restraint_spring_constants" : [0,0],
+	    "CV_isperiodic" : [true,true],
+	    "CV_periodic_boundary_lower_bounds": [-3.14,-3.14],
+	    "CV_periodic_boundary_upper_bounds": [3.14,3.14],
             "timestep" : 0.002,
             "minimum_count" : 200,
             "filename" : "F_out",
@@ -147,7 +174,7 @@ file will contain the Adaptive Force vector field printed out every
 field, with vectors defined on each point on a grid that goes from 
 (CV_lower_bounds) to (CV_upper_bounds) of each CV in its dimension, with (CV_bins) of grid points 
 in each dimension. For example, for 2 CVs defined from (-1,1) and (-1,0) with 3 and
- 2 bins respectively would be a 3x2 grid (6 grid points). The printout is in the 
+2 bins respectively would be a 3x2 grid (6 grid points). The printout is in the
 following format: 2*N number of columns, where N is the number of CVs. First N columns 
 are coordinates in CV space, the N+1 to 2N columns are components of the Adaptive Force 
 vectors. An example for N=2 is:

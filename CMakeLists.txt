@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8.5)
 # SAPHRON version number.
 set(SSAGES_VERSION_MAJOR "0")
 set(SSAGES_VERSION_MINOR "4")
-set(SSAGES_VERSION_TINY "0") 
+set(SSAGES_VERSION_TINY "2") 
 
 # Default type is release
 if (NOT CMAKE_BUILD_TYPE)
@@ -174,6 +174,75 @@ if(LAMMPS OR LAMMPS_SRC)
 		)
 	endif (LAMMPS)
 
+    # List of optional LAMMPS packages (as of Oct 2016)
+    set(LAMMPS_PACKAGES "all"      # All packages
+						"standard" # All standard packages
+						"user"     # All user packages
+						# Standard packages:
+						"asphere"
+						"body"
+						"class2"
+						"colloid"
+						"compress"
+						"coreshell"
+						"dipole"
+						"gpu"
+						"granular"
+						"kim"
+						"kokkos"
+						"kspace"
+						"manybody"
+						"mc"
+						"meam"
+						"misc"
+						"molecule"
+						"mpiio"
+						"opt"
+						"peri"
+						"poems"
+						"python"
+						"qeq"
+						"reax"
+						"replica"
+						"rigid"
+						"shock"
+						"snap"
+						"srd"
+						"voronoi"
+						# User packages:
+						"user-atc"
+						"user-awpmd"
+						"user-cg-cmm"
+						"user-colvars"
+						"user-diffraction"
+						"user-dpd"
+						"user-drude"
+						"user-eff"
+						"user-fep"
+						"user-h5md"
+						"user-intel"
+						"user-lb"
+						"user-manifold"
+						"user-mgpt"
+						"user-misc"
+						"user-molfile"
+						"user-omp"
+						"user-phonon"
+						"user-qmmm"
+						"user-qtb"
+						"user-quip"
+						"user-reaxc"
+						"user-smd"
+						"user-smtbq"
+						"user-sph"
+						"user-tally"
+						"user-vtk")
+
+	foreach (PACKAGE ${LAMMPS_PACKAGES})
+		add_custom_target (yes-${PACKAGE} $(MAKE) -C ${LAMMPS_SRC} yes-${PACKAGE})
+		add_custom_target (no-${PACKAGE} $(MAKE) -C ${LAMMPS_SRC} no-${PACKAGE})
+	endforeach (PACKAGE ${LAMMPS_PACKAGES})
+
 	# Add lammps as external project
 	ExternalProject_Add(
 		lammps
@@ -294,11 +363,10 @@ elseif(GROMACS OR GROMACS_SRC)
 
 	ExternalProject_Add(
 		gromacs
-		DOWNLOAD_COMMAND ""
-		BUILD_COMMAND $(MAKE)
-		SOURCE_DIR ${GROMACS_SRC}
 		PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gromacs
-		BUILD_ALWAYS true
+		DOWNLOAD_COMMAND ""
+		SOURCE_DIR ${GROMACS_SRC}
+		PATCH_COMMAND sh ${CMAKE_BINARY_DIR}/apply_patch.sh
 		CMAKE_ARGS
 		-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
 		-DGMX_MPI=ON
@@ -308,9 +376,18 @@ elseif(GROMACS OR GROMACS_SRC)
 		-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 		-DCUDA_PROPAGATE_HOST_FLAGS=OFF
 		-DCUDA_NVCC_FLAGS="-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${PROJECT_SOURCE_DIR}/hooks/gromacs"
+		BUILD_COMMAND $(MAKE)
 		BUILD_IN_SOURCE false
 		INSTALL_DIR ${CMAKE_BINARY_DIR}/gromacs
-		PATCH_COMMAND sh ${CMAKE_BINARY_DIR}/apply_patch.sh
+	)
+
+	# Always build gromacs
+	ExternalProject_Add_Step(
+		gromacs forcebuild
+		COMMAND echo "Force build gromacs"
+		DEPENDEES configure
+		DEPENDERS build
+		ALWAYS 1
 	)
 
 	set(HOOKSRC

@@ -27,14 +27,13 @@
 namespace SSAGES
 { 
 
-
 	// Check whether CV values are within their respective Voronoi cell in CV space
 	bool FiniteTempString::InCell(const CVList& cvs) const
 	{
 		std::vector<double> dists (_numnodes, 0);
 
 		// Record the difference between all cvs and all nodes
-		for (size_t i = 0; i < _numnodes; i++)
+		for (int i = 0; i < _numnodes; i++)
 			for(size_t j = 0; j < cvs.size(); j++)
 				dists[i]+= pow(cvs[j]->GetDifference(_worldstring[i][j]),2);
 		
@@ -48,42 +47,102 @@ namespace SSAGES
 	void FiniteTempString::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
 		auto& forces = snapshot->GetForces();
+        bool insidecell;
 
-		auto insidecell = InCell(cvs);
+        if(reset_for_umbrella)
+        {
+            //If the system was not going to run the umbrella anymore, reset its position
+            for(auto& force : forces)
+            {
+                force.setZero();
+            }
+        	
+        	auto& Pos = snapshot->GetPositions();
+        	auto& IDs = snapshot->GetAtomIDs();
 
+        	for(size_t i = 0; i < _prev_IDs[0].size(); i++)
+        	{
+        		auto localindex = snapshot->GetLocalIndex(_prev_IDs[0][i]);
+        		if(localindex!= -1)
+        		{
+        			Pos[localindex][0] = _prev_positions[0][i*3];
+        			Pos[localindex][1] = _prev_positions[0][i*3 + 1];
+        			Pos[localindex][2] = _prev_positions[0][i*3 + 2];
+        		}
+        	}                       
+        }
+        for(auto& cv : cvs)
+        {
+            //Trigger a rebuild of the CVs since we reset the positions
+            cv->Evaluate(*snapshot);
+        }
+        insidecell = InCell(cvs); 
+
+        MPI_Allreduce(MPI::IN_PLACE, &_run_umbrella, 1, MPI::BOOL, MPI::LOR, _world); 
 		if(_run_umbrella)
-		{
-			if(insidecell && _umbrella_iter >= _min_num_umbrella_steps)
+		{ 
+			if(_umbrella_iter == _min_num_umbrella_steps)
 			{
-				_run_umbrella = false;
-				_umbrella_iter = 0;
+				if(insidecell)
+                {
+                    _run_umbrella = false;
+                    reset_for_umbrella = true;
+
+                    //This node is done initializing; so store this snapshot
+                    _prev_positions[0] = snapshot->SerializePositions();
+                    _prev_IDs[0] = snapshot->SerializeIDs();
+                }
+				_umbrella_iter = 1;	
 			}
 			else
 			{
-				for(size_t i = 0; i < cvs.size(); i++)
-				{
-					// Get current cv and gradient
-					auto& cv = cvs[i];
-					auto& grad = cv->GetGradient();
+                if(!reset_for_umbrella)
+                {
+                    for(size_t i = 0; i < cvs.size(); i++)
+                    {
+                        // Get current cv and gradient
+                        auto& cv = cvs[i];
+                        auto& grad = cv->GetGradient();
 
-					// Compute dV/dCV
-					auto D = _cvspring[i]*(cv->GetDifference(_centers[i]));
+                        // Compute dV/dCV
+                        auto D = _cvspring[i]*(cv->GetDifference(_centers[i]));
 
-					// Update forces
-					for(size_t j = 0; j < forces.size(); j++)
-							forces[j] -= D*grad[j];
-				}
-				_umbrella_iter++;
-				return;
+                        // Update forces
+                        for(size_t j = 0; j < forces.size(); j++)
+                                forces[j] -= D*grad[j];
+                    }
+                    _umbrella_iter++;    
+                }
+                else
+                {
+                    _run_umbrella = false;
+                }
 			}
+            return;
 		}
+        else
+        {
+            reset_for_umbrella = false;
+        }
 
 		if(!insidecell)
 		{
 			for(auto& force : forces)
 				force.setZero();
 
-			SetPos(snapshot);
+			auto& Pos = snapshot->GetPositions();
+			auto& IDs = snapshot->GetAtomIDs();
+
+			for(size_t i = 0; i < _prev_IDs[0].size(); i++)
+			{
+				auto localindex = snapshot->GetLocalIndex(_prev_IDs[0][i]);
+				if(localindex!= -1)
+				{
+					Pos[localindex][0] = _prev_positions[0][i*3];
+					Pos[localindex][1] = _prev_positions[0][i*3 + 1];
+					Pos[localindex][2] = _prev_positions[0][i*3 + 2];
+				}
+			} 
 			
 			// Calculate running averages for each CV at each node based on previous CV
 			for(size_t i = 0; i < _newcenters.size(); i++)
@@ -106,14 +165,17 @@ namespace SSAGES
             {
                 _prev_CVs.push_back(cvs[i]->GetMinimumImage(_centers[i]));
             }
-			StoreSnapshot(snapshot);
+			_prev_positions[0] = snapshot->SerializePositions();
+			_prev_IDs[0] = snapshot->SerializeIDs();
 		}
 
 		// Update the string, every _blockiterations string method iterations
 		if(_iterator % _blockiterations == 0)
 		{
+            MPI_Barrier(_world);
 	        StringUpdate();
             CheckEnd(cvs);
+            MPI_Barrier(_world);
 			UpdateWorldString(cvs); 
             PrintString(cvs);
 
@@ -121,9 +183,13 @@ namespace SSAGES
 			_iteration++;
 
 			if(!InCell(cvs))
-				_run_umbrella = true;
+            {
+                _run_umbrella = true;
+                reset_for_umbrella = false; 
+            }
+			MPI_Allreduce(MPI::IN_PLACE, &_run_umbrella, 1, MPI::BOOL, MPI::LOR, _world);
 		}
-		
+
 		_iterator++;
 	}
 

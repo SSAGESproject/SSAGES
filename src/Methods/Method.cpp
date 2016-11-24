@@ -169,14 +169,38 @@ namespace SSAGES
 			std::vector<double> springkrestCV;
 			for(auto& bins : json["CV_restraint_spring_constants"])
 				springkrestCV.push_back(bins.asDouble());
+
+			std::vector<bool> isperiodic;
+			for(auto& isperCV : json["CV_isperiodic"])
+				isperiodic.push_back(isperCV.asBool());
+
+			std::vector<double> minperboundaryCV;
+			for(auto& minsperCV : json["CV_periodic_boundary_lower_bounds"])
+				minperboundaryCV.push_back(minsperCV.asDouble());
+
+			std::vector<double> maxperboundaryCV;
+			for(auto& maxsperCV : json["CV_periodic_boundary_upper_bounds"])
+				maxperboundaryCV.push_back(maxsperCV.asDouble());
+
 			
-			if(!(minsCV.size() 	== maxsCV.size() && 
-			     maxsCV.size() 	== binsCV.size() &&
-			     binsCV.size()	== minsrestCV.size() &&
-			     minsrestCV.size()	== maxsrestCV.size() &&
-			     maxsrestCV.size()  == springkrestCV.size()))
-			throw BuildException({"CV lower bounds, upper bounds, bins, restrain minimums, restrains maximums and spring constants must all have the size == number of CVs defined."});
-			
+			if(!(minsCV.size() 	 	== maxsCV.size() && 
+			     maxsCV.size() 	 	== binsCV.size() &&
+			     binsCV.size()	 	== minsrestCV.size() &&
+			     minsrestCV.size()	 	== maxsrestCV.size() &&
+			     maxsrestCV.size()    	== springkrestCV.size() &&
+			     springkrestCV.size()	== isperiodic.size()))			
+
+			throw BuildException({"CV lower bounds, upper bounds, bins, restrain minimums, restrains maximums, spring constants and periodicity info must all have the size == number of CVs defined."});
+
+			bool anyperiodic=false;
+			for(size_t i = 0; i<isperiodic.size(); ++i)
+				if(isperiodic[i])
+					{
+					anyperiodic = true;
+					if(!(isperiodic.size() 	    	== minperboundaryCV.size() &&
+			     		   minperboundaryCV.size()	== maxperboundaryCV.size()))
+					throw BuildException({"If any CV is defined as periodic, please define the full upper and lower bound vectors. They should both have the same number of entries as CV lower bounds, upper bounds... Entries corresponding to non-periodic CVs will not be used."});
+					}
 			     
 			int FBackupInterv = json.get("backup_frequency", 1000).asInt();
 
@@ -186,10 +210,14 @@ namespace SSAGES
 
 			double min = json.get("minimum_count",100).asDouble();
 
+			bool massweigh = json.get("mass_weighing",false).asBool();			
+
 			std::vector<std::vector<double>> histdetails;
 			std::vector<std::vector<double>> restraint;
+			std::vector<std::vector<double>> periodicboundaries;
 			std::vector<double> temp1(3);
 			std::vector<double> temp2(3);
+			std::vector<double> temp3(2);
 
 			for(size_t i=0; i<minsCV.size(); ++i)
 				{
@@ -197,13 +225,18 @@ namespace SSAGES
 				temp2 = {minsrestCV[i], maxsrestCV[i], springkrestCV[i]};
 				histdetails.push_back(temp1);
 				restraint.push_back(temp2);
-				}		
-			
+				if(anyperiodic)
+					{
+					temp3 = {minperboundaryCV[i], maxperboundaryCV[i]};
+					periodicboundaries.push_back(temp3);
+					}
+				}
+
 			auto freq = json.get("frequency", 1).asInt();
 
 			std::string filename = json.get("filename", "F_out").asString();
 
-			auto* m = new ABF(world, comm, histdetails, restraint, timestep, min, filename, FBackupInterv, unitconv, freq);
+			auto* m = new ABF(world, comm, restraint, isperiodic, periodicboundaries, min, massweigh, filename, histdetails, FBackupInterv, unitconv, timestep, freq);
 
 			method = static_cast<Method*>(m);
 

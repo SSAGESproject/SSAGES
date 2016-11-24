@@ -47,6 +47,6 @@ namespace SSAGES
 	//! List of Collective Variables.
 	using CVList = std::vector<CollectiveVariable*>;
 
-	// Enum for dimension. 
+	//! Enum for dimension.
 	enum class Dimension{ x = 0, y = 1, z = 2};
 }

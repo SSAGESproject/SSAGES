@@ -19,6 +19,8 @@
  */
 #pragma once
 
+#include <numeric>
+
 #include "Method.h"
 #include "../CVs/CollectiveVariable.h"
 #include <fstream>
@@ -52,13 +54,13 @@ namespace SSAGES
 		std::vector<std::vector<double> > _worldstring;
 
 		//! The node this belongs to
-		unsigned int _mpiid;
+		int _mpiid;
 
 		//! Tolerance criteria for determining when to stop string (default 0 if no tolerance criteria)
 		std::vector<double> _tol;
 
 		//! Number of nodes on a string
-		unsigned int _numnodes;
+		int _numnodes;
 
 		//! Maximum cap on number of string method iterations performed
 		unsigned int _maxiterator;
@@ -121,6 +123,11 @@ namespace SSAGES
 		    }
 		}
 
+		//! Gather neighbors over MPI
+		/*!
+		 * \param lcv0 Pointer to store array of lower CV values.
+		 * \param ucv0 Pointer to store array of upper CV values.
+		 */
 		void GatherNeighbors(std::vector<double> *lcv0, std::vector<double> *ucv0)
 		{
 			MPI_Status status;
@@ -140,6 +147,10 @@ namespace SSAGES
 			MPI_Bcast(&(*ucv0)[0],_centers.size(),MPI::DOUBLE,0,_comm);
 		}
 
+		//! Reparameterize the string
+		/*!
+		 * \param alpha_star Factor for reparametrization.
+		 */
 		void StringReparam(double alpha_star)
 		{
 			std::vector<double> alpha_star_vector(_numnodes,0.0);
@@ -174,6 +185,10 @@ namespace SSAGES
 			}
 		}
 
+		//! Update the world string over MPI
+		/*!
+		 * \param cvs List of CVs.
+		 */
 		void UpdateWorldString(const CVList& cvs)
 		{
 			for(size_t i = 0; i < _centers.size(); i++)
@@ -188,7 +203,7 @@ namespace SSAGES
 
 				MPI_Allreduce(MPI::IN_PLACE, &cvs_new[0], _numnodes, MPI::DOUBLE, MPI::SUM, _world);
 
-				for(size_t j = 0; j < _numnodes; j++)
+				for(int j = 0; j < _numnodes; j++)
                 {
                     _worldstring[j][i] = cvs_new[j];
                     //Represent worldstring in periodic space
@@ -214,6 +229,14 @@ namespace SSAGES
 			return true;
 		}
 
+		//! Check if method reached one of the exit criteria.
+		/*!
+		 * \param CV list of CVs.
+		 * \return True if one of the exit criteria is met.
+		 *
+		 * The string method exits if either the maximum number of iteration has
+		 * been reached or if all CVs are within the given tolerance thresholds.
+		 */
 		bool CheckEnd(const CVList& CV) 
 		{
 			if(_maxiterator && _iteration > _maxiterator)
@@ -238,103 +261,13 @@ namespace SSAGES
             return true;
 		}
 
-		// StoreSnapShot and SetSnapshot should be put in the snapshot routine.
-		// Furthermore, there can be some efficiency gains made by storing the
-		// local snapshot, and when you need to set the snapshot,
-		// that is when you serialize. 
-		void StoreSnapshot(Snapshot* snapshot, int frame = 0)
-		{
-			auto locatoms = snapshot->GetNumAtoms();
-			const auto& Pos = snapshot->GetPositions();
-			const auto& Vel = snapshot->GetVelocities();
-			const auto& IDs = snapshot->GetAtomIDs();
-
-			std::vector<int> pcounts(_comm.size(), 0), mcounts(_comm.size(), 0); 
-			std::vector<int> pdispls(_comm.size()+1, 0), mdispls(_comm.size()+1, 0);
-
-			pcounts[_comm.rank()] = 3*locatoms;
-			mcounts[_comm.rank()] = locatoms;
-
-			// Reduce counts.
-			MPI_Allreduce(MPI_IN_PLACE, pcounts.data(), pcounts.size(), MPI_INT, MPI_SUM, _comm);
-			MPI_Allreduce(MPI_IN_PLACE, mcounts.data(), mcounts.size(), MPI_INT, MPI_SUM, _comm);
-
-			// Compute displacements.
-			std::partial_sum(pcounts.begin(), pcounts.end(), pdispls.begin() + 1);
-			std::partial_sum(mcounts.begin(), mcounts.end(), mdispls.begin() + 1);
-
-			// Re-size receiving vectors.
-			_prev_positions[frame].resize(pdispls.back(), 0);
-			_prev_velocities[frame].resize(pdispls.back(), 0);
-			_prev_IDs[frame].resize(mdispls.back(), 0);
-
-			std::vector<double> ptemp;
-			std::vector<double> vtemp;
-
-			for(auto& p : Pos)
-			{
-				ptemp.push_back(p[0]);
-				ptemp.push_back(p[1]);
-				ptemp.push_back(p[2]);
-			}
-
-			for(auto& v : Vel)
-			{
-				vtemp.push_back(v[0]);
-				vtemp.push_back(v[1]);
-				vtemp.push_back(v[2]);
-			}
-
-			// All-gather data.
-			MPI_Allgatherv(ptemp.data(), ptemp.size(), MPI_DOUBLE, _prev_positions[frame].data(), pcounts.data(), pdispls.data(), MPI_DOUBLE, _comm);
-			MPI_Allgatherv(vtemp.data(), vtemp.size(), MPI_DOUBLE, _prev_velocities[frame].data(), pcounts.data(), pdispls.data(), MPI_DOUBLE, _comm);
-			MPI_Allgatherv(IDs.data(), IDs.size(), MPI_INT, _prev_IDs[frame].data(), mcounts.data(), mdispls.data(), MPI_INT, _comm);
-		}
-
-		void SetPos(Snapshot* snapshot, int frame = 0)
-		{
-			auto& Pos = snapshot->GetPositions();
-			auto& IDs = snapshot->GetAtomIDs();
-
-			for(size_t i = 0; i < _prev_IDs[frame].size(); i++)
-			{
-				auto localindex = snapshot->GetLocalIndex(_prev_IDs[frame][i]);
-				if(localindex!= -1)
-				{
-					Pos[localindex][0] = _prev_positions[frame][i*3];
-					Pos[localindex][1] = _prev_positions[frame][i*3 + 1];
-					Pos[localindex][2] = _prev_positions[frame][i*3 + 2];
-				}
-			}
-		}
-
-		void SetVel(Snapshot* snapshot, int frame = 0)
-		{
-			auto& Vel = snapshot->GetVelocities();
-			auto& IDs = snapshot->GetAtomIDs();
-
-			for(size_t i = 0; i < _prev_IDs[frame].size(); i++)
-			{
-				auto localindex = snapshot->GetLocalIndex(_prev_IDs[frame][i]);
-				if(localindex!= -1)
-				{
-					Vel[localindex][0] = _prev_velocities[frame][i*3];
-					Vel[localindex][1] = _prev_velocities[frame][i*3 + 1];
-					Vel[localindex][2] = _prev_velocities[frame][i*3 + 2];
-				}
-			}
-		}
-
 	public:
 		//! Constructor
 		/*!
 		 * \param world MPI global communicator.
 		 * \param comm MPI local communicator.
 		 * \param centers List of centers.
-		 * \param NumNodes Number of nodes.
-		 * \param maxiterator Maximum number of iterations.
-		 * \param blockiterations Number of iterations per block averaging.
-		 * \param tau Value of tau (default: 0.1).
+		 * \param maxiterations Maximum number of iterations.
 		 * \param cvspring Spring constants for cvs.
 		 * \param frequency Frequency with which this method is invoked.
 		 */
@@ -379,15 +312,23 @@ namespace SSAGES
 			_stringout.close();
 		}
 
+		//! Set the tolerance for quitting method
+		/*!
+		 * \param tol List of tolerances for each CV.
+		 *
+		 * Set the tolerance levels until which the method should run. The method
+		 * quit, when the tolerance level is reached for all CVs.
+		 */
 		void SetTolerance(std::vector<double> tol)
 		{
 			for(auto& t : tol)
 				_tol.push_back(t);
 		}
 
+		//! Communicate neighbor lists over MPI
         void SetSendRecvNeighbors()
         {
-		 	std::vector<unsigned int> wiids(_world.size(), 0);
+		 	std::vector<int> wiids(_world.size(), 0);
 
 			//Set the neighbors
 			_recneigh = -1;
@@ -430,6 +371,7 @@ namespace SSAGES
 			}
         }
 
+		//! \copydoc Serializable::Serialize()
 		void Serialize(Json::Value& json) const override
         {
             json["type"] = "String";

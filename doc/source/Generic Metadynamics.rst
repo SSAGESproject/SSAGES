@@ -1,4 +1,5 @@
 .. _molecular-dynamics:
+
 Generic Metadynamics
 --------------------
 

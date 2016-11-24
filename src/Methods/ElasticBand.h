@@ -65,8 +65,8 @@ namespace SSAGES
 		 * \param world MPI global communicator.
 		 * \param comm MPI local communicator.
 		 * \param centers List of centers.
-		 * \param maxiterator Maximum number of iterations.
-		 * \param blockiterations Number of samples to collect before updating string.
+		 * \param maxiterations Maximum number of iterations.
+		 * \param nsamples Number of samples to collect before updating string.
 		 * \param tau Value of tau (default: 0.1).
 		 * \param cvspring Spring constants for cvs.
 		 * \param equilibrate Number of MD steps to allow the system to reequilibrate after updating string.
@@ -101,11 +101,11 @@ namespace SSAGES
 		 */
 		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
 
-		//! \copydoc Serializable::Serialize()
+		//! Serialize the Method
 		/*!
 		 * \warning Serialization not implemented yet!
 		 */
-		void Serialize(Json::Value& json) const override
+		void Serialize(Json::Value& /* json */) const override
 		{
 
 		}

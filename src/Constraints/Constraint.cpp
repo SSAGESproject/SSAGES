@@ -36,7 +36,7 @@ namespace SSAGES
 		return BuildConstraint(json, comm, "#/Constraints");
 	}
 
-	Constraint* Constraint::BuildConstraint(const Value &json,
+	Constraint* Constraint::BuildConstraint(const Json::Value &json,
 						boost::mpi::communicator& comm, 
 						const std::string& path)
 	{

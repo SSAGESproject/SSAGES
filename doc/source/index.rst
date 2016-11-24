@@ -44,7 +44,6 @@ Contents:
    Getting Started
    Tutorials
    Meta-Dynamics Methods
-   Image Method
    Write your own Methods and CVs
    Contribute to SSAGES
    The SSAGES Cookbook

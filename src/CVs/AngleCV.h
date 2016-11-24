@@ -29,11 +29,11 @@
 
 namespace SSAGES
 {
-	// Collective variable to calculate angle.
+	//! Collective variable to calculate angle.
 	class AngleCV : public CollectiveVariable
 	{
 	private:
-		// Vector of 3 atom ID's of interest.
+		//! Vector of 3 atom ID's of interest.
 		Label _atomids;
 
 	public:
@@ -43,7 +43,6 @@ namespace SSAGES
 		 * \param atomid1 ID of the first atom defining the angle.
 		 * \param atomid2 ID of the second atom defining the angle.
 		 * \param atomid3 ID of the third atom defining the angle.
-		 * \param periodic If \c True consider periodic boundary conditions.
 		 *
 		 * Construct an dihedral CV.
 		 *

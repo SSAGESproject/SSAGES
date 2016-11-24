@@ -1,4 +1,5 @@
 .. _elastic-band:
+
 Elastic Band
 ------------
 

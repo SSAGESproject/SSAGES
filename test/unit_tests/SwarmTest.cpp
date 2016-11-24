@@ -99,8 +99,8 @@ TEST_F(SwarmTest,dummytest)
 
         //Backwards logic could be cleaned up in swarm itself
         //std::cout << Swarm_Method->_centers[0] << " " << Swarm_Method->_centers[1] << std::endl;
-        EXPECT_TRUE(!_should_be_initialized);
-        EXPECT_FALSE(!_should_not_be_initialized);
+        EXPECT_TRUE(_should_be_initialized);
+        EXPECT_FALSE(_should_not_be_initialized);
     }
 
     //Test for string update to work correctly
@@ -115,7 +115,7 @@ TEST_F(SwarmTest,dummytest)
         Swarm_Method->_cv_drift = {-0.2, -0.5};
     
     //std::cout << " Hello 2 " << std::endl; //Debugging
-    Swarm_Method->UpdateWorldString();
+    Swarm_Method->UpdateWorldString(cvlist_initialized);
     Swarm_Method->SetSendRecvNeighbors();
     Swarm_Method->StringUpdate();
     //std::cout << " Hello 3 " << std::endl; //Debugging

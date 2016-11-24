@@ -143,7 +143,7 @@ namespace SSAGES
         std::vector<unsigned int> _polyords;
 
         //! Storing number of bins for simplicity and readability of code
-        std::vector<unsigned int> _nbins;
+        std::vector<int> _nbins;
 
         //! Spring constants for restrained system.
         /*!
@@ -206,8 +206,9 @@ namespace SSAGES
 		//! Prints the current bias to a defined file from the JSON.
         /*!
          * \param cvs List of collective variables.
+         * \param beta Scale parameter.
          */
-		void PrintBias(const CVList& cvs, const double);
+		void PrintBias(const CVList& cvs, const double beta);
 
         //! Initializes the look up tables for polynomials
         /*!
@@ -296,21 +297,36 @@ namespace SSAGES
          */
 		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
 
-        //! \copydoc Serializable::Serialize()
+        //! Set the current iteration
         /*!
-         * \warning Serialization is not implemented yet!
+         * \param iter New value for the current iteration.
+         *
+         * This function is used to set the current iteration, for example when
+         * continuing from a restart.
          */
         void SetIteration(const int iter)
         {
             _iteration = iter;
         }
 
+        //! Set the values for the basis.
+        /*!
+         * \param coeff List of coefficients.
+         * \param unbias List of unbiased values.
+         *
+         * This function is used to set starting values at the beginning of
+         * a run. For example when continuing from a restart value.
+         */
         void SetBasis(const std::vector<double>&coeff, std::vector<double>&unbias)
         {
             _coeff_arr = coeff;
             _unbias = unbias;
         }
 
+        //! \copydoc Serializable::Serialize()
+        /*!
+         * \warning Serialization is not implemented yet!
+         */
 		void Serialize(Json::Value& json) const override
 		{
             json["type"] = "Basis";
