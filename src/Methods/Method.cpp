@@ -75,18 +75,36 @@ namespace SSAGES
 			for(auto& s : json["ksprings"])
 				ksprings.push_back(s.asDouble());
 
-			std::vector<double> centers;
-			for(auto& s : json["centers"])
-				centers.push_back(s.asDouble());
+			std::vector<double> centers0, centers1;
+			auto timesteps = json.get("timesteps", 0).asInt();
+			if(json.isMember("centers"))
+			{
+				for(auto& s : json["centers"])
+					centers0.push_back(s.asDouble());
+			}
+			else if(json.isMember("centers0") && json.isMember("centers1") && json.isMember("timesteps"))
+			{
+				for(auto& s : json["centers0"])
+					centers0.push_back(s.asDouble());
 
-			if(ksprings.size() != centers.size())
+				for(auto& s : json["centers1"])
+					centers1.push_back(s.asDouble());
+			}
+			else
+				throw BuildException({"Either \"centers\" or \"timesteps\", \"centers0\" and \"centers1\" must be defined for umbrella."});
+
+			if(ksprings.size() != centers0.size())
 				throw BuildException({"Need to define a spring for every center or a center for every spring!"});
 
 			auto freq = json.get("frequency", 1).asInt();
 
 			auto name = json.get("file name","none").asString();
 
-			auto* m = new Umbrella(world, comm, ksprings, centers, name, freq);
+			Umbrella* m = nullptr;
+			if(timesteps == 0)
+				m = new Umbrella(world, comm, ksprings, centers0, name, freq);
+			else
+				m = new Umbrella(world, comm, ksprings, centers0, centers1, timesteps, name, freq);
 
 			if(json.isMember("iteration"))
 				m->SetIteration(json.get("iteration",0).asInt());

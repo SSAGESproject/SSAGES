@@ -25,10 +25,32 @@ The following parameters need to be set under `"method"` in the JSON input file:
 The following options are available for Umbrella Sampling:
 
 centers (required)
-	Array of target CV values
-	
+	Array of target values for each CV
+
 ksprings (required)
-	Array of spring constants to each CV
+	Array of spring constants for each CV 
+
+file name (required)
+	Output file name for umbrella sampling data
+
+log every (optional)
+	Frequency of writing to output file (default: 1)
+
+The umbrella sampling method can also be run with time dependent centers. 
+This is equivalent to the "steered MD" method. To do so, ommit `"centers"` 
+and use the following options instead: 
+
+centers0 (required)
+	Array of initial target values for each CV 
+
+centers1 (required)
+	Array of final target values for each CV 
+
+timesteps (required)
+	The number of timesteps over which to scale the umbrella centers 
+
+By setting the above options, the umbrella method will linearly interpolate 
+between `centers0` and `centers1` in `timesteps` iterations. 
 
 .. _Umbrella_tutorial:
 

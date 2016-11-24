@@ -40,7 +40,10 @@ namespace SSAGES
 		std::vector<double> _kspring;
 
 		//! Vector of equilibrium distances.
-		std::vector<double> _centers;
+		std::vector<double> _centers0, _centers1;
+
+		//! Amount of time over which to scale centers.
+		int _time;
 
 		//! File name
 		std::string _filename;
@@ -50,6 +53,21 @@ namespace SSAGES
 
 		//! Output stream for umbrella data.
 		std::ofstream _umbrella;
+
+		double GetCurrentCenter(int iteration, unsigned i)
+		{
+			// We are at the end.
+			if(iteration >= _time) return _centers1[i];
+
+			// Scale linearly.
+			return (_centers1[i] - _centers0[i])/_time*iteration + _centers0[i]; 
+		}
+
+		//! Print umbrella values.
+		/*!
+		 * \param cvs List of CVs.
+		 */
+		void PrintUmbrella(const CVList& cvs);
 
 	public:
 		//! Constructor.
@@ -71,8 +89,35 @@ namespace SSAGES
 				 const std::vector<double>& centers,
 				 std::string name,
 				 unsigned int frequency) : 
-		Method(frequency, world, comm), _kspring(kspring), _centers(centers),
-		_filename(name), _logevery(1)
+		Method(frequency, world, comm), _kspring(kspring), _centers0(centers),
+		_centers1(centers), _time(0), _filename(name), _logevery(1)
+		{}
+
+		//! Constructor.
+		/*!
+		 * \param world MPI global communicator.
+		 * \param comm MPI local communicator.
+		 * \param kspring List of spring constants.
+		 * \param centers0 List of starting spring equilibrium positions.
+		 * \param centers1 List of ending spring equilibrium positions.
+		 * \param timesteps Number of timesteps over which to scale centers.
+		 * \param name Filename.
+		 * \param frequency Frequency with which this method is applied.
+		 *
+		 * Create instance of umbrella with spring constants "kspring", and
+		 * centers "centers". Note the sizes of the vectors should be
+		 * commensurate with the number of CVs.
+		 */
+		Umbrella(boost::mpi::communicator& world,
+				 boost::mpi::communicator& comm,
+				 const std::vector<double>& kspring,
+				 const std::vector<double>& centers0,
+				 const std::vector<double>& centers1,
+				 int timesteps,
+				 std::string name,
+				 unsigned int frequency) : 
+		Method(frequency, world, comm), _kspring(kspring), _centers0(centers0),
+		_centers1(centers1), _time(timesteps), _filename(name), _logevery(1)
 		{}
 
 		//! Pre-simulation hook.
@@ -95,12 +140,6 @@ namespace SSAGES
 		 * \param cvs List of CVs.
 		 */
 		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
-		
-		//! Print umbrella values.
-		/*!
-		 * \param cvs List of CVs.
-		 */
-		void PrintUmbrella(const CVList& cvs);
 
 		//! Set how often to log
 		/*!
@@ -121,15 +160,25 @@ namespace SSAGES
 			for(auto& k : _kspring)
 				json["ksprings"].append(k);
 
-			for(auto& c : _centers)
-				json["centers"].append(c);
+			if(_time != 0 )
+			{
+				for(auto& c : _centers0)
+					json["centers0"].append(c);
+				
+				for(auto& c : _centers1)
+					json["centers1"].append(c);
+
+				json["timesteps"] = _time;
+			}
+			else
+			{			
+				for(auto& c : _centers0)
+					json["centers"].append(c);
+			}
 
 			json["file name"] = _filename;
-
 			json["iteration"] = _iteration;
-
 			json["log every"] = _logevery;
-
 		}
 
 	};
