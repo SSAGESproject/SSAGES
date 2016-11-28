@@ -1,5 +1,6 @@
 set(HOOKSRC
-    hooks/qbox/QBoxHook.cpp
+	src/Drivers/QboxDriver.cpp
+	hooks/qbox/QboxHook.cpp
     PARENT_SCOPE
 )
 

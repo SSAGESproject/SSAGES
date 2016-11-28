@@ -21,16 +21,20 @@
 #pragma once 
 
 #include "Driver.h"
-#include "../../hooks/qbox/QBoxHook.h"
+#include "../../hooks/qbox/QboxHook.h"
 
 namespace SSAGES
 {
 	//! Driver for QBox simulation. 
-	class QBoxDriver : public Driver
+	class QboxDriver : public Driver
 	{
 	private:
 		//! Number of MD steps.
 		int mdsteps_;
+		
+		//! Pointer to QBox hook.
+		QboxHook* qbhook_;
+
 	public:
 
 		//! Constructor. 
@@ -39,17 +43,14 @@ namespace SSAGES
 		 * \param local_comm MPI local communicator.
 		 * \param walkerID ID of the walker assigned to this driver.
 		 */
-		QBoxDriver(mpi::communicator& world_comm, 
+		QboxDriver(mpi::communicator& world_comm, 
 		           mpi::communicator& local_comm,
 		           int walkerid) : 
 		Driver(world_comm, local_comm, walkerid)
 		{}
 	
 		//! Run simulation.
-		void Run() override
-		{
-
-		}
+		void Run() override;
 
 		//! Run input file.
 		void ExecuteInputFile(std::string) override
@@ -57,7 +58,7 @@ namespace SSAGES
 
 		}
 
-		//! Set up the driver.
+		//! Set up the driver
 		/*!
 		 * \param json JSON value containing input information.
 		 * \param path Path for JSON path specification.
@@ -68,8 +69,13 @@ namespace SSAGES
 			mdsteps_ = json.get("MDSteps", 1).asInt();
 
 			// Set hook. 
+<<<<<<< HEAD:src/Drivers/QBoxDriver.h
 			auto* hook = new QBoxHook();
 			hook_ = dynamic_cast<Hook*>(&hook);
+=======
+			qbhook_ = new QboxHook();
+			_hook = dynamic_cast<Hook*>(qbhook_);
+>>>>>>> Qbox synctoengine basics complete.:src/Drivers/QboxDriver.h
 		}
 
 	};

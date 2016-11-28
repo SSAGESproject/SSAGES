@@ -43,7 +43,7 @@
 #endif
 
 #ifdef ENABLE_QBOX
-#include "Drivers/QBoxDriver.h"
+#include "Drivers/QboxDriver.h"
 #endif
 
 namespace mpi = boost::mpi;
