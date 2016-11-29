@@ -35,6 +35,41 @@ namespace SSAGES
 		SyncToEngine();
 	}
 
+	void QboxHook::SSAGESToCommands(const std::string& commandfile)
+	{
+		SyncToSnapshot();
+
+		std::ofstream fout; 
+		fout.open(commandfile, std::ofstream::trunc);
+		fout.precision(10);
+
+		const auto& pos = _snapshot->GetPositions();
+		const auto& vel = _snapshot->GetVelocities();
+
+		auto& atomset = pt_.get_child("fpmd:simulation.iteration.atomset");
+
+		int i = 0;
+		for(const auto& v : atomset)
+		{
+			if(v.first == "atom")
+			{
+				auto name = v.second.get<std::string>("<xmlattr>.name");
+				
+				fout << "move " << name << " to " 
+				     << pos[i][0] << " "
+				     << pos[i][1] << " "
+				     << pos[i][2] << std::endl;
+
+				fout << "set_velocity " << name << " " 
+				     << vel[i][0] << " "
+				     << vel[i][1] << " "
+				     << vel[i][2] << std::endl;
+
+				++i;
+			}
+		}
+	}
+
 	void QboxHook::BuildSpeciesInfo()
 	{
 		species_.clear();
@@ -55,7 +90,6 @@ namespace SSAGES
 
 	void QboxHook::SyncToEngine()
 	{
-
 		// Build species list and masses.
 		BuildSpeciesInfo();
 
@@ -63,7 +97,17 @@ namespace SSAGES
 
 		// First entry in <atomset> is <unit_cell>.
 		int natoms = atomset.size() - 1;
-		
+
+		// Load em up. 
+		_snapshot->SetIteration(_snapshot->GetIteration() + 1);
+		_snapshot->SetNumAtoms(natoms);
+
+		//Set temperature.
+		//Set potential energy.
+		//Set kinetic energy.
+		//Set boltzmann. 
+		//Set periodic boundary 
+
 		// Resize vectors.
 		auto& pos = _snapshot->GetPositions();
 		pos.resize(natoms);
@@ -96,6 +140,10 @@ namespace SSAGES
 				typs[i] = type;
 				mass[i] = speciesmass_[type];
 
+				// We loaded in velocities (above), but we need to perform velocity
+				// verlet step.
+				vel[i] += 0.5*timestep_*frc[i]/mass[i];
+
 				++i;
 			} 
 			else if(v.first == "unit_cell")
@@ -111,9 +159,20 @@ namespace SSAGES
 				_snapshot->SetHMatrix(H);
 			}
 		}
-		
 	}
 
 	void QboxHook::SyncToSnapshot()
-	{}
+	{
+		auto& pos = _snapshot->GetPositions();
+		auto& vel = _snapshot->GetVelocities();
+		const auto& frc = _snapshot->GetForces();
+		const auto& mass = _snapshot->GetMasses();
+		
+		// Integrate using velocity verlet. 
+		for(int i = 0; i < _snapshot->GetNumAtoms(); ++i)
+		{
+			pos[i] += vel[i]*timestep_ + 0.5*frc[i]/mass[i]*timestep_*timestep_ + Vector3::Random();
+			vel[i] += 0.5*frc[i]/mass[i]*timestep_;
+		}
+	}
 }

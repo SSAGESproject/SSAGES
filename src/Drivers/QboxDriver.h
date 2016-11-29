@@ -55,7 +55,6 @@ namespace SSAGES
 		//! Run input file.
 		void ExecuteInputFile(std::string) override
 		{
-
 		}
 
 		//! Set up the driver
@@ -74,6 +73,7 @@ namespace SSAGES
 			hook_ = dynamic_cast<Hook*>(&hook);
 =======
 			qbhook_ = new QboxHook();
+			qbhook_->SetTimestep(json.get("dt", 3).asDouble());
 			_hook = dynamic_cast<Hook*>(qbhook_);
 >>>>>>> Qbox synctoengine basics complete.:src/Drivers/QboxDriver.h
 		}

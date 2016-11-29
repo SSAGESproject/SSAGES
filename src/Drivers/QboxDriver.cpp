@@ -59,9 +59,8 @@ namespace SSAGES
 		WaitForFile(lockfile);
 		*/
 		qbhook_->XMLToSSAGES(outfile);
+		qbhook_->SSAGESToCommands(infile);
 
 		std::cout << "Qbox done!" << std::endl;
-
-
 	}
 }

@@ -17,6 +17,12 @@ namespace SSAGES
 		//! Vector of species' masses.
 		std::vector<double> speciesmass_;
 
+		//! Previous forces for velocity verlet integration.
+		std::vector<Vector3> prevforces_;
+
+		//! Timestep of integration.
+		double timestep_;
+
 		//! Get species index from species vector.
 		int GetSpeciesIndex(const std::string& species)
 		{
@@ -37,11 +43,17 @@ namespace SSAGES
 		void SyncToSnapshot() override;
 
 	public: 
-		QboxHook() : species_(), speciesmass_()
+		QboxHook() : species_(), speciesmass_(), prevforces_(0)
 		{}
 
 		void XMLToSSAGES(const std::string& xmlfile);
 		void SSAGESToCommands(const std::string& commandfile);
+
+		//! Set integration timestep.
+		void SetTimestep(double dt)
+		{
+			timestep_ = dt;
+		}
 		
 		~QboxHook()
 		{}
