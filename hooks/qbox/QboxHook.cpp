@@ -45,9 +45,13 @@ namespace SSAGES
 
 		const auto& pos = _snapshot->GetPositions();
 		const auto& vel = _snapshot->GetVelocities();
+		const auto& typ = _snapshot->GetAtomTypes();
 
 		auto& atomset = pt_.get_child("fpmd:simulation.iteration.atomset");
 
+		std::cout << pos.size() << std::endl;
+		std::cout << std::endl;
+		
 		int i = 0;
 		for(const auto& v : atomset)
 		{
@@ -64,6 +68,8 @@ namespace SSAGES
 				     << vel[i][0] << " "
 				     << vel[i][1] << " "
 				     << vel[i][2] << std::endl;
+
+				std::cout << typ[i] << " " << pos[i][0] << " " << pos[i][1] << " " << pos[i][2] << std::endl;
 
 				++i;
 			}
@@ -90,13 +96,15 @@ namespace SSAGES
 
 	void QboxHook::SyncToEngine()
 	{
-		// Build species list and masses.
-		BuildSpeciesInfo();
-
 		auto& atomset = pt_.get_child("fpmd:simulation.iteration.atomset");
 
 		// First entry in <atomset> is <unit_cell>.
 		int natoms = atomset.size() - 1;
+
+		// Build species index on first iteration. 
+		if(_snapshot->GetIteration() == 0)
+			BuildSpeciesInfo();
+
 
 		// Load em up. 
 		_snapshot->SetIteration(_snapshot->GetIteration() + 1);
@@ -171,7 +179,7 @@ namespace SSAGES
 		// Integrate using velocity verlet. 
 		for(int i = 0; i < _snapshot->GetNumAtoms(); ++i)
 		{
-			pos[i] += vel[i]*timestep_ + 0.5*frc[i]/mass[i]*timestep_*timestep_ + Vector3::Random();
+			pos[i] += vel[i]*timestep_ + 0.5*frc[i]/mass[i]*timestep_*timestep_;
 			vel[i] += 0.5*frc[i]/mass[i]*timestep_;
 		}
 	}

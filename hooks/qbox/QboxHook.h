@@ -47,8 +47,9 @@ namespace SSAGES
 		{}
 
 		void XMLToSSAGES(const std::string& xmlfile);
-		void SSAGESToCommands(const std::string& commandfile);
 
+		void SSAGESToCommands(const std::string& commandfile);
+		
 		//! Set integration timestep.
 		void SetTimestep(double dt)
 		{

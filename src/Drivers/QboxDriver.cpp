@@ -35,6 +35,15 @@ namespace SSAGES
 		while(status == 0);
 	}
 
+	void SendRunCommand(std::string& runfile, std::string& lockfile)
+	{
+		std::ofstream fin; 
+		fin.open(runfile, std::ofstream::app);
+		fin << "run 0 30" << std::endl;
+		fin.close(); 
+		remove(lockfile.c_str());
+	}
+
 	void QboxDriver::Run()
 	{
 		using std::ofstream;
@@ -46,21 +55,38 @@ namespace SSAGES
 
 		// Wait for initial lockfile to exist. This means Qbox is ready 
 		WaitForFile(lockfile);
-
-		/*
-		// Write to infile the input file name.
+		
+		// Write initial input file to qbox. 
 		ofstream fin;
-		fin.open(infile.c_str(), std::ofstream::trunc);
+		fin.open(infile, std::ofstream::trunc);
 		fin << _inputfile << std::endl;
 		fin.close();
 
-		// Remove lock file and wait for Qbox to finish.
+		// Remove lock file to get Qbox running.
 		remove(lockfile.c_str());
-		WaitForFile(lockfile);
-		*/
-		qbhook_->XMLToSSAGES(outfile);
-		qbhook_->SSAGESToCommands(infile);
 
-		std::cout << "Qbox done!" << std::endl;
+		// Wait for Qbox to finish. 
+		WaitForFile(lockfile);
+		qbhook_->XMLToSSAGES(outfile);
+		qbhook_->PreSimulationHook();
+			
+		for(int i = 0; i < mdsteps_; ++i)
+		{
+			qbhook_->SSAGESToCommands(infile);
+
+			// Write run command to top it off and close file.
+			SendRunCommand(infile, lockfile);
+
+			// Wait for Qbox to finish. 
+			WaitForFile(lockfile);
+			qbhook_->XMLToSSAGES(outfile);
+			qbhook_->PostIntegrationHook();
+		}	
+
+		qbhook_->SSAGESToCommands(infile);
+		SendRunCommand(infile, lockfile);
+		WaitForFile(lockfile);
+		qbhook_->XMLToSSAGES(outfile);
+		qbhook_->PostSimulationHook();
 	}
 }
