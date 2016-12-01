@@ -3,6 +3,8 @@
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
  * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
+ *                Joshua Lequieu <lequieu@uchicago.edu>
+ *                Hadi Ramezani-Dakhel <ramezani@uchicago.edu>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,71 +34,82 @@ namespace SSAGES
 	//! ForwardFlux sampling method
 	/*!
 	 * \ingroup Methods
+     * The notation used here is drawn largely from Allen, Valeriani and Rein ten Wolde. J. Phys.: Condens. Matter (2009) 21:463102. 
+     * We recommend referring to this review if the reader is unfamiliar with the method, or our variable naming conventions.
 	 */
 	class ForwardFlux : public Method
 	{
 	private:
 
-		std::random_device _rd; //!< Random number generator.
-		std::mt19937 _gen; //!< Alternative random number generator.
+		//! Number of FFS interfaces
+		std::vector<double> _ninterfaces;
 
-		//! Possible restart values.
-		enum Restart {NEW, LIBRARY, NEWCONFIG, NONE};
+        //! Current Interface
+        unsigned int _currentinterface;
 
-		//! Restart value.
-		Restart _restart;
+		//! Previous cv position, used to determine if you've crossed an interface since last time
+        double _cvposition_previous;
 
-		// Output index file for storing information on where everything is.
-		std::string _indexfilename; //!< File name for index file.
-		std::ofstream _indexfile; //!< File stream for index file.
-		std::string _indexcontents; //!< Contents of index file.
-		std::string _globalcontents; //!< Global contents.
-		std::string _totalcontents; //!< On going record of all paths.
+		//! Number of configurations to collect at lambda0 (first interface) 
+		unsigned int _N0 ;
 
-		std::string _libraryfilename; //!< File name for index file.
-		std::ofstream _libraryfile; //!< File stream for index file.
-		std::string _librarycontents; //!< Library contents.
-		
-		std::string _currentconfig; //!< Current configuration.
+        //! Data structure that holds a Library N0 configurations at lambda0
+        std::vector<FFSConfiguration> Lambda0ConfigLibrary
 
-		// Results file for end of simulation.
-		std::string _resultsfilename; //!< File name for simulation results.
-		std::ofstream _resultsfile; //!< File stream for simulation results.
-		std::string _resultscontents; //!< Content of simulation results.
+        //! Total Simulation Time spent in accumulating \ _N0
+        double _N0TotalSimTime;
 
-		//! Location of the nodes to be used in determining FF interfaces.
-		std::vector<double> _centers;
+        //! Flux of trajectories out of state A. Denoted PhiA0 over h_A in Allen2009.
+        double _fluxA0;
 
-		//! Number of successes at a given interface.
-		std::vector<int> _successes;
+        //! Number of trials to attemts from each interface
+        std::vector<double> _M;
 
-		//! Number of local successes.
-		std::vector<int> _localsuccesses;
+        //! Flag to determine wheter fluxA0 should be calculated
+        bool _computefluxA0;
 
-		//! Current interface FF is shooting from.
-		unsigned int _currentnode;
+        //! Stores what 'mode' of FFS we're in. 
+        /*!
+         *  Options:
+         *   - computefluxA0
+         *   - WHAT OTHERS?
+         */
+        unsigned int _FFSmode;
 
-		//! The current starting configuration that we are on.
-		unsigned int _currentstartingpoint;
+        struct FFSConfigID
+        {
+            unsigned int lambda; //!< Interface number
+            unsigned int n;      //!< Configuration Number
+            unsigned int a;      //!< Attempt number
+            FFSConfigID previous; //!< ID of FFSConfiguration that I came from
+        };
 
-		//! User defined number of starting configs needed per walker before starting FF.
-		unsigned int _requiredconfigs;
+        //! The current FFSConfigID of this MPI process
+        FFSConfiguration myFFSConfigID;
 
-		//! Number that keeps track of configs this walker has generated.
-		int _currenthash;
+        //! Data structure that holds FFSConfigurations
+        /*!
+         *  When a given processor reaches an interface, it pulls a config from this Queue to figure out what it should do next
+         *  This object should be syncronized between all FFS walkers (is walker the correct terminology here?)
+         */
+        std::queue<FFSConfigID> FFSConfigIDQueue; 
+ 
+        
+        //! Function checks if configuration has returned to A
+        bool HasReturnedToA();
 
-		//! Name of file of configuration where shooting from.
-		std::string _shootingconfigfile;
+        //! Function checks if configuration has crossed interface specified since the last check
+        bool HasCrossedInterface(unsigned int interface);
 
-		//! Number of shots each node takes per interface
-		int _numshots;
+        //! Function checks if FFS is Finished, returns bool with result
+        //! See if interface is the last one, and the queue is empty, etc
+        bool CheckIfFinishedMethod();
 
-		//! Index of the current shot.
-		int _currentshot;
+        //! Write a file corresponding to FFSConfigID from current snapshot
+        bool WriteFFSConfiguration(Snapshot *,FFSConfigID);
 
-		// Flux
-		int _fluxout; //!< Flux out.
-		int _fluxin; //!< Flux in.
+        //! Read a file corresponding to a FFSConfigID into current snapshot
+        bool ReadFFSConfiguration(Snapshot *,FFSConfigID);
 
 	public:
 		//! Constructor
