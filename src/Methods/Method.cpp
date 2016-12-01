@@ -267,44 +267,11 @@ namespace SSAGES
 			validator.Validate(json, path);
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
-
-			auto indexfile = json.get("index_file", "none").asString();
-			auto libraryfile = json.get("library_file", "none").asString();
-			auto resultsfile = json.get("results_file", "none").asString();
-			std::vector<double> centers;
-			for(auto& s : json["centers"])
-				centers.push_back(s.asDouble());
-
-			auto genconfig = json.get("generate_configs",1).asInt();
-			auto shots = json.get("shots",1).asInt();
-			auto freq = json.get("frequency", 1).asInt();
-
-			auto* m = new ForwardFlux(world, comm, 
-				indexfile, libraryfile, resultsfile, 
-				centers, genconfig, shots, freq);
-
-			if(json.isMember("restart_type"))
-				m->SetRestart(json["restart_type"].asString());
-
-			if(json.isMember("library_point"))
-				m->SetLibraryPoint(json["library_point"].asInt());
-
-			if(json.isMember("current_hash"))
-				m->SetHash(json["current_hash"].asInt());
-
-			if(json.isMember("index_contents"))
-				m->SetIndexContents(json["index_contents"].asString());
-
-			if(json.isMember("successes"))
-			{
-				std::vector<int> success;
-				for(auto s : json["successes"])
-					success.push_back(s.asInt());
-				m->SetSuccesses(success);
-			}
-
-			if(json.isMember("current_shot"))
-				m->SetAtShot(json["current_shot"].asInt());
+            
+            // fixme: Eventually parse the json here
+            // For now just hard-code it into the constructor...
+            unsigned int freq = 1;
+            auto* m = new ForwardFlux(world, comm, freq);
 
 			method = static_cast<Method*>(m);
 		}

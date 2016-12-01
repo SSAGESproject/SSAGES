@@ -25,6 +25,7 @@
 #include "../CVs/CollectiveVariable.h"
 #include <fstream>
 #include <random>
+#include <queue>
 #include "../FileContents.h"
 #include "../Drivers/DriverException.h"
 
@@ -44,6 +45,16 @@ namespace SSAGES
         //-----------------------------------------------------------------
         // Private Variables
         //-----------------------------------------------------------------
+        class FFSConfigID
+        {
+           public:
+            unsigned int lambda; //!< Interface number
+            unsigned int n;      //!< Configuration Number
+            unsigned int a;      //!< Attempt number
+            FFSConfigID* previous; //!< ID of FFSConfiguration that I came from
+        };
+
+
 
 		//! Number of FFS interfaces
 		std::vector<double> _ninterfaces;
@@ -58,7 +69,7 @@ namespace SSAGES
 		unsigned int _N0 ;
 
         //! Data structure that holds a Library N0 configurations at lambda0
-        std::vector<FFSConfiguration> Lambda0ConfigLibrary
+        std::vector<FFSConfigID> Lambda0ConfigLibrary;
 
         //! Total Simulation Time spent in accumulating \ _N0
         double _N0TotalSimTime;
@@ -86,25 +97,17 @@ namespace SSAGES
          *   - computefluxA0
          *   - WHAT OTHERS?
          */
-        unsigned int _FFSmode;
-
-        struct FFSConfigID
-        {
-            unsigned int lambda; //!< Interface number
-            unsigned int n;      //!< Configuration Number
-            unsigned int a;      //!< Attempt number
-            FFSConfigID previous; //!< ID of FFSConfiguration that I came from
-        };
+        bool _initialFluxFlag;
 
         //! The current FFSConfigID of this MPI process
-        FFSConfiguration myFFSConfigID;
+        FFSConfigID myFFSConfigID;
 
         //! Data structure that holds FFSConfigurations
         /*!
          *  When a given processor reaches an interface, it pulls a config from this Queue to figure out what it should do next
          *  This object should be syncronized between all FFS walkers (is walker the correct terminology here?)
          */
-        std::queue<FFSConfigID> FFSConfigIDQueue; 
+        std::queue<FFSConfigID*> FFSConfigIDQueue; 
 
 
         //-----------------------------------------------------------------
@@ -122,15 +125,18 @@ namespace SSAGES
         bool CheckIfFinishedMethod();
 
         //! Write a file corresponding to FFSConfigID from current snapshot
-        bool WriteFFSConfiguration(Snapshot *,FFSConfigID);
+        void WriteFFSConfiguration(Snapshot *snapshot,FFSConfigID ffsconfig);
 
         //! Read a file corresponding to a FFSConfigID into current snapshot
-        bool ReadFFSConfiguration(Snapshot *,FFSConfigID);
+        void ReadFFSConfiguration(Snapshot *,FFSConfigID);
        
+        //! Compute Initial Flux
+        void ComputeInitialFlux();
+
         //! Compute the probability of going from each lambda_i to lambda_{i+1} 
         //!  Using number of successes and number of trials
         //!  This will need to be different for each FFS flavor 
-        ComputeTransitionProbabilities();
+        void ComputeTransitionProbabilities();
 
 	public:
 		//! Constructor
