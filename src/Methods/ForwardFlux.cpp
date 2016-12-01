@@ -45,8 +45,15 @@ namespace SSAGES
             ComputeInitialFlux(); 
         }
         // Else normal forward flux
-        else if (_FFSmode == "TransitionProbabilities" ){
-            ComputeTransitionProbabilities();
+        else if (_FFSmode == "ForwardFlux" ){
+          //check if I've crossed the next interface
+          
+          //if so update some relevant quantities and mpi them across procs
+
+          //assign myFFSConfigID = NULL
+
+          // reassign configs that reached interface a new FFSConfigID
+           
         }
         // Other modes?
 
@@ -56,6 +63,21 @@ namespace SSAGES
 	{
 		
 	}
+
+    bool ForwardFlux::HasReturnedToA(Snapshot* snapshot){
+
+
+    }
+
+	void ForwardFlux::ComputeInitialFlux(){
+        //check if I've crossed the first interface (lambda 0)
+
+        //need to sync variables between processors
+    }
+
+	void ForwardFlux::ComputeTransitionProbabilities(){
+
+    }
 
 	
 	void ForwardFlux::WriteConfiguration(Snapshot* snapshot)
