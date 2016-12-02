@@ -62,7 +62,6 @@
 			"minimum" : 0
 		}
 	},
-	"required": ["type", "index_file", "library_file", "results_file",
-	"centers", "generate_configs", "shots"],
+	"required": [],
 	"additionalProperties": false
 }
