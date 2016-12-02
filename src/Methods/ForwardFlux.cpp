@@ -64,10 +64,21 @@ namespace SSAGES
 	{
 		
 	}
+    
+    int HasCrossedInterface(double current, double prev, unsigned int i){
+        double interface_location = _interfaces[i]
+        if ((prev < interface_location) && (current >= interface_location))
+            return 1;
+        else if ((prev >= interface_location) && (current < interface_location))
+            return -1;
+        else
+            return 0;
+    }
 
-    bool ForwardFlux::HasReturnedToA(Snapshot* snapshot){
-
-
+    bool ForwardFlux::HasReturnedToA(double current){
+        double interface_location = _interfaces[0]
+        if (current < interface_location) return true;
+        else return false;
     }
 
 	void ForwardFlux::ComputeInitialFlux(){

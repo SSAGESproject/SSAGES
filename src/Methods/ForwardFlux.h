@@ -45,6 +45,7 @@ namespace SSAGES
         //-----------------------------------------------------------------
         // Private Variables
         //-----------------------------------------------------------------
+        //! Internal class to store different FFS Config IDs
         class FFSConfigID
         {
            public:
@@ -57,13 +58,19 @@ namespace SSAGES
 
 
 		//! Number of FFS interfaces
-		std::vector<double> _ninterfaces;
+		double _ninterfaces;
+
+		//! FFS Interfaces
+		std::vector<double> _interfaces;
 
         //! Current Interface
         unsigned int _currentinterface;
 
 		//! Previous cv position, used to determine if you've crossed an interface since last time
-        double _cvposition_previous;
+        double _cvvalue_previous;
+
+		//!  current cv position
+        double _cvvalue;
 
 		//! Number of configurations to collect at lambda0 (first interface) 
 		unsigned int _N0 ;
@@ -102,7 +109,7 @@ namespace SSAGES
         //! The current FFSConfigID of this MPI process
         FFSConfigID myFFSConfigID;
 
-        //! Data structure that holds FFSConfigurations
+
         /*!
          *  When a given processor reaches an interface, it pulls a config from this Queue to figure out what it should do next
          *  This object should be syncronized between all FFS walkers (is walker the correct terminology here?)
@@ -118,7 +125,9 @@ namespace SSAGES
         bool HasReturnedToA(Snapshot* snapshot);
 
         //! Function checks if configuration has crossed interface specified since the last check
-        bool HasCrossedInterface(unsigned int interface);
+        /*! Simple function, given current and previous cv position, checks if interface i has been crossed. If crossed in positive direction, return +1, if crossed in negative direction return -1, if nothing crossed return 0
+         */
+        int HasCrossedInterface(unsigned int interface);
 
         //! Function checks if FFS is Finished, returns bool with result
         //! See if interface is the last one, and the queue is empty, etc
@@ -134,8 +143,10 @@ namespace SSAGES
         void ComputeInitialFlux();
 
         //! Compute the probability of going from each lambda_i to lambda_{i+1} 
-        //!  Using number of successes and number of trials
-        //!  This will need to be different for each FFS flavor 
+        /*!  
+         *  Using number of successes and number of trials
+         *  This will need to be different for each FFS flavor 
+         */
         void ComputeTransitionProbabilities();
 
 	public:
