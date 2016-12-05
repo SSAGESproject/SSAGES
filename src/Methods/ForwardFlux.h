@@ -29,7 +29,6 @@
 #include "../FileContents.h"
 #include "../Drivers/DriverException.h"
 
-namespace mpi = boost::mpi;
 namespace SSAGES
 {
 	//! ForwardFlux sampling method
@@ -52,14 +51,30 @@ namespace SSAGES
             unsigned int l; //!< Interface number
             unsigned int n;      //!< Configuration Number
             unsigned int a;      //!< Attempt number
-            bool success;        //!< Whether it suceeded or failed
-            //FFSConfigID* previous; //!< ID of FFSConfiguration that I came from
-            unsigned int l_prev;      //!< Previous Interface number (i.e. traj I came from)
-            unsigned int n_prev;      //!< Previous Configuration Number
-            unsigned int a_prev;      //!< Previous Attempt number
+            unsigned int lprev;      //!< Previous Interface number (i.e. traj I came from)
+            unsigned int nprev;      //!< Previous Configuration Number
+            unsigned int aprev;      //!< Previous Attempt number
+
+            //! Constructor
+            FFSConfigID(unsigned int l_,unsigned int n_,unsigned int a_,unsigned int lprev_,unsigned int nprev_,unsigned int aprev_): 
+                l(l_),n(n_),a(a_),lprev(lprev_),nprev(nprev_),aprev(aprev_){};
+
+            //! Overload = operator
+            FFSConfigID& operator=(const FFSConfigID& rhs){
+                if (this == &rhs) return *this;
+                else{
+                   l = rhs.l;
+                   n = rhs.n;
+                   a = rhs.a;
+                   lprev = rhs.lprev;
+                   nprev = rhs.nprev;
+                   aprev = rhs.aprev;
+                }
+            }
         };
 
-
+        //! random number generator
+        std::default_random_engine _generator;
 
 		//! Number of FFS interfaces
 		double _ninterfaces;
@@ -68,7 +83,7 @@ namespace SSAGES
 		std::vector<double> _interfaces;
 
         //! Current Interface
-        unsigned int _currentinterface;
+        unsigned int _current_interface;
 
 		//! Previous cv position, used to determine if you've crossed an interface since last time
         double _cvvalue_previous;
@@ -134,7 +149,7 @@ namespace SSAGES
          *  When a given processor reaches an interface, it pulls a config from this Queue to figure out what it should do next
          *  This object should be syncronized between all FFS walkers (is walker the correct terminology here?)
          */
-        std::queue<FFSConfigID*> FFSConfigIDQueue; 
+        std::queue<FFSConfigID> FFSConfigIDQueue; 
 
 
         //-----------------------------------------------------------------
@@ -142,19 +157,19 @@ namespace SSAGES
         //-----------------------------------------------------------------
         
         //! Function that checks if interfaces have been crossed (different for each FFS flavor)
-        void CheckForInterfaceCrossigns(Snapshot* snapshot, CVList& cvs)
+        void CheckForInterfaceCrossings(Snapshot*, const CVList&);
 
         //! Function that adds new FFS configurations to the Queue
         //! Different FFS flavors can have differences in this method
         void AddNewIDsToQueue();
 
         //! Function checks if configuration has returned to A
-        bool HasReturnedToA(Snapshot* snapshot);
+        bool HasReturnedToA(double);
 
         //! Function checks if configuration has crossed interface specified since the last check
         /*! Simple function, given current and previous cv position, checks if interface i has been crossed. If crossed in positive direction, return +1, if crossed in negative direction return -1, if nothing crossed return 0
          */
-        int HasCrossedInterface(unsigned int interface);
+        int HasCrossedInterface(double, double, unsigned int interface);
 
         //! Function checks if FFS is Finished, returns bool with result
         //! See if interface is the last one, and the queue is empty, etc
@@ -167,7 +182,10 @@ namespace SSAGES
         void ReadFFSConfiguration(Snapshot *,FFSConfigID);
        
         //! Compute Initial Flux
-        void ComputeInitialFlux();
+        void ComputeInitialFlux(Snapshot*, const CVList&);
+
+        //! Initialize the Queue
+        void InitializeQueue(Snapshot*, const CVList&);
 
         //! Compute the probability of going from each lambda_i to lambda_{i+1} 
         /*!  
@@ -188,10 +206,7 @@ namespace SSAGES
 		ForwardFlux(boost::mpi::communicator& world,
 				 boost::mpi::communicator& comm,
 				 unsigned int frequency) : 
-		Method(frequency, world, comm)
-        {
-            //set variables here			
-		}
+		Method(frequency, world, comm), _generator(0) {};
 
 		//! Pre-simulation hook.
 		/*!
