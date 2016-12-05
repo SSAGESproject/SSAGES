@@ -49,10 +49,14 @@ namespace SSAGES
         class FFSConfigID
         {
            public:
-            unsigned int lambda; //!< Interface number
+            unsigned int l; //!< Interface number
             unsigned int n;      //!< Configuration Number
             unsigned int a;      //!< Attempt number
-            FFSConfigID* previous; //!< ID of FFSConfiguration that I came from
+            bool success;        //!< Whether it suceeded or failed
+            //FFSConfigID* previous; //!< ID of FFSConfiguration that I came from
+            unsigned int l_prev;      //!< Previous Interface number (i.e. traj I came from)
+            unsigned int n_prev;      //!< Previous Configuration Number
+            unsigned int a_prev;      //!< Previous Attempt number
         };
 
 
@@ -72,7 +76,7 @@ namespace SSAGES
 		//!  current cv position
         double _cvvalue;
 
-		//! Number of configurations to collect at lambda0 (first interface) 
+		//! Total number of configurations to collect at lambda0 (first interface) 
 		unsigned int _N0 ;
 
         //! Data structure that holds a Library N0 configurations at lambda0
@@ -84,9 +88,12 @@ namespace SSAGES
         //! Flux of trajectories out of state A. Denoted PhiA0 over h_A in Allen2009.
         double _fluxA0;
 
-        //! Number of trials to attemts from each interface
-        //! Note _M[0] sets the number of 'branches' for RBFFS and BGFFS
-        std::vector<double> _M;
+        //! Number of trials to attemt from each interface
+        //! Note _M[0] sets the number of 'branches' for RBFFS and BGFFS?
+        std::vector<unsigned int> _M;
+
+        //! Number of attempts from interface i
+        std::vector<unsigned int> _attempts;
 
         //! Flag to determine wheter fluxA0 should be calculated
         bool _computefluxA0;
@@ -121,6 +128,13 @@ namespace SSAGES
         // Private Functions
         //-----------------------------------------------------------------
         
+        //! Function that checks if interfaces have been crossed (different for each FFS flavor)
+        void CheckForInterfaceCrossigns(Snapshot* snapshot, CVList& cvs)
+
+        //! Function that adds new FFS configurations to the Queue
+        //! Different FFS flavors can have differences in this method
+        void AddNewIDsToQueue();
+
         //! Function checks if configuration has returned to A
         bool HasReturnedToA(Snapshot* snapshot);
 

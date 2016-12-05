@@ -43,18 +43,12 @@ namespace SSAGES
 
         // if _computefluxA0
         if (_initialFluxFlag){
-            ComputeInitialFlux(); 
+            ComputeInitialFlux(snapshot,cvs); 
         }
         // Else normal forward flux
         else{
-          //check if I've crossed the next interface
+            CheckForInterfaceCrossings(snapshot,cvs);
           
-          //if so update some relevant quantities and mpi them across procs
-
-          //assign myFFSConfigID = NULL
-
-          // reassign configs that reached interface a new FFSConfigID
-           
         }
         // Other modes?
 
@@ -87,6 +81,95 @@ namespace SSAGES
         //need to sync variables between processors
     }
 
+    void ForwardFlux::CheckForInterfaceCrossings(Snapshot* snapshot, CVList& cvs){
+
+        _cvvalue = cvs[0].GetValue()
+        //check if I've crossed the next interface
+        bool hasreturend = HasReturnedToA(_cvvalue);
+        int hascrossed = HasCrossedInterface(_cvvalue, _cv_value_previous, _currentinterface + 1);
+        int nfail_local=0,nsuccess_local=0;
+        //std::vector<int> nfail,nsuccess;
+        //nfail.resize(SIZEWORLD)
+        //nsuccess.resize(SIZEWORLD)
+        
+        bool shouldIpop_local = false;
+        std:vector<bool> shouldIpop;
+        shouldIpop.resize(SIZEWORLD);
+        std::vector<int> poporder; //order of processors to pop off queue
+        int myplaceinline; //where current processor is in poporder
+
+        if (hasreturned){
+          shouldIpop = true;
+          fail_local=1;
+        }
+        else if (hascrossed == 1){
+          shouldIpop = true;
+          success_local=1;
+        }
+        else if (hascrossed == -1){
+          //this should never happen if the interfaces are non-intersecting
+        }
+        else{
+        }
+
+        //for each traj that crossed to lambda+1 need to write it to disk (FFSConfigurationFile)
+        std::vector<bool> successes;
+        MPIGather success_local into successes
+
+        for (i=0;i<SIZEWORLD;i++){
+          if ((shouldIpop[i] == true){ 
+            if (i == MYRANK)){
+              // write config to lambda+1
+              int l,n,a,l_prev,n_prev,a_prev;
+              l = myFFSConfigID.getl()
+              n = myFFSConfigID.getn()
+              a = myFFSConfigID.geta()
+              FFSConfigID newid = FFSConfigID(l,n,a,
+              UPDATE FFS Config ID to lambda+1
+              WriteFFSConfiguration(snapshot,FFSConfigID);
+            }
+          }
+        }
+        
+        MPI_Reduce _S[_current_interface]
+        //replace if statement with a generalized function like "takeAction" that
+        //  - given the number of successes see if more simulations need to be spawned
+        //or perhaps post_integration will just have to be different for each FFS flavor
+        if (_S[_current_interface] == _M[_current_interface]) {
+          AddNewIDsToQueue();
+          //FFSConfigIDQueue.emplace(NEW AND CORRECT ID INFO);
+        }
+
+        // if returned or crossed, get a new config from the queue. but need to be careful that no two procs get the same config
+        MPI_Gather into shouldIpop
+         
+        for (i=0;i<SIZEWORLD;i++){
+          if ((shouldIpop[i] == true){ 
+              if (i == MYRANK)){
+                  myFFSConfigID = FFSConfigIDQueue.front()
+              }
+              FFSConfigIDQueue.pop()
+          }
+        }
+
+        MPI_Gather into nsuccess
+        MPI_Gather into nfail
+
+        //MPI_Reduce _S
+
+          //update snapshot with new traj
+          myFFSConfigID = FFSConfigIDQueue.pop();
+        
+        //if so update some relevant quantities and mpi them across procs
+
+        //assign myFFSConfigID = NULL
+
+        // reassign configs that reached interface a new FFSConfigID
+
+        _cvvalue_previous = _cvvalue;
+           
+    }
+
 	void ForwardFlux::ComputeTransitionProbabilities(){
 
     }
@@ -111,6 +194,25 @@ namespace SSAGES
 		auto& ID = snapshot->GetSnapshotID();
 
 	}
+    void ForwardFlux::AddNewIDsToQueue(){
+        //for DFFS
+        if (rank == 0){
+          roll M[nextinterface] random numbers (these are the simulations at lambda_i+1 to pick)
+        }
+        MPI_Broadcast these random numbers
+
+        each proc adds to the queue
+
+
+        //for CBGFFS
+        similar to DFFS?
+
+        //for BGFFS
+        will need to have broadcast ID information of the successful config that is spawning new configs
+
+
+
+    }
 
 	
 }
