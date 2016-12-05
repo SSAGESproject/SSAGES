@@ -30,8 +30,6 @@
 #cmakedefine ENABLE_GROMACS
 #cmakedefine ENABLE_QBOX
 
-constexpr char qbox_src[] = "@QBOX_SRC@";
-
 #define GIT_SHA1 "@GIT_SHA1@"
 
 #define BUILD_TYPE_@BUILD_TYPE_NAME@

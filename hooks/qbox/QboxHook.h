@@ -20,9 +20,6 @@ namespace SSAGES
 		//! Previous forces for velocity verlet integration.
 		std::vector<Vector3> prevforces_;
 
-		//! Timestep of integration.
-		double timestep_;
-
 		//! Get species index from species vector.
 		int GetSpeciesIndex(const std::string& species)
 		{
@@ -50,12 +47,8 @@ namespace SSAGES
 
 		void SSAGESToCommands(const std::string& commandfile);
 		
-		//! Set integration timestep.
-		void SetTimestep(double dt)
-		{
-			timestep_ = dt;
-		}
-		
+		void InitializeCommands(const std::string& commandfile);
+
 		~QboxHook()
 		{}
 	};

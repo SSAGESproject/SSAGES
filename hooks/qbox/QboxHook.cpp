@@ -28,16 +28,35 @@ namespace SSAGES
 		ss >> vec[0] >> vec[1] >> vec[2];
 	}
 
+	void QboxHook::InitializeCommands(const std::string& commandfile)
+	{
+		std::ofstream fout;
+		fout.open(commandfile, std::ofstream::trunc);
+		
+		auto& atomset = pt_.get_child("fpmd:simulation.iteration.atomset");
+		for(const auto& v : atomset)
+		{
+			if(v.first == "atom")
+			{
+				auto name = v.second.get<std::string>("<xmlattr>.name");
+				fout << "extforce define atomic " 
+				     << name << " " << name << " 0 0 0 " << std::endl;
+			}
+		}
+
+		fout.close();		
+	}
+
 	void QboxHook::XMLToSSAGES(const std::string& xmlfile)
 	{
 		// Load the XML file into property tree. 
 		read_xml(xmlfile, pt_);
-		SyncToEngine();
+		SyncToSnapshot();
 	}
 
 	void QboxHook::SSAGESToCommands(const std::string& commandfile)
 	{
-		SyncToSnapshot();
+		SyncToEngine();
 
 		std::ofstream fout; 
 		fout.open(commandfile, std::ofstream::trunc);
@@ -45,6 +64,7 @@ namespace SSAGES
 
 		const auto& pos = _snapshot->GetPositions();
 		const auto& vel = _snapshot->GetVelocities();
+		const auto& frc = _snapshot->GetForces();
 		const auto& typ = _snapshot->GetAtomTypes();
 
 		auto& atomset = pt_.get_child("fpmd:simulation.iteration.atomset");
@@ -59,7 +79,7 @@ namespace SSAGES
 			{
 				auto name = v.second.get<std::string>("<xmlattr>.name");
 				
-				fout << "move " << name << " to " 
+				/*fout << "move " << name << " to " 
 				     << pos[i][0] << " "
 				     << pos[i][1] << " "
 				     << pos[i][2] << std::endl;
@@ -67,7 +87,12 @@ namespace SSAGES
 				fout << "set_velocity " << name << " " 
 				     << vel[i][0] << " "
 				     << vel[i][1] << " "
-				     << vel[i][2] << std::endl;
+				     << vel[i][2] << std::endl;*/
+
+				fout << "extforce set " << name << " "
+				     << frc[i][0] - prevforces_[i][0] << " "
+				     << frc[i][1] - prevforces_[i][1] << " "
+				     << frc[i][2] - prevforces_[i][2] << std::endl;
 
 				std::cout << typ[i] << " " << pos[i][0] << " " << pos[i][1] << " " << pos[i][2] << std::endl;
 
@@ -94,7 +119,7 @@ namespace SSAGES
 		}
 	}
 
-	void QboxHook::SyncToEngine()
+	void QboxHook::SyncToSnapshot()
 	{
 		auto& atomset = pt_.get_child("fpmd:simulation.iteration.atomset");
 
@@ -130,6 +155,9 @@ namespace SSAGES
 		auto& typs = _snapshot->GetAtomTypes();
 		typs.resize(natoms);
 
+		// Resize previous forces. 
+		prevforces_.resize(natoms, Vector3{0,0,0});
+
 		int i = 0;
 		for(const auto& v : atomset)
 		{
@@ -138,6 +166,7 @@ namespace SSAGES
 				to_vector3<Vector3>(v.second.get<std::string>("position"), pos[i]);
 				to_vector3<Vector3>(v.second.get<std::string>("velocity"), vel[i]);
 				to_vector3<Vector3>(v.second.get<std::string>("force"), frc[i]);
+				prevforces_[i] = frc[i]; // Store "previous forces".
 				ids[i] = i + 1;
 
 				// Get species types by resolving map. 
@@ -147,11 +176,6 @@ namespace SSAGES
 
 				typs[i] = type;
 				mass[i] = speciesmass_[type];
-
-				// We loaded in velocities (above), but we need to perform velocity
-				// verlet step.
-				vel[i] += 0.5*timestep_*frc[i]/mass[i];
-
 				++i;
 			} 
 			else if(v.first == "unit_cell")
@@ -169,18 +193,7 @@ namespace SSAGES
 		}
 	}
 
-	void QboxHook::SyncToSnapshot()
+	void QboxHook::SyncToEngine()
 	{
-		auto& pos = _snapshot->GetPositions();
-		auto& vel = _snapshot->GetVelocities();
-		const auto& frc = _snapshot->GetForces();
-		const auto& mass = _snapshot->GetMasses();
-		
-		// Integrate using velocity verlet. 
-		for(int i = 0; i < _snapshot->GetNumAtoms(); ++i)
-		{
-			pos[i] += vel[i]*timestep_ + 0.5*frc[i]/mass[i]*timestep_*timestep_;
-			vel[i] += 0.5*frc[i]/mass[i]*timestep_;
-		}
 	}
 }

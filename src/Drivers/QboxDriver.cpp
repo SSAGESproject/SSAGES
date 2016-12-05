@@ -35,11 +35,11 @@ namespace SSAGES
 		while(status == 0);
 	}
 
-	void SendRunCommand(std::string& runfile, std::string& lockfile)
+	void SendRunCommand(std::string& runfile, std::string& lockfile, int iter)
 	{
 		std::ofstream fin; 
 		fin.open(runfile, std::ofstream::app);
-		fin << "run 0 30" << std::endl;
+		fin << "run 1 " << iter << std::endl;
 		fin.close(); 
 		remove(lockfile.c_str());
 	}
@@ -69,13 +69,18 @@ namespace SSAGES
 		WaitForFile(lockfile);
 		qbhook_->XMLToSSAGES(outfile);
 		qbhook_->PreSimulationHook();
-			
+		
+		//Initialize commands (defines "extforces" in qbox).
+		qbhook_->InitializeCommands(infile);
+		remove(lockfile.c_str());
+		WaitForFile(lockfile);
+
 		for(int i = 0; i < mdsteps_; ++i)
 		{
 			qbhook_->SSAGESToCommands(infile);
 
 			// Write run command to top it off and close file.
-			SendRunCommand(infile, lockfile);
+			SendRunCommand(infile, lockfile, qmsteps_);
 
 			// Wait for Qbox to finish. 
 			WaitForFile(lockfile);
@@ -84,7 +89,7 @@ namespace SSAGES
 		}	
 
 		qbhook_->SSAGESToCommands(infile);
-		SendRunCommand(infile, lockfile);
+		SendRunCommand(infile, lockfile, qmsteps_);
 		WaitForFile(lockfile);
 		qbhook_->XMLToSSAGES(outfile);
 		qbhook_->PostSimulationHook();

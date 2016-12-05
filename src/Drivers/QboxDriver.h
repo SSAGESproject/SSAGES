@@ -31,6 +31,9 @@ namespace SSAGES
 	private:
 		//! Number of MD steps.
 		int mdsteps_;
+
+		//! Number of QM (electronic) iterations. 
+		int qmsteps_; 
 		
 		//! Pointer to QBox hook.
 		QboxHook* qbhook_;
@@ -73,7 +76,7 @@ namespace SSAGES
 			hook_ = dynamic_cast<Hook*>(&hook);
 =======
 			qbhook_ = new QboxHook();
-			qbhook_->SetTimestep(json.get("dt", 3).asDouble());
+			qmsteps_ = json.get("qm_steps", 30).asDouble();
 			_hook = dynamic_cast<Hook*>(qbhook_);
 >>>>>>> Qbox synctoengine basics complete.:src/Drivers/QboxDriver.h
 		}
