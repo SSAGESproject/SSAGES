@@ -79,6 +79,7 @@ namespace SSAGES
 		//! Total number of configurations to collect at lambda0 (first interface) 
 		unsigned int _N0 ;
 
+
         //! Data structure that holds a Library N0 configurations at lambda0
         std::vector<FFSConfigID> Lambda0ConfigLibrary;
 
@@ -103,7 +104,19 @@ namespace SSAGES
 
         //! Number of successes from lambda_{i} to lambda_{i+1}
         //!  (might need to be 2d vector if multiple branches are used (with RBFFS)
-        std::vector<double> _S;
+        std::vector<unsigned int> _S;
+
+		//! Current number of configurations currently stored at interface i
+        //! This is somewhat redundant since _N[i] == _S[i-1], but for clarity 
+		std::vector<unsigned int> _N ;
+        
+        //! Keep track of jobs that have suceeded but couldn't get reassigned a new task and must wait for the queue to get more jobs
+        //! This could happen in DFFS once a job has finished but M[i] hasn't been reached (waiting on other jobs) 
+        bool _succeeded_but_empty_queue;
+
+        //! Keep track of jobs that have failed but couldn't get reassigned a new task and must wait for the queue to get more jobs
+        //! This could happen in DFFS once a job has finished but M[i] hasn't been reached (waiting on other jobs) 
+        bool _failed_but_empty_queue;
 
         //! Stores what 'mode' of FFS we're in. 
         /*!

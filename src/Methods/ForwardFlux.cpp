@@ -83,88 +83,136 @@ namespace SSAGES
 
     void ForwardFlux::CheckForInterfaceCrossings(Snapshot* snapshot, CVList& cvs){
 
+        //QUESTION: Whats the difference between _world and _comm?
+        //For now I'll use _world for everything. But if each driver uses multiple procs then I suspect that this will be wrong.
+
         _cvvalue = cvs[0].GetValue()
         //check if I've crossed the next interface
         bool hasreturend = HasReturnedToA(_cvvalue);
         int hascrossed = HasCrossedInterface(_cvvalue, _cv_value_previous, _currentinterface + 1);
-        int nfail_local=0,nsuccess_local=0;
-        //std::vector<int> nfail,nsuccess;
-        //nfail.resize(SIZEWORLD)
-        //nsuccess.resize(SIZEWORLD)
+        bool fail_local=false,success_local=false;
+        std::vector<bool> successes;
+        std::vector<bool> failures;
+        successes.resize(_world.size();
+        failures.resize(_world.size();
         
-        bool shouldIpop_local = false;
-        std:vector<bool> shouldIpop;
-        shouldIpop.resize(SIZEWORLD);
-        std::vector<int> poporder; //order of processors to pop off queue
-        int myplaceinline; //where current processor is in poporder
-
-        if (hasreturned){
-          shouldIpop = true;
-          fail_local=1;
-        }
-        else if (hascrossed == 1){
-          shouldIpop = true;
-          success_local=1;
-        }
-        else if (hascrossed == -1){
-          //this should never happen if the interfaces are non-intersecting
-        }
-        else{
+        bool shouldIpopQueue_local = false;
+        std:vector<bool> shouldIpopQueue;
+        shouldIpop.resize(_world.size());
+        
+        if (!_succeeded_but_empty_queue && !_failed_but_empty_queue){ 
+            // make sure this isnt a zombie trajectory that previously failed or suceeded and is just waiting for the queue to get more jobs
+            if (hasreturned){ 
+              fail_local=true;
+            }
+            else if (hascrossed == 1){
+              success_local=true;
+            }
+            else if (hascrossed == -1){
+              //this should never happen if the interfaces are non-intersecting, it would be wise to throw an error here though
+            }
+            else{
+              //not sure if anything should needs to be done here        
+            }
         }
 
         //for each traj that crossed to lambda+1 need to write it to disk (FFSConfigurationFile)
-        std::vector<bool> successes;
-        MPIGather success_local into successes
-
-        for (i=0;i<SIZEWORLD;i++){
-          if ((shouldIpop[i] == true){ 
-            if (i == MYRANK)){
+        //MPIAllgather success_local into successes
+        MPIAllgather(success_local,1,MPI_BOOL,successes,1,MPI_BOOL,_world);
+        MPIAllgather(fail_local,1,MPI_BOOL,failures,1,MPI_BOOL,_world);
+       
+        int success_count = 0, fail_count = 0;
+        // I dont pass the queue information between procs but I do syncronize 'successes' and 'failures'
+        //   as a reuslt all proc should have the same queue throughout the simulation
+        for (i=0;i<_world.size();i++){
+          if (successes[i] == true){ 
+            if (i == _world.rank())){
               // write config to lambda+1
               int l,n,a,l_prev,n_prev,a_prev;
-              l = myFFSConfigID.getl()
-              n = myFFSConfigID.getn()
-              a = myFFSConfigID.geta()
-              FFSConfigID newid = FFSConfigID(l,n,a,
-              UPDATE FFS Config ID to lambda+1
-              WriteFFSConfiguration(snapshot,FFSConfigID);
+              l_prev = myFFSConfigID.getl()
+              n_prev = myFFSConfigID.getn()
+              a_prev = myFFSConfigID.geta()
+              //update ffsconfigid's l,n,a
+              l = l_prev + 1;
+              n = _S[_currentinterface] + 1 + success_count;
+              a = 0; //in DFFS, everyone gets one attempt (unless randomly you choose the same config to shoot from twice...I should look into whether this is allowed). At the very least however, a=0 to start with the possibility that it will be >0 if same config is chosen twice.
+              
+              FFSConfigID newid = FFSConfigID(l,n,a,l_prev,n_prev,a_prev);
+              WriteFFSConfiguration(snapshot,newid);
+            }
+            success_count++;
+          }
+          if (failures[i] == true){ 
+            fail_count++;
+          }
+         
+        }
+        
+        //update the number of successes and attempts, same for all proc since Allgathered 'successes' and 'failures'
+        _S[_current_interface] += success_count;
+        _attempts[_current_interface] += success_count + fail_count;
+        // ^ I dont like storing attempts this way (as is its only when they finish). _attempts should also include jobs in progress (i.e. jobs currently running). THINK ABOUT THIS!.
+        
+        // Check if this interface is finished, if so add new tasks to queue
+        if (_S[_current_interface] == _M[_current_interface]) {
+          //AddNewIDsToQueue();
+
+          //for DFFS
+          if (rank == 0){
+            roll M[nextinterface] random numbers (these are the simulations at lambda_i+1 to pick)
+          }
+          MPI_Broadcast these random numbers
+
+          each proc adds to the queue
+
+
+          //for CBGFFS
+          //similar to DFFS?
+
+          //for BGFFS
+          //will need to have broadcast ID information of the successful config that is spawning new configs
+
+          FFSConfigIDQueue.emplace(NEW AND CORRECT ID INFO);
+        }
+
+        // if succeeded or failed (or zombie job), get a new config from the queue...but need to be careful that no two procs get the same config
+
+        // Need to account for zombie jobs that are waiting for a new config
+        bool shouldpop_local = false;        
+        std::vector<bool> shouldpop;
+        shouldpop.resize(_world.size());
+        if (success_local || fail_local || _suceeded_but_empty_queue || _failed_but_empty_queue)
+          shouldpop_local = true;
+        MPIAllgather(shouldpop_local,1,MPI_BOOL,shouldpop,1,MPI_BOOL,_world);
+
+        // I dont pass the queue information between procs but I do syncronize 'shouldpop'
+        //   as a reuslt all proc should have the same queue throughout the simulation
+        for (i=0;i<_world.size();i++){
+          if (shouldpop[i] == true){ 
+            if (i == _world_rank())){ //if rank matches read and pop
+              if (!FFSConfigIDQueue.empty()){ //if queue has tasks
+                   myFFSConfigID = FFSConfigIDQueue.front()
+                   ReadFFSConfiguration (snapshot, myFFSConfigID);
+                   _succeeded_but_empty_queue = false;
+                   _failed_but_empty_queue = false;
+                  FFSConfigIDQueue.pop();
+              }
+              else{ //queue is empty, need to wait for new tasks to come in
+                  if (successes[i] == true)     _succeeded_but_empty_queue = true;
+                  else if (failures[i] == true) _failed_but_empty_queue = true;
+              }
+            }
+            else{ //else if rank doesnt match, just pop 
+              if (!FFSConfigIDQueue.empty()){
+                  FFSConfigIDQueue.pop();
+              }
             }
           }
         }
+
         
-        MPI_Reduce _S[_current_interface]
-        //replace if statement with a generalized function like "takeAction" that
-        //  - given the number of successes see if more simulations need to be spawned
-        //or perhaps post_integration will just have to be different for each FFS flavor
-        if (_S[_current_interface] == _M[_current_interface]) {
-          AddNewIDsToQueue();
-          //FFSConfigIDQueue.emplace(NEW AND CORRECT ID INFO);
-        }
+        //Anything else to update across mpi?
 
-        // if returned or crossed, get a new config from the queue. but need to be careful that no two procs get the same config
-        MPI_Gather into shouldIpop
-         
-        for (i=0;i<SIZEWORLD;i++){
-          if ((shouldIpop[i] == true){ 
-              if (i == MYRANK)){
-                  myFFSConfigID = FFSConfigIDQueue.front()
-              }
-              FFSConfigIDQueue.pop()
-          }
-        }
-
-        MPI_Gather into nsuccess
-        MPI_Gather into nfail
-
-        //MPI_Reduce _S
-
-          //update snapshot with new traj
-          myFFSConfigID = FFSConfigIDQueue.pop();
-        
-        //if so update some relevant quantities and mpi them across procs
-
-        //assign myFFSConfigID = NULL
-
-        // reassign configs that reached interface a new FFSConfigID
 
         _cvvalue_previous = _cvvalue;
            
@@ -194,25 +242,7 @@ namespace SSAGES
 		auto& ID = snapshot->GetSnapshotID();
 
 	}
-    void ForwardFlux::AddNewIDsToQueue(){
-        //for DFFS
-        if (rank == 0){
-          roll M[nextinterface] random numbers (these are the simulations at lambda_i+1 to pick)
-        }
-        MPI_Broadcast these random numbers
-
-        each proc adds to the queue
-
-
-        //for CBGFFS
-        similar to DFFS?
-
-        //for BGFFS
-        will need to have broadcast ID information of the successful config that is spawning new configs
-
-
-
-    }
+    
 
 	
 }
