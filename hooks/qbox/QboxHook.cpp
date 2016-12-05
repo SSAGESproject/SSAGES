@@ -69,9 +69,11 @@ namespace SSAGES
 
 		auto& atomset = pt_.get_child("fpmd:simulation.iteration.atomset");
 
+		/*
 		std::cout << pos.size() << std::endl;
 		std::cout << std::endl;
-		
+		*/
+
 		int i = 0;
 		for(const auto& v : atomset)
 		{
@@ -94,7 +96,7 @@ namespace SSAGES
 				     << frc[i][1] - prevforces_[i][1] << " "
 				     << frc[i][2] - prevforces_[i][2] << std::endl;
 
-				std::cout << typ[i] << " " << pos[i][0] << " " << pos[i][1] << " " << pos[i][2] << std::endl;
+				//std::cout << typ[i] << " " << pos[i][0] << " " << pos[i][1] << " " << pos[i][2] << std::endl;
 
 				++i;
 			}
