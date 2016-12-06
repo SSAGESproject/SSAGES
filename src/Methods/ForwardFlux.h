@@ -57,7 +57,6 @@ namespace SSAGES
             unsigned int aprev;      //!< Previous Attempt number
 
             //! Constructor
-            FFSConfigID();
             FFSConfigID(const unsigned int l, 
                         const unsigned int n, 
                         const unsigned int a, 
@@ -65,6 +64,10 @@ namespace SSAGES
                         const unsigned int nprev, 
                         const unsigned int aprev): 
              l(l),n(n),a(a),lprev(lprev),nprev(nprev),aprev(aprev)
+            {}
+            //! Empty Constructor
+            FFSConfigID():
+             l(0),n(0),a(0),lprev(0),nprev(0),aprev(0)
             {}
 
             ////! Overload = operator

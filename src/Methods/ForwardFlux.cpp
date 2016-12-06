@@ -135,7 +135,6 @@ namespace SSAGES
               l = lprev + 1;
               n = _S[_current_interface] + 1 + success_count;
               a = 0; //in DFFS, everyone gets one attempt (unless randomly you choose the same config to shoot from twice...I should look into whether this is allowed). At the very least however, a=0 to start with the possibility that it will be >0 if same config is chosen twice.
-              
               FFSConfigID newid = FFSConfigID(l,n,a,lprev,nprev,aprev);
               WriteFFSConfiguration(snapshot,newid);
             }
