@@ -24,9 +24,6 @@
 #include <random>
 #include <queue>
 
-// This method involves a lot of bookkeeping. Typically the world node
-// will hold gather all needed information and pass it along as it occurs.
-
 namespace SSAGES
 {
 	void ForwardFlux::PreSimulation(Snapshot* /* snap */, const CVList& cvs)
@@ -41,13 +38,14 @@ namespace SSAGES
 	void ForwardFlux::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
         //check if we want to check FFS interfaces this timestep
+        if (_iteration % 1 != 0) return;
 
         // if _computefluxA0
         if (_initialFluxFlag){
             ComputeInitialFlux(snapshot,cvs); 
             InitializeQueue(snapshot,cvs);
         }
-        // Else normal forward flux
+        // Else check the FFS interfaces
         else{
             CheckForInterfaceCrossings(snapshot,cvs);
           
@@ -83,20 +81,23 @@ namespace SSAGES
         //need to sync variables between processors
     }
 
-    void ForwardFlux::CheckForInterfaceCrossings(Snapshot* snapshot, CVList& cvs){
+    void ForwardFlux::CheckForInterfaceCrossings(Snapshot* snapshot, const CVList& cvs){
 
         //QUESTION: Whats the difference between _world and _comm?
         //For now I'll use _world for everything. But if each driver uses multiple procs then I suspect that this will be wrong.
 
-        _cvvalue = cvs[0]->GetValue()
+        _cvvalue = cvs[0]->GetValue();
         //check if I've crossed the next interface
         bool hasreturned = HasReturnedToA(_cvvalue);
         int hascrossed = HasCrossedInterface(_cvvalue, _cvvalue_previous, _current_interface + 1);
         bool fail_local=false,success_local=false;
-        std::vector<bool> successes;
-        std::vector<bool> failures;
-        successes.resize(_world.size());
-        failures.resize(_world.size());
+        bool *successes = new bool (_world.size());
+        bool *failures = new bool (_world.size());
+        //bool vectors in MPI were strange
+        //std::vector<bool> successes;
+        //std::vector<bool> failures;
+        //successes.resize(_world.size());
+        //failures.resize(_world.size());
         
         if (!_succeeded_but_empty_queue && !_failed_but_empty_queue){ 
             // make sure this isnt a zombie trajectory that previously failed or succeeded and is just waiting for the queue to get more jobs
@@ -116,8 +117,8 @@ namespace SSAGES
 
         //for each traj that crossed to lambda+1 need to write it to disk (FFSConfigurationFile)
         //MPIAllgather success_local into successes
-        MPI_Allgather(success_local,1,MPI::BOOL,successes.data(),1,MPI::BOOL,_world);
-        MPI_Allgather(fail_local,1,MPI::BOOL,failures.data(),1,MPI::BOOL,_world);
+        MPI_Allgather(&success_local,1,MPI::BOOL,successes,1,MPI::BOOL,_world);
+        MPI_Allgather(&fail_local,1,MPI::BOOL,failures,1,MPI::BOOL,_world);
        
         int success_count = 0, fail_count = 0;
         // I dont pass the queue information between procs but I do syncronize 'successes' and 'failures'
@@ -132,7 +133,7 @@ namespace SSAGES
               aprev = myFFSConfigID.a;
               //update ffsconfigid's l,n,a
               l = lprev + 1;
-              n = _S[_currentinterface] + 1 + success_count;
+              n = _S[_current_interface] + 1 + success_count;
               a = 0; //in DFFS, everyone gets one attempt (unless randomly you choose the same config to shoot from twice...I should look into whether this is allowed). At the very least however, a=0 to start with the possibility that it will be >0 if same config is chosen twice.
               
               FFSConfigID newid = FFSConfigID(l,n,a,lprev,nprev,aprev);
@@ -186,12 +187,13 @@ namespace SSAGES
 
         // Need to account for zombie jobs that are waiting for a new config
         bool shouldpop_local = false;        
-        std::vector<bool> shouldpop;
-        shouldpop.resize(_world.size());
+        bool *shouldpop = new bool(_world.size());
+        //std::vector<bool> shouldpop;
+        //shouldpop.resize(_world.size());
         if (success_local || fail_local || _succeeded_but_empty_queue || _failed_but_empty_queue){
           shouldpop_local = true;
         }
-        MPI_Allgather(shouldpop_local,1,MPI::BOOL,shouldpop.data(),1,MPI::BOOL,_world);
+        MPI_Allgather(&shouldpop_local,1,MPI::BOOL,shouldpop,1,MPI::BOOL,_world);
 
         // I dont pass the queue information between procs but I do syncronize 'shouldpop'
         //   as a reuslt all proc should have the same queue throughout the simulation
@@ -223,6 +225,9 @@ namespace SSAGES
 
 
         _cvvalue_previous = _cvvalue;
+
+        //delete[] successes;
+        //delete[] failures,shouldpop;
            
     }
 
@@ -251,7 +256,7 @@ namespace SSAGES
 
 	}
 
-    void ForwardFlux::InitializeQueue(Snapshot* snapshot, CVList &cvs){
+    void ForwardFlux::InitializeQueue(Snapshot* snapshot, const CVList &cvs){
 
         unsigned int npicks = _M[0];
         std::vector<unsigned int> picks;

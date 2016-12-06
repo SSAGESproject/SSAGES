@@ -44,7 +44,8 @@ namespace SSAGES
         //-----------------------------------------------------------------
         // Private Variables
         //-----------------------------------------------------------------
-        //! Internal class to store different FFS Config IDs
+
+        //! Nested class to store different FFS Config IDs
         class FFSConfigID
         {
            public:
@@ -56,21 +57,28 @@ namespace SSAGES
             unsigned int aprev;      //!< Previous Attempt number
 
             //! Constructor
-            FFSConfigID(unsigned int l_,unsigned int n_,unsigned int a_,unsigned int lprev_,unsigned int nprev_,unsigned int aprev_): 
-                l(l_),n(n_),a(a_),lprev(lprev_),nprev(nprev_),aprev(aprev_){};
+            FFSConfigID();
+            FFSConfigID(const unsigned int l, 
+                        const unsigned int n, 
+                        const unsigned int a, 
+                        const unsigned int lprev, 
+                        const unsigned int nprev, 
+                        const unsigned int aprev): 
+             l(l),n(n),a(a),lprev(lprev),nprev(nprev),aprev(aprev)
+            {}
 
-            //! Overload = operator
-            FFSConfigID& operator=(const FFSConfigID& rhs){
-                if (this == &rhs) return *this;
-                else{
-                   l = rhs.l;
-                   n = rhs.n;
-                   a = rhs.a;
-                   lprev = rhs.lprev;
-                   nprev = rhs.nprev;
-                   aprev = rhs.aprev;
-                }
-            }
+            ////! Overload = operator
+            //FFSConfigID& operator=(const FFSConfigID& rhs){
+            //    if (this == &rhs) return *this;
+            //    else{
+            //       l = rhs.l;
+            //       n = rhs.n;
+            //       a = rhs.a;
+            //       lprev = rhs.lprev;
+            //       nprev = rhs.nprev;
+            //       aprev = rhs.aprev;
+            //    }
+            //}
         };
 
         //! random number generator
@@ -204,9 +212,9 @@ namespace SSAGES
 		 * Create instance of Forward Flux
 		 */
 		ForwardFlux(boost::mpi::communicator& world,
-				 boost::mpi::communicator& comm,
-				 unsigned int frequency) : 
-		Method(frequency, world, comm), _generator(0) {};
+                    boost::mpi::communicator& comm,
+                    unsigned int frequency) : 
+		 Method(frequency, world, comm) , _generator(1){}
 
 		//! Pre-simulation hook.
 		/*!
