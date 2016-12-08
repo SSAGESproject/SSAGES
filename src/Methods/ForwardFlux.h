@@ -204,7 +204,7 @@ namespace SSAGES
 
         //! Pop the queue, do MPI so that all procs maintain the same queue
         //
-        void PopQueueMPI(bool);
+        void PopQueueMPI(Snapshot*, const CVList&, bool);
 
 	public:
 		//! Constructor

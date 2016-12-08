@@ -35,13 +35,14 @@ namespace SSAGES
         std::cout << "WARNING! MAKE SURE LAMMPS GIVES A DIFFERENT RANDOM SEED TO EACH PROCESSOR, OTHERWISE EACH FFS TRAJ WILL BE IDENTICAL!\n";
 
         //code for setting up simple simulation and debugging
-        _ninterfaces = 4;
+        _ninterfaces = 5;
         int i;
         _interfaces.resize(_ninterfaces);
-        _interfaces[0]=-0.8;
-        _interfaces[1]=-0.5;
-        _interfaces[2]= 0.0;
-        _interfaces[3] =0.5;
+        _interfaces[0]=-1.0;
+        _interfaces[1]=-0.95;
+        _interfaces[2]=-0.8;
+        _interfaces[3]= 0;
+        _interfaces[4]= 1.0;
 
         _current_interface = 0;
 
@@ -52,7 +53,7 @@ namespace SSAGES
         _P.resize(_ninterfaces);
         _S.resize(_ninterfaces);
         _N.resize(_ninterfaces);
-        for(i=0;i<_ninterfaces;i++) _M[i] = 5;
+        for(i=0;i<_ninterfaces;i++) _M[i] = 50;
 
         _N0 = 10;
         Lambda0ConfigLibrary.resize(_N0);
@@ -68,7 +69,7 @@ namespace SSAGES
           FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
           // Write the dump file out
           std::ofstream file;
-          std::string filename = output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + "-a" + std::to_string(ffsconfig.a) + ".dat";
+          std::string filename = output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
           file.open(filename.c_str());
 
           //first line gives ID of where it came from
@@ -85,6 +86,7 @@ namespace SSAGES
 	void ForwardFlux::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
         //check if we want to check FFS interfaces this timestep
+        //for now, do it every time step
         if (_iteration % 1 != 0) return;
 
 
@@ -188,9 +190,9 @@ namespace SSAGES
               nprev = myFFSConfigID.n;
               aprev = myFFSConfigID.a;
               //update ffsconfigid's l,n,a
-              l = lprev + 1;
-              n = _S[_current_interface] + 1 + success_count;
-              a = 0; //in DFFS, everyone gets one attempt (unless randomly you choose the same config to shoot from twice...I should look into whether this is allowed). At the very least however, a=0 to start with the possibility that it will be >0 if same config is chosen twice.
+              l = _current_interface + 1;
+              n = _S[_current_interface] + success_count;
+              a = 0;
               FFSConfigID newid = FFSConfigID(l,n,a,lprev,nprev,aprev);
               WriteFFSConfiguration(snapshot,newid);
             }
@@ -208,10 +210,15 @@ namespace SSAGES
         // ^ I dont like storing attempts this way (as is its only when they finish). _A should also include jobs in progress (i.e. jobs currently running). THINK ABOUT THIS!.
         
         // Check if this interface is finished, if so add new tasks to queue, and increment _current_interface
-        if (_S[_current_interface] == _M[_current_interface]){
+        if (_A[_current_interface] == _M[_current_interface]-1){
           if (_current_interface+1 != _ninterfaces){
             _current_interface += 1;
             _N[_current_interface] = _S[_current_interface-1];
+
+            if (_N[_current_interface] == 0){
+               std::cerr << "Error! No successes from interface " << _current_interface-1 << " to " << _current_interface <<"! Try turning up M["<<_current_interface-1<<"] or spacing interfaces closer together.\n";
+               exit(1);
+            }
 
             //for DFFS
             unsigned int npicks = _M[_current_interface];
@@ -240,8 +247,8 @@ namespace SSAGES
               nprev = myFFSConfigID.n;
               aprev = myFFSConfigID.a;
               //update ffsconfigid's l,n,a
-              l = lprev + 1;
-              n = i;
+              l = _current_interface;
+              n = mypick;
               a = attempt_count[mypick]; 
               attempt_count[mypick]++; //this updates attempt number if same config is picked twice
 
@@ -267,23 +274,24 @@ namespace SSAGES
         
         //Pop the queue
         // Need to perform mpi call so that all proc pop the queue in the same way
-        PopQueueMPI(shouldpop_local);
+        PopQueueMPI(snapshot,cvs, shouldpop_local);
                 
         //Anything else to update across mpi?
-        
 
         //print info
-        std::cout << "Iteration: "<< _iteration << ", proc " << _world.rank() << "\n";
-        if (success_local)
-          std::cout << "Successful attempt from interface " << _current_interface-1 <<" (cvvalue_previous: " << _cvvalue_previous << "cvvalue " << _cvvalue << "interface " << _interfaces[_current_interface-1] << "\n";
-        if (fail_local)
-          std::cout << "Failed attempt from interface " << _current_interface-1 <<" (cvvalue_previous: " << _cvvalue_previous << "cvvalue " << _cvvalue << "interface " << _interfaces[0] << "\n";
-        std::cout << "A: ";
-        for (auto a : _A) std::cout << a << " "; std::cout << "\n";
-        std::cout << "S: ";
-        for (auto s : _S) std::cout << s << " "; std::cout << "\n";
-        std::cout << "M: ";
-        for (auto m : _M) std::cout << m << " "; std::cout << "\n";
+        if (shouldpop_local){
+          std::cout << "Iteration: "<< _iteration << ", proc " << _world.rank() << "\n";
+          if (success_local)
+            std::cout << "Successful attempt from interface " << _current_interface <<" (cvvalue_previous: " << _cvvalue_previous << " cvvalue " << _cvvalue << " interface " << _interfaces[_current_interface] << "\n";
+          if (fail_local)
+            std::cout << "Failed attempt from interface " << _current_interface <<" (cvvalue_previous: " << _cvvalue_previous << " cvvalue " << _cvvalue << " interface " << _interfaces[0] << "\n";
+          std::cout << "A: ";
+          for (auto a : _A) std::cout << a << " "; std::cout << "\n";
+          std::cout << "S: ";
+          for (auto s : _S) std::cout << s << " "; std::cout << "\n";
+          std::cout << "M: ";
+          for (auto m : _M) std::cout << m << " "; std::cout << "\n";
+        }
         
         //clean up
         _cvvalue_previous = _cvvalue;
@@ -292,7 +300,7 @@ namespace SSAGES
         delete[] successes;
         delete[] failures,shouldpop;
 
-
+ 
            
     }
 
@@ -310,8 +318,9 @@ namespace SSAGES
 
         // Write the dump file out
 		std::ofstream file;
-        std::string filename = output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + "-a" + std::to_string(ffsconfig.a) + ".dat";
+        std::string filename = output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
  		file.open(filename.c_str());
+        if (!file) {std::cerr << "Error! Unable to write " << filename << "\n"; exit(1);}
 
         //first line gives ID of where it came from
         file << ffsconfig.lprev << " " << ffsconfig.nprev << " " << ffsconfig.aprev << "\n";
@@ -336,11 +345,11 @@ namespace SSAGES
 		//auto& ID = snapshot->GetSnapshotID();
 
         std::ifstream file; 
-        std::string filename =  output_directory + "/l"+ std::to_string(ffsconfig.l) +"-n"+ std::to_string(ffsconfig.n) +"-a"+ std::to_string(ffsconfig.a) + ".dat";
+        std::string filename =  output_directory + "/l"+ std::to_string(ffsconfig.l) +"-n"+ std::to_string(ffsconfig.n) + ".dat";
         std::string line;
 
         file.open(filename);
-        if (!file) {std::cerr << "Error! Unable to open " << filename << "\n"; exit(1);}
+        if (!file) {std::cerr << "Error! Unable to read " << filename << "\n"; exit(1);}
 
         unsigned int line_count = 0; 
         while(!std::getline(file,line).eof()){
@@ -434,12 +443,15 @@ namespace SSAGES
         // now that queue is populated initialize tasks for all processors
         // ==============================
 
-        bool shouldpop_local = true
-        PopQueueMPI(sholdpop_local);
+        bool shouldpop_local = true;
+        PopQueueMPI(snapshot,cvs,shouldpop_local);
+        
+        _cvvalue_previous = cvs[0]->GetValue();
+
     }
 
     void ForwardFlux::PrintQueue(){
-        for (int i =0 ;i < FFSConfigIDQueue.size(); i++){
+        for (unsigned int i =0 ;i < FFSConfigIDQueue.size(); i++){
             std::cout << i <<" "
                       <<FFSConfigIDQueue[i].l <<" "
                       <<FFSConfigIDQueue[i].n <<" "
@@ -450,7 +462,7 @@ namespace SSAGES
         }
     }
 
-    void ForwardFlux::PopQueueMPI(bool shouldpop_local){
+    void ForwardFlux::PopQueueMPI(Snapshot* snapshot, const CVList& cvs, bool shouldpop_local){
 
         bool *shouldpop = new bool(_world.size());
 
@@ -464,11 +476,16 @@ namespace SSAGES
               if (!FFSConfigIDQueue.empty()){ //if queue has tasks
                    myFFSConfigID = FFSConfigIDQueue.front();
                    ReadFFSConfiguration (snapshot, myFFSConfigID);
-                   _pop_tried_but_empty_queue = false;
+
+                   //Trigger a rebuild of the CVs since we reset the positions
+                   cvs[0]->Evaluate(*snapshot);
+                   _cvvalue_previous = cvs[0]->GetValue();
+
+                  _pop_tried_but_empty_queue = false;
                   FFSConfigIDQueue.pop_front();
               }
               else{ //queue is empty, need to wait for new tasks to come in
-                if ((successes[i] == true) || (failures[i] == true)) _pop_tried_but_empty_queue = true;
+                 _pop_tried_but_empty_queue = true;
               }
             }
             else{ //else if rank doesnt match, just pop 
