@@ -1,0 +1,21 @@
+{
+	"inputfile" : "in.LAMMPS_FF_Test_1d",
+	"driver" : [
+		{
+			"number processors" : 1,
+			"type" : "LAMMPS",
+			"MDSteps" : 10000000,
+			"logfile" : "log",
+			"CVs" : [
+				{
+					"type" : "ParticleCoordinate",
+					"atom_ids" : [1],
+					"dimension" : "x"
+				}
+            ],
+			"method" : {
+				"type" : "ForwardFlux"
+			}
+		}
+	]
+}

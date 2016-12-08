@@ -25,7 +25,7 @@
 #include "../CVs/CollectiveVariable.h"
 #include <fstream>
 #include <random>
-#include <queue>
+#include <deque>
 #include "../FileContents.h"
 #include "../Drivers/DriverException.h"
 
@@ -120,7 +120,7 @@ namespace SSAGES
         std::vector<unsigned int> _M;
 
         //! Number of attempts from interface i
-        std::vector<unsigned int> _attempts;
+        std::vector<unsigned int> _A;
 
         //! Flag to determine wheter fluxA0 should be calculated
         bool _computefluxA0;
@@ -136,32 +136,26 @@ namespace SSAGES
         //! This is somewhat redundant since _N[i] == _S[i-1], but for clarity 
 		std::vector<unsigned int> _N ;
         
-        //! Keep track of jobs that have suceeded but couldn't get reassigned a new task and must wait for the queue to get more jobs
+        //! Keep track of jobs that have suceeded or failed but couldn't get reassigned a new task and must wait for the queue to get more jobs
         //! This could happen in DFFS once a job has finished but M[i] hasn't been reached (waiting on other jobs) 
-        bool _succeeded_but_empty_queue;
+        bool _pop_tried_but_empty_queue;
 
-        //! Keep track of jobs that have failed but couldn't get reassigned a new task and must wait for the queue to get more jobs
-        //! This could happen in DFFS once a job has finished but M[i] hasn't been reached (waiting on other jobs) 
-        bool _failed_but_empty_queue;
-
-        //! Stores what 'mode' of FFS we're in. 
-        /*!
-         *  Options:
-         *   - computefluxA0
-         *   - WHAT OTHERS?
-         */
+        //! if 1 compute initial flux
         bool _initialFluxFlag;
 
         //! The current FFSConfigID of this MPI process
         FFSConfigID myFFSConfigID;
 
 
-        /*!
+        /*! Queue
          *  When a given processor reaches an interface, it pulls a config from this Queue to figure out what it should do next
          *  This object should be syncronized between all FFS walkers (is walker the correct terminology here?)
+         * technically this is a double-ended queue, this was mostly for debugging to allow element access of the queue (which std::queue doesn't allow). I use it like a queue though.
          */
-        std::queue<FFSConfigID> FFSConfigIDQueue; 
+        std::deque<FFSConfigID> FFSConfigIDQueue; 
 
+        //! Directory of FFS output
+        std::string output_directory;
 
         //-----------------------------------------------------------------
         // Private Functions
@@ -204,6 +198,13 @@ namespace SSAGES
          *  This will need to be different for each FFS flavor 
          */
         void ComputeTransitionProbabilities();
+
+        //! Print the queue, useful for debugging
+        void PrintQueue();
+
+        //! Pop the queue, do MPI so that all procs maintain the same queue
+        //
+        void PopQueueMPI(bool);
 
 	public:
 		//! Constructor
