@@ -65,6 +65,12 @@ namespace SSAGES
                         const unsigned int aprev): 
              l(l),n(n),a(a),lprev(lprev),nprev(nprev),aprev(aprev)
             {}
+
+            ////! Yet another constructor
+            //FFSConfigID(FFSConfigID in):
+            //    l(in.l),n(in.n),a(in.a),lprev(in.lprev),nprev(in.nprev),aprev(in.aprev)
+            //{}
+
             //! Empty Constructor
             FFSConfigID():
              l(0),n(0),a(0),lprev(0),nprev(0),aprev(0)
@@ -88,6 +94,7 @@ namespace SSAGES
         std::default_random_engine _generator;
 
 		//! Number of FFS interfaces
+        //! note that _ninterfaces = n+1 where n is \lambda_n the interface defining B
 		double _ninterfaces;
 
 		//! FFS Interfaces
@@ -102,8 +109,6 @@ namespace SSAGES
 		//!  current cv position
         double _cvvalue;
 
-		//! Total number of configurations to collect at lambda0 (first interface) 
-		unsigned int _N0 ;
 
 
         //! Data structure that holds a Library N0 configurations at lambda0
@@ -134,10 +139,12 @@ namespace SSAGES
 
 		//! Current number of configurations currently stored at interface i
         //! This is somewhat redundant since _N[i] == _S[i-1], but for clarity 
+		//! N[0] - input parameter: Total number of configurations to collect at lambda0 (first interface) 
 		std::vector<unsigned int> _N ;
         
         //! Keep track of jobs that have suceeded or failed but couldn't get reassigned a new task and must wait for the queue to get more jobs
         //! This could happen in DFFS once a job has finished but M[i] hasn't been reached (waiting on other jobs) 
+        //! If this is the case I call it a 'zombie job', since the job is running, but isnt doing anything useful. Its just burning cpu cycles waiting for the queue to repopulate
         bool _pop_tried_but_empty_queue;
 
         //! if 1 compute initial flux
@@ -145,6 +152,15 @@ namespace SSAGES
 
         //! The current FFSConfigID of this MPI process
         FFSConfigID myFFSConfigID;
+
+        //! should the FFS trajectories be saved 
+        bool _saveTrajectories;
+
+        //! Counts the total number of failures
+        //! eventually if I prune, will want this to be a vector, where it stores the number of failures at each interface
+        //! however in the absence of pruning, a traj can only fail at lambda0, so this is just a scalar
+        unsigned int _nfailure_total;
+
 
 
         /*! Queue
@@ -155,7 +171,10 @@ namespace SSAGES
         std::deque<FFSConfigID> FFSConfigIDQueue; 
 
         //! Directory of FFS output
-        std::string output_directory;
+        std::string _output_directory;
+
+        //! file to which the current trajectory is written to
+        std::ofstream _trajectory_file;
 
         //-----------------------------------------------------------------
         // Private Functions
@@ -181,10 +200,10 @@ namespace SSAGES
         bool CheckIfFinishedMethod();
 
         //! Write a file corresponding to FFSConfigID from current snapshot
-        void WriteFFSConfiguration(Snapshot *snapshot,FFSConfigID ffsconfig);
+        void WriteFFSConfiguration(Snapshot *snapshot,FFSConfigID& ffsconfig, bool wassuccess);
 
         //! Read a file corresponding to a FFSConfigID into current snapshot
-        void ReadFFSConfiguration(Snapshot *,FFSConfigID);
+        void ReadFFSConfiguration(Snapshot *,FFSConfigID&);
        
         //! Compute Initial Flux
         void ComputeInitialFlux(Snapshot*, const CVList&);
@@ -203,8 +222,23 @@ namespace SSAGES
         void PrintQueue();
 
         //! Pop the queue, do MPI so that all procs maintain the same queue
-        //
         void PopQueueMPI(Snapshot*, const CVList&, bool);
+        
+        //! Compute the flux via brute force
+        /*! Eventually this should be a new class that inherits from ForwardFlux, but for the time being I'll just hard code it
+         *  This function takes the configurations at lambda0 and run them until they reach B (lambdaN) or return to A
+         */
+        void FluxBruteForce(Snapshot*, const CVList&);
+        
+        //! When simulation is finished, parse through the trajectories that reached B, and reconstruct the complete trajectory from where it started at A (lambda0)
+        void ReconstructTrajectories(Snapshot *);
+        
+        //! Take the current config in snapshot and append it to the provided ofstream
+        //! Current format is xyz style (including vx,vy,vz)
+        void AppendTrajectoryFile(Snapshot*, std::ofstream&);
+
+        //! Take the current config in snapshot and append it to the provided ofstream
+        void OpenTrajectoryFile(std::ofstream&);
 
 	public:
 		//! Constructor

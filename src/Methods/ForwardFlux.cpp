@@ -44,9 +44,11 @@ namespace SSAGES
         _interfaces[3]= 0;
         _interfaces[4]= 1.0;
 
+        _saveTrajectories = true;
+
         _current_interface = 0;
 
-        output_directory = "FFSoutput";
+        _output_directory = "FFSoutput";
         _initialFluxFlag = true;
         _M.resize(_ninterfaces);
         _A.resize(_ninterfaces);
@@ -55,10 +57,11 @@ namespace SSAGES
         _N.resize(_ninterfaces);
         for(i=0;i<_ninterfaces;i++) _M[i] = 50;
 
-        _N0 = 10;
-        Lambda0ConfigLibrary.resize(_N0);
+        _N[0] = 100;
+        
+        Lambda0ConfigLibrary.resize(_N[0]);
           std::normal_distribution<double> distribution(0,1);
-        for (i = 0; i < _N0 ; i++){
+        for (i = 0; i < _N[0] ; i++){
           Lambda0ConfigLibrary[i].l = 0;
           Lambda0ConfigLibrary[i].n = i;
           Lambda0ConfigLibrary[i].a = 0;
@@ -69,7 +72,7 @@ namespace SSAGES
           FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
           // Write the dump file out
           std::ofstream file;
-          std::string filename = output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
+          std::string filename = _output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
           file.open(filename.c_str());
 
           //first line gives ID of where it came from
@@ -93,7 +96,7 @@ namespace SSAGES
         // if _computefluxA0
         if (_initialFluxFlag){
             ComputeInitialFlux(snapshot,cvs); 
-            if (!_initialFluxFlag){
+            if (!_initialFluxFlag){ //only enter here once
               InitializeQueue(snapshot,cvs);
               PrintQueue();
             }
@@ -101,15 +104,20 @@ namespace SSAGES
         // Else check the FFS interfaces
         else{
             CheckForInterfaceCrossings(snapshot,cvs);
-          
+            //FluxBruteForce(snapshot,cvs);
+
         }
         // Other modes?
 
     }
 
-	void ForwardFlux::PostSimulation(Snapshot* snapshot, const CVList& cvs)
-	{
-		
+	void ForwardFlux::PostSimulation(Snapshot* snapshot, const CVList& cvs){
+
+        if (_saveTrajectories){
+          ReconstructTrajectories(snapshot);	
+        }
+
+        _world.abort(EXIT_FAILURE); //more elegant solution?
 	}
     
     int ForwardFlux::HasCrossedInterface(double current, double prev, unsigned int i){
@@ -149,13 +157,9 @@ namespace SSAGES
         bool hasreturned = HasReturnedToA(_cvvalue);
         int hascrossed = HasCrossedInterface(_cvvalue, _cvvalue_previous, _current_interface + 1);
         bool fail_local=false,success_local=false;
+        //std::vector<bool> in MPI were strange, ended up using arrays
         bool *successes = new bool (_world.size());
         bool *failures = new bool (_world.size());
-        //bool vectors in MPI were strange
-        //std::vector<bool> successes;
-        //std::vector<bool> failures;
-        //successes.resize(_world.size());
-        //failures.resize(_world.size());
         
         if (!_pop_tried_but_empty_queue){ 
             // make sure this isnt a zombie trajectory that previously failed or succeeded and is just waiting for the queue to get more jobs
@@ -182,32 +186,41 @@ namespace SSAGES
         // I dont pass the queue information between procs but I do syncronize 'successes' and 'failures'
         //   as a reuslt all proc should have the same queue throughout the simulation
         for (int i=0;i<_world.size();i++){
+          int l,n,a,lprev,nprev,aprev;
+          // write config to lambda+1
+          lprev = myFFSConfigID.l;
+          nprev = myFFSConfigID.n;
+          aprev = myFFSConfigID.a;
+
           if (successes[i] == true){ 
             if (i == _world.rank()){
-              // write config to lambda+1
-              int l,n,a,lprev,nprev,aprev;
-              lprev = myFFSConfigID.l;
-              nprev = myFFSConfigID.n;
-              aprev = myFFSConfigID.a;
               //update ffsconfigid's l,n,a
               l = _current_interface + 1;
               n = _S[_current_interface] + success_count;
               a = 0;
               FFSConfigID newid = FFSConfigID(l,n,a,lprev,nprev,aprev);
-              WriteFFSConfiguration(snapshot,newid);
+              WriteFFSConfiguration(snapshot,newid,1);
             }
             success_count++;
           }
           if (failures[i] == true){ 
+            if (i == _world.rank()){
+              //update ffsconfigid's l,n,a
+              l = 0; //only fail at lambda 0, 
+              n = _nfailure_total + fail_count;
+              a = 0;
+              FFSConfigID newid = FFSConfigID(l,n,a,lprev,nprev,aprev);
+              WriteFFSConfiguration(snapshot,newid,0);
+            }
             fail_count++;
           }
-         
         }
         
         //update the number of successes and attempts, same for all proc since Allgathered 'successes' and 'failures'
         _S[_current_interface] += success_count;
         _A[_current_interface] += success_count + fail_count;
         // ^ I dont like storing attempts this way (as is its only when they finish). _A should also include jobs in progress (i.e. jobs currently running). THINK ABOUT THIS!.
+        _nfailure_total += fail_count;
         
         // Check if this interface is finished, if so add new tasks to queue, and increment _current_interface
         if (_A[_current_interface] == _M[_current_interface]-1){
@@ -217,7 +230,7 @@ namespace SSAGES
 
             if (_N[_current_interface] == 0){
                std::cerr << "Error! No successes from interface " << _current_interface-1 << " to " << _current_interface <<"! Try turning up M["<<_current_interface-1<<"] or spacing interfaces closer together.\n";
-               exit(1);
+              _world.abort(EXIT_FAILURE); 
             }
 
             //for DFFS
@@ -257,7 +270,8 @@ namespace SSAGES
           }
           else{
             std::cout << "DFFS should be finished here, do something special? like exit?\n";
-			_world.abort(EXIT_FAILURE); //more elegant solution?
+            //Hythem said this is "acceptable" until the code is changed
+            PostSimulation(snapshot,cvs);
           }
         }
 
@@ -272,6 +286,14 @@ namespace SSAGES
           shouldpop_local = true;
         }
         
+        if (_saveTrajectories){
+          if (!_pop_tried_but_empty_queue){ //dont update trajectory if zombie job
+              AppendTrajectoryFile(snapshot,_trajectory_file);
+          }
+          if (success_local || fail_local){ //if finished then close it
+            _trajectory_file.close();
+          }
+        }
         //Pop the queue
         // Need to perform mpi call so that all proc pop the queue in the same way
         PopQueueMPI(snapshot,cvs, shouldpop_local);
@@ -299,9 +321,6 @@ namespace SSAGES
 
         delete[] successes;
         delete[] failures,shouldpop;
-
- 
-           
     }
 
 	void ForwardFlux::ComputeTransitionProbabilities(){
@@ -309,7 +328,7 @@ namespace SSAGES
     }
 
 	
-	void ForwardFlux::WriteFFSConfiguration(Snapshot* snapshot, FFSConfigID ffsconfig)
+	void ForwardFlux::WriteFFSConfiguration(Snapshot* snapshot, FFSConfigID& ffsconfig, bool wassuccess)
 	{
 		const auto& positions = snapshot->GetPositions();
 		const auto& velocities = snapshot->GetVelocities();
@@ -318,7 +337,14 @@ namespace SSAGES
 
         // Write the dump file out
 		std::ofstream file;
-        std::string filename = output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
+        std::string filename;
+        if (wassuccess){
+          filename = _output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
+        }
+        else{
+          filename = _output_directory + "/fail-l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
+
+        }
  		file.open(filename.c_str());
         if (!file) {std::cerr << "Error! Unable to write " << filename << "\n"; exit(1);}
 
@@ -335,8 +361,35 @@ namespace SSAGES
 
     }
 
+    void ForwardFlux::OpenTrajectoryFile(std::ofstream& file){
 
-	void ForwardFlux::ReadFFSConfiguration(Snapshot* snapshot, FFSConfigID ffsconfig)
+        FFSConfigID ffsconfig = myFFSConfigID;
+
+        std::string filename = _output_directory + "/traj-l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + "-a" + std::to_string(ffsconfig.a) + ".xyz";
+ 		file.open(filename.c_str());
+        if (!file) {std::cerr << "Error! Unable to write " << filename << "\n"; exit(1);}
+    
+    }
+
+    void ForwardFlux::AppendTrajectoryFile(Snapshot* snapshot, std::ofstream& file){
+
+		const auto& positions = snapshot->GetPositions();
+		const auto& velocities = snapshot->GetVelocities();
+		const auto& atomID = snapshot->GetAtomIDs();
+
+        //first line gives number of atoms
+        file << atomID.size() << "\n\n";
+
+        // Then write positions and velocities
+ 		for(size_t i = 0; i< atomID.size(); i++)
+ 		{
+ 			file<<atomID[i]<<" ";
+ 			file<<positions[i][0]<<" "<<positions[i][1]<<" "<<positions[i][2]<<" ";
+ 			file<<velocities[i][0]<<" "<<velocities[i][1]<<" "<<velocities[i][2]<<std::endl;
+		}
+    }
+
+	void ForwardFlux::ReadFFSConfiguration(Snapshot* snapshot, FFSConfigID& ffsconfig)
 	{
 		auto& positions = snapshot->GetPositions();
 		auto& velocities = snapshot->GetVelocities();
@@ -345,7 +398,7 @@ namespace SSAGES
 		//auto& ID = snapshot->GetSnapshotID();
 
         std::ifstream file; 
-        std::string filename =  output_directory + "/l"+ std::to_string(ffsconfig.l) +"-n"+ std::to_string(ffsconfig.n) + ".dat";
+        std::string filename =  _output_directory + "/l"+ std::to_string(ffsconfig.l) +"-n"+ std::to_string(ffsconfig.n) + ".dat";
         std::string line;
 
         file.open(filename);
@@ -416,16 +469,20 @@ namespace SSAGES
         picks.resize(npicks);
 
         if (_world.rank() == 0){
-          std::uniform_int_distribution<int> distribution(0,_N0-1);
+          std::uniform_int_distribution<int> distribution(0,_N[0]-1);
           for (int i=0; i < npicks ; i++){
              picks[i] = distribution(_generator);
           }
         }
         MPI_Bcast(picks.data(),npicks,MPI::UNSIGNED,0,_world);
 
+        //set correct attempt index if a given ID is picked twice
+        std::vector<unsigned int> attempt_count;
+        attempt_count.resize(_N[0],0);
 
         //each proc adds to the queue
         for (int i=0; i < npicks ; i++){
+          unsigned int mypick = picks[i];
           int l,n,a,lprev,nprev,aprev;
           FFSConfigID *myconfig = &Lambda0ConfigLibrary[picks[i]];
           lprev = myconfig->l;
@@ -435,7 +492,8 @@ namespace SSAGES
           // current = previous, thats how you know you're lambda0
           l = lprev;
           n = nprev;
-          a = aprev; 
+          a = attempt_count[mypick]; 
+          attempt_count[mypick]++; //this updates attempt number if same config is picked twice
           FFSConfigIDQueue.emplace_back(l,n,a,lprev,nprev,aprev);
         }         
         std::cout << "FFSConfigIDQueue has " << FFSConfigIDQueue.size() << " entries upon initialization\n";
@@ -444,7 +502,9 @@ namespace SSAGES
         // ==============================
 
         bool shouldpop_local = true;
+        
         PopQueueMPI(snapshot,cvs,shouldpop_local);
+
         
         _cvvalue_previous = cvs[0]->GetValue();
 
@@ -474,8 +534,15 @@ namespace SSAGES
           if (shouldpop[i] == true){ 
             if (i == _world.rank()){ //if rank matches read and pop
               if (!FFSConfigIDQueue.empty()){ //if queue has tasks
+
                    myFFSConfigID = FFSConfigIDQueue.front();
                    ReadFFSConfiguration (snapshot, myFFSConfigID);
+                   
+                   //open new trajectory file, write first frame
+                   if (_saveTrajectories){ 
+                     OpenTrajectoryFile(_trajectory_file);
+                     AppendTrajectoryFile(snapshot,_trajectory_file);
+                   }
 
                    //Trigger a rebuild of the CVs since we reset the positions
                    cvs[0]->Evaluate(*snapshot);
@@ -502,7 +569,75 @@ namespace SSAGES
 
     }
     
+    void ForwardFlux::ReconstructTrajectories(Snapshot *snapshot){
+        int nsuccess = _S[_ninterfaces-1];
+        
+        
+        //Snapshot* snapshot_empty;
+        FFSConfigID ffsconfig;
 
+        for(int i = 0; i < nsuccess ; i++){
+          int lprev,nprev,aprev;
+          std::deque<FFSConfigID> path;
+
+          ffsconfig.l = _ninterfaces-1;
+          ffsconfig.n = i;
+          ffsconfig.a = 0;
+          while (ffsconfig.l != 0){
+             //this is just to populate ffsconfig.{lprev,nprev,aprev}
+             //ReadFFSConfiguration(snapshot_empty,ffsconfig);
+             ReadFFSConfiguration(snapshot,ffsconfig);
+             
+             //path.emplace_front(ffsconfig); //not sure if new constructor will work
+             path.emplace_front(ffsconfig.l,ffsconfig.n, ffsconfig.a, ffsconfig.lprev, ffsconfig.nprev, ffsconfig.aprev); 
+
+             ffsconfig.l = ffsconfig.lprev;
+             ffsconfig.n = ffsconfig.nprev;
+             ffsconfig.a = ffsconfig.aprev;
+          }
+
+          //now path should contain all of the FFSConfigID's from B back to A
+          //reverse pop it and splice all traj- files into a new traj-full- file
+
+          //output file
+          std::ofstream ofile;
+          std::string ofilename;
+          ofilename = _output_directory +"/traj-full-" + std::to_string(i) + ".xyz";
+          ofile.open(ofilename.c_str());
+          if (!ofile) {std::cerr << "Error! Unable to write " << ofilename << "\n"; exit(1);}
+
+          while(!path.empty()){
+            ffsconfig = path.front();
+            path.pop_front();
+
+            //input file
+            std::ifstream ifile;
+            std::string ifilename;
+
+            ifilename = _output_directory + "/traj-l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + "-a" + std::to_string(ffsconfig.a) + ".xyz";
+
+            ifile.open(ofilename.c_str());
+            if (!ifile) {std::cerr << "Error! Unable to read " << ifilename << "\n"; exit(1);}
+            //write entire ifile to ofile
+            std::string line;
+            while(!std::getline(ifile,line).eof()){
+                ofile << line;
+            }
+          }
+          ofile.close();
+        }
+    }
+    
+
+    void ForwardFlux::FluxBruteForce(Snapshot* snapshot, const CVList& cvs){
+        //run a simulation, if it returns to A get a new config, if it suceeds, store the time it took
+
+        //eventually will overwrite CheckForInterfaceCrossings (or copy from it)
+        // I want to make sure everything is correct with FFS first though
+        
+
+
+    }
 	
 }
 
