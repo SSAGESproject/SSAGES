@@ -49,6 +49,7 @@ namespace SSAGES
         _current_interface = 0;
 
         _output_directory = "FFSoutput";
+        //std::mkdir(_output_directory); //how to make directory?
         _initialFluxFlag = true;
         _M.resize(_ninterfaces);
         _A.resize(_ninterfaces);
@@ -88,6 +89,7 @@ namespace SSAGES
 
 	void ForwardFlux::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
+        return;
         //check if we want to check FFS interfaces this timestep
         //for now, do it every time step
         if (_iteration % 1 != 0) return;
@@ -116,7 +118,6 @@ namespace SSAGES
         if (_saveTrajectories){
           ReconstructTrajectories(snapshot);	
         }
-
         _world.abort(EXIT_FAILURE); //more elegant solution?
 	}
     
