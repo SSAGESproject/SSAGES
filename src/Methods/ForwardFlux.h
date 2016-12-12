@@ -180,6 +180,12 @@ namespace SSAGES
         // Private Functions
         //-----------------------------------------------------------------
         
+        //! Function that checks the initial structure that user provides.
+        void CheckInitialStructure(const CVList&);
+
+        //! Function to compute and write the initial flux
+        void WriteInitialFlux(Snapshot*, const CVList&);
+
         //! Function that checks if interfaces have been crossed (different for each FFS flavor)
         void CheckForInterfaceCrossings(Snapshot*, const CVList&);
 

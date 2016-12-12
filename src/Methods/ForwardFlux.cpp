@@ -39,8 +39,8 @@ namespace SSAGES
         int i;
         _interfaces.resize(_ninterfaces);
         _interfaces[0]=-1.0;
-        _interfaces[1]=-0.95;
-        _interfaces[2]=-0.8;
+        _interfaces[1]=-0.8;
+        _interfaces[2]=-0.6;
         _interfaces[3]= 0;
         _interfaces[4]= 1.0;
 
@@ -69,6 +69,8 @@ namespace SSAGES
           Lambda0ConfigLibrary[i].nprev = i;
           Lambda0ConfigLibrary[i].aprev = 0;
 
+        // I beleive the PreSimulation must run once at the beginning of the simulation. Apparently it runs every iteration!!!
+        
           /*FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
           // Write the dump file out
           std::ofstream file;
@@ -92,13 +94,16 @@ namespace SSAGES
         //for now, do it every time step
         if (_iteration % 1 != 0) return;
 
+        // check the structure at the beginning of the simulation
+        if (_iteration == 0) {
+          CheckInitialStructure(cvs);
+        }
 
         // if _computefluxA0
         if (_initialFluxFlag){
             ComputeInitialFlux(snapshot,cvs); 
-            //std::cout << "Ran Initaial flux calculations and exited" << std::endl;
-            //exit(1);
             if (!_initialFluxFlag){ //only enter here once
+
               InitializeQueue(snapshot,cvs);
               PrintQueue();
             }
@@ -121,6 +126,21 @@ namespace SSAGES
 
         _world.abort(EXIT_FAILURE); //more elegant solution?
 	}
+
+  void ForwardFlux::CheckInitialStructure(const CVList& cvs){
+
+        if (_initialFluxFlag){
+          std::cout << "Running initial Flux calculations" << std::endl;
+
+          // Check if we are in State A
+          _cvvalue = cvs[0]->GetValue();
+          double _firstInterfaceLocation = _interfaces[0];
+          if ( _cvvalue > _firstInterfaceLocation) {
+            std::cout << "Please provide an initial configuration in State A. Exiting ...." << std::endl;
+            exit(1);
+          }
+        }
+  }
     
     int ForwardFlux::HasCrossedInterface(double current, double prev, unsigned int i){
         double interface_location = _interfaces[i];
@@ -140,16 +160,6 @@ namespace SSAGES
 
 	void ForwardFlux::ComputeInitialFlux(Snapshot* snapshot, const CVList& cvs){
 
-        /*std::cout << "Running initial Flux calculations" << std::endl;
-        // Check if we are in State A
-        _cvvalue = cvs[0]->GetValue();
-        double _firstInterfaceLocation = _interfaces[0];
-
-        if ( _cvvalue > _firstInterfaceLocation) {
-          std::cout << "Please provide an initial configuration in State A. Exiting ...." << std::endl;
-          exit(1);
-        }*/
-
         unsigned int nInitialConfigs = _N[0];
 
         bool shouldContinueLocal = true;
@@ -160,6 +170,7 @@ namespace SSAGES
         bool success_local = false;
         bool *successes = new bool (_world.size());
 
+        // If we have crossed the first interface, then write the information to disk
         if (hascrossed == 1){
               success_local = true;
               //for each traj that crossed to lambda0 in forward direction, we need to write it to disk (FFSConfigurationFile)
@@ -167,7 +178,7 @@ namespace SSAGES
 
               for (int i = 0; i < _world.size(); i++){
                 int l,n,a,lprev,nprev,aprev;
-                // write config to lambda+1
+                // Since we are in State A, the values of lprev, nprev, aprev are all zero.
                 lprev = 0;
                 nprev = 0;
                 aprev = 0;
@@ -176,10 +187,9 @@ namespace SSAGES
                   if (i == _world.rank()){
                     //update ffsconfigid's l,n,a
                     l = 0;
-                    n = _S[0] + 1;
+                    n = _S[0];
                     a = 0;
                     FFSConfigID newid = FFSConfigID(l,n,a,lprev,nprev,aprev);
-                    //Question: We currently write the configuration right before crossing the first interface, should we write the one after crossing it?
                     WriteFFSConfiguration(snapshot,newid,1);
                     _S[0]++;
                   }
@@ -187,15 +197,26 @@ namespace SSAGES
               }  
             }
 
-        bool *shouldContinue = new bool(_world.size());
-        // Check if the required number of this interface is finished, if so add new tasks to queue, and increment _current_interface
-        if (_S[0] == nInitialConfigs - 1){
+        //print some info
+        if (shouldContinueLocal){
+          std::cout << "Iteration: "<< _iteration << ", proc " << _world.rank() << std::endl;
+          if (success_local)
+            std::cout << "Successful attempt. (cvvalue_previous: " << _cvvalue_previous << " cvvalue " << _cvvalue << " )" << std::endl;
+          std::cout << "# of successes:               " << _S[0] << std::endl;
+          std::cout << "required # of configurations: " << nInitialConfigs << std::endl;
+        }
+
+        // Check if the required number of initial configurations are created, if so print a message, and compute the initial flux.
+        if (_S[0] == nInitialConfigs){
             std::cout << "Initial flux calculation was successfully completed" << std::endl;
-            shouldContinueLocal = false;
-            // Call a function to compute the actual flux
+            shouldContinueLocal = false;            
+            // Call a function to compute the actual flux and output the data
+            WriteInitialFlux(snapshot, cvs);
+            // set _S[0] to zero
+            _S[0] = 0;
             //responsible for setting _initialFluxFlag = false when finished
             _initialFluxFlag = false;
-            exit(1);
+            //exit(1);
           } 
 
         _cvvalue_previous = _cvvalue;
@@ -203,10 +224,9 @@ namespace SSAGES
 
         //clean up
         delete[] successes;
-        delete[] shouldContinue;
     }
 
-    void ForwardFlux::InitialFluxMPI(Snapshot* snapshot, const CVList& cvs, bool shouldContinueLocal){
+  void ForwardFlux::InitialFluxMPI(Snapshot* snapshot, const CVList& cvs, bool shouldContinueLocal){
 
       bool *shouldContinue = new bool(_world.size());
       MPI_Allgather(&shouldContinueLocal, 1, MPI::BOOL, shouldContinue, 1, MPI::BOOL, _world);
@@ -220,6 +240,27 @@ namespace SSAGES
           }
         }
       }
+
+      //clean up
+      delete[] shouldContinue;
+    }
+
+  void ForwardFlux::WriteInitialFlux(Snapshot* snapshot, const CVList& cvs){
+
+      std::ofstream file;
+      std::string filename = _output_directory + "/initial_flux_value.dat";
+      file.open(filename.c_str());
+      if (!file){
+        std::cerr << "Error! Unable to write " << filename << std::endl;
+        exit(1);
+      }
+      _N0TotalSimTime = _iteration * _world.size();
+      _fluxA0 = (double) (_N[0] / _N0TotalSimTime);
+      file << "number of processors: " << _world.size() << std::endl;
+      file << "number of iterations: " << _iteration << std::endl;
+      file << "Total simulation time: " << _N0TotalSimTime << std::endl;
+      file << "Initial flux: " << _fluxA0 << std::endl;
+      file.close();
     }
 
     void ForwardFlux::CheckForInterfaceCrossings(Snapshot* snapshot, const CVList& cvs)
