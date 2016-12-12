@@ -38,8 +38,8 @@ namespace SSAGES
         int i;
         _interfaces.resize(_ninterfaces);
         _interfaces[0]=-1.0;
-        _interfaces[1]=-0.8;
-        _interfaces[2]=-0.6;
+        _interfaces[1]=-0.95;
+        _interfaces[2]=-0.8;
         _interfaces[3]= 0;
         _interfaces[4]= 1.0;
 
@@ -57,8 +57,11 @@ namespace SSAGES
         _N.resize(_ninterfaces);
         for(i=0;i<_ninterfaces;i++) _M[i] = 50;
 
-        _N[0] = 100;
+        _N0Target = 100;
+
         
+        // This is to generate an artificial Lambda0ConfigLibrary, Hadi's code does this for real
+        /*
         Lambda0ConfigLibrary.resize(_N[0]);
         std::normal_distribution<double> distribution(0,1);
         for (i = 0; i < _N[0] ; i++){
@@ -71,7 +74,7 @@ namespace SSAGES
 
         // I beleive the PreSimulation must run once at the beginning of the simulation. Apparently it runs every iteration!!!
         
-          /*FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
+          FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
           // Write the dump file out
           std::ofstream file;
           std::string filename = _output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
@@ -80,9 +83,10 @@ namespace SSAGES
           //first line gives ID of where it came from
           file << ffsconfig.lprev << " " << ffsconfig.nprev << " " << ffsconfig.aprev << "\n";
           //write position and velocity
-          file << "1 -1 0 0 " << distribution(_generator) << " "  << distribution(_generator) << " 0\n";*/
+          file << "1 -1 0 0 " << distribution(_generator) << " "  << distribution(_generator) << " 0\n";
 
         }
+        */
         _pop_tried_but_empty_queue = false;
 
 
@@ -159,64 +163,79 @@ namespace SSAGES
 
 	void ForwardFlux::ComputeInitialFlux(Snapshot* snapshot, const CVList& cvs){
 
-        unsigned int nInitialConfigs = _N[0];
+        _cvvalue = cvs[0]->GetValue();
 
-        bool shouldContinueLocal = true;
-        InitialFluxMPI(snapshot, cvs, shouldContinueLocal);
+        //InitialFluxMPI(snapshot, cvs, shouldContinueLocal);
 
         //check if we've crossed the first interface (lambda 0)
         int hascrossed = HasCrossedInterface(_cvvalue, _cvvalue_previous, 0);
         bool success_local = false;
         bool *successes = new bool (_world.size());
 
-        // If we have crossed the first interface, then write the information to disk
+        // If we have crossed the first interface going forward, then write the information to disk
         if (hascrossed == 1){
               success_local = true;
-              //for each traj that crossed to lambda0 in forward direction, we need to write it to disk (FFSConfigurationFile)
-              MPI_Allgather(&success_local,1,MPI::BOOL,successes,1,MPI::BOOL,_world);
+        }
 
-              for (int i = 0; i < _world.size(); i++){
-                int l,n,a,lprev,nprev,aprev;
-                // Since we are in State A, the values of lprev, nprev, aprev are all zero.
-                lprev = 0;
-                nprev = 0;
-                aprev = 0;
+        //for each traj that crossed to lambda0 in forward direction, we need to write it to disk (FFSConfigurationFile)
+        MPI_Allgather(&success_local,1,MPI::BOOL,successes,1,MPI::BOOL,_world);
 
-                if (successes[i] == true){ 
-                  if (i == _world.rank()){
-                    //update ffsconfigid's l,n,a
-                    l = 0;
-                    n = _S[0];
-                    a = 0;
-                    FFSConfigID newid = FFSConfigID(l,n,a,lprev,nprev,aprev);
-                    WriteFFSConfiguration(snapshot,newid,1);
-                    _S[0]++;
-                  }
-                }    
-              }  
+        int success_count = 0;
+        for (int i = 0; i < _world.size(); i++){
+          // Since we are in State A, the values of lprev, nprev, aprev are all zero.
+
+          if (successes[i] == true){ 
+            if (i == _world.rank()){
+              int l,n,a,lprev,nprev,aprev;
+              //update ffsconfigid's l,n,a
+              l = 0;
+              n = _N[0] + success_count;
+              a = 0;
+              lprev = l;
+              nprev = n;
+              aprev = a;
+
+              FFSConfigID newid = FFSConfigID(l,n,a,lprev,nprev,aprev);
+              Lambda0ConfigLibrary.emplace_back(l,n,a,lprev,nprev,aprev);
+              WriteFFSConfiguration(snapshot,newid,1);
+
             }
+            success_count++;
+          }    
+        }  
+
+        // all procs update correctly
+        _N[0] += success_count;
+
+        // If not in B, increment the time
+        double N0SimTime_local=0;
+        double N0SimTime;
+        int reachedB = HasCrossedInterface(_cvvalue, _cvvalue_previous, _ninterfaces-1);
+        if (!(reachedB == 1)){
+           N0SimTime_local++;  //or += frequency if FFS isn't called on every step!
+        }
+        // Allreduce then increment total
+        MPI_Allreduce(&N0SimTime_local,&N0SimTime, 1, MPI_DOUBLE, MPI_SUM,_world);
+        _N0TotalSimTime += N0SimTime;
+
+
 
         //print some info
-        if (shouldContinueLocal){
-          std::cout << "Iteration: "<< _iteration << ", proc " << _world.rank() << std::endl;
-          if (success_local)
+        if (success_local){
+            std::cout << "Iteration: "<< _iteration << ", proc " << _world.rank() << std::endl;
             std::cout << "Successful attempt. (cvvalue_previous: " << _cvvalue_previous << " cvvalue " << _cvvalue << " )" << std::endl;
-          std::cout << "# of successes:               " << _S[0] << std::endl;
-          std::cout << "required # of configurations: " << nInitialConfigs << std::endl;
+            std::cout << "# of successes:               " << _N[0] << std::endl;
+            std::cout << "required # of configurations: " << _N0Target << std::endl;
         }
 
         // Check if the required number of initial configurations are created, if so print a message, and compute the initial flux.
-        if (_S[0] == nInitialConfigs){
+        if (_N[0] >= _N0Target){
             std::cout << "Initial flux calculation was successfully completed" << std::endl;
-            shouldContinueLocal = false;            
             // Call a function to compute the actual flux and output the data
             WriteInitialFlux(snapshot, cvs);
-            // set _S[0] to zero
-            _S[0] = 0;
             //responsible for setting _initialFluxFlag = false when finished
             _initialFluxFlag = false;
-            //exit(1);
-          } 
+        } 
 
         _cvvalue_previous = _cvvalue;
         _iteration++;
@@ -224,26 +243,6 @@ namespace SSAGES
         //clean up
         delete[] successes;
     }
-
-  void ForwardFlux::InitialFluxMPI(Snapshot* snapshot, const CVList& cvs, bool shouldContinueLocal){
-
-      bool *shouldContinue = new bool(_world.size());
-      MPI_Allgather(&shouldContinueLocal, 1, MPI::BOOL, shouldContinue, 1, MPI::BOOL, _world);
-
-      for (int i = 0; i < _world.size(); i++){
-        if (shouldContinue[i] == true){
-          if(i == _world.rank()) {
-            // Trigger a rebuild of the cvs since we reset the positions
-              cvs[0]->Evaluate(*snapshot);
-              _cvvalue = cvs[0]->GetValue();
-          }
-        }
-      }
-
-      //clean up
-      delete[] shouldContinue;
-    }
-
   void ForwardFlux::WriteInitialFlux(Snapshot* snapshot, const CVList& cvs){
 
       std::ofstream file;
@@ -253,7 +252,6 @@ namespace SSAGES
         std::cerr << "Error! Unable to write " << filename << std::endl;
         exit(1);
       }
-      _N0TotalSimTime = _iteration * _world.size();
       _fluxA0 = (double) (_N[0] / _N0TotalSimTime);
       file << "number of processors: " << _world.size() << std::endl;
       file << "number of iterations: " << _iteration << std::endl;

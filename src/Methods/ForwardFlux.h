@@ -76,7 +76,7 @@ namespace SSAGES
              l(0),n(0),a(0),lprev(0),nprev(0),aprev(0)
             {}
 
-            ////! Overload = operator
+            ////! Overload = operator, not necessary, this is the default
             //FFSConfigID& operator=(const FFSConfigID& rhs){
             //    if (this == &rhs) return *this;
             //    else{
@@ -109,13 +109,14 @@ namespace SSAGES
 		//!  current cv position
         double _cvvalue;
 
-
-
         //! Data structure that holds a Library N0 configurations at lambda0
         std::vector<FFSConfigID> Lambda0ConfigLibrary;
 
         //! Total Simulation Time spent in accumulating \ _N0
         double _N0TotalSimTime;
+        
+        //! Number of configurations to store at lambda0, target
+        unsigned int _N0Target;
 
         //! Flux of trajectories out of state A. Denoted PhiA0 over h_A in Allen2009.
         double _fluxA0;
@@ -139,7 +140,7 @@ namespace SSAGES
 
 		//! Current number of configurations currently stored at interface i
         //! This is somewhat redundant since _N[i] == _S[i-1], but for clarity 
-		//! N[0] - input parameter: Total number of configurations to collect at lambda0 (first interface) 
+		//! N[0] - current number of configurations collected at lambda0 (first interface) 
 		std::vector<unsigned int> _N ;
         
         //! Keep track of jobs that have suceeded or failed but couldn't get reassigned a new task and must wait for the queue to get more jobs
