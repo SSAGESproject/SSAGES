@@ -32,8 +32,7 @@ namespace SSAGES
 			throw BuildException({"Forwardflux currently only works with one cv."});
 
 
-        std::cout << "WARNING! MAKE SURE LAMMPS GIVES A DIFFERENT RANDOM SEED TO EACH PROCESSOR, OTHERWISE EACH FFS TRAJ WILL BE IDENTICAL!\n";
-
+        std::cout << "\nWARNING! MAKE SURE LAMMPS GIVES A DIFFERENT RANDOM SEED TO EACH PROCESSOR, OTHERWISE EACH FFS TRAJ WILL BE IDENTICAL!\n"; 
         //code for setting up simple simulation and debugging
         _ninterfaces = 5;
         int i;
@@ -89,7 +88,6 @@ namespace SSAGES
 
 	void ForwardFlux::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
-        return;
         //check if we want to check FFS interfaces this timestep
         //for now, do it every time step
         if (_iteration % 1 != 0) return;
@@ -114,7 +112,7 @@ namespace SSAGES
     }
 
 	void ForwardFlux::PostSimulation(Snapshot* snapshot, const CVList& cvs){
-
+        std::cout << "Post simulation\n";
         if (_saveTrajectories){
           ReconstructTrajectories(snapshot);	
         }
@@ -123,9 +121,9 @@ namespace SSAGES
     
     int ForwardFlux::HasCrossedInterface(double current, double prev, unsigned int i){
         double interface_location = _interfaces[i];
-        if ((prev < interface_location) && (current >= interface_location))
+        if ((prev <= interface_location) && (current >= interface_location))
             return 1;
-        else if ((prev >= interface_location) && (current < interface_location))
+        else if ((prev >= interface_location) && (current <= interface_location))
             return -1;
         else
             return 0;
@@ -148,11 +146,20 @@ namespace SSAGES
 
     void ForwardFlux::CheckForInterfaceCrossings(Snapshot* snapshot, const CVList& cvs)
     {
+        //This is the main FFS method. The magic happens here!
 
         //QUESTION: Whats the difference between _world and _comm?
         //For now I'll use _world for everything. But if each driver uses multiple procs then I suspect that this will be wrong.
 
         _cvvalue = cvs[0]->GetValue();
+        
+        //// for debugging
+        //if ((myFFSConfigID.l == 2) && (myFFSConfigID.n == 20) && (myFFSConfigID.a ==1)){
+        //    std::cout << "stop here\n";
+        //}
+        //if (myFFSConfigID.l != _current_interface){
+        //    std::cout << "stop here\n";
+        //}
 
         //check if I've crossed the next interface
         bool hasreturned = HasReturnedToA(_cvvalue);
@@ -172,6 +179,8 @@ namespace SSAGES
             }
             else if (hascrossed == -1){
               //this should never happen if the interfaces are non-intersecting, it would be wise to throw an error here though
+              std::cout << "Trajectory l"<<myFFSConfigID.l<<"-n"<<myFFSConfigID.n<<"-a"<<myFFSConfigID.a<<" crossed backwards! This shouldnt happen!\n";
+              //_world.abort(EXIT_FAILURE);
             }
             else{
               //not sure if anything should needs to be done here        
@@ -216,16 +225,50 @@ namespace SSAGES
             fail_count++;
           }
         }
+
+        //update trajectories
+        if (_saveTrajectories){
+          if (!_pop_tried_but_empty_queue){ //dont update trajectory if zombie job
+              AppendTrajectoryFile(snapshot,_trajectory_file);
+          }
+          if (success_local || fail_local){ //if finished then close it
+            _trajectory_file.close();
+          }
+        }
         
         //update the number of successes and attempts, same for all proc since Allgathered 'successes' and 'failures'
         _S[_current_interface] += success_count;
         _A[_current_interface] += success_count + fail_count;
         // ^ I dont like storing attempts this way (as is its only when they finish). _A should also include jobs in progress (i.e. jobs currently running). THINK ABOUT THIS!.
         _nfailure_total += fail_count;
-        
+
+
+        //------------------------------
+        //print info
+        if ((success_local) || (fail_local)){
+          std::cout << "Iteration: "<< _iteration << ", proc " << _world.rank() << "\n";
+          if (success_local){
+            std::cout << "Successful attempt from interface " << _current_interface 
+                      << " l"<<myFFSConfigID.l<<"-n"<<myFFSConfigID.n<<"-a"<<myFFSConfigID.a
+                      << " (cvvalue_previous: " << _cvvalue_previous << " cvvalue " << _cvvalue << " interface["<<_current_interface+1<<"] = " << _interfaces[_current_interface+1] << "\n";
+          }
+          if (fail_local){
+            std::cout << "Failed attempt from interface " << _current_interface 
+                      << " l"<<myFFSConfigID.l<<"-n"<<myFFSConfigID.n<<"-a"<<myFFSConfigID.a
+                      << " (cvvalue_previous: " << _cvvalue_previous << " cvvalue " << _cvvalue << " interface[0] = "<< _interfaces[0] << "\n";}
+          std::cout << "A: ";
+          for (auto a : _A) std::cout << a << " "; std::cout << "\n";
+          std::cout << "S: ";
+          for (auto s : _S) std::cout << s << " "; std::cout << "\n";
+          std::cout << "M: ";
+          for (auto m : _M) std::cout << m << " "; std::cout << "\n";
+        }
+        //------------------------------
+       
+        //create new funciton here? (call it SetupNextInterface()
         // Check if this interface is finished, if so add new tasks to queue, and increment _current_interface
-        if (_A[_current_interface] == _M[_current_interface]-1){
-          if (_current_interface+1 != _ninterfaces){
+        if (_A[_current_interface] >= _M[_current_interface]){
+          if (_current_interface+2 < _ninterfaces){
             _current_interface += 1;
             _N[_current_interface] = _S[_current_interface-1];
 
@@ -246,7 +289,6 @@ namespace SSAGES
               }
             }
             MPI_Bcast(picks.data(),npicks,MPI::UNSIGNED,0,_world);
-
 
             //each proc adds to the queue
 
@@ -287,34 +329,13 @@ namespace SSAGES
           shouldpop_local = true;
         }
         
-        if (_saveTrajectories){
-          if (!_pop_tried_but_empty_queue){ //dont update trajectory if zombie job
-              AppendTrajectoryFile(snapshot,_trajectory_file);
-          }
-          if (success_local || fail_local){ //if finished then close it
-            _trajectory_file.close();
-          }
-        }
         //Pop the queue
         // Need to perform mpi call so that all proc pop the queue in the same way
         PopQueueMPI(snapshot,cvs, shouldpop_local);
                 
         //Anything else to update across mpi?
 
-        //print info
-        if (shouldpop_local){
-          std::cout << "Iteration: "<< _iteration << ", proc " << _world.rank() << "\n";
-          if (success_local)
-            std::cout << "Successful attempt from interface " << _current_interface <<" (cvvalue_previous: " << _cvvalue_previous << " cvvalue " << _cvvalue << " interface " << _interfaces[_current_interface] << "\n";
-          if (fail_local)
-            std::cout << "Failed attempt from interface " << _current_interface <<" (cvvalue_previous: " << _cvvalue_previous << " cvvalue " << _cvvalue << " interface " << _interfaces[0] << "\n";
-          std::cout << "A: ";
-          for (auto a : _A) std::cout << a << " "; std::cout << "\n";
-          std::cout << "S: ";
-          for (auto s : _S) std::cout << s << " "; std::cout << "\n";
-          std::cout << "M: ";
-          for (auto m : _M) std::cout << m << " "; std::cout << "\n";
-        }
+        
         
         //clean up
         _cvvalue_previous = _cvvalue;
@@ -506,9 +527,6 @@ namespace SSAGES
         
         PopQueueMPI(snapshot,cvs,shouldpop_local);
 
-        
-        _cvvalue_previous = cvs[0]->GetValue();
-
     }
 
     void ForwardFlux::PrintQueue(){
@@ -571,8 +589,8 @@ namespace SSAGES
     }
     
     void ForwardFlux::ReconstructTrajectories(Snapshot *snapshot){
-        int nsuccess = _S[_ninterfaces-1];
-        
+
+        int nsuccess = _S[_ninterfaces-2]; //note -2, no attempts from _ninterfaces-1
         
         //Snapshot* snapshot_empty;
         FFSConfigID ffsconfig;
@@ -584,7 +602,11 @@ namespace SSAGES
           ffsconfig.l = _ninterfaces-1;
           ffsconfig.n = i;
           ffsconfig.a = 0;
-          while (ffsconfig.l != 0){
+          bool flag = true;
+
+          while (flag){
+             if (ffsconfig.l == 0){ flag = false;}
+
              //this is just to populate ffsconfig.{lprev,nprev,aprev}
              //ReadFFSConfiguration(snapshot_empty,ffsconfig);
              ReadFFSConfiguration(snapshot,ffsconfig);
@@ -596,6 +618,8 @@ namespace SSAGES
              ffsconfig.n = ffsconfig.nprev;
              ffsconfig.a = ffsconfig.aprev;
           }
+          //the last element is the last lambda, which doesn't have a trajectory, so delete it
+          path.pop_back();
 
           //now path should contain all of the FFSConfigID's from B back to A
           //reverse pop it and splice all traj- files into a new traj-full- file
@@ -617,12 +641,13 @@ namespace SSAGES
 
             ifilename = _output_directory + "/traj-l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + "-a" + std::to_string(ffsconfig.a) + ".xyz";
 
-            ifile.open(ofilename.c_str());
+            ifile.open(ifilename.c_str());
             if (!ifile) {std::cerr << "Error! Unable to read " << ifilename << "\n"; exit(1);}
             //write entire ifile to ofile
             std::string line;
             while(!std::getline(ifile,line).eof()){
-                ofile << line;
+                ofile << line << "\n";
+
             }
           }
           ofile.close();
