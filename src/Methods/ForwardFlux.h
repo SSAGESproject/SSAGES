@@ -208,6 +208,8 @@ namespace SSAGES
         //! Compute Initial Flux
         void ComputeInitialFlux(Snapshot*, const CVList&);
 
+        void InitialFluxMPI(Snapshot*, const CVList&, bool);
+
         //! Initialize the Queue
         void InitializeQueue(Snapshot*, const CVList&);
 

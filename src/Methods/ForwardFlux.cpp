@@ -60,7 +60,7 @@ namespace SSAGES
         _N[0] = 100;
         
         Lambda0ConfigLibrary.resize(_N[0]);
-          std::normal_distribution<double> distribution(0,1);
+        std::normal_distribution<double> distribution(0,1);
         for (i = 0; i < _N[0] ; i++){
           Lambda0ConfigLibrary[i].l = 0;
           Lambda0ConfigLibrary[i].n = i;
@@ -69,7 +69,7 @@ namespace SSAGES
           Lambda0ConfigLibrary[i].nprev = i;
           Lambda0ConfigLibrary[i].aprev = 0;
 
-          FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
+          /*FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
           // Write the dump file out
           std::ofstream file;
           std::string filename = _output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
@@ -78,7 +78,7 @@ namespace SSAGES
           //first line gives ID of where it came from
           file << ffsconfig.lprev << " " << ffsconfig.nprev << " " << ffsconfig.aprev << "\n";
           //write position and velocity
-          file << "1 -1 0 0 " << distribution(_generator) << " "  << distribution(_generator) << " 0\n";
+          file << "1 -1 0 0 " << distribution(_generator) << " "  << distribution(_generator) << " 0\n";*/
 
         }
         _pop_tried_but_empty_queue = false;
@@ -96,6 +96,8 @@ namespace SSAGES
         // if _computefluxA0
         if (_initialFluxFlag){
             ComputeInitialFlux(snapshot,cvs); 
+            //std::cout << "Ran Initaial flux calculations and exited" << std::endl;
+            //exit(1);
             if (!_initialFluxFlag){ //only enter here once
               InitializeQueue(snapshot,cvs);
               PrintQueue();
@@ -137,12 +139,87 @@ namespace SSAGES
     }
 
 	void ForwardFlux::ComputeInitialFlux(Snapshot* snapshot, const CVList& cvs){
-        //check if I've crossed the first interface (lambda 0)
 
-        //need to sync variables between processors
+        /*std::cout << "Running initial Flux calculations" << std::endl;
+        // Check if we are in State A
+        _cvvalue = cvs[0]->GetValue();
+        double _firstInterfaceLocation = _interfaces[0];
 
-        //responsible for setting _initialFluxFlag = false when finished
-        _initialFluxFlag = false;
+        if ( _cvvalue > _firstInterfaceLocation) {
+          std::cout << "Please provide an initial configuration in State A. Exiting ...." << std::endl;
+          exit(1);
+        }*/
+
+        unsigned int nInitialConfigs = _N[0];
+
+        bool shouldContinueLocal = true;
+        InitialFluxMPI(snapshot, cvs, shouldContinueLocal);
+
+        //check if we've crossed the first interface (lambda 0)
+        int hascrossed = HasCrossedInterface(_cvvalue, _cvvalue_previous, 0);
+        bool success_local = false;
+        bool *successes = new bool (_world.size());
+
+        if (hascrossed == 1){
+              success_local = true;
+              //for each traj that crossed to lambda0 in forward direction, we need to write it to disk (FFSConfigurationFile)
+              MPI_Allgather(&success_local,1,MPI::BOOL,successes,1,MPI::BOOL,_world);
+
+              for (int i = 0; i < _world.size(); i++){
+                int l,n,a,lprev,nprev,aprev;
+                // write config to lambda+1
+                lprev = 0;
+                nprev = 0;
+                aprev = 0;
+
+                if (successes[i] == true){ 
+                  if (i == _world.rank()){
+                    //update ffsconfigid's l,n,a
+                    l = 0;
+                    n = _S[0] + 1;
+                    a = 0;
+                    FFSConfigID newid = FFSConfigID(l,n,a,lprev,nprev,aprev);
+                    //Question: We currently write the configuration right before crossing the first interface, should we write the one after crossing it?
+                    WriteFFSConfiguration(snapshot,newid,1);
+                    _S[0]++;
+                  }
+                }    
+              }  
+            }
+
+        bool *shouldContinue = new bool(_world.size());
+        // Check if the required number of this interface is finished, if so add new tasks to queue, and increment _current_interface
+        if (_S[0] == nInitialConfigs - 1){
+            std::cout << "Initial flux calculation was successfully completed" << std::endl;
+            shouldContinueLocal = false;
+            // Call a function to compute the actual flux
+            //responsible for setting _initialFluxFlag = false when finished
+            _initialFluxFlag = false;
+            exit(1);
+          } 
+
+        _cvvalue_previous = _cvvalue;
+        _iteration++;
+
+        //clean up
+        delete[] successes;
+        delete[] shouldContinue;
+    }
+
+    void ForwardFlux::InitialFluxMPI(Snapshot* snapshot, const CVList& cvs, bool shouldContinueLocal){
+
+      bool *shouldContinue = new bool(_world.size());
+      MPI_Allgather(&shouldContinueLocal, 1, MPI::BOOL, shouldContinue, 1, MPI::BOOL, _world);
+
+      for (int i = 0; i < _world.size(); i++){
+        if (shouldContinue[i] == true){
+          if(i == _world.rank()) {
+            // Trigger a rebuild of the cvs since we reset the positions
+              cvs[0]->Evaluate(*snapshot);
+              _cvvalue = cvs[0]->GetValue();
+          }
+        }
+      }
     }
 
     void ForwardFlux::CheckForInterfaceCrossings(Snapshot* snapshot, const CVList& cvs)
@@ -160,7 +237,7 @@ namespace SSAGES
         //std::vector<bool> in MPI were strange, ended up using arrays
         bool *successes = new bool (_world.size());
         bool *failures = new bool (_world.size());
-        
+
         if (!_pop_tried_but_empty_queue){ 
             // make sure this isnt a zombie trajectory that previously failed or succeeded and is just waiting for the queue to get more jobs
             if (hasreturned){ 
@@ -462,7 +539,7 @@ namespace SSAGES
         file.close();
 	}
 
-    void ForwardFlux::InitializeQueue(Snapshot* snapshot, const CVList &cvs){
+  void ForwardFlux::InitializeQueue(Snapshot* snapshot, const CVList &cvs){
 
         unsigned int npicks = _M[0];
         std::vector<unsigned int> picks;
