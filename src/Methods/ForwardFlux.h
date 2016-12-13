@@ -207,7 +207,7 @@ namespace SSAGES
         void WriteFFSConfiguration(Snapshot *snapshot,FFSConfigID& ffsconfig, bool wassuccess);
 
         //! Read a file corresponding to a FFSConfigID into current snapshot
-        void ReadFFSConfiguration(Snapshot *,FFSConfigID&);
+        void ReadFFSConfiguration(Snapshot *,FFSConfigID&,bool);
        
         //! Compute Initial Flux
         void ComputeInitialFlux(Snapshot*, const CVList&);

@@ -303,7 +303,7 @@ namespace SSAGES
 		}
     }
 
-	void ForwardFlux::ReadFFSConfiguration(Snapshot* snapshot, FFSConfigID& ffsconfig)
+	void ForwardFlux::ReadFFSConfiguration(Snapshot* snapshot, FFSConfigID& ffsconfig, bool wassuccess)
 	{
 		auto& positions = snapshot->GetPositions();
 		auto& velocities = snapshot->GetVelocities();
@@ -312,7 +312,14 @@ namespace SSAGES
 		//auto& ID = snapshot->GetSnapshotID();
 
         std::ifstream file; 
-        std::string filename =  _output_directory + "/l"+ std::to_string(ffsconfig.l) +"-n"+ std::to_string(ffsconfig.n) + ".dat";
+        std::string filename;
+        if (wassuccess){
+          filename =  _output_directory + "/l"+ std::to_string(ffsconfig.l) +"-n"+ std::to_string(ffsconfig.n) + ".dat";
+        }
+        else{
+          filename =  _output_directory + "/fail-l"+ std::to_string(ffsconfig.l) +"-n"+ std::to_string(ffsconfig.n) + ".dat";
+
+        }
         std::string line;
 
         file.open(filename);
@@ -403,7 +410,7 @@ namespace SSAGES
               if (!FFSConfigIDQueue.empty()){ //if queue has tasks
 
                    myFFSConfigID = FFSConfigIDQueue.front();
-                   ReadFFSConfiguration (snapshot, myFFSConfigID);
+                   ReadFFSConfiguration (snapshot, myFFSConfigID,true);
                    
                    //open new trajectory file, write first frame
                    if (_saveTrajectories){ 
@@ -441,13 +448,13 @@ namespace SSAGES
         // two dim vectors, first dim is lambda, second is N
         // this counts the number of atempts from this config eventually reached A (for nA) or B (for nB)
         // used to compute _pB via:  _pB = nB / (nA + nB)
-        std::vector<std::vector<unsigned int>> nB;
         std::vector<std::vector<unsigned int>> nA;
+        std::vector<std::vector<unsigned int>> nB;
         nA.resize(_ninterfaces);
         nB.resize(_ninterfaces);
         for (unsigned int i=0; i<_ninterfaces;i++){
-            nA[i].resize(_N[i]);
-            nB[i].resize(_N[i]);
+            nA[i].resize(_N[i],0);
+            nB[i].resize(_N[i],0);
         }
 
 
@@ -455,7 +462,7 @@ namespace SSAGES
         FFSConfigID ffsconfig;
         
         //populate nB
-        unsigned int nsuccess = _S[_ninterfaces-2]; //note -2, no attempts from _ninterfaces-1
+        unsigned int nsuccess = _N[_ninterfaces-1]; //note -1
         for(unsigned int i = 0; i < nsuccess ; i++){
           ffsconfig.l = _ninterfaces-1;
           ffsconfig.n = i;
@@ -466,7 +473,7 @@ namespace SSAGES
              if (ffsconfig.l == 0){ flag = false;}
 
              //this is just to populate ffsconfig.{lprev,nprev,aprev}
-             ReadFFSConfiguration(snapshot,ffsconfig);
+             ReadFFSConfiguration(snapshot,ffsconfig,true);
 
              //update nB 
              nB[ffsconfig.l][ffsconfig.n]++;
@@ -478,22 +485,23 @@ namespace SSAGES
         }
 
         //now populate nA (very similar to nB)
-        unsigned int nfail = _nfailure_total; //note -2, no attempts from _ninterfaces-1
+        unsigned int nfail = _nfailure_total; 
         for(unsigned int i = 0; i < nfail ; i++){
-          ffsconfig.l = _ninterfaces-1;
+          ffsconfig.l = 0; //only fail at lambda0 in absence of pruning
           ffsconfig.n = i;
           ffsconfig.a = 0;
           bool flag = true;
+          //this is just to populate ffsconfig.{lprev,nprev,aprev}
+          ReadFFSConfiguration(snapshot,ffsconfig,false);
+
           //recursively trace successful path and update all the configs it came from
           while (flag){
-
-             //this is just to populate ffsconfig.{lprev,nprev,aprev}
-             ReadFFSConfiguration(snapshot,ffsconfig);
-
              if ((ffsconfig.l == 0) && (ffsconfig.lprev==0)){ flag = false;}
 
              //update nA 
              nA[ffsconfig.l][ffsconfig.n]++;
+
+             ReadFFSConfiguration(snapshot,ffsconfig,true);
 
              ffsconfig.l = ffsconfig.lprev;
              ffsconfig.n = ffsconfig.nprev;
@@ -502,10 +510,12 @@ namespace SSAGES
         }
 
         //Compute _pB
+        _pB.resize(_ninterfaces);
         unsigned int Nmax = 0;
         for(unsigned int i = 0; i<_ninterfaces ; i++){
+          _pB[i].resize(_N[i],0);
           for(unsigned int j = 0; j<_N[i] ; j++){
-            unsigned int denom = nA[i][j] + nB[i][j];
+            int denom = nA[i][j] + nB[i][j];
             if (denom != 0){
               _pB[i][j] = (double)nB[i][j] / denom;
             }
@@ -530,6 +540,7 @@ namespace SSAGES
               file << "none ";
             }
           }
+          file << "\n";
         }
 
 
@@ -538,6 +549,8 @@ namespace SSAGES
     
     void ForwardFlux::ReconstructTrajectories(Snapshot *snapshot){
 
+        //this only reconstructs successful trajectories 
+        //its pretty straightforward to reconstruct failed trajectories, but I dont do it here
 
         int nsuccess = _S[_ninterfaces-2]; //note -2, no attempts from _ninterfaces-1
         
@@ -557,7 +570,7 @@ namespace SSAGES
 
              //this is just to populate ffsconfig.{lprev,nprev,aprev}
              //ReadFFSConfiguration(snapshot_empty,ffsconfig);
-             ReadFFSConfiguration(snapshot,ffsconfig);
+             ReadFFSConfiguration(snapshot,ffsconfig,true);
              
              //path.emplace_front(ffsconfig); //not sure if new constructor will work
              path.emplace_front(ffsconfig.l,ffsconfig.n, ffsconfig.a, ffsconfig.lprev, ffsconfig.nprev, ffsconfig.aprev); 

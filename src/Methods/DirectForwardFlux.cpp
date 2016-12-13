@@ -184,9 +184,11 @@ namespace SSAGES
         //create new funciton here? (call it SetupNextInterface()
         // Check if this interface is finished, if so add new tasks to queue, and increment _current_interface
         if (_A[_current_interface] >= _M[_current_interface]){
+          //set N
+          _N[_current_interface+1] = _S[_current_interface];
           if (_current_interface+2 < _ninterfaces){
             _current_interface += 1;
-            _N[_current_interface] = _S[_current_interface-1];
+            //_N[_current_interface] = _S[_current_interface-1];
 
             if (_N[_current_interface] == 0){
                std::cerr << "Error! No successes from interface " << _current_interface-1 << " to " << _current_interface <<"! Try turning up M["<<_current_interface-1<<"] or spacing interfaces closer together.\n";
