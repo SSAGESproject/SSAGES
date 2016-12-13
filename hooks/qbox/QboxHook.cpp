@@ -50,7 +50,15 @@ namespace SSAGES
 	void QboxHook::XMLToSSAGES(const std::string& xmlfile)
 	{
 		// Load the XML file into property tree. 
-		read_xml(xmlfile, pt_);
+		try {
+			read_xml(xmlfile, pt_);
+		} catch(std::exception& e) {
+			// If it fails, force filesystem flush and try again.
+			sync();
+			usleep(100000);
+			read_xml(xmlfile, pt_);
+		}
+
 		SyncToSnapshot();
 	}
 
