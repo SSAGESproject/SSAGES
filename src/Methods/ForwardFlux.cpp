@@ -52,11 +52,12 @@ namespace SSAGES
         _output_directory = "FFSoutput";
         //std::mkdir(_output_directory); //how to make directory?
         _initialFluxFlag = true;
-        _M.resize(_ninterfaces);
         _A.resize(_ninterfaces);
         _P.resize(_ninterfaces);
         _S.resize(_ninterfaces);
         _N.resize(_ninterfaces);
+
+        _M.resize(_ninterfaces);
         for(i=0;i<_ninterfaces;i++) _M[i] = 50;
 
         _N0Target = 100;

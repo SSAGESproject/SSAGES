@@ -46,12 +46,9 @@ namespace SSAGES
         // Private Variables
         //-----------------------------------------------------------------
 
-        //! random number generator
-        std::default_random_engine _generator;
-
         //! Number of trials to attemt from each interface
         //! Note _M[0] sets the number of 'branches' for RBFFS and BGFFS?
-        std::vector<unsigned int> _M;
+        //std::vector<unsigned int> _M;
 
         //-----------------------------------------------------------------
         // Private Functions

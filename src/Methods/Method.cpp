@@ -32,7 +32,7 @@
 #include "StringMethod.h"
 #include "Meta.h"
 #include "Umbrella.h"
-#include "ForwardFlux.h"
+#include "DirectForwardFlux.h"
 #include "GridTest.h"
 #include "ABF.h"
 #include "BasisFunc.h"
@@ -271,7 +271,7 @@ namespace SSAGES
             // fixme: Eventually parse the json here
             // For now just hard-code it into the constructor...
             unsigned int freq = 1;
-            auto* m = new ForwardFlux(world, comm, freq);
+            auto* m = new DirectForwardFlux(world, comm, freq);
 
 			method = static_cast<Method*>(m);
 		}
