@@ -71,9 +71,7 @@ namespace SSAGES
           Lambda0ConfigLibrary[i].lprev = 0;
           Lambda0ConfigLibrary[i].nprev = i;
           Lambda0ConfigLibrary[i].aprev = 0;
-
-        // I beleive the PreSimulation must run once at the beginning of the simulation. Apparently it runs every iteration!!!
-        
+       
           FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
           // Write the dump file out
           std::ofstream file;
@@ -165,8 +163,6 @@ namespace SSAGES
 
         _cvvalue = cvs[0]->GetValue();
 
-        //InitialFluxMPI(snapshot, cvs, shouldContinueLocal);
-
         //check if we've crossed the first interface (lambda 0)
         int hascrossed = HasCrossedInterface(_cvvalue, _cvvalue_previous, 0);
         bool success_local = false;
@@ -208,14 +204,16 @@ namespace SSAGES
         _N[0] += success_count;
 
         // If not in B, increment the time
-        double N0SimTime_local=0;
+        double N0SimTime_local = 0;
         double N0SimTime;
         int reachedB = HasCrossedInterface(_cvvalue, _cvvalue_previous, _ninterfaces-1);
-        if (!(reachedB == 1)){
+        // Question: This condition says that if we cross the last interface-> stop counting. We need to stop counting as long as we are in state B.
+        if (!(reachedB == 1) && (_cvvalue < _interfaces.back())){
            N0SimTime_local++;  //or += frequency if FFS isn't called on every step!
         }
+
         // Allreduce then increment total
-        MPI_Allreduce(&N0SimTime_local,&N0SimTime, 1, MPI_DOUBLE, MPI_SUM,_world);
+        MPI_Allreduce(&N0SimTime_local, &N0SimTime, 1, MPI_DOUBLE, MPI_SUM,_world);
         _N0TotalSimTime += N0SimTime;
 
 
