@@ -4,6 +4,8 @@
  *
  * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
  *                Hythem Sidky <hsidky@nd.edu>
+ *                Joshua Lequieu <lequieu@uchicago.edu>
+ *                Hadi Ramezani-Dakhel <ramezani@uchicago.edu>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,36 +89,6 @@ namespace SSAGES
         */
         _pop_tried_but_empty_queue = false;
 
-
-    }
-
-	void ForwardFlux::PostIntegration(Snapshot* snapshot, const CVList& cvs)
-	{
-        //check if we want to check FFS interfaces this timestep
-        //for now, do it every time step
-        if (_iteration % 1 != 0) return;
-
-        // check the structure at the beginning of the simulation
-        if (_iteration == 0) {
-          CheckInitialStructure(cvs);
-        }
-
-        // if _computefluxA0
-        if (_initialFluxFlag){
-            ComputeInitialFlux(snapshot,cvs); 
-            if (!_initialFluxFlag){ //only enter here once
-
-              InitializeQueue(snapshot,cvs);
-              PrintQueue();
-            }
-        }
-        // Else check the FFS interfaces
-        else{
-            CheckForInterfaceCrossings(snapshot,cvs);
-            //FluxBruteForce(snapshot,cvs);
-
-        }
-        // Other modes?
 
     }
 

@@ -4,6 +4,8 @@
  *
  * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
  *                Hythem Sidky <hsidky@nd.edu>
+ *                Joshua Lequieu <lequieu@uchicago.edu>
+ *                Hadi Ramezani-Dakhel <ramezani@uchicago.edu>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +20,7 @@
  * You should have received a copy of the GNU General Public License
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "ForwardFlux.h"
+#include "DirectForwardFlux.h"
 #include <iostream>
 #include "../FileContents.h"
 #include <random>
@@ -27,8 +29,38 @@
 namespace SSAGES
 {
 
+	void DirectForwardFlux::PostIntegration(Snapshot* snapshot, const CVList& cvs)
+	{
+        //check if we want to check FFS interfaces this timestep
+        //for now, do it every time step
+        if (_iteration % 1 != 0) return;
+
+        // check the structure at the beginning of the simulation
+        if (_iteration == 0) {
+          CheckInitialStructure(cvs);
+        }
+
+        // if _computefluxA0
+        if (_initialFluxFlag){
+            ComputeInitialFlux(snapshot,cvs); 
+            if (!_initialFluxFlag){ //only enter here once
+
+              InitializeQueue(snapshot,cvs);
+              PrintQueue();
+            }
+        }
+        // Else check the FFS interfaces
+        else{
+            CheckForInterfaceCrossings(snapshot,cvs);
+            //FluxBruteForce(snapshot,cvs);
+
+        }
+        // Other modes?
+
+    }
+
     
-    void ForwardFlux::CheckForInterfaceCrossings(Snapshot* snapshot, const CVList& cvs)
+    void DirectForwardFlux::CheckForInterfaceCrossings(Snapshot* snapshot, const CVList& cvs)
     {
         //This is the main FFS method. The magic happens here!
 
@@ -233,7 +265,7 @@ namespace SSAGES
 	
 
 
-  void ForwardFlux::InitializeQueue(Snapshot* snapshot, const CVList &cvs){
+  void DirectForwardFlux::InitializeQueue(Snapshot* snapshot, const CVList &cvs){
 
         unsigned int npicks = _M[0];
         std::vector<unsigned int> picks;

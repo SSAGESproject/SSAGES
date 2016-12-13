@@ -187,8 +187,6 @@ namespace SSAGES
         //! Function to compute and write the initial flux
         void WriteInitialFlux(Snapshot*, const CVList&);
 
-        //! Function that checks if interfaces have been crossed (different for each FFS flavor)
-        void CheckForInterfaceCrossings(Snapshot*, const CVList&);
 
         //! Function that adds new FFS configurations to the Queue
         //! Different FFS flavors can have differences in this method
@@ -211,8 +209,11 @@ namespace SSAGES
         //! Compute Initial Flux
         void ComputeInitialFlux(Snapshot*, const CVList&);
 
+        //! Function that checks if interfaces have been crossed (different for each FFS flavor)
+        virtual void CheckForInterfaceCrossings(Snapshot*, const CVList&) =0;
+
         //! Initialize the Queue
-        void InitializeQueue(Snapshot*, const CVList&);
+        virtual void InitializeQueue(Snapshot*, const CVList&) =0;
 
         //! Compute the probability of going from each lambda_i to lambda_{i+1} 
         /*!  
@@ -252,7 +253,7 @@ namespace SSAGES
 		 *
 		 * Create instance of Forward Flux
 		 */
-		ForwardFlux(boost::mpi::communicator& world,
+		 ForwardFlux(boost::mpi::communicator& world,
                     boost::mpi::communicator& comm,
                     unsigned int frequency) : 
 		 Method(frequency, world, comm) , _generator(1){}
@@ -269,7 +270,7 @@ namespace SSAGES
 		 * \param snapshot Current simulation snapshot.
 		 * \param cvs List of CVs.
 		 */
-		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
+		virtual void PostIntegration(Snapshot* snapshot, const CVList& cvs) =0;
 
 		//! Post-simulation hook.
 		/*!

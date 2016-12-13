@@ -22,6 +22,7 @@
 #pragma once 
 
 #include "Method.h"
+#include "ForwardFlux.h"
 #include "../CVs/CollectiveVariable.h"
 #include <fstream>
 #include <random>
@@ -58,10 +59,10 @@ namespace SSAGES
         
 
         //! Function that checks if interfaces have been crossed (different for each FFS flavor)
-        void CheckForInterfaceCrossings(Snapshot*, const CVList&);
+        void CheckForInterfaceCrossings(Snapshot*, const CVList&) override;
 
         //! Initialize the Queue
-        void InitializeQueue(Snapshot*, const CVList&);
+        void InitializeQueue(Snapshot*, const CVList&) override;
 
 	public:
 		//! Constructor
@@ -72,17 +73,10 @@ namespace SSAGES
 		 *
 		 * Create instance of Forward Flux
 		 */
-		ForwardFlux(boost::mpi::communicator& world,
+		DirectForwardFlux(boost::mpi::communicator& world,
                     boost::mpi::communicator& comm,
                     unsigned int frequency) : 
-		 Method(frequency, world, comm) , _generator(1){}
-
-		//! Pre-simulation hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
-		 */
-		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override;
+		 ForwardFlux(world, comm, frequency){}
 
 		//! Post-integration hook.
 		/*!
@@ -90,21 +84,6 @@ namespace SSAGES
 		 * \param cvs List of CVs.
 		 */
 		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
-
-		//! Post-simulation hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
-		 */
-		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
-
-		//! \copydoc Serializable::Serialize()
-		void Serialize(Json::Value& json) const override
-		{
-			//Needed to run
-			json["type"] = "ForwardFlux";
-
-        }
 
 	};
 }
