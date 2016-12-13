@@ -202,10 +202,6 @@ namespace SSAGES
          */
         int HasCrossedInterface(double, double, unsigned int interface);
 
-        //! Function checks if FFS is Finished, returns bool with result
-        //! See if interface is the last one, and the queue is empty, etc
-        bool CheckIfFinishedMethod();
-
         //! Write a file corresponding to FFSConfigID from current snapshot
         void WriteFFSConfiguration(Snapshot *snapshot,FFSConfigID& ffsconfig, bool wassuccess);
 
@@ -214,8 +210,6 @@ namespace SSAGES
        
         //! Compute Initial Flux
         void ComputeInitialFlux(Snapshot*, const CVList&);
-
-        void InitialFluxMPI(Snapshot*, const CVList&, bool);
 
         //! Initialize the Queue
         void InitializeQueue(Snapshot*, const CVList&);
