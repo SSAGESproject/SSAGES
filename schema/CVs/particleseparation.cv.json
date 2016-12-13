@@ -29,6 +29,14 @@
 			"items" : {
 				"type" : "number"
 			}
+		},
+		"dimension" : {
+			"type" : "array",
+			"minItems" : 3,
+			"maxItems" : 3,
+			"items" : {
+				"type" : "boolean"
+			}
 		}
 	},
 	"required": ["type", "group1", "group2"],
