@@ -162,6 +162,9 @@ namespace SSAGES
         //! however in the absence of pruning, a traj can only fail at lambda0, so this is just a scalar
         unsigned int _nfailure_total;
 
+        //! commitor probability.
+        //! The probability of a given configuration reaching B
+        std::vector<std::vector<double>> _pB;
 
 
         /*! Queue
@@ -236,6 +239,9 @@ namespace SSAGES
         
         //! When simulation is finished, parse through the trajectories that reached B, and reconstruct the complete trajectory from where it started at A (lambda0)
         void ReconstructTrajectories(Snapshot *);
+
+        //! When simulation is finished, recursively parse through the trajectories that reached B or failed back to A and calculate the Commitor Probability of that state going to B (_pB)
+        void CalcCommittorProbability(Snapshot *);
         
         //! Take the current config in snapshot and append it to the provided ofstream
         //! Current format is xyz style (including vx,vy,vz)

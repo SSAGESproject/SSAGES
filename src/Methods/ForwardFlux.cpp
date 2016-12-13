@@ -95,6 +95,9 @@ namespace SSAGES
 
 	void ForwardFlux::PostSimulation(Snapshot* snapshot, const CVList& cvs){
         std::cout << "Post simulation\n";
+
+        CalcCommittorProbability(snapshot);
+
         if (_saveTrajectories){
           ReconstructTrajectories(snapshot);	
         }
@@ -157,6 +160,7 @@ namespace SSAGES
             if (i == _world.rank()){
               int l,n,a,lprev,nprev,aprev;
               //update ffsconfigid's l,n,a
+              //note lprev == l for initial interface
               l = 0;
               n = _N[0] + success_count;
               a = 0;
@@ -431,8 +435,109 @@ namespace SSAGES
 
 
     }
+
+    void ForwardFlux::CalcCommittorProbability(Snapshot *snapshot){
+
+        // two dim vectors, first dim is lambda, second is N
+        // this counts the number of atempts from this config eventually reached A (for nA) or B (for nB)
+        // used to compute _pB via:  _pB = nB / (nA + nB)
+        std::vector<std::vector<unsigned int>> nB;
+        std::vector<std::vector<unsigned int>> nA;
+        nA.resize(_ninterfaces);
+        nB.resize(_ninterfaces);
+        for (unsigned int i=0; i<_ninterfaces;i++){
+            nA[i].resize(_N[i]);
+            nB[i].resize(_N[i]);
+        }
+
+
+        //Snapshot* snapshot_empty;
+        FFSConfigID ffsconfig;
+        
+        //populate nB
+        unsigned int nsuccess = _S[_ninterfaces-2]; //note -2, no attempts from _ninterfaces-1
+        for(unsigned int i = 0; i < nsuccess ; i++){
+          ffsconfig.l = _ninterfaces-1;
+          ffsconfig.n = i;
+          ffsconfig.a = 0;
+          bool flag = true;
+          //recursively trace successful path and update all the configs it came from
+          while (flag){
+             if (ffsconfig.l == 0){ flag = false;}
+
+             //this is just to populate ffsconfig.{lprev,nprev,aprev}
+             ReadFFSConfiguration(snapshot,ffsconfig);
+
+             //update nB 
+             nB[ffsconfig.l][ffsconfig.n]++;
+
+             ffsconfig.l = ffsconfig.lprev;
+             ffsconfig.n = ffsconfig.nprev;
+             ffsconfig.a = ffsconfig.aprev;
+          }
+        }
+
+        //now populate nA (very similar to nB)
+        unsigned int nfail = _nfailure_total; //note -2, no attempts from _ninterfaces-1
+        for(unsigned int i = 0; i < nfail ; i++){
+          ffsconfig.l = _ninterfaces-1;
+          ffsconfig.n = i;
+          ffsconfig.a = 0;
+          bool flag = true;
+          //recursively trace successful path and update all the configs it came from
+          while (flag){
+
+             //this is just to populate ffsconfig.{lprev,nprev,aprev}
+             ReadFFSConfiguration(snapshot,ffsconfig);
+
+             if ((ffsconfig.l == 0) && (ffsconfig.lprev==0)){ flag = false;}
+
+             //update nA 
+             nA[ffsconfig.l][ffsconfig.n]++;
+
+             ffsconfig.l = ffsconfig.lprev;
+             ffsconfig.n = ffsconfig.nprev;
+             ffsconfig.a = ffsconfig.aprev;
+          }
+        }
+
+        //Compute _pB
+        unsigned int Nmax = 0;
+        for(unsigned int i = 0; i<_ninterfaces ; i++){
+          for(unsigned int j = 0; j<_N[i] ; j++){
+            unsigned int denom = nA[i][j] + nB[i][j];
+            if (denom != 0){
+              _pB[i][j] = (double)nB[i][j] / denom;
+            }
+          }
+          if (_N[i] > Nmax){ Nmax = _N[i];}
+        }
+
+        //print pB
+        //rows are lambda, cols are n. Thats why its looks complicated
+        std::ofstream file;
+        std::string filename;
+        filename = _output_directory +"/commitor_probabilities.dat";
+        file.open(filename.c_str());
+        if (!file) {std::cerr << "Error! Unable to write " << filename << "\n"; exit(1);}
+
+        for(unsigned int i = 0; i<Nmax ; i++){
+          for(unsigned int j = 0; j<_ninterfaces ; j++){
+            if (i < _N[j]){
+              file << _pB[j][i] << " ";
+            }
+            else{
+              file << "none ";
+            }
+          }
+        }
+
+
+
+    }
     
     void ForwardFlux::ReconstructTrajectories(Snapshot *snapshot){
+
 
         int nsuccess = _S[_ninterfaces-2]; //note -2, no attempts from _ninterfaces-1
         
@@ -440,7 +545,6 @@ namespace SSAGES
         FFSConfigID ffsconfig;
 
         for(int i = 0; i < nsuccess ; i++){
-          int lprev,nprev,aprev;
           std::deque<FFSConfigID> path;
 
           ffsconfig.l = _ninterfaces-1;
