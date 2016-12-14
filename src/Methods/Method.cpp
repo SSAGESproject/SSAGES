@@ -32,7 +32,7 @@
 #include "StringMethod.h"
 #include "Meta.h"
 #include "Umbrella.h"
-#include "ForwardFlux.h"
+#include "DirectForwardFlux.h"
 #include "GridTest.h"
 #include "ABF.h"
 #include "BasisFunc.h"

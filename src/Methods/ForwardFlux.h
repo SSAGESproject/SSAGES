@@ -163,6 +163,9 @@ namespace SSAGES
         //! however in the absence of pruning, a traj can only fail at lambda0, so this is just a scalar
         unsigned int _nfailure_total;
 
+        //! commitor probability.
+        //! The probability of a given configuration reaching B
+        std::vector<std::vector<double>> _pB;
 
 
         /*! Queue
@@ -188,8 +191,6 @@ namespace SSAGES
         //! Function to compute and write the initial flux
         void WriteInitialFlux(Snapshot*, const CVList&);
 
-        //! Function that checks if interfaces have been crossed (different for each FFS flavor)
-        void CheckForInterfaceCrossings(Snapshot*, const CVList&);
 
         //! Function that adds new FFS configurations to the Queue
         //! Different FFS flavors can have differences in this method
@@ -203,23 +204,20 @@ namespace SSAGES
          */
         int HasCrossedInterface(double, double, unsigned int interface);
 
-        //! Function checks if FFS is Finished, returns bool with result
-        //! See if interface is the last one, and the queue is empty, etc
-        bool CheckIfFinishedMethod();
-
         //! Write a file corresponding to FFSConfigID from current snapshot
         void WriteFFSConfiguration(Snapshot *snapshot,FFSConfigID& ffsconfig, bool wassuccess);
 
         //! Read a file corresponding to a FFSConfigID into current snapshot
-        void ReadFFSConfiguration(Snapshot *,FFSConfigID&);
+        void ReadFFSConfiguration(Snapshot *,FFSConfigID&,bool);
        
         //! Compute Initial Flux
         void ComputeInitialFlux(Snapshot*, const CVList&);
 
-        void InitialFluxMPI(Snapshot*, const CVList&, bool);
+        //! Function that checks if interfaces have been crossed (different for each FFS flavor)
+        virtual void CheckForInterfaceCrossings(Snapshot*, const CVList&) =0;
 
         //! Initialize the Queue
-        void InitializeQueue(Snapshot*, const CVList&);
+        virtual void InitializeQueue(Snapshot*, const CVList&) =0;
 
         //! Compute the probability of going from each lambda_i to lambda_{i+1} 
         /*!  
@@ -242,6 +240,9 @@ namespace SSAGES
         
         //! When simulation is finished, parse through the trajectories that reached B, and reconstruct the complete trajectory from where it started at A (lambda0)
         void ReconstructTrajectories(Snapshot *);
+
+        //! When simulation is finished, recursively parse through the trajectories that reached B or failed back to A and calculate the Commitor Probability of that state going to B (_pB)
+        void CalcCommittorProbability(Snapshot *);
         
         //! Take the current config in snapshot and append it to the provided ofstream
         //! Current format is xyz style (including vx,vy,vz)
@@ -281,7 +282,7 @@ namespace SSAGES
 		 * \param snapshot Current simulation snapshot.
 		 * \param cvs List of CVs.
 		 */
-		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
+		virtual void PostIntegration(Snapshot* snapshot, const CVList& cvs) =0;
 
 		//! Post-simulation hook.
 		/*!
