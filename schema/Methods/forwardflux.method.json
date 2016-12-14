@@ -6,60 +6,33 @@
 			"type" : "string",
 			"enum" : ["ForwardFlux"]
 		},
-		"index_file" : {
-			"type" : "string"
+		"nInterfaces" : {
+			"type" : "integer",
+			"minimum" : 1
 		},
-		"library_file" : {
-			"type" : "string"
-		},
-		"results_file" : {
-			"type" : "string"
-		},
-		"centers" : {
+		"interfaces" : {
 			"type" : "array",
 			"minItems" : 1,
 			"items" : {
 				"type" : "number"
 			}
 		},
-		"generate_configs" : {
+		"N0Target" : {
 			"type" : "integer",
 			"minimum" : 1
 		},
-		"shots" : {
-			"type" : "integer",
-			"minimum" : 1
-		},
-		"frequency" : {
-			"type" : "integer",
-			"minimum" : 1
-		},
-		"restart_type" : {
-			"type" : "string",
-			"enum" : ["new_library", "from_library", "from_interface", "none"]
-		},
-		"library_point" : {
-			"type" : "integer",
-			"minimum" : 0
-		},
-		"current_hash" : {
-			"type" : "integer",
-			"minimum" : 1
-		},
-		"index_contents" : {
-			"type" : "string"
-		},
-		"successes" : {
+		"trials" : {
 			"type" : "array",
 			"minItems" : 1,
 			"items" : {
-				"type" : "integer",
-				"minimum" : 0
+				"type" : "integer"
 			}
 		},
-		"current_shot" : {
-			"type" : "integer",
-			"minimum" : 0
+		"computeInitialFlux" : {
+			"type" : "boolean"
+		},
+		"saveTrajectories" : {
+			"type" : "boolean"
 		}
 	},
 	"required": [],

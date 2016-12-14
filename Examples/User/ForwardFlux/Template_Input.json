@@ -1,7 +1,7 @@
 {
-	"inputfile" : "in.LAMMPS_Meta_Test",
 	"driver" : [
 		{
+			"inputfile" : "in.LAMMPS_FF_Test_1d",
 			"number processors" : 1,
 			"type" : "LAMMPS",
 			"MDSteps" : 10000000,
@@ -14,7 +14,13 @@
 				}
             ],
 			"method" : {
-				"type" : "ForwardFlux"
+				"type" : "ForwardFlux",
+				"nInterfaces" : 5,
+				"interfaces" : [],
+				"N0Target" : 100,
+				"trials" : [],
+				"computeInitialFlux" : true,
+				"saveTrajectories" : true
 			}
 		}
 	]

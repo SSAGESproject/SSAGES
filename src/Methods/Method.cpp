@@ -270,8 +270,26 @@ namespace SSAGES
             
             // fixme: Eventually parse the json here
             // For now just hard-code it into the constructor...
+            
+            double ninterfaces = json.get("nInterfaces", 2).asDouble();
+            
+            std::vector<double> interfaces;
+            for(auto& s : json["interfaces"])
+            	interfaces.push_back(s.asDouble());
+           
+            std::vector<unsigned int> M;
+            for(auto& s : json["trials"])
+            	M.push_back(s.asInt());
+
+            unsigned int N0Target = json.get("N0Target", 1).asInt();
+
+            bool initialFluxFlag = json.get("computeInitialFlux", true).asBool();
+           
+            bool saveTrajectories = json.get("saveTrajectories", true).asBool();
+
             unsigned int freq = 1;
-            auto* m = new ForwardFlux(world, comm, freq);
+
+            auto* m = new ForwardFlux(world, comm, ninterfaces, interfaces, N0Target, M, initialFluxFlag, saveTrajectories, freq);
 
 			method = static_cast<Method*>(m);
 		}

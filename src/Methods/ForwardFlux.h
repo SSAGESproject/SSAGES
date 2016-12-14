@@ -128,8 +128,8 @@ namespace SSAGES
         //! Number of attempts from interface i
         std::vector<unsigned int> _A;
 
-        //! Flag to determine wheter fluxA0 should be calculated
-        bool _computefluxA0;
+        //! Flag to determine wheter fluxA0 should be calculated, seems not using this
+        //bool _computefluxA0;
 
         //! Probability of going from lambda_{i} to lambda_{i+1}
         std::vector<double> _P;
@@ -150,6 +150,7 @@ namespace SSAGES
 
         //! if 1 compute initial flux
         bool _initialFluxFlag;
+        bool initializeQueueFlag;
 
         //! The current FFSConfigID of this MPI process
         FFSConfigID myFFSConfigID;
@@ -259,9 +260,14 @@ namespace SSAGES
 		 * Create instance of Forward Flux
 		 */
 		ForwardFlux(boost::mpi::communicator& world,
-                    boost::mpi::communicator& comm,
+                    boost::mpi::communicator& comm, 
+                    double ninterfaces, std::vector<double> interfaces,
+                    unsigned int N0Target, std::vector<unsigned int> M,
+                    bool initialFluxFlag, bool saveTrajectories,
                     unsigned int frequency) : 
-		 Method(frequency, world, comm) , _generator(1){}
+		 Method(frequency, world, comm) , _ninterfaces(ninterfaces), _interfaces(interfaces), _N0Target(N0Target), 
+         _M(M), _initialFluxFlag(initialFluxFlag), _saveTrajectories(saveTrajectories), _generator(1)
+         {}
 
 		//! Pre-simulation hook.
 		/*!
