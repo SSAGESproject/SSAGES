@@ -82,8 +82,8 @@ namespace SSAGES
         int hascrossed = HasCrossedInterface(_cvvalue, _cvvalue_previous, _current_interface + 1);
         bool fail_local=false,success_local=false;
         //std::vector<bool> in MPI were strange, ended up using arrays
-        bool *successes = new bool (_world.size());
-        bool *failures = new bool (_world.size());
+        bool *successes = new bool [_world.size()];
+        bool *failures = new bool [_world.size()];
 
         if (!_pop_tried_but_empty_queue){ 
             // make sure this isnt a zombie trajectory that previously failed or succeeded and is just waiting for the queue to get more jobs
@@ -171,7 +171,9 @@ namespace SSAGES
           if (fail_local){
             std::cout << "Failed attempt from interface " << _current_interface 
                       << " l"<<myFFSConfigID.l<<"-n"<<myFFSConfigID.n<<"-a"<<myFFSConfigID.a
-                      << " (cvvalue_previous: " << _cvvalue_previous << " cvvalue " << _cvvalue << " interface[0] = "<< _interfaces[0] << "\n";}
+                      << " (cvvalue_previous: " << _cvvalue_previous << " cvvalue " << _cvvalue << " interface[0] = "<< _interfaces[0] << "\n"
+                      << "nfailuretotal: " << _nfailure_total << "\n";
+          }
           std::cout << "A: ";
           for (auto a : _A) std::cout << a << " "; std::cout << "\n";
           std::cout << "S: ";
@@ -184,8 +186,10 @@ namespace SSAGES
         //create new funciton here? (call it SetupNextInterface()
         // Check if this interface is finished, if so add new tasks to queue, and increment _current_interface
         if (_A[_current_interface] >= _M[_current_interface]){
-          //set N
+          //set N and P
           _N[_current_interface+1] = _S[_current_interface];
+          _P[_current_interface] = (double) _S[_current_interface] / _A[_current_interface];
+
           if (_current_interface+2 < _ninterfaces){
             _current_interface += 1;
             //_N[_current_interface] = _S[_current_interface-1];
@@ -240,7 +244,7 @@ namespace SSAGES
 
         // Need to account for zombie jobs that are waiting for a new config
         bool shouldpop_local = false;        
-        bool *shouldpop = new bool(_world.size());
+        bool *shouldpop = new bool[_world.size()];
         //std::vector<bool> shouldpop;
         //shouldpop.resize(_world.size());
         if (success_local || fail_local || _pop_tried_but_empty_queue){
