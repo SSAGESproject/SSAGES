@@ -49,6 +49,10 @@ namespace SSAGES
               PrintQueue();
             }
         }
+		else if (initializeQueueFlag){
+              InitializeQueue(snapshot,cvs);
+              PrintQueue();
+        }
         // Else check the FFS interfaces
         else{
             CheckForInterfaceCrossings(snapshot,cvs);
@@ -306,7 +310,8 @@ namespace SSAGES
           FFSConfigIDQueue.emplace_back(l,n,a,lprev,nprev,aprev);
         }         
         std::cout << "FFSConfigIDQueue has " << FFSConfigIDQueue.size() << " entries upon initialization\n";
-
+		initializeQueueFlag = false;
+		
         // now that queue is populated initialize tasks for all processors
         // ==============================
 

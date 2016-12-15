@@ -1,21 +1,42 @@
 {
-	"inputfile" : "in.LAMMPS_FF_Test_1d",
-	"driver" : [
-		{
-			"number processors" : 1,
-			"type" : "LAMMPS",
-			"MDSteps" : 10000000,
-			"logfile" : "log",
-			"CVs" : [
-				{
-					"type" : "ParticleCoordinate",
-					"atom_ids" : [1],
-					"dimension" : "x"
-				}
+    "driver": [
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "atom_ids": [
+                        1
+                    ],
+                    "type": "ParticleCoordinate",
+                    "dimension": "x"
+                }
             ],
-			"method" : {
-				"type" : "ForwardFlux"
-			}
-		}
-	]
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "currentInterface": 0,
+                "trials": [
+                    50,
+                    50,
+                    50,
+                    50,
+                    50
+                ],
+                "interfaces": [
+                    -1.0,
+                    -0.95,
+                    -0.8,
+                    0.0,
+                    1.0
+                ],
+                "saveTrajectories": true,
+                "computeInitialFlux": true,
+                "nInterfaces": 5,
+                "type": "ForwardFlux",
+                "N0Target": 100
+            },
+            "inputfile": "in.LAMMPS_FF_Test_1d"
+        }
+    ]
 }

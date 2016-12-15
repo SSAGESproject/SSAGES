@@ -71,9 +71,13 @@ namespace SSAGES
 		 * Create instance of Forward Flux
 		 */
 		DirectForwardFlux(boost::mpi::communicator& world,
-                    boost::mpi::communicator& comm,
-                    unsigned int frequency) : 
-		 ForwardFlux(world, comm, frequency){}
+                    boost::mpi::communicator& comm, 
+                    double ninterfaces, std::vector<double> interfaces,
+                    unsigned int N0Target, std::vector<unsigned int> M,
+                    bool initialFluxFlag, bool saveTrajectories, 
+                    unsigned int currentInterface, unsigned int frequency)
+		: ForwardFlux(world, comm, ninterfaces, interfaces, N0Target, M, 
+					initialFluxFlag, saveTrajectories, currentInterface, frequency) {}
 
 		//! Post-integration hook.
 		/*!

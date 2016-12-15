@@ -35,6 +35,25 @@ namespace SSAGES
 
 
         std::cout << "\nWARNING! MAKE SURE LAMMPS GIVES A DIFFERENT RANDOM SEED TO EACH PROCESSOR, OTHERWISE EACH FFS TRAJ WILL BE IDENTICAL!\n"; 
+        
+        _output_directory = "FFSoutput";
+        //std::mkdir(_output_directory); //how to make directory?
+        
+        //_current_interface = 0;
+        _N0TotalSimTime = 0;
+
+        if (!_initialFluxFlag){
+          initializeQueueFlag = true;
+        }
+
+        _A.resize(_ninterfaces);
+        _P.resize(_ninterfaces);
+        _S.resize(_ninterfaces);
+        _N.resize(_ninterfaces);
+        
+        //_N[_current_interface] = _N0Target;
+        /*_M.resize(_ninterfaces);
+        
         //code for setting up simple simulation and debugging
         _ninterfaces = 5;
         int i;
@@ -47,28 +66,20 @@ namespace SSAGES
 
         _saveTrajectories = true;
 
-        _current_interface = 0;
-
-        _output_directory = "FFSoutput";
-        //std::mkdir(_output_directory); //how to make directory?
         _initialFluxFlag = true;
-        _A.resize(_ninterfaces);
-        _P.resize(_ninterfaces);
-        _S.resize(_ninterfaces);
-        _N.resize(_ninterfaces);
 
-        _M.resize(_ninterfaces);
         for(i=0;i<_ninterfaces;i++) _M[i] = 50;
 
+        _N0Target = 100;*/
         _N0Target = 100;
         _nfailure_total = 0;
 
         
         // This is to generate an artificial Lambda0ConfigLibrary, Hadi's code does this for real
-        /*
-        Lambda0ConfigLibrary.resize(_N[0]);
+        
+        Lambda0ConfigLibrary.resize(_N0Target);
         std::normal_distribution<double> distribution(0,1);
-        for (i = 0; i < _N[0] ; i++){
+        for (int i = 0; i < _N0Target ; i++){
           Lambda0ConfigLibrary[i].l = 0;
           Lambda0ConfigLibrary[i].n = i;
           Lambda0ConfigLibrary[i].a = 0;
@@ -77,7 +88,8 @@ namespace SSAGES
           Lambda0ConfigLibrary[i].aprev = 0;
        
           FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
-          // Write the dump file out
+        }
+          /*// Write the dump file out
           std::ofstream file;
           std::string filename = _output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
           file.open(filename.c_str());
@@ -196,7 +208,6 @@ namespace SSAGES
         // Allreduce then increment total
         MPI_Allreduce(&N0SimTime_local, &N0SimTime, 1, MPI_DOUBLE, MPI_SUM,_world);
         _N0TotalSimTime += N0SimTime;
-
 
 
         //print some info
@@ -402,7 +413,6 @@ namespace SSAGES
         }
         file.close();
 	}
-
 
     void ForwardFlux::PrintQueue(){
         for (unsigned int i =0 ;i < FFSConfigIDQueue.size(); i++){
