@@ -154,7 +154,20 @@ namespace SSAGES
 			for(auto& s : json["group2"])
 				group2.push_back(s.asInt());
 
-			auto* c = new ParticleSeparationCV(group1, group2);
+			ParticleSeparationCV* c;
+			if(json.isMember("dimension"))
+			{
+				auto fixx = json["dimension"][0].asBool();
+				auto fixy = json["dimension"][1].asBool();
+				auto fixz = json["dimension"][2].asBool();
+
+				c = new ParticleSeparationCV(group1, group2, fixx, fixy, fixz);
+
+			}
+			else
+			{
+				c = new ParticleSeparationCV(group1, group2);
+			}
 
 			cv = static_cast<CollectiveVariable*>(c);
 		}
