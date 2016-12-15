@@ -71,6 +71,9 @@ namespace SSAGES
         for(i=0;i<_ninterfaces;i++) _M[i] = 50;
 
         _N0Target = 100;*/
+        _N0Target = 100;
+        _nfailure_total = 0;
+
         
         // This is to generate an artificial Lambda0ConfigLibrary, Hadi's code does this for real
         
@@ -106,7 +109,9 @@ namespace SSAGES
 	void ForwardFlux::PostSimulation(Snapshot* snapshot, const CVList& cvs){
         std::cout << "Post simulation\n";
 
-        CalcCommittorProbability(snapshot);
+        ComputeCommittorProbability(snapshot);
+
+        ComputeTransitionProbabilities();
 
         if (_saveTrajectories){
           ReconstructTrajectories(snapshot);	
@@ -121,6 +126,7 @@ namespace SSAGES
 
           // Check if we are in State A
           _cvvalue = cvs[0]->GetValue();
+          _cvvalue_previous = _cvvalue;
           double _firstInterfaceLocation = _interfaces[0];
           if ( _cvvalue > _firstInterfaceLocation) {
             std::cout << "Please provide an initial configuration in State A. Exiting ...." << std::endl;
@@ -152,7 +158,7 @@ namespace SSAGES
         //check if we've crossed the first interface (lambda 0)
         int hascrossed = HasCrossedInterface(_cvvalue, _cvvalue_previous, 0);
         bool success_local = false;
-        bool *successes = new bool (_world.size());
+        bool *successes = new bool[_world.size()];
 
         // If we have crossed the first interface going forward, then write the information to disk
         if (hascrossed == 1){
@@ -216,7 +222,7 @@ namespace SSAGES
         if (_N[0] >= _N0Target){
             std::cout << "Initial flux calculation was successfully completed" << std::endl;
             // Call a function to compute the actual flux and output the data
-            WriteInitialFlux(snapshot, cvs);
+            WriteInitialFlux();
             //responsible for setting _initialFluxFlag = false when finished
             _initialFluxFlag = false;
         } 
@@ -227,7 +233,8 @@ namespace SSAGES
         //clean up
         delete[] successes;
     }
-  void ForwardFlux::WriteInitialFlux(Snapshot* snapshot, const CVList& cvs){
+
+  void ForwardFlux::WriteInitialFlux(){
 
       std::ofstream file;
       std::string filename = _output_directory + "/initial_flux_value.dat";
@@ -247,7 +254,22 @@ namespace SSAGES
 
 
 	void ForwardFlux::ComputeTransitionProbabilities(){
+        double Ptotal = 1;
+        for (unsigned int i = 0; i < _ninterfaces -1; i++){
+            Ptotal *= _P[i];
+        }
+        _rate = Ptotal*_fluxA0;
+        
+        //write file
+        std::ofstream file;
+        std::string filename = _output_directory + "/rate.dat";
+ 		file.open(filename.c_str());
+        if (!file) {std::cerr << "Error! Unable to write " << filename << "\n"; exit(1);}
+        file << _rate << "\n";
+        file.close();
 
+
+        
     }
 
 	
@@ -428,7 +450,8 @@ namespace SSAGES
 
                    //Trigger a rebuild of the CVs since we reset the positions
                    cvs[0]->Evaluate(*snapshot);
-                   _cvvalue_previous = cvs[0]->GetValue();
+                   _cvvalue = cvs[0]->GetValue();
+                   _cvvalue_previous = _cvvalue;
 
                   _pop_tried_but_empty_queue = false;
                   FFSConfigIDQueue.pop_front();
@@ -451,7 +474,7 @@ namespace SSAGES
 
     }
 
-    void ForwardFlux::CalcCommittorProbability(Snapshot *snapshot){
+    void ForwardFlux::ComputeCommittorProbability(Snapshot *snapshot){
 
         // two dim vectors, first dim is lambda, second is N
         // this counts the number of atempts from this config eventually reached A (for nA) or B (for nB)

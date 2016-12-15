@@ -109,6 +109,9 @@ namespace SSAGES
 		//!  current cv position
         double _cvvalue;
 
+		//!  rate constant
+        double _rate;
+
         //! Data structure that holds a Library N0 configurations at lambda0
         std::vector<FFSConfigID> Lambda0ConfigLibrary;
 
@@ -189,7 +192,7 @@ namespace SSAGES
         void CheckInitialStructure(const CVList&);
 
         //! Function to compute and write the initial flux
-        void WriteInitialFlux(Snapshot*, const CVList&);
+        void WriteInitialFlux();
 
 
         //! Function that adds new FFS configurations to the Queue
@@ -242,7 +245,7 @@ namespace SSAGES
         void ReconstructTrajectories(Snapshot *);
 
         //! When simulation is finished, recursively parse through the trajectories that reached B or failed back to A and calculate the Commitor Probability of that state going to B (_pB)
-        void CalcCommittorProbability(Snapshot *);
+        void ComputeCommittorProbability(Snapshot *);
         
         //! Take the current config in snapshot and append it to the provided ofstream
         //! Current format is xyz style (including vx,vy,vz)
