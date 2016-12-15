@@ -268,18 +268,20 @@ namespace SSAGES
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
             
-            // fixme: Eventually parse the json here
-            // For now just hard-code it into the constructor...
-            
+
             double ninterfaces = json.get("nInterfaces", 2).asDouble();
             
             std::vector<double> interfaces;
             for(auto& s : json["interfaces"])
             	interfaces.push_back(s.asDouble());
-           
+
             std::vector<unsigned int> M;
             for(auto& s : json["trials"])
             	M.push_back(s.asInt());
+           
+           	if ((ninterfaces != interfaces.size()) || (ninterfaces != M.size())){
+           		throw BuildException({"The size of \"interfaces\" and \"trials\" must be equal to \"nInterfaces\". See documentation for more information"});
+           	}
 
             unsigned int N0Target = json.get("N0Target", 1).asInt();
 
@@ -287,9 +289,11 @@ namespace SSAGES
            
             bool saveTrajectories = json.get("saveTrajectories", true).asBool();
 
-            unsigned int freq = 1;
+            unsigned int currentInterface = json.get("currentInterface", 0).asInt();
 
-            auto* m = new ForwardFlux(world, comm, ninterfaces, interfaces, N0Target, M, initialFluxFlag, saveTrajectories, freq);
+            unsigned int freq = json.get("frequency", 1).asInt();
+
+            auto *m = new DirectForwardFlux(world, comm, ninterfaces, interfaces, N0Target, M, initialFluxFlag, saveTrajectories, currentInterface, freq);
 
 			method = static_cast<Method*>(m);
 		}

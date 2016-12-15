@@ -39,7 +39,7 @@ namespace SSAGES
         _output_directory = "FFSoutput";
         //std::mkdir(_output_directory); //how to make directory?
         
-        _current_interface = 0;
+        //_current_interface = 0;
         _N0TotalSimTime = 0;
 
         if (!_initialFluxFlag){
@@ -50,7 +50,8 @@ namespace SSAGES
         _P.resize(_ninterfaces);
         _S.resize(_ninterfaces);
         _N.resize(_ninterfaces);
-        _N[0] = 100;
+        
+        //_N[_current_interface] = _N0Target;
         /*_M.resize(_ninterfaces);
         
         //code for setting up simple simulation and debugging

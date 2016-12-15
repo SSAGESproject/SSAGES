@@ -20,7 +20,8 @@
 				"N0Target" : 100,
 				"trials" : [],
 				"computeInitialFlux" : true,
-				"saveTrajectories" : true
+				"saveTrajectories" : true,
+				"currentInterface" : 0
 			}
 		}
 	]

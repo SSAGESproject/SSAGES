@@ -8,7 +8,7 @@
 		},
 		"nInterfaces" : {
 			"type" : "integer",
-			"minimum" : 1
+			"minimum" : 2
 		},
 		"interfaces" : {
 			"type" : "array",
@@ -33,6 +33,14 @@
 		},
 		"saveTrajectories" : {
 			"type" : "boolean"
+		},
+		"currentInterface" : {
+			"type" : "integer",
+			"minimum" : 0
+		},
+		"frequency" : {
+			"type" : "integer",
+			"minimum" : 1
 		}
 	},
 	"required": [],

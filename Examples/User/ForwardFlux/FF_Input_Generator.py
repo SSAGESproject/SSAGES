@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+
 # This file is used to take a template input json file for forward flux
 # and create a input file for ssages that uses multiple drivers.
 
@@ -23,12 +24,6 @@ with open('Template_Input.json') as f:
 	root = json.load(f)
 
 
-# Create vector of interfaces
-#centers = np.linspace(1.1, -1.1, num=100)
-
-#for i,interface in enumerate(interfaces):
-#	interfaces[i] = round(interface, 4)
-
 #print interfaces
 root['driver'][0]['method']['interfaces'] = interfaces.tolist()
 root['driver'][0]['method']['trials'] = trials.tolist()
@@ -47,5 +42,5 @@ for i in range(0, nDrivers):
 root['driver'] = root['driver'][0:-1]
 
 # Convert python dictionary into JSON file
-with open('FF.json', 'w') as f:
+with open('Input-1proc.json', 'w') as f:
 		json.dump(root, f, indent=4, separators=(',', ': '))
