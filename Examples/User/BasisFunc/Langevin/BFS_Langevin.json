@@ -2,13 +2,13 @@
     "inputfile" : "in.BFS_Langevin",
     "CVs" : [
         {
-            "type" : "AtomCoordinate",
-            "atom id" : 1,
+            "type" : "ParticleCoordinate",
+            "atom_ids" : [ 1 ],
             "dimension" : "x"
         },
         {
-            "type" : "AtomCoordinate",
-            "atom id" : 1,
+            "type" : "ParticleCoordinate",
+            "atom_ids" : [ 1 ],
             "dimension" : "y"
         }
     ],
