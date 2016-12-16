@@ -273,10 +273,10 @@ namespace SSAGES
                     double ninterfaces, std::vector<double> interfaces,
                     unsigned int N0Target, std::vector<unsigned int> M,
                     bool initialFluxFlag, bool saveTrajectories,
-                    unsigned int currentInterface, unsigned int frequency) : 
+                    unsigned int currentInterface, std::string output_directory, unsigned int frequency) : 
 		 Method(frequency, world, comm), _ninterfaces(ninterfaces), _interfaces(interfaces), _N0Target(N0Target), 
-         _M(M), _initialFluxFlag(initialFluxFlag), _saveTrajectories(saveTrajectories), _current_interface(currentInterface), _generator(1)
-         {}
+         _M(M), _initialFluxFlag(initialFluxFlag), _saveTrajectories(saveTrajectories), _current_interface(currentInterface),
+          _output_directory(output_directory), _generator(1) {}
 
 		//! Pre-simulation hook.
 		/*!

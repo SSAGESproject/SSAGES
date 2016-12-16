@@ -15,13 +15,15 @@
             ],
 			"method" : {
 				"type" : "ForwardFlux",
+				"flavor" : "DirectForwardFlux",
 				"nInterfaces" : 5,
 				"interfaces" : [],
 				"N0Target" : 100,
 				"trials" : [],
 				"computeInitialFlux" : true,
 				"saveTrajectories" : true,
-				"currentInterface" : 0
+				"currentInterface" : 0,
+				"outputDirectoryName" : "FFSoutput"
 			}
 		}
 	]

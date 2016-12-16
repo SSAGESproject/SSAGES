@@ -293,9 +293,17 @@ namespace SSAGES
 
             unsigned int freq = json.get("frequency", 1).asInt();
 
-            auto *m = new DirectForwardFlux(world, comm, ninterfaces, interfaces, N0Target, M, initialFluxFlag, saveTrajectories, currentInterface, freq);
+            std::string flavor = json.get("flavor", "none").asString();
 
-			method = static_cast<Method*>(m);
+            std::string output_directory = json.get("outputDirectoryName", "FFSoutput").asString();
+
+            if(flavor == "DirectForwardFlux"){
+            	auto *m = new DirectForwardFlux(world, comm, ninterfaces, interfaces, N0Target, M, initialFluxFlag, saveTrajectories, currentInterface, output_directory, freq);            	
+            	method = static_cast<Method*>(m);
+            } else {
+            	throw BuildException({"Unknow flavor of forward flux. The options are \"DirectForwardFlux\""});
+            }
+
 		}
 		else if(type == "String")
 		{

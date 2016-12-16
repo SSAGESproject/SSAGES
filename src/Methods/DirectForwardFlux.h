@@ -75,9 +75,9 @@ namespace SSAGES
                     double ninterfaces, std::vector<double> interfaces,
                     unsigned int N0Target, std::vector<unsigned int> M,
                     bool initialFluxFlag, bool saveTrajectories, 
-                    unsigned int currentInterface, unsigned int frequency)
+                    unsigned int currentInterface, std::string output_directory, unsigned int frequency)
 		: ForwardFlux(world, comm, ninterfaces, interfaces, N0Target, M, 
-					initialFluxFlag, saveTrajectories, currentInterface, frequency) {}
+					initialFluxFlag, saveTrajectories, currentInterface, output_directory, frequency) {}
 
 		//! Post-integration hook.
 		/*!

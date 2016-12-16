@@ -71,7 +71,7 @@ namespace SSAGES
         for(i=0;i<_ninterfaces;i++) _M[i] = 50;
 
         _N0Target = 100;*/
-        _N0Target = 100;
+        //_N0Target = 100;
         _nfailure_total = 0;
 
 
