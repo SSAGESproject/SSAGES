@@ -74,12 +74,34 @@ namespace SSAGES
         _N0Target = 100;
         _nfailure_total = 0;
 
+
+        //check if interfaces monotonically increase or decrease
+        bool errflag = false;
+        if (_interfaces[0]< _interfaces[1]) _interfaces_increase = true;
+        else if (_interfaces[0] > _interfaces[1]) _interfaces_increase = false;
+        else errflag = true;
+        for (unsigned int i=0;i<_ninterfaces-1;i++){
+            if ((_interfaces_increase) && (_interfaces[i] >= _interfaces[i+1])){
+              errflag = true;
+            }
+            else if ((!_interfaces_increase) && (_interfaces[i] <= _interfaces[i+1])){
+              errflag = true;
+            }
+        }
+        if (errflag){
+            std::cerr << "Error! The interfaces are poorly defined. They must be monotonically increasing or decreasing and cannot equal one another! Please fix this.\n";
+            for (auto interface : _interfaces){ std::cerr << interface << " ";}
+            std::cerr << "\n";
+            _world.abort(EXIT_FAILURE);
+        }
+
+
         
         // This is to generate an artificial Lambda0ConfigLibrary, Hadi's code does this for real
-        
+         
         Lambda0ConfigLibrary.resize(_N0Target);
         std::normal_distribution<double> distribution(0,1);
-        for (int i = 0; i < _N0Target ; i++){
+        for (unsigned int i = 0; i < _N0Target ; i++){
           Lambda0ConfigLibrary[i].l = 0;
           Lambda0ConfigLibrary[i].n = i;
           Lambda0ConfigLibrary[i].a = 0;
@@ -87,7 +109,7 @@ namespace SSAGES
           Lambda0ConfigLibrary[i].nprev = i;
           Lambda0ConfigLibrary[i].aprev = 0;
        
-          FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
+          //FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
         }
           /*// Write the dump file out
           std::ofstream file;
@@ -137,12 +159,29 @@ namespace SSAGES
     
     int ForwardFlux::HasCrossedInterface(double current, double prev, unsigned int i){
         double interface_location = _interfaces[i];
-        if ((prev <= interface_location) && (current >= interface_location))
-            return 1;
-        else if ((prev >= interface_location) && (current <= interface_location))
-            return -1;
-        else
-            return 0;
+        if (_interfaces_increase){
+          if ((prev <= interface_location) && (current >= interface_location)){
+              return 1;
+          }
+          else if ((prev >= interface_location) && (current <= interface_location)){
+              return -1;
+          }
+          else{
+              return 0;
+          }
+        }
+        else{
+          if ((prev >= interface_location) && (current <= interface_location)){
+              return 1;
+          }
+          else if ((prev <= interface_location) && (current >= interface_location)){
+              return -1;
+          }
+          else{
+              return 0;
+          }
+
+        }
     }
 
     bool ForwardFlux::HasReturnedToA(double current){

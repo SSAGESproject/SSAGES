@@ -179,11 +179,11 @@ namespace SSAGES
                       << "nfailuretotal: " << _nfailure_total << "\n";
           }
           std::cout << "A: ";
-          for (auto a : _A) std::cout << a << " "; std::cout << "\n";
+          for (auto a : _A){ std::cout << a << " ";} std::cout << "\n";
           std::cout << "S: ";
-          for (auto s : _S) std::cout << s << " "; std::cout << "\n";
+          for (auto s : _S){ std::cout << s << " ";} std::cout << "\n";
           std::cout << "M: ";
-          for (auto m : _M) std::cout << m << " "; std::cout << "\n";
+          for (auto m : _M){ std::cout << m << " ";} std::cout << "\n";
         }
         //------------------------------
        
@@ -210,7 +210,7 @@ namespace SSAGES
 
             if (_world.rank() == 0){
               std::uniform_int_distribution<int> distribution(0,_N[_current_interface]-1);
-              for (int i=0; i < npicks ; i++){
+              for (unsigned int i=0; i < npicks ; i++){
                  picks[i] = distribution(_generator);
               }
             }
@@ -222,7 +222,7 @@ namespace SSAGES
             std::vector<unsigned int> attempt_count;
             attempt_count.resize(_N[_current_interface],0);
 
-            for (int i=0; i < npicks ; i++){
+            for (unsigned int i=0; i < npicks ; i++){
               unsigned int mypick = picks[i];
               int l,n,a,lprev,nprev,aprev;
               lprev = myFFSConfigID.l;
@@ -268,7 +268,8 @@ namespace SSAGES
         _iteration++;
 
         delete[] successes;
-        delete[] failures,shouldpop;
+        delete[] failures;
+        delete[] shouldpop;
     }
 
 
@@ -294,7 +295,7 @@ namespace SSAGES
         attempt_count.resize(_N[0],0);
 
         //each proc adds to the queue
-        for (int i=0; i < npicks ; i++){
+        for (unsigned int i=0; i < npicks ; i++){
           unsigned int mypick = picks[i];
           int l,n,a,lprev,nprev,aprev;
           FFSConfigID *myconfig = &Lambda0ConfigLibrary[picks[i]];

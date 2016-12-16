@@ -90,8 +90,6 @@ namespace SSAGES
             //}
         };
 
-        //! random number generator
-        std::default_random_engine _generator;
 
 		//! Number of FFS interfaces
         //! note that _ninterfaces = n+1 where n is \lambda_n the interface defining B
@@ -100,8 +98,9 @@ namespace SSAGES
 		//! FFS Interfaces
 		std::vector<double> _interfaces;
 
-        //! Current Interface
-        unsigned int _current_interface;
+        //! Interfaces must monotonically increase (or decrease), this determines whether going to the 'next' interface will be higher values of CV, or lower ones
+        bool _interfaces_increase;
+
 
 		//! Previous cv position, used to determine if you've crossed an interface since last time
         double _cvvalue_previous;
@@ -153,6 +152,7 @@ namespace SSAGES
 
         //! if 1 compute initial flux
         bool _initialFluxFlag;
+
         bool initializeQueueFlag;
 
         //! The current FFSConfigID of this MPI process
@@ -170,6 +170,11 @@ namespace SSAGES
         //! The probability of a given configuration reaching B
         std::vector<std::vector<double>> _pB;
 
+        //! Current Interface
+        unsigned int _current_interface;
+
+        //! random number generator
+        std::default_random_engine _generator;
 
         /*! Queue
          *  When a given processor reaches an interface, it pulls a config from this Queue to figure out what it should do next
