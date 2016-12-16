@@ -35,97 +35,7 @@ namespace SSAGES
 
 
         std::cout << "\nWARNING! MAKE SURE LAMMPS GIVES A DIFFERENT RANDOM SEED TO EACH PROCESSOR, OTHERWISE EACH FFS TRAJ WILL BE IDENTICAL!\n"; 
-        
-        _output_directory = "FFSoutput";
-        //std::mkdir(_output_directory); //how to make directory?
-        
-        //_current_interface = 0;
-        _N0TotalSimTime = 0;
-
-        if (!_initialFluxFlag){
-          initializeQueueFlag = true;
-        }
-
-        _A.resize(_ninterfaces);
-        _P.resize(_ninterfaces);
-        _S.resize(_ninterfaces);
-        _N.resize(_ninterfaces);
-        
-        //_N[_current_interface] = _N0Target;
-        /*_M.resize(_ninterfaces);
-        
-        //code for setting up simple simulation and debugging
-        _ninterfaces = 5;
-        int i;
-        _interfaces.resize(_ninterfaces);
-        _interfaces[0]=-1.0;
-        _interfaces[1]=-0.95;
-        _interfaces[2]=-0.8;
-        _interfaces[3]= 0;
-        _interfaces[4]= 1.0;
-
-        _saveTrajectories = true;
-
-        _initialFluxFlag = true;
-
-        for(i=0;i<_ninterfaces;i++) _M[i] = 50;
-
-        _N0Target = 100;*/
-        //_N0Target = 100;
-        _nfailure_total = 0;
-
-
-        //check if interfaces monotonically increase or decrease
-        bool errflag = false;
-        if (_interfaces[0]< _interfaces[1]) _interfaces_increase = true;
-        else if (_interfaces[0] > _interfaces[1]) _interfaces_increase = false;
-        else errflag = true;
-        for (unsigned int i=0;i<_ninterfaces-1;i++){
-            if ((_interfaces_increase) && (_interfaces[i] >= _interfaces[i+1])){
-              errflag = true;
-            }
-            else if ((!_interfaces_increase) && (_interfaces[i] <= _interfaces[i+1])){
-              errflag = true;
-            }
-        }
-        if (errflag){
-            std::cerr << "Error! The interfaces are poorly defined. They must be monotonically increasing or decreasing and cannot equal one another! Please fix this.\n";
-            for (auto interface : _interfaces){ std::cerr << interface << " ";}
-            std::cerr << "\n";
-            _world.abort(EXIT_FAILURE);
-        }
-
-
-        
-        // This is to generate an artificial Lambda0ConfigLibrary, Hadi's code does this for real
-         
-        Lambda0ConfigLibrary.resize(_N0Target);
-        std::normal_distribution<double> distribution(0,1);
-        for (unsigned int i = 0; i < _N0Target ; i++){
-          Lambda0ConfigLibrary[i].l = 0;
-          Lambda0ConfigLibrary[i].n = i;
-          Lambda0ConfigLibrary[i].a = 0;
-          Lambda0ConfigLibrary[i].lprev = 0;
-          Lambda0ConfigLibrary[i].nprev = i;
-          Lambda0ConfigLibrary[i].aprev = 0;
        
-          //FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
-        }
-          /*// Write the dump file out
-          std::ofstream file;
-          std::string filename = _output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
-          file.open(filename.c_str());
-
-          //first line gives ID of where it came from
-          file << ffsconfig.lprev << " " << ffsconfig.nprev << " " << ffsconfig.aprev << "\n";
-          //write position and velocity
-          file << "1 -1 0 0 " << distribution(_generator) << " "  << distribution(_generator) << " 0\n";
-
-        }
-        */
-        _pop_tried_but_empty_queue = false;
-
-
     }
 
 	void ForwardFlux::PostSimulation(Snapshot* snapshot, const CVList& cvs){
@@ -186,8 +96,14 @@ namespace SSAGES
 
     bool ForwardFlux::HasReturnedToA(double current){
         double interface_location = _interfaces[0];
-        if (current < interface_location) return true;
-        else return false;
+        if (_interfaces_increase){
+          if (current < interface_location) return true;
+          else return false;
+        }
+        else{
+          if (current > interface_location) return true;
+          else return false;
+        }
     }
 
 	void ForwardFlux::ComputeInitialFlux(Snapshot* snapshot, const CVList& cvs){
@@ -317,6 +233,7 @@ namespace SSAGES
 		const auto& positions = snapshot->GetPositions();
 		const auto& velocities = snapshot->GetVelocities();
 		const auto& atomID = snapshot->GetAtomIDs();
+        //unsigned natoms = snapshot->GetNumAtoms();
 		//const auto& dumpfilename = snapshot->GetSnapshotID();
 
         // Write the dump file out
@@ -337,6 +254,7 @@ namespace SSAGES
 
         // Then write positions and velocities
  		for(size_t i = 0; i< atomID.size(); i++)
+ 		//for(size_t i = 0; i< natoms; i++)
  		{
  			file<<atomID[i]<<" ";
  			file<<positions[i][0]<<" "<<positions[i][1]<<" "<<positions[i][2]<<" ";

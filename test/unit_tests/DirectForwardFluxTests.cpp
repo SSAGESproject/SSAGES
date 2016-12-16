@@ -109,6 +109,7 @@ protected:
 
 		delete MethodA;
 		delete MethodB;
+
 	}
 
 	boost::mpi::communicator world;
@@ -248,11 +249,11 @@ TEST_F(ForwardFluxTest,ReadWriteFFSConfiguration)
 
 TEST_F(ForwardFluxTest,PopQueueMPI)
 {
-    //setup queue in MPI, SwarmTest is a good example for how to do this
+    //setup queue in MPI
     
 	//EXPECT_TRUE(3 == world.size()) << 
     if (world.size() != 3){
-      std::cout<< "WARNING: ForwardFlux unit test should be run with 3 processes to test PopQueueMPI fully";
+      std::cout<< "WARNING: ForwardFlux unit test should be run with 3 processes to test PopQueueMPI fully\n";
     }
 
     //write files, since PopQueue needs them
@@ -296,6 +297,7 @@ TEST_F(ForwardFluxTest,PopQueueMPI)
     }
     else if (world.size() == 1){
       EXPECT_TRUE(MethodA->FFSConfigIDQueue.front().n == 11);
+      EXPECT_TRUE(MethodA->FFSConfigIDQueue.back().n == 12);
     }
     
     //make sure trajectory file is open, if queue was popped
@@ -307,6 +309,7 @@ TEST_F(ForwardFluxTest,PopQueueMPI)
 
     //now empty queue completely, make sure that _pop_tried_but_empty_queue is set correclty
     if (world.size() == 3){
+      MethodA->_trajectory_file.close();
       MethodA->PopQueueMPI(snapshot1, cvlist, shouldpop_local);
       if ((mpirank == 0) || (mpirank == 1)){
         EXPECT_FALSE(MethodA->_pop_tried_but_empty_queue);
@@ -316,11 +319,14 @@ TEST_F(ForwardFluxTest,PopQueueMPI)
       }
     }
     else if (world.size() == 1){
+      MethodA->_trajectory_file.close();
       MethodA->PopQueueMPI(snapshot1, cvlist, shouldpop_local);
+      MethodA->_trajectory_file.close();
       MethodA->PopQueueMPI(snapshot1, cvlist, shouldpop_local);
       EXPECT_FALSE(MethodA->_pop_tried_but_empty_queue);
       MethodA->PopQueueMPI(snapshot1, cvlist, shouldpop_local);
       EXPECT_TRUE(MethodA->_pop_tried_but_empty_queue);
+      MethodA->_trajectory_file.close();
     }
 
 
@@ -354,6 +360,7 @@ TEST_F(ForwardFluxTest,CheckForInterfaceCrossings)
     //call PostIntegration several times using ficticious snapshot files to 'evolve' the system forward in time
     //throughout this process, keep track of the queue, the number of successes, failures, current_interface, etc
     //this is probabily the most important unit test in the entire method
+
 }
 
 //--------------------------------------------------------------------

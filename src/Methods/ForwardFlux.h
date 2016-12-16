@@ -28,6 +28,7 @@
 #include <deque>
 #include "../FileContents.h"
 #include "../Drivers/DriverException.h"
+#include "sys/stat.h"
 
 namespace SSAGES
 {
@@ -66,28 +67,10 @@ namespace SSAGES
              l(l),n(n),a(a),lprev(lprev),nprev(nprev),aprev(aprev)
             {}
 
-            ////! Yet another constructor
-            //FFSConfigID(FFSConfigID in):
-            //    l(in.l),n(in.n),a(in.a),lprev(in.lprev),nprev(in.nprev),aprev(in.aprev)
-            //{}
-
             //! Empty Constructor
             FFSConfigID():
              l(0),n(0),a(0),lprev(0),nprev(0),aprev(0)
             {}
-
-            ////! Overload = operator, not necessary, this is the default
-            //FFSConfigID& operator=(const FFSConfigID& rhs){
-            //    if (this == &rhs) return *this;
-            //    else{
-            //       l = rhs.l;
-            //       n = rhs.n;
-            //       a = rhs.a;
-            //       lprev = rhs.lprev;
-            //       nprev = rhs.nprev;
-            //       aprev = rhs.aprev;
-            //    }
-            //}
         };
 
 
@@ -276,7 +259,102 @@ namespace SSAGES
                     unsigned int currentInterface, std::string output_directory, unsigned int frequency) : 
 		 Method(frequency, world, comm), _ninterfaces(ninterfaces), _interfaces(interfaces), _N0Target(N0Target), 
          _M(M), _initialFluxFlag(initialFluxFlag), _saveTrajectories(saveTrajectories), _current_interface(currentInterface),
-          _output_directory(output_directory), _generator(1) {}
+          _output_directory(output_directory), _generator(1) {
+           
+
+              //_output_directory = "FFSoutput";
+              mkdir(_output_directory.c_str(),S_IRWXU); //how to make directory?
+              
+              //_current_interface = 0;
+              _N0TotalSimTime = 0;
+
+              if (!_initialFluxFlag){
+                initializeQueueFlag = true;
+              }
+
+              _A.resize(_ninterfaces);
+              _P.resize(_ninterfaces);
+              _S.resize(_ninterfaces);
+              _N.resize(_ninterfaces);
+              
+              //_N[_current_interface] = _N0Target;
+              /*_M.resize(_ninterfaces);
+              
+              //code for setting up simple simulation and debugging
+              _ninterfaces = 5;
+              int i;
+              _interfaces.resize(_ninterfaces);
+              _interfaces[0]=-1.0;
+              _interfaces[1]=-0.95;
+              _interfaces[2]=-0.8;
+              _interfaces[3]= 0;
+              _interfaces[4]= 1.0;
+
+              _saveTrajectories = true;
+
+              _initialFluxFlag = true;
+
+              for(i=0;i<_ninterfaces;i++) _M[i] = 50;
+
+              _N0Target = 100;*/
+              //_N0Target = 100;
+              _nfailure_total = 0;
+
+
+              //check if interfaces monotonically increase or decrease
+              bool errflag = false;
+              if (_interfaces[0]< _interfaces[1]) _interfaces_increase = true;
+              else if (_interfaces[0] > _interfaces[1]) _interfaces_increase = false;
+              else errflag = true;
+              for (unsigned int i=0;i<_ninterfaces-1;i++){
+                  if ((_interfaces_increase) && (_interfaces[i] >= _interfaces[i+1])){
+                    errflag = true;
+                  }
+                  else if ((!_interfaces_increase) && (_interfaces[i] <= _interfaces[i+1])){
+                    errflag = true;
+                  }
+              }
+              if (errflag){
+                  std::cerr << "Error! The interfaces are poorly defined. They must be monotonically increasing or decreasing and cannot equal one another! Please fix this.\n";
+                  for (auto interface : _interfaces){ std::cerr << interface << " ";}
+                  std::cerr << "\n";
+                  _world.abort(EXIT_FAILURE);
+              }
+
+
+              
+              // This is to generate an artificial Lambda0ConfigLibrary, Hadi's code does this for real
+              // THIS SHOULD BE SOMEWHERE ELSE!!! 
+              Lambda0ConfigLibrary.resize(_N0Target);
+              std::normal_distribution<double> distribution(0,1);
+              for (unsigned int i = 0; i < _N0Target ; i++){
+                Lambda0ConfigLibrary[i].l = 0;
+                Lambda0ConfigLibrary[i].n = i;
+                Lambda0ConfigLibrary[i].a = 0;
+                Lambda0ConfigLibrary[i].lprev = 0;
+                Lambda0ConfigLibrary[i].nprev = i;
+                Lambda0ConfigLibrary[i].aprev = 0;
+             
+                //FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
+              }
+                /*// Write the dump file out
+                std::ofstream file;
+                std::string filename = _output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
+                file.open(filename.c_str());
+
+                //first line gives ID of where it came from
+                file << ffsconfig.lprev << " " << ffsconfig.nprev << " " << ffsconfig.aprev << "\n";
+                //write position and velocity
+                file << "1 -1 0 0 " << distribution(_generator) << " "  << distribution(_generator) << " 0\n";
+
+              }
+              */
+              _pop_tried_but_empty_queue = false;
+
+
+              
+          
+          }
 
 		//! Pre-simulation hook.
 		/*!
