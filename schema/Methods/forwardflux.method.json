@@ -6,6 +6,9 @@
 			"type" : "string",
 			"enum" : ["ForwardFlux"]
 		},
+		"flavor" : {
+			"type" : "string"
+		},
 		"nInterfaces" : {
 			"type" : "integer",
 			"minimum" : 2
@@ -41,6 +44,9 @@
 		"frequency" : {
 			"type" : "integer",
 			"minimum" : 1
+		},
+		"outputDirectoryName" : {
+			"type" : "string"
 		}
 	},
 	"required": [],

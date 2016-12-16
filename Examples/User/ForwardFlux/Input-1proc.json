@@ -1,14 +1,14 @@
 {
     "driver": [
         {
-            "number processors": 1,
             "MDSteps": 10000000,
+            "number processors": 1,
             "CVs": [
                 {
+                    "type": "ParticleCoordinate",
                     "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "x"
                 }
             ],
@@ -32,7 +32,9 @@
                 ],
                 "saveTrajectories": true,
                 "computeInitialFlux": true,
+                "outputDirectoryName": "FFSoutput",
                 "nInterfaces": 5,
+                "flavor": "DirectForwardFlux",
                 "type": "ForwardFlux",
                 "N0Target": 100
             },
