@@ -361,6 +361,166 @@ TEST_F(ForwardFluxTest,CheckForInterfaceCrossings)
     //throughout this process, keep track of the queue, the number of successes, failures, current_interface, etc
     //this is probabily the most important unit test in the entire method
 
+    //here I perform 3 "steps" or calls to CheckForInterfaceCrossings
+    // each time, different logic should be triggered
+
+  if (world.size() == 3){
+    unsigned current_interface = 2;
+    MethodA->_current_interface = current_interface;
+    MethodA->_A[current_interface] = 0;
+    MethodA->_S[current_interface] = 0;
+    //M[2] = 2;
+
+    ffsconfig1 = ForwardFlux::FFSConfigID(2,3,0,1,0,0);
+    MethodA->WriteFFSConfiguration(snapshot1,ffsconfig1,true);
+    ffsconfig1 = ForwardFlux::FFSConfigID(2,4,0,1,6,0);
+    MethodA->WriteFFSConfiguration(snapshot1,ffsconfig1,true);
+    //ffsconfig1 = ForwardFlux::FFSConfigID(2,0,1,1,7,0);
+    //MethodA->WriteFFSConfiguration(snapshot1,ffsconfig1,true);
+
+    //write files, these are the two successes
+    //ffsconfig1 = ForwardFlux::FFSConfigID(3,0,0,2,9,0);
+    //MethodA->WriteFFSConfiguration(snapshot1,ffsconfig1,true);
+    //ffsconfig1 = ForwardFlux::FFSConfigID(3,1,0,2,10,0);
+    //MethodA->WriteFFSConfiguration(snapshot1,ffsconfig1,true);
+
+    if (mpirank == 0) MethodA->myFFSConfigID = ForwardFlux::FFSConfigID(2,0,0,1,2,0);
+    if (mpirank == 1) MethodA->myFFSConfigID = ForwardFlux::FFSConfigID(2,1,0,1,3,0);
+    if (mpirank == 2) MethodA->myFFSConfigID = ForwardFlux::FFSConfigID(2,2,0,1,4,0);
+
+    //initialize queue
+    //once the queue is empty, this interface is done
+    MethodA->FFSConfigIDQueue.emplace_back(2,3,0,1,5,0);
+    MethodA->FFSConfigIDQueue.emplace_back(2,4,0,1,6,0); 
+    //MethodA->FFSConfigIDQueue.emplace_back(2,0,1,1,7,0);
+   
+
+   //------------------------------
+   // Step 1
+   //------------------------------
+    //set cvprevious 
+    if (mpirank == 0) MethodA->_cvvalue_previous = -0.1; //will succeed
+    if (mpirank == 1) MethodA->_cvvalue_previous = -0.9; //will fail
+    if (mpirank == 2) MethodA->_cvvalue_previous = -0.5; //will do neither
+    
+    //set cv's then run a step
+    cvlist.clear();
+    //interface 3 is at zero
+    if (mpirank == 0) cvlist.push_back(new MockCV(0.1,{0,0,0},-2,2)); //should succeed
+    if (mpirank == 1) cvlist.push_back(new MockCV(-0.9,{0,0,0},-2,2)); //should do neither
+    if (mpirank == 2) cvlist.push_back(new MockCV(-0.5,{0,0,0},-2,2)); //snould do neither
+
+    MethodA->CheckForInterfaceCrossings(snapshot1,cvlist);
+    
+    //check everyones successes and attempts count
+    EXPECT_NEAR(MethodA->_current_interface,2,eps);    //interface is same
+    EXPECT_NEAR(MethodA->_S[current_interface],1,eps); //successes inc by one
+    EXPECT_NEAR(MethodA->_A[current_interface],1,eps); //attempts inc by one
+
+    //check that each proc has the corrects FFSConfigID
+    if (mpirank == 0){
+      EXPECT_NEAR(MethodA->myFFSConfigID.l, 2, eps); //this is new off queue
+      EXPECT_NEAR(MethodA->myFFSConfigID.n, 3, eps);
+      EXPECT_NEAR(MethodA->myFFSConfigID.a, 0, eps);
+    }
+    else if (mpirank == 1){
+      EXPECT_NEAR(MethodA->myFFSConfigID.l, 2, eps); //still previous ffsconfig
+      EXPECT_NEAR(MethodA->myFFSConfigID.n, 1, eps);
+      EXPECT_NEAR(MethodA->myFFSConfigID.a, 0, eps);
+    }
+    else if (mpirank == 2){
+      EXPECT_NEAR(MethodA->myFFSConfigID.l, 2, eps); //still previous ffsconfig
+      EXPECT_NEAR(MethodA->myFFSConfigID.n, 2, eps);
+      EXPECT_NEAR(MethodA->myFFSConfigID.a, 0, eps);
+    }
+
+
+   //------------------------------
+   // Step 2
+   //------------------------------
+
+    //this is an important next step, need to have 2 more queue pops
+    // the first one will get the last config in the queue, the 2nd will have the _popqueue empty set
+
+    //again set cvprevious (I'll use same as above for ease)
+    if (mpirank == 0) MethodA->_cvvalue_previous = -0.1; //will succeed
+    if (mpirank == 1) MethodA->_cvvalue_previous = -0.9; //will fail
+    if (mpirank == 2) MethodA->_cvvalue_previous = -0.5; //will do neither
+    //now set current cv
+    cvlist.clear();
+    if (mpirank == 0) cvlist.push_back(new MockCV(0.1,{0,0,0},-2,2)); //should succeed
+    if (mpirank == 1) cvlist.push_back(new MockCV(-1.1,{0,0,0},-2,2)); //should fail
+    if (mpirank == 2) cvlist.push_back(new MockCV(-0.5,{0,0,0},-2,2)); //snould do neither
+
+    MethodA->CheckForInterfaceCrossings(snapshot1,cvlist);
+    
+
+    //check everyones successes and attempts count
+    EXPECT_NEAR(MethodA->_current_interface,2,eps);    //interface is same
+    EXPECT_NEAR(MethodA->_S[current_interface],2,eps); //successes inc by one
+    EXPECT_NEAR(MethodA->_A[current_interface],3,eps); //attempts inc by two
+
+    if (mpirank == 0){
+      EXPECT_NEAR(MethodA->myFFSConfigID.l, 2, eps); //this is new off queue
+      EXPECT_NEAR(MethodA->myFFSConfigID.n, 4, eps);
+      EXPECT_NEAR(MethodA->myFFSConfigID.a, 0, eps);
+    }
+    else if (mpirank == 1){
+      EXPECT_NEAR(MethodA->myFFSConfigID.l, 2, eps); //this is a prev config, but is a zombie job
+      EXPECT_NEAR(MethodA->myFFSConfigID.n, 1, eps);
+      EXPECT_NEAR(MethodA->myFFSConfigID.a, 0, eps);
+      EXPECT_TRUE(MethodA->_pop_tried_but_empty_queue);//this is check for zombie job
+    }
+    else if (mpirank == 2){
+      EXPECT_NEAR(MethodA->myFFSConfigID.l, 2, eps); //this is still the original, since so success or failure
+      EXPECT_NEAR(MethodA->myFFSConfigID.n, 2, eps);
+      EXPECT_NEAR(MethodA->myFFSConfigID.a, 0, eps);
+    }
+    //queue should be empty
+    EXPECT_TRUE(MethodA->FFSConfigIDQueue.size()==0);
+
+   //------------------------------
+   // Step 3
+   //------------------------------
+    //then  have the last two jobs finish (on proc 0 and 2), this interfaces should be done
+
+    //again set cvprevious 
+    if (mpirank == 0) MethodA->_cvvalue_previous = -0.9; //will fail
+    if (mpirank == 1) MethodA->_cvvalue_previous = -0.1; //is zombie, but I'll have it succeed, just to make sure its ignored
+    if (mpirank == 2) MethodA->_cvvalue_previous = -0.1; //will succeed
+    //now set current cv
+    cvlist.clear();
+    if (mpirank == 0) cvlist.push_back(new MockCV(-1.1,{0,0,0},-2,2)); //should fail
+    if (mpirank == 1) cvlist.push_back(new MockCV( 0.1,{0,0,0},-2,2)); //should do nothing
+    if (mpirank == 2) cvlist.push_back(new MockCV( 0.1,{0,0,0},-2,2)); //snould succeed
+
+    MethodA->CheckForInterfaceCrossings(snapshot1,cvlist);
+    current_interface = MethodA->_current_interface; //need to store in local var
+ 
+    //check everyones successes and attempts count
+    EXPECT_NEAR(MethodA->_current_interface,3,eps);    //interface is now +1
+    EXPECT_NEAR(MethodA->_S[current_interface-1],3,eps); //successes of prev interface inc by one
+    EXPECT_NEAR(MethodA->_A[current_interface-1],5,eps); //attempts of prev interface inc by two
+    EXPECT_NEAR(MethodA->_S[current_interface],0,eps); //successes of current interfaces 0
+    EXPECT_NEAR(MethodA->_A[current_interface],0,eps); //attempts of current interface 0
+
+    //queue should have 5 new jobs, but 3 were popped so should have size 2
+   EXPECT_NEAR(MethodA->FFSConfigIDQueue.size(),2,eps);
+
+    // want to check on individual jobs?, tough because config were put in queue randomly
+    if (mpirank == 0){
+
+    }
+    else if (mpirank == 1){
+      EXPECT_FALSE(MethodA->_pop_tried_but_empty_queue);//make sure no longer zombie
+    }
+    else if (mpirank == 2){
+
+    }
+
+
+ }
+
 }
 
 //--------------------------------------------------------------------
