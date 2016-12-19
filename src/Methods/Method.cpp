@@ -33,7 +33,6 @@
 #include "Meta.h"
 #include "Umbrella.h"
 #include "ForwardFlux.h"
-#include "GridTest.h"
 #include "ABF.h"
 #include "BasisFunc.h"
 #include "Swarm.h"
@@ -489,11 +488,6 @@ namespace SSAGES
             }
 
         }
-		else if(type == "GridTest")
-		{
-			auto* m = new GridTest(world, comm, 1);
-			method = static_cast<Method*>(m);
-		}
 		else
 		{
 			throw BuildException({path + ": Unknown method type specified."});
