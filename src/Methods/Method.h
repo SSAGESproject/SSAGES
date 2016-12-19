@@ -21,7 +21,7 @@
 #pragma once
 
 #include "../EventListener.h"
-#include "../Grids/Grid.h"
+#include "../Grid.h"
 #include <boost/mpi.hpp>
 
 // Forward declare.
@@ -45,7 +45,7 @@ namespace SSAGES
 		boost::mpi::communicator comm_; //!< Local MPI communicator
 
 		//! Pointer to grid
-		Grid* grid_;
+		Grid<int>* grid_;
 
 		//! Number of the method iteration.
 		unsigned int iteration_;
@@ -105,11 +105,11 @@ namespace SSAGES
 		 */
 		void BuildGrid(const Json::Value& json, const std::string& path)
 		{
-			grid_ = Grid::BuildGrid(json, path);
+			grid_ = Grid<int>::BuildGrid(json, path);
 		}
 
 		//! Get the Grid
-		Grid* GetGrid() const {return grid_;}
+		Grid<int>* GetGrid() const {return grid_;}
 
 		//! Set up the Method
 		/*!

@@ -33,7 +33,7 @@
 #include "../Constraints/Constraint.h"
 #include "../Snapshot.h"
 #include "../JSON/JSONLoader.h"
-#include "../Grids/Grid.h"
+#include "../Grid.h"
 #include "../Simulations/SimObservable.h"
 #include "../Simulations/SimObserver.h"
 #include "../Observers/Visitable.h"

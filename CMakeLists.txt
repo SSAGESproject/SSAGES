@@ -414,7 +414,6 @@ set(SOURCE
 	src/JSON/jsoncpp.cpp
 	src/CVs/CollectiveVariable.cpp
 	src/Methods/Method.cpp
-	src/Grids/Grid.cpp
 	src/Observers/JSONObserver.cpp
 	src/Simulations/SimObserver.cpp
 	src/Simulations/SimObservable.cpp

@@ -21,7 +21,7 @@
 
 #include "Method.h"
 #include "../CVs/CollectiveVariable.h"
-#include "../Grids/Grid.h"
+#include "../Grid.h"
 #include <fstream>
 #include <vector>
 
