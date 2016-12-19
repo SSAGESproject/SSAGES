@@ -52,11 +52,6 @@ namespace SSAGES
 
 		Method* method = nullptr;
 
-		// Random device for seed generation. 
-		// std::random_device rd;
-		// auto maxi = std::numeric_limits<int>::max();
-		// auto seed = json.get("seed", rd() % maxi).asUInt();
-		
 		// Get method type. 
 		std::string type = json.get("type", "none").asString();
 
@@ -466,7 +461,11 @@ namespace SSAGES
             auto tol  = json.get("tolerance", 1e-6).asDouble();
             auto conv = json.get("convergence_exit", false).asBool();
  
-            auto* m = new Basis(world, comm, coefsCV, restrCV, boundUp, boundLow, cyclefreq, freq, bnme, cnme, temp, tol, wght, conv);
+            Grid<int> *grid = Grid<int>::BuildGrid(Json::Value());
+
+            auto* m = new Basis(world, comm, coefsCV, restrCV, boundUp, boundLow,
+                                cyclefreq, freq, bnme, cnme, temp, tol, wght,
+                                conv, grid);
 
             method = static_cast<Method*>(m);
 			
@@ -493,7 +492,6 @@ namespace SSAGES
 			throw BuildException({path + ": Unknown method type specified."});
 		}
 		
-		method->grid_ = nullptr;
 		return method;
 	}
 }

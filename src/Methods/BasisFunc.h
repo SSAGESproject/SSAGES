@@ -229,6 +229,8 @@ namespace SSAGES
         //! Coefficient filename
         std::string cnme_;
 
+        //! Grid pointer
+        Grid<int> *_grid;
 
 	public:
         //! Constructor
@@ -266,13 +268,14 @@ namespace SSAGES
              const double temperature,
              const double tol,
              const double weight,
-             bool converge) : 
+             bool converge,
+             Grid<int> *grid) :
 		Method(frequency, world, comm), hist_(), histlocal_(), histglobal_(),
         coeff_(), unbias_(), coeff_arr_(), LUT_(), derivatives_(), polyords_(polyord),
         nbins_(), restraint_(restraint), boundUp_(boundUp), boundLow_(boundLow),
         cyclefreq_(cyclefreq), mpiid_(0), weight_(weight),
         temperature_(temperature), tol_(tol),
-        converge_exit_(converge), bnme_(bnme), cnme_(cnme)
+        converge_exit_(converge), bnme_(bnme), cnme_(cnme), grid_(grid)
 		{
 		}
 
@@ -363,10 +366,15 @@ namespace SSAGES
             json["weight"] = weight_;
 
             json["temperature"] = temperature_;
+
+            grid_->Serialize(json);
 		}
 
         //! Destructor.
-		~Basis() {}
+        ~Basis()
+        {
+            delete _grid;
+        }
 	};
 }
 			

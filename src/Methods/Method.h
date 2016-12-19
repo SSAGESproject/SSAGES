@@ -21,7 +21,7 @@
 #pragma once
 
 #include "../EventListener.h"
-#include "../Grid.h"
+#include "../JSON/Serializable.h"
 #include <boost/mpi.hpp>
 
 // Forward declare.
@@ -44,9 +44,6 @@ namespace SSAGES
 		boost::mpi::communicator world_; //!< Global MPI communicator
 		boost::mpi::communicator comm_; //!< Local MPI communicator
 
-		//! Pointer to grid
-		Grid<int>* grid_;
-
 		//! Number of the method iteration.
 		unsigned int iteration_;
 
@@ -63,7 +60,7 @@ namespace SSAGES
 			boost::mpi::communicator& world, 
 			boost::mpi::communicator& comm) : 
 		EventListener(frequency), world_(world), comm_(comm),
-		grid_(nullptr), iteration_(0){}
+		iteration_(0){}
 
 		//! Set Method's iteration.
 		/*!
@@ -98,19 +95,6 @@ namespace SSAGES
 		 */
 		virtual void PostSimulation(Snapshot* snapshot, const CVList& cvs) override = 0;
 
-		//! Set up the Grid
-		/*!
-		 * \param json JSON Value containing the input information
-		 * \param path Path for JSON path specification.
-		 */
-		void BuildGrid(const Json::Value& json, const std::string& path)
-		{
-			grid_ = Grid<int>::BuildGrid(json, path);
-		}
-
-		//! Get the Grid
-		Grid<int>* GetGrid() const {return grid_;}
-
 		//! Set up the Method
 		/*!
 		 * \param json JSON Value containing all input information.
@@ -133,7 +117,6 @@ namespace SSAGES
 		//! Destructor
 		virtual ~Method() 
 		{
-			delete grid_;
 		}
 	};
 }
