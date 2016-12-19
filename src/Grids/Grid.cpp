@@ -24,9 +24,6 @@
 #include "../Drivers/DriverException.h"
 #include "../Validator/ObjectRequirement.h"
 #include "../Validator/ArrayRequirement.h"
-#include "Grid1D.h"
-#include "Grid2D.h"
-#include "Grid3D.h"
 
 using namespace Json;
 
@@ -76,23 +73,7 @@ namespace SSAGES
 		if(lower.size() != upper.size() || lower.size() != num_points.size())
 			throw BuildException({"Grid variables dimensions not the same!"});
 
-		if(lower.size() == 1)
-		{
-			auto* g = new Grid1D(lower, upper, num_points);
-			grid = static_cast<Grid*>(g);
-		}
-		else if(lower.size() == 2)
-		{
-			auto* g = new Grid2D(lower, upper, num_points);
-			grid = static_cast<Grid*>(g);
-		}
-		else if(lower.size() == 3)
-		{
-			auto* g = new Grid3D(lower, upper, num_points);
-			grid = static_cast<Grid*>(g);
-		}
-		else
-			throw BuildException({"SSAGES currently only accepts 1,2, or 3 dimension grids."});
+	    throw BuildException({"SSAGES currently doesn't accept grids. Work is in progress."});
 
 		if(gridjson.isMember("values"))
 		{
