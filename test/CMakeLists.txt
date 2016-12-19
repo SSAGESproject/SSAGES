@@ -5,7 +5,6 @@ set(TEST_DEPS
 	libssages)
 
 set  (UNIT_TESTS "ParticlePositionCVTests"
-                 "GridTests"
                  "ABFTests"
                  "TorsionalCVTests"
                  "SnapshotTests"
