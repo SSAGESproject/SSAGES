@@ -30,13 +30,13 @@
         "coeff_filename" : "_adp_5",
         "CV_coefficients" : [ 25, 25 ],
         "weight" : 1.0,
-        "convergence_exit" : false
-    },
-    "grid" : {
-        "lower" : [-3.13, -3.13],
-        "upper" : [3.13,3.13],
-        "number_points" : [100,100],
-        "periodic" : [true, true]
+        "convergence_exit" : false,
+        "grid" : {
+            "lower" : [-3.13, -3.13],
+            "upper" : [3.13,3.13],
+            "number_points" : [100,100],
+            "periodic" : [true, true]
+        }
     },
     "driver" : [
         {

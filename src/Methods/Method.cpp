@@ -461,7 +461,7 @@ namespace SSAGES
             auto tol  = json.get("tolerance", 1e-6).asDouble();
             auto conv = json.get("convergence_exit", false).asBool();
  
-            Grid<int> *grid = Grid<int>::BuildGrid(Json::Value());
+            Grid<int> *grid = Grid<int>::BuildGrid(json.get("grid", Json::Value()));
 
             auto* m = new Basis(world, comm, coefsCV, restrCV, boundUp, boundLow,
                                 cyclefreq, freq, bnme, cnme, temp, tol, wght,

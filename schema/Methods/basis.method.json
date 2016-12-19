@@ -6,6 +6,9 @@
 			"type" : "string",
 			"enum" : ["Basis"]
 		},
+		"grid" : {
+			"type" : "object"
+		},
 		"cycle_frequency" : {
 			"type" : "integer",
 			"minimum" : 1

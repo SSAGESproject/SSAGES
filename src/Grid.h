@@ -100,6 +100,18 @@ private:
       : _numPoints(numPoints),
         _edges(std::pair< std::vector<double>, std::vector<double> >(lower, upper))
     {
+        // We do not perform checks here if the dimensionality of the vectors
+        // are correct.
+        //
+        // This constructor is private and can only be called via BuildGrid().
+        // BuildGrid() will take care that the dimensions of the vectors are
+        // valid.
+        size_t data_size = 1;
+        for (size_t d = 0; d < GetDimension(); ++d) {
+            data_size *= GetNumPoints(d);
+        }
+
+        _data.resize(data_size);
     }
 
 public:
@@ -271,7 +283,70 @@ public:
      */
     static Grid<T>* BuildGrid(const Json::Value& json, const std::string& path)
     {
-        return nullptr;
+        Json::ObjectRequirement validator;
+        Json::Value schema;
+        Json::Reader reader;
+
+        reader.parse(JsonSchema::grid, schema);
+        validator.Parse(schema, path);
+
+        // Validate inputs.
+        validator.Validate(json, path);
+        if (validator.HasErrors()) {
+            throw BuildException(validator.GetErrors());
+        }
+
+        // Read in Lower Grid edges.
+        std::vector<double> lower;
+        for (auto &lv : json["lower"]) {
+           lower.push_back(lv.asDouble());
+        }
+
+        size_t dimension = lower.size();
+
+        // Read in upper grid edges.
+        std::vector<double> upper;
+        for (auto &uv : json["upper"]) {
+            upper.push_back(uv.asDouble());
+        }
+
+        if (upper.size() != dimension) {
+            throw BuildException({"Number of upper values does not match "
+                                  "number of lower values!"});
+        }
+
+        // Read in number of points.
+        std::vector<size_t> number_points;
+        for (auto &np : json["number_points"]) {
+            number_points.push_back(np.asUInt());
+        }
+
+        if (number_points.size() != dimension) {
+            throw BuildException({"Arrays \"lower\" and \"number_points\" do "
+                                  "not have the same size!"});
+        }
+
+        // Read in periodicity.
+        std::vector<bool> isPeriodic;
+        for (auto &periodic : json["periodic"]) {
+            isPeriodic.push_back(periodic.asBool());
+        }
+
+        if (isPeriodic.size() == 0) {
+            isPeriodic = std::vector<bool>(dimension, false);
+        } else if (isPeriodic.size() != dimension) {
+            throw BuildException({"Arrays \"lower\" and \"periodic\" do not "
+                                  "have the same size!"});
+        }
+
+        // Construct the grid.
+        Grid<T>* grid = new Grid(number_points, lower, upper);
+
+        // Since BuildGrid() is a method of Grid, we can access private
+        // variables.
+        grid->_isPeriodic = isPeriodic;
+
+        return grid;
     }
 
     //! \copydoc Serializable::Serialize()
