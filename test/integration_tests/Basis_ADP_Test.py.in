@@ -1,0 +1,201 @@
+import sys
+import subprocess
+import os.path
+import math
+
+def replace(inputfile, outputfile, oldtext, newtext):
+    with open(inputfile) as infile, open(outputfile, 'w') as outfile:
+        for line in infile:
+            line = line.replace(oldtext, newtext)
+            outfile.write(line)
+
+print("Testing Basis Function Sampling on ADP.")
+
+ssages_executable = "${CMAKE_BINARY_DIR}/ssages"
+resource_dir = "${CMAKE_CURRENT_SOURCE_DIR}/integration_tests/Resources/Basis/ADP/"
+json_inputfile = "BFS_ADP.json"
+lammps_inputfile = "in.BFS_ADP"
+
+if not os.path.isfile(resource_dir + json_inputfile):
+    print("Unable to locate JSON input file.")
+    sys.exit(1)
+
+#Add correct data file to load
+replace(resource_dir + lammps_inputfile, lammps_inputfile,
+        "DATA_INPUT_FILE", resource_dir + "data.input")
+
+#Add correct directory to LAMMPS input file
+replace(resource_dir + json_inputfile, json_inputfile,
+        "LAMMPS_INPUTFILE", "in.BFS_ADP")
+
+# Run SSAGES
+returnvalue = subprocess.call(["mpirun", "-n", "4", ssages_executable, json_inputfile])
+
+# Confirm that SSAGES exited with exit code 0
+if returnvalue is not 0:
+    print("SSAGES exited with non-zero exit code {}".format(returnvalue));
+    # Clean up working directory
+    subprocess.call(['rm -f *'], shell=True)
+    sys.exit(returnvalue)
+
+# Confirm that output file basis_adp_5.out has been created
+if not os.path.isfile("basis_adp_5.out"):
+    print("Output file \"basis_adp_5.out\" was not created.")
+    # Clean up working directory
+    subprocess.call(['rm -f *'], shell=True)
+    sys.exit(2)
+
+# Confirm that output file coeff_adp_5.out has been created
+if not os.path.isfile("coeff_adp_5.out"):
+    print("Output file \"coeff_adp_5.out\" was not created.")
+    # Clean up working directory
+    subprocess.call(['rm -f *'], shell=True)
+    sys.exit(2)
+
+# Confirm that basis_adp_5 output file has the correct format
+with open("basis_adp_5.out", 'r') as outputFile:
+    # Skip first line
+    outputFile.readline()
+
+    # Read data
+    dataLine = outputFile.readline()
+    if len(dataLine.split()) != 5:
+        print("Outputfile \"basis_adp_5.out\" contains {} columns. Expected: 5".format(
+            len(dataLine.split())))
+        # Clean up working directory
+        subprocess.call(['rm -f *'], shell=True)
+        sys.exit(3)
+
+# Confirm that coeff_adp_5.out output file has the correct format
+with open("coeff_adp_5.out", 'r') as outputFile:
+    firstLine = outputFile.readline()
+    if len(firstLine.split()) != 1:
+        print("Outputfile \"coeff_adp_5.out\" contains {} columns. Expected: 1".format(
+            len(firstLine.split())))
+        # Clean up working directory
+        subprocess.call(['rm -f *'], shell=True)
+        sys.exit(3)
+
+# Analyse basis_adp_5.out file
+outputFile = open("basis_adp_5.out", 'r')
+
+# Read basis_adp_5.out file and store data
+xydata = []
+biasdata = []
+PMFdata = []
+histdata = []
+for line in outputFile:
+    if (len(line.split()) == 5):
+        x, y, bias, PMF, hist = [float(item) for item in line.split()]
+        xydata.append([x,y])
+        biasdata.append(bias)
+        PMFdata.append(PMF)
+        histdata.append(hist)
+
+# Load predefined list
+xyexpected = []
+biasexpected = []
+PMFexpected = []
+histexpected = []
+with open(resource_dir + "expected_basis.dat") as expectedFile:
+    for line in expectedFile:
+        x, y, bias, PMF, hist = [float(item) for item in line.split()]
+        xyexpected.append([x,y])
+        biasexpected.append(bias)
+        PMFexpected.append(PMF)
+        histexpected.append(hist)
+
+# Compare x, y values
+if (len(xydata) != len(xyexpected)):
+    print("Error! Number of output values has changed.")
+
+    # Clean up working directory
+    subprocess.call(['rm -f *'], shell=True)
+    sys.exit(5)
+
+for [[xval, yval], [xexpected, yexpected]] in zip(xydata, xyexpected):
+    if (xval != xexpected or yval != yexpected):
+        print("Error! Output data stored at different x-y values as expected!")
+
+        # Clean up working directory
+        subprocess.call(['rm -f *'], shell=True)
+        sys.exit(6)
+
+# Compare bias
+mse = 0.0
+for [bias, expected] in zip(biasdata, biasexpected):
+    mse += (bias - expected)**2/len(biasdata)
+
+if mse > 2.0:
+    print("Error! Bias deviates too strongly from expected value!")
+    print("Mean square error: {}".format(mse))
+    # Clean up working directory
+#    subprocess.call(['rm -f *'], shell=True)
+    sys.exit(7)
+
+# Compare PMF
+mse = 0.0
+for [PMF, expected] in zip(PMFdata, PMFexpected):
+    mse += (PMF - expected)**2/len(PMFdata)
+
+if mse > 2.0:
+    print("Error! PMF deviates too strongly from expected value!")
+    print("Mean square error: {}".format(mse))
+
+    # Clean up working directory
+    subprocess.call(['rm -f *'], shell=True)
+    sys.exit(8)
+
+# Compare Histogram
+mse = 0.0
+for [hist, expected] in zip(histdata, histexpected):
+    mse += (hist - expected)**2/len(histdata)
+
+if mse > 2.0:
+    print("Error! Histogram deviates too strongly from expected histogram!")
+    print("Mean square error: {}".format(mse))
+
+    # Clean up working directory
+    subprocess.call(['rm -f *'], shell=True)
+    sys.exit(9)
+
+# Analyse coeff file
+coeffData = []
+with open("coeff_adp_5.out", 'r') as coeffFile:
+    for line in coeffFile:
+        coeffData.append(float(line))
+
+# Read in expected result
+expectedCoeff = []
+with open(resource_dir + "expected_coeff.dat") as expectedFile:
+    for line in expectedFile:
+        expectedCoeff.append(float(line))
+
+# Test if number of coefficient entries are correct
+if len(coeffData) != len(expectedCoeff):
+    print("Error! Number of coefficient entries not as expected!")
+    print("{} entries; {} expected".format(len(coeffData), len(expectedCoeff)))
+
+    # Clean up working directory
+    subprocess.call(['rm -f *'], shell=True)
+    sys.exit(10)
+
+# Compare coefficients
+mse = 0.0
+for [coeff, expected] in zip(coeffData, expectedCoeff):
+    mse += (coeff - expected)**2/len(coeffData)
+
+if mse > 2.0:
+    print("Error! Coefficient entries deviate too strongly from their expected values!")
+    print("Mean square error: {}".format(mse))
+
+    # Clean up working directory
+    subprocess.call(['rm -f *'], shell=True)
+    sys.exit(11)
+
+####
+#### Integration test passed
+####
+
+subprocess.call(['rm -f *'], shell=True)
+sys.exit(0)
