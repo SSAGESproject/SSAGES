@@ -30,14 +30,14 @@ returnvalue = subprocess.call([ssages_executable, json_inputfile])
 if returnvalue is not 0:
     print("SSAGES exited with non-zero exit code {}".format(returnvalue));
     # Clean up working directory
-    subprocess.call(["rm", '-f', '*'])
+    subprocess.call(['rm -f *', shell=True])
     sys.exit(returnvalue)
 
 # Confirm that output file has been created
 if not os.path.isfile("hills.out"):
     print("Output file \"hills.out\" was not created.")
     # Clean up working directory
-    subprocess.call(["rm", '-f', '*'])
+    subprocess.call(['rm -f *'], shell=True)
     sys.exit(2)
 
 # Confirm that output file has the correct format
@@ -47,7 +47,7 @@ with open("hills.out", 'r') as outputFile:
         print("Outputfile \"hills.out\" contains {} columns. Expected: 5".format(
               firstline.split().len()))
         # Clean up working directory
-        subprocess.call(["rm", '-f', '*'])
+        subprocess.call(['rm -f *'], shell=True)
         sys.exit(3)
 
 # Analyse output file
@@ -80,10 +80,10 @@ if mse > 2.0:
     print("Error! Result deviates too strongly from expected value!")
     print("Mean square error: {}".format(mse))
     # Clean up working directory
-    subprocess.call(["rm", '-f', '*'])
+    subprocess.call(['rm -f *'], shell=True)
     sys.exit(5)
 
 # Clean working directory
-subprocess.call(["rm", '-f', '*'])
+subprocess.call(['rm -f *'], shell=True)
 
 sys.exit(0)
