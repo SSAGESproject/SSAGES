@@ -82,7 +82,7 @@ protected:
         interfaces[1]=0.95;
         interfaces[2]=0.8;
         interfaces[3]= 0;
-        interfaces[4]=- 1.0;
+        interfaces[4]=-1.0;
         MethodB = new DirectForwardFlux(world, // MPI global communicator
 						 comm,  // MPI local communicator
 						 ninterfaces, // ninterfaces
@@ -104,7 +104,6 @@ protected:
 		//delete snapshot3;
 
 		delete CV1;
-		//delete CV2;
 		//delete CV3;
 
 		delete MethodA;
@@ -122,7 +121,6 @@ protected:
     unsigned int mpirank;
 
 	MockCV* CV1;
-	//MockCV* CV2;
 	//MockCV* CV3;
 
     ForwardFlux::FFSConfigID ffsconfig1;
@@ -160,8 +158,19 @@ TEST_F(ForwardFluxTest,FFSConfigID)
 TEST_F(ForwardFluxTest,CheckInitialStructure)
 {
     //given a cv that is valid, make sure function agrees that its valid
+    //set the cv
+    cvlist.clear();
+    cvlist.push_back(new MockCV(-1.1,{0,0,0},-2,2)); //should succeed
+    testing::internal::CaptureStdout();
+    MethodA->CheckInitialStructure(cvlist);
+    std::string outputValidCV = testing::internal::GetCapturedStdout();
+    EXPECT_TRUE(outputValidCV == "Running initial Flux calculations\n");   
 
     //given a cv that is invalid, make sure function agrees that its invalid
+    //set the cv
+    cvlist.clear();
+    cvlist.push_back(new MockCV(0,{0,0,0},-2,2)); //should fail and exit.
+    EXPECT_EXIT(MethodA->CheckInitialStructure(cvlist), ::testing::ExitedWithCode(1), "Please provide an initial configuration in State A. Exiting ....\n");   
 }
 
 TEST_F(ForwardFluxTest,HasReturnedToA)

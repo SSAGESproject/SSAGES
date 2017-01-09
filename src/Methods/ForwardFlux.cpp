@@ -61,7 +61,7 @@ namespace SSAGES
           _cvvalue_previous = _cvvalue;
           double _firstInterfaceLocation = _interfaces[0];
           if ( _cvvalue > _firstInterfaceLocation) {
-            std::cout << "Please provide an initial configuration in State A. Exiting ...." << std::endl;
+            std::cerr << "Please provide an initial configuration in State A. Exiting ...." << std::endl;
             exit(1);
           }
         }
