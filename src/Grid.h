@@ -252,6 +252,28 @@ public:
         return data_.at(0);
     }
 
+    //! Access 1d Grid by index, read-only
+    /*!
+     * \param index Index specifying the grid point.
+     */
+    const T& at(int index) const
+    {
+        if (dimension_ != 1) {
+            throw std::invalid_argument("Only 1d-Grids can be accessed with a "
+                    "single integer as the index.");
+        }
+        return at({index});
+    }
+
+    //! Access 1d Grid by index, read-write
+    /*!
+     * \param index Index specifying the grid point.
+     */
+    T& at(int index)
+    {
+        return const_cast<T&>(static_cast<const Grid<T>* >(this)->at(index));
+    }
+
     //! Access Grid element pertaining to a specific point -- read-only
     /*!
      * \param x Vector of doubles specifying a point.
@@ -274,6 +296,112 @@ public:
     T& at(const std::vector<double> &x)
     {
         return data_.at(GetIndices(x));
+    }
+
+    //! Access 1d-Grid by point - read-only
+    /*!
+     * \param x Access grid point pertaining to this value.
+     */
+    const T& at(double x) const
+    {
+        if (dimension_ != 1) {
+            throw std::invalid_argument("Only 1d-Grids can be accessed with a "
+                    "single float as the specified point.");
+        }
+        return at({x});
+    }
+
+    //! Access 1d-Grid by point - read-write
+    /*!
+     * \param x Access grid point pertaining to this value.
+     */
+    T& at(double x)
+    {
+        return const_cast<T&>(static_cast<const Grid<T>* >(this)->at(x));
+    }
+
+    //! Access Grid element per [] read-only
+    /*!
+     * \param indices Vector of integers specifying the grid point.
+     *
+     * Example: grid[{0,1}]
+     */
+    const T& operator[](const std::vector<int> &indices) const
+    {
+        return at(indices);
+    }
+
+    //! Access Grid element per [] read-write
+    /*!
+     * \param indices Vector of integers specifying the grid point.
+     *
+     * Example: grid[{0,1}]
+     */
+    T& operator[](const std::vector<int> &indices)
+    {
+        return at(indices);
+    }
+
+    //! Access 1d-Grid per [] operator, read-only
+    /*!
+     * \param index Index of the grid point.
+     */
+    const T& operator[](int index) const
+    {
+        return at(index);
+    }
+
+    //! Access 1d-Grid per [] operator, read-write
+    /*!
+     * \param index Index of the grid point.
+     */
+    T& operator[](int index)
+    {
+        return at(index);
+    }
+
+    //! Access Grid element pertaining to a specific point per [] read-only
+    /*!
+     * \param indices Vector of integers specifying the grid point.
+     *
+     * Example: grid[{0.2,-1.43}]. Note, that you must not pass integers, as
+     * integers will be interpreted as grid indices. Thus, call grid[{1.0, 2.0}]
+     * and not grid[{1,2}].
+     */
+    const T& operator[](const std::vector<double> &x) const
+    {
+        return at(x);
+    }
+
+    //! Access Grid element pertaining to a specific point per [] read-write
+    /*!
+     * \param indices Vector of integers specifying the grid point.
+     *
+     * Example: grid[{0.2,-1.43}]. Note, that you must not pass integers, as
+     * integers will be interpreted as grid indices. Thus, call grid[{1.0, 2.0}]
+     * and not grid[{1,2}].
+     */
+    T& operator[](const std::vector<double> &x)
+    {
+        return at(x);
+    }
+
+    //! Access 1d-Grid via specific point, read-only
+    /*!
+     * \param x Point specifying the desired Grid point.
+     */
+    const T& operator[](double x) const
+    {
+        return at(x);
+    }
+
+    //! Access 1d-Grid via specific point, read-write
+    /*!
+     * \param x Point specifying the desired Grid point.
+     */
+    T& operator[](double x)
+    {
+        return at(x);
     }
 
     //! Set up the grid
