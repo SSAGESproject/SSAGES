@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include <exception>
 #include <vector>
 
 #include "Drivers/DriverException.h"
@@ -70,6 +71,9 @@ template<typename T>
 class Grid : public Serializable
 {
 private:
+    //! Dimension of the grid
+    const size_t dimension_;
+
     //! Number of points in each dimension.
     std::vector<size_t> numPoints_;
 
@@ -82,11 +86,14 @@ private:
     //! Internal storage of the data
     std::vector<T> data_;
 
+public:
     //! Constructor
     /*!
      * \param numPoints Number of grid points in each dimension.
      * \param lower Lower edges of the grid.
      * \param upper Upper edges of the grid.
+     * \param isPeriodic Bools specifying the periodicity in the respective
+     *                   dimension. Default: Non-periodic in all dimensions.
      *
      * The constructor is intentionally private to make sure, that it is only
      * called via BuildGrid().
@@ -96,16 +103,27 @@ private:
      */
     Grid(std::vector<size_t> numPoints,
          std::vector<double> lower,
-         std::vector<double> upper)
-      : numPoints_(numPoints),
-        edges_(std::pair< std::vector<double>, std::vector<double> >(lower, upper))
+         std::vector<double> upper,
+         std::vector<bool> isPeriodic = std::vector<bool>())
+      : dimension_(numPoints.size()),
+        numPoints_(numPoints),
+        edges_(std::pair< std::vector<double>, std::vector<double> >(lower, upper)),
+        isPeriodic_(isPeriodic)
     {
-        // We do not perform checks here if the dimensionality of the vectors
-        // are correct.
-        //
-        // This constructor is private and can only be called via BuildGrid().
-        // BuildGrid() will take care that the dimensions of the vectors are
-        // valid.
+        // Check that vector sizes are correct
+        if (edges_.first.size() != dimension_ ||
+            edges_.second.size() != dimension_) {
+            throw std::invalid_argument("Size of vector containing upper or "
+                "lower edges, does not match size of vector containing "
+                "number of grid points.");
+        }
+        if (isPeriodic_.size() == 0) {
+            // Default: Non-periodic in all dimensions
+            isPeriodic.resize(dimension_, false);
+        } else if (isPeriodic_.size() != dimension_) {
+            throw std::invalid_argument("Size of vector isPeriodic does not "
+                    "match size of vector containing number of grid points.");
+        }
         size_t data_size = 1;
         for (size_t d = 0; d < GetDimension(); ++d) {
             data_size *= GetNumPoints(d);
@@ -114,11 +132,10 @@ private:
         data_.resize(data_size);
     }
 
-public:
     //! Get the dimension.
     size_t GetDimension() const
     {
-        return numPoints_.size();
+        return dimension_;
     }
 
     //! Get the number of points for all dimensions.
