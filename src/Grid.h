@@ -139,7 +139,7 @@ public:
     }
 
     //! Get the number of points for all dimensions.
-    std::vector<size_t> GetNumPoints() const
+    const std::vector<size_t>& GetNumPoints() const
     {
         return numPoints_;
     }
@@ -162,7 +162,7 @@ public:
     }
 
     //! Return the lower edges of the Grid.
-    std::vector<double> GetLower() const
+    const std::vector<double>& GetLower() const
     {
         return edges_.first;
     }
@@ -184,7 +184,7 @@ public:
     }
 
     //! Return the upper edges of the Grid.
-    std::vector<double> GetUpper() const
+    const std::vector<double>& GetUpper() const
     {
         return edges_.second;
     }
@@ -207,7 +207,7 @@ public:
     }
 
     //! Return the periodicity of the Grid.
-    std::vector<bool> GetPeriodic() const
+    const std::vector<bool>& GetPeriodic() const
     {
         return isPeriodic_;
     }
@@ -229,7 +229,7 @@ public:
     }
 
     //! Return the Grid indices for a given point.
-    std::vector<int> GetIndices(std::vector<double> x) const
+    const std::vector<int>& GetIndices(const std::vector<double> &x) const
     {
         return std::vector<int>(GetDimension(), 0);
     }
@@ -238,7 +238,7 @@ public:
     /*!
      * \param indices Vector of integers specifying the grid point.
      */
-    const T& at(std::vector<int> indices) const
+    const T& at(const std::vector<int> &indices) const
     {
         return data_.at(0);
     }
@@ -247,7 +247,7 @@ public:
     /*!
      * \param indices Vector of integers specifying the grid point.
      */
-    T& at(std::vector<int> indices)
+    T& at(const std::vector<int> &indices)
     {
         return data_.at(0);
     }
@@ -259,7 +259,7 @@ public:
      * This function is provided for convenience. It is identical to
      * Grid::at(Grid::GetIndices(x)).
      */
-    const T& at(std::vector<double> x) const
+    const T& at(const std::vector<double> &x) const
     {
         return data_.at(GetIndices(x));
     }
@@ -271,7 +271,7 @@ public:
      * This function is provided for convenience. It is identical to
      * Grid::at(Grid::GetIndices(x)).
      */
-    T& at(std::vector<double> x)
+    T& at(const std::vector<double> &x)
     {
         return data_.at(GetIndices(x));
     }
