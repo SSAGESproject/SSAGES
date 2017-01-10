@@ -229,7 +229,7 @@ public:
     }
 
     //! Return the Grid indices for a given point.
-    const std::vector<int>& GetIndices(const std::vector<double> &x) const
+    std::vector<int> GetIndices(const std::vector<double> &x) const
     {
         return std::vector<int>(GetDimension(), 0);
     }
