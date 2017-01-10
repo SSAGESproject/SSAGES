@@ -71,16 +71,16 @@ class Grid : public Serializable
 {
 private:
     //! Number of points in each dimension.
-    std::vector<size_t> _numPoints;
+    std::vector<size_t> numPoints_;
 
     //! Edges of the Grid in each dimension.
-    std::pair< std::vector<double>,std::vector<double> > _edges;
+    std::pair< std::vector<double>,std::vector<double> > edges_;
 
     //! Periodicity of the Grid.
-    std::vector<bool> _isPeriodic;
+    std::vector<bool> isPeriodic_;
 
     //! Internal storage of the data
-    std::vector<T> _data;
+    std::vector<T> data_;
 
     //! Constructor
     /*!
@@ -97,8 +97,8 @@ private:
     Grid(std::vector<size_t> numPoints,
          std::vector<double> lower,
          std::vector<double> upper)
-      : _numPoints(numPoints),
-        _edges(std::pair< std::vector<double>, std::vector<double> >(lower, upper))
+      : numPoints_(numPoints),
+        edges_(std::pair< std::vector<double>, std::vector<double> >(lower, upper))
     {
         // We do not perform checks here if the dimensionality of the vectors
         // are correct.
@@ -111,20 +111,20 @@ private:
             data_size *= GetNumPoints(d);
         }
 
-        _data.resize(data_size);
+        data_.resize(data_size);
     }
 
 public:
     //! Get the dimension.
     size_t GetDimension() const
     {
-        return _numPoints.size();
+        return numPoints_.size();
     }
 
     //! Get the number of points for all dimensions.
     std::vector<size_t> GetNumPoints() const
     {
-        return _numPoints;
+        return numPoints_;
     }
 
     //! Get the number of points for a specific dimension.
@@ -141,13 +141,13 @@ public:
             return 0;
         }
 
-        return _numPoints.at(dim);
+        return numPoints_.at(dim);
     }
 
     //! Return the lower edges of the Grid.
     std::vector<double> GetLower() const
     {
-        return _edges.first;
+        return edges_.first;
     }
 
     //! Get the lower edge for a specific dimension.
@@ -169,7 +169,7 @@ public:
     //! Return the upper edges of the Grid.
     std::vector<double> GetUpper() const
     {
-        return _edges.second;
+        return edges_.second;
     }
 
 
@@ -192,7 +192,7 @@ public:
     //! Return the periodicity of the Grid.
     std::vector<bool> GetPeriodic() const
     {
-        return _isPeriodic;
+        return isPeriodic_;
     }
 
     //! Get the periodicity in a specific dimension.
@@ -223,7 +223,7 @@ public:
      */
     const T& at(std::vector<int> indices) const
     {
-        return _data.at(0);
+        return data_.at(0);
     }
 
     //! Access Grid element read/write
@@ -232,7 +232,7 @@ public:
      */
     T& at(std::vector<int> indices)
     {
-        return _data.at(0);
+        return data_.at(0);
     }
 
     //! Access Grid element pertaining to a specific point -- read-only
@@ -244,7 +244,7 @@ public:
      */
     const T& at(std::vector<double> x) const
     {
-        return _data.at(GetIndices(x));
+        return data_.at(GetIndices(x));
     }
 
     //! Access Grid element pertaining to a specific point -- read/write
@@ -256,7 +256,7 @@ public:
      */
     T& at(std::vector<double> x)
     {
-        return _data.at(GetIndices(x));
+        return data_.at(GetIndices(x));
     }
 
     //! Set up the grid
@@ -344,7 +344,7 @@ public:
 
         // Since BuildGrid() is a method of Grid, we can access private
         // variables.
-        grid->_isPeriodic = isPeriodic;
+        grid->isPeriodic_ = isPeriodic;
 
         return grid;
     }
