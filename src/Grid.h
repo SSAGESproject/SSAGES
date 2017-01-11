@@ -86,6 +86,42 @@ private:
     //! Internal storage of the data
     std::vector<T> data_;
 
+    //! Wrap the index around periodic boundaries
+    std::vector<int> &wrapIndices(std::vector<int> &indices)
+    {
+        std::vector<int> newIndices(dimension_);
+        for (size_t i=0; i<dimension_; ++i) {
+            if (!GetPeriodic(i)) {
+                continue;
+            }
+
+            int index = indices.at(i);
+            while (index < 0) { index += GetNumPoints(i); }
+            while (index >= GetNumPoints(i)) { index -= GetNumPoints(i); }
+            newIndices.at(i) = index;
+        }
+
+        return newIndices;
+    }
+
+    //! Map d-dimensional indices to 1-d data vector
+    /*!
+     * Map a set of indices to the index of the 1d data vector. Keep in mind,
+     * that the data includes underflow (index -1) and overflow (index
+     * numPoints) bins in each dimension.
+     */
+    size_t mapTo1d(std::vector<int> &indices)
+    {
+        size_t idx = 0;
+        size_t fac = 1;
+        std::vector<int> wrappedIndices = wrapIndices(indices);
+        for (size_t i=0; i<dimension_; ++i) {
+            idx += (wrappedIndices.at(i) + 1) * fac;
+            fac *= numPoints_.at(i) + 2;
+        }
+        return idx;
+    }
+
 public:
     //! Constructor
     /*!
@@ -126,7 +162,7 @@ public:
         }
         size_t data_size = 1;
         for (size_t d = 0; d < GetDimension(); ++d) {
-            data_size *= GetNumPoints(d);
+            data_size *= GetNumPoints(d)+2;
         }
 
         data_.resize(data_size);
@@ -231,7 +267,43 @@ public:
     //! Return the Grid indices for a given point.
     std::vector<int> GetIndices(const std::vector<double> &x) const
     {
-        return std::vector<int>(GetDimension(), 0);
+        // Check that input vector has the correct dimensionality
+        if (x.size() != dimension_) {
+            throw std::invalid_argument("Specified point has a larger "
+                    "dimensionality than the grid.");
+        }
+
+        std::vector<int> indices(dimension_);
+        for (size_t i; i<dimension_; ++i) {
+            double xpos = x.at(i);
+            if (!GetPeriodic(i)) {
+                if (xpos < GetLower(i)) {
+                    indices.at(i) = -1;
+                    continue;
+                } else if (xpos > GetUpper(i)) {
+                    indices.at(i) = GetNumPoints(i);
+                    continue;
+                }
+            }
+
+            // To make sure, the value is rounded in the correct direction.
+            double round = 0.5;
+            if (xpos < 0) { round = -0.5; }
+
+            indices.at(i) = (xpos - GetLower(i)) / (GetUpper(i) - GetLower(i)) + round;
+        }
+
+        return indices;
+    }
+
+    //! Return the Grid index for a one-dimensional grid.
+    int GetIndex(double x) const
+    {
+        if (dimension_ != 1) {
+            throw std::invalid_argument("1d Grid index can only be accessed for "
+                   "1d-Grids can be accessed with a.");
+        }
+        return GetIndices({x}).at(0);
     }
 
     //! Access Grid element read-only
@@ -240,7 +312,20 @@ public:
      */
     const T& at(const std::vector<int> &indices) const
     {
-        return data_.at(0);
+        // Check that indices are in bound.
+        if (indices.size() != dimension_) {
+            throw std::invalid_argument("Dimension of indices does not match "
+                    "dimension of the grid.");
+        }
+
+        // Check if an index is out of bounds
+        for (size_t i=0; i<dimension_; ++i) {
+            int index = indices.at(i);
+            if (!isPeriodic_.at(i) && (index < -1 || index > numPoints_.at(i))) {
+                throw std::out_of_range("Grid index out of range.");
+            }
+        }
+        return data_.at(mapTo1d(indices));
     }
 
     //! Access Grid element read/write
@@ -249,7 +334,7 @@ public:
      */
     T& at(const std::vector<int> &indices)
     {
-        return data_.at(0);
+        return const_cast<T&>(static_cast<const Grid<T>* >(this)->at(indices));
     }
 
     //! Access 1d Grid by index, read-only
