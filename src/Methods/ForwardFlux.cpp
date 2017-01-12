@@ -115,12 +115,11 @@ namespace SSAGES
         bool success_local = false;
         bool *successes = new bool[_world.size()];
 
-        // If we have crossed the first interface going forward, then write the information to disk
         if (hascrossed == 1){
               success_local = true;
         }
 
-        //for each traj that crossed to lambda0 in forward direction, we need to write it to disk (FFSConfigurationFile)
+        //for each traj that crossed the lambda0 in forward direction, we need to write it to disk (FFSConfigurationFile)
         MPI_Allgather(&success_local,1,MPI::BOOL,successes,1,MPI::BOOL,_world);
 
         int success_count = 0;
@@ -142,7 +141,6 @@ namespace SSAGES
               FFSConfigID newid = FFSConfigID(l,n,a,lprev,nprev,aprev);
               Lambda0ConfigLibrary.emplace_back(l,n,a,lprev,nprev,aprev);
               WriteFFSConfiguration(snapshot,newid,1);
-
             }
             success_count++;
           }    
@@ -206,8 +204,6 @@ namespace SSAGES
       file.close();
     }
 
-
-
 	void ForwardFlux::ComputeTransitionProbabilities(){
         double Ptotal = 1;
         for (unsigned int i = 0; i < _ninterfaces -1; i++){
@@ -222,11 +218,7 @@ namespace SSAGES
         if (!file) {std::cerr << "Error! Unable to write " << filename << "\n"; exit(1);}
         file << _rate << "\n";
         file.close();
-
-
-        
     }
-
 	
 	void ForwardFlux::WriteFFSConfiguration(Snapshot* snapshot, FFSConfigID& ffsconfig, bool wassuccess)
 	{

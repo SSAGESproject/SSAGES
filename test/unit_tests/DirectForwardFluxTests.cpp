@@ -69,7 +69,7 @@ protected:
 						 comm,  // MPI local communicator
 						 ninterfaces, // ninterfaces
 						 interfaces, // interfaces vector
-						 10, //N0target
+						 3, //N0target
 						 M, // M vector
 						 true, // initial flux flag
 						 true, // savetrajectories
@@ -87,7 +87,7 @@ protected:
 						 comm,  // MPI local communicator
 						 ninterfaces, // ninterfaces
 						 interfaces, // interfaces vector
-						 10, //N0target
+						 3, //N0target
 						 M, // M vector
 						 true, // initial flux flag
 						 true, // savetrajectories
@@ -173,6 +173,58 @@ TEST_F(ForwardFluxTest,CheckInitialStructure)
     EXPECT_EXIT(MethodA->CheckInitialStructure(cvlist), ::testing::ExitedWithCode(1), "Please provide an initial configuration in State A. Exiting ....\n");   
 }
 
+TEST_F(ForwardFluxTest,ComputeInitialFlux)
+{
+
+  if (world.size() == 3){
+    unsigned current_interface = 0;
+    MethodA->_current_interface = current_interface;
+
+    //set cvprevious 
+    if (mpirank == 0) MethodA->_cvvalue_previous = -1.1; //will succeed
+    if (mpirank == 1) MethodA->_cvvalue_previous = -1.1; //won't succeed
+    if (mpirank == 2) MethodA->_cvvalue_previous = -1.1; //will go to basin B
+    
+    //set cv's then run a step
+    cvlist.clear();
+
+    // give some cv to the processors
+    if (mpirank == 0) cvlist.push_back(new MockCV(-0.9,{0,0,0},-2,2)); //should succeed
+    if (mpirank == 1) cvlist.push_back(new MockCV(-1.05,{0,0,0},-2,2)); //should do neither
+    if (mpirank == 2) cvlist.push_back(new MockCV(1.1,{0,0,0},-2,2)); //should stop adding time
+
+    // run one step
+    MethodA->ComputeInitialFlux(snapshot1,cvlist);
+    
+    //check everyones successes
+    EXPECT_NEAR(MethodA->_current_interface,0,eps);    //interface is same
+    EXPECT_NEAR(MethodA->_N[0], 2, eps); //we had 2 successes
+
+    //again set cvprevious (use same as above for ease)
+    if (mpirank == 0) MethodA->_cvvalue_previous = -1.1; //will succeed
+    if (mpirank == 1) MethodA->_cvvalue_previous = -1.1; //will fail
+    if (mpirank == 2) MethodA->_cvvalue_previous = -1.1; //will do neither
+
+    //now set current cv
+    cvlist.clear();
+    if (mpirank == 0) cvlist.push_back(new MockCV(-0.9,{0,0,0},-2,2)); //should succeed
+    if (mpirank == 1) cvlist.push_back(new MockCV(-1.05,{0,0,0},-2,2)); //snould do neither
+    if (mpirank == 2) cvlist.push_back(new MockCV(-1.2,{0,0,0},-2,2)); //snould do neither
+
+    //run for another step
+    MethodA->ComputeInitialFlux(snapshot1,cvlist);
+    
+    //check everyones successes and attempts count
+    EXPECT_NEAR(MethodA->_current_interface,0,eps);    //interface is same
+    EXPECT_NEAR(MethodA->_N[0], 3, eps); //1 success (total of 3)
+
+    // The total simulation time (_N0TotalSimTime) should be 5, because we were at basin B for 1 itreration
+    // The value of _fluxA0 is 3/5=0.6
+    MethodA->WriteInitialFlux();
+    EXPECT_NEAR(MethodA->_fluxA0, 0.6, eps);
+}
+
+}
 TEST_F(ForwardFluxTest,HasReturnedToA)
 {
     //give A, expect true
