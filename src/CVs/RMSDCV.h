@@ -56,7 +56,8 @@ namespace SSAGES
 		//! Constructor.
 		/*!
 		 * \param atomids IDs of the atoms defining Rg.
-		 * \param userange If \c True Use range of atoms defined by the two atoms in atomids.
+		 * \param molxyz String determining the molecule.
+		 * \param use_range If \c True Use range of atoms defined by the two atoms in atomids.
 		 *
 		 * Construct a RMSD CV.
 		 *

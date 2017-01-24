@@ -66,6 +66,9 @@ namespace SSAGES
 
 		//! Updates the string according to the FTS method
 		void StringUpdate();
+        
+        //! Flag for whether a system was to run umbrella sampling before checking against other systems
+        bool reset_for_umbrella; 
 
 	public:
 		//! Constructor
@@ -73,13 +76,12 @@ namespace SSAGES
 		 * \param world MPI global communicator.
 		 * \param comm MPI local communicator.
 		 * \param centers List of centers.
-		 * \param NumNodes Number of nodes.
-		 * \param maxiterator Maximum number of iterations.
+		 * \param maxiterations Maximum number of iterations.
 		 * \param blockiterations Number of iterations per block averaging.
 		 * \param tau Value of tau (default: 0.1).
 		 * \param cvspring Spring constants for cvs.
-		 * \param run_SMD Run steered MD to direct CV to proper starting configuration.
 		 * \param kappa Value of kappa (default: 0.1).
+		 * \param springiter Minimum number of umbrella steps.
 		 * \param frequency Frequency with which this method is invoked.
 		 *
 		 * Constructs an instance of Finite String method.
@@ -97,7 +99,7 @@ namespace SSAGES
 		StringMethod(world, comm, centers, maxiterations, cvspring, frequency),
 		_kappa(kappa), _blockiterations(blockiterations), _tau(tau), 
 		_min_num_umbrella_steps(springiter), _run_umbrella(true),
-		_umbrella_iter(1)
+		_umbrella_iter(1), reset_for_umbrella(false)
         {
 			//! Store positions for starting trajectories
 			_prev_positions.resize(1);

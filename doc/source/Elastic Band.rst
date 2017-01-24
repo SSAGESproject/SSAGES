@@ -1,3 +1,5 @@
+.. _elastic-band:
+
 Elastic Band
 ------------
 
@@ -13,7 +15,7 @@ has no perpendicular component.  By finding the MEP, one also finds the saddle
 points of the potential energy surface, as they are by definition the maxima of
 the MEP.  The *nudged elastic band* (NEB) method is a popular and efficient
 method to calculate the MEP between the initial and final state of a transition
-[1]_,[2]_.  
+[1]_ [2]_.  
 
 The method involves the evolution of a series of images connected by a spring
 interaction (hence the “elastic” nature of the band).  The force acting on the
@@ -133,6 +135,8 @@ evolution steps
     the gradient is harvested every time the number of MD steps taken is an
     integer multiple of evolution steps.
 
+.. _EB_tutorial:
+
 Tutorial
 ^^^^^^^^
 
@@ -174,7 +178,7 @@ the current value of the CV calculated from the molecular system.
 
 Allow your system to run for the specified number of iterations (2000 for this
 tutorial).  The last line of every node file can be analyzed to view the last
-positons of each image of the elastic band.  Thus concludes this tutorial.
+positons of each image of the elastic band.
 
 Developer
 ^^^^^^^^^
@@ -186,10 +190,10 @@ Ben Sikora.
 References
 ^^^^^^^^^^
 
-.. [1] G. Henkelman, B. P. Uberuaga, and H. Jónsson, *A climbing image nudged
+.. [1] G. Henkelman, B. P. Uberuaga, and H. Jónsson, *A climbing image nudged
        elastic band method for finding saddle points and minimum energy paths*.
        J. Chem. Phys. **113**, 9901 (2000).
 
-.. [2] G. Henkelman, and H. Jónsson, *Improved tangent estimate in the nudged
+.. [2] G. Henkelman, and H. Jónsson, *Improved tangent estimate in the nudged
        elastic band method for finding minimum energy paths and saddle points*.
        J. Chem. Phys. **113**, 9978 (2000).

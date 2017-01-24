@@ -5,13 +5,17 @@
             "number processors": 1,
             "CVs": [
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "atom_ids": [
+                        1
+                    ],
+                    "type": "ParticleCoordinate",
                     "dimension": "x"
                 },
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "atom_ids": [
+                        1
+                    ],
+                    "type": "ParticleCoordinate",
                     "dimension": "y"
                 }
             ],
@@ -21,10 +25,6 @@
                 "flavor": "FTS",
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
-                "tolerance": [
-                    0.0001,
-                    0.0001
-                ],
                 "ksprings": [
                     750,
                     750
@@ -34,8 +34,8 @@
                 "block_iterations": 50,
                 "type": "String",
                 "centers": [
-                    -0.7,
-                    -0.5
+                    -0.98,
+                    -0.98
                 ],
                 "max_iterations": 1000
             }
@@ -45,13 +45,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "x"
                 },
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "y"
                 }
             ],
@@ -60,62 +64,18 @@
             "method": {
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
-                "type": "String",
-                "centers": [
-                    -0.607,
-                    -0.4
-                ],
                 "ksprings": [
                     750,
                     750
                 ],
-                "frequency": 1,
-                "time_step": 0.1,
-                "flavor": "FTS",
-                "tolerance": [
-                    0.0001,
-                    0.0001
-                ],
-                "block_iterations": 50,
-                "max_iterations": 1000
-            }
-        },
-        {
-            "number processors": 1,
-            "MDSteps": 10000000,
-            "CVs": [
-                {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
-                    "dimension": "x"
-                },
-                {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
-                    "dimension": "y"
-                }
-            ],
-            "logfile": "log",
-            "type": "LAMMPS",
-            "method": {
-                "kappa": 0.1,
-                "umbrella_iterations": 2000,
-                "type": "String",
                 "centers": [
-                    -0.513,
-                    -0.3
-                ],
-                "ksprings": [
-                    750,
-                    750
+                    -0.849,
+                    -0.849
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
                 "flavor": "FTS",
-                "tolerance": [
-                    0.0001,
-                    0.0001
-                ],
+                "type": "String",
                 "block_iterations": 50,
                 "max_iterations": 1000
             }
@@ -125,13 +85,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "x"
                 },
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "y"
                 }
             ],
@@ -140,22 +104,18 @@
             "method": {
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
-                "type": "String",
-                "centers": [
-                    -0.42,
-                    -0.2
-                ],
                 "ksprings": [
                     750,
                     750
                 ],
+                "centers": [
+                    -0.719,
+                    -0.719
+                ],
                 "frequency": 1,
                 "time_step": 0.1,
                 "flavor": "FTS",
-                "tolerance": [
-                    0.0001,
-                    0.0001
-                ],
+                "type": "String",
                 "block_iterations": 50,
                 "max_iterations": 1000
             }
@@ -165,13 +125,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "x"
                 },
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "y"
                 }
             ],
@@ -180,22 +144,98 @@
             "method": {
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
+                "ksprings": [
+                    750,
+                    750
+                ],
+                "centers": [
+                    -0.588,
+                    -0.588
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
                 "type": "String",
+                "block_iterations": 50,
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "kappa": 0.1,
+                "umbrella_iterations": 2000,
+                "ksprings": [
+                    750,
+                    750
+                ],
+                "centers": [
+                    -0.457,
+                    -0.457
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
+                "type": "String",
+                "block_iterations": 50,
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "kappa": 0.1,
+                "umbrella_iterations": 2000,
+                "ksprings": [
+                    750,
+                    750
+                ],
                 "centers": [
                     -0.327,
-                    -0.1
-                ],
-                "ksprings": [
-                    750,
-                    750
+                    -0.327
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
                 "flavor": "FTS",
-                "tolerance": [
-                    0.0001,
-                    0.0001
-                ],
+                "type": "String",
                 "block_iterations": 50,
                 "max_iterations": 1000
             }
@@ -205,13 +245,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "x"
                 },
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "y"
                 }
             ],
@@ -220,22 +264,18 @@
             "method": {
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
-                "type": "String",
+                "ksprings": [
+                    750,
+                    750
+                ],
                 "centers": [
-                    -0.233,
-                    0.0
-                ],
-                "ksprings": [
-                    750,
-                    750
+                    -0.196,
+                    -0.196
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
                 "flavor": "FTS",
-                "tolerance": [
-                    0.0001,
-                    0.0001
-                ],
+                "type": "String",
                 "block_iterations": 50,
                 "max_iterations": 1000
             }
@@ -245,13 +285,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "x"
                 },
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "y"
                 }
             ],
@@ -260,22 +304,18 @@
             "method": {
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
-                "type": "String",
+                "ksprings": [
+                    750,
+                    750
+                ],
                 "centers": [
-                    -0.14,
-                    0.1
-                ],
-                "ksprings": [
-                    750,
-                    750
+                    -0.065,
+                    -0.065
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
                 "flavor": "FTS",
-                "tolerance": [
-                    0.0001,
-                    0.0001
-                ],
+                "type": "String",
                 "block_iterations": 50,
                 "max_iterations": 1000
             }
@@ -285,13 +325,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "x"
                 },
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "y"
                 }
             ],
@@ -300,22 +344,18 @@
             "method": {
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
-                "type": "String",
+                "ksprings": [
+                    750,
+                    750
+                ],
                 "centers": [
-                    -0.047,
-                    0.2
-                ],
-                "ksprings": [
-                    750,
-                    750
+                    0.065,
+                    0.065
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
                 "flavor": "FTS",
-                "tolerance": [
-                    0.0001,
-                    0.0001
-                ],
+                "type": "String",
                 "block_iterations": 50,
                 "max_iterations": 1000
             }
@@ -325,13 +365,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "x"
                 },
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "y"
                 }
             ],
@@ -340,22 +384,18 @@
             "method": {
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
-                "type": "String",
+                "ksprings": [
+                    750,
+                    750
+                ],
                 "centers": [
-                    0.047,
-                    0.3
-                ],
-                "ksprings": [
-                    750,
-                    750
+                    0.196,
+                    0.196
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
                 "flavor": "FTS",
-                "tolerance": [
-                    0.0001,
-                    0.0001
-                ],
+                "type": "String",
                 "block_iterations": 50,
                 "max_iterations": 1000
             }
@@ -365,13 +405,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "x"
                 },
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "y"
                 }
             ],
@@ -380,102 +424,18 @@
             "method": {
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
-                "type": "String",
-                "centers": [
-                    0.14,
-                    0.4
-                ],
                 "ksprings": [
                     750,
                     750
                 ],
-                "frequency": 1,
-                "time_step": 0.1,
-                "flavor": "FTS",
-                "tolerance": [
-                    0.0001,
-                    0.0001
-                ],
-                "block_iterations": 50,
-                "max_iterations": 1000
-            }
-        },
-        {
-            "number processors": 1,
-            "MDSteps": 10000000,
-            "CVs": [
-                {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
-                    "dimension": "x"
-                },
-                {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
-                    "dimension": "y"
-                }
-            ],
-            "logfile": "log",
-            "type": "LAMMPS",
-            "method": {
-                "kappa": 0.1,
-                "umbrella_iterations": 2000,
-                "type": "String",
-                "centers": [
-                    0.233,
-                    0.5
-                ],
-                "ksprings": [
-                    750,
-                    750
-                ],
-                "frequency": 1,
-                "time_step": 0.1,
-                "flavor": "FTS",
-                "tolerance": [
-                    0.0001,
-                    0.0001
-                ],
-                "block_iterations": 50,
-                "max_iterations": 1000
-            }
-        },
-        {
-            "number processors": 1,
-            "MDSteps": 10000000,
-            "CVs": [
-                {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
-                    "dimension": "x"
-                },
-                {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
-                    "dimension": "y"
-                }
-            ],
-            "logfile": "log",
-            "type": "LAMMPS",
-            "method": {
-                "kappa": 0.1,
-                "umbrella_iterations": 2000,
-                "type": "String",
                 "centers": [
                     0.327,
-                    0.6
-                ],
-                "ksprings": [
-                    750,
-                    750
+                    0.327
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
                 "flavor": "FTS",
-                "tolerance": [
-                    0.0001,
-                    0.0001
-                ],
+                "type": "String",
                 "block_iterations": 50,
                 "max_iterations": 1000
             }
@@ -485,13 +445,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "x"
                 },
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "y"
                 }
             ],
@@ -500,22 +464,18 @@
             "method": {
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
-                "type": "String",
-                "centers": [
-                    0.42,
-                    0.7
-                ],
                 "ksprings": [
                     750,
                     750
                 ],
+                "centers": [
+                    0.457,
+                    0.457
+                ],
                 "frequency": 1,
                 "time_step": 0.1,
                 "flavor": "FTS",
-                "tolerance": [
-                    0.0001,
-                    0.0001
-                ],
+                "type": "String",
                 "block_iterations": 50,
                 "max_iterations": 1000
             }
@@ -525,13 +485,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "x"
                 },
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "y"
                 }
             ],
@@ -540,22 +504,18 @@
             "method": {
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
-                "type": "String",
-                "centers": [
-                    0.513,
-                    0.8
-                ],
                 "ksprings": [
                     750,
                     750
                 ],
+                "centers": [
+                    0.588,
+                    0.588
+                ],
                 "frequency": 1,
                 "time_step": 0.1,
                 "flavor": "FTS",
-                "tolerance": [
-                    0.0001,
-                    0.0001
-                ],
+                "type": "String",
                 "block_iterations": 50,
                 "max_iterations": 1000
             }
@@ -565,13 +525,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "x"
                 },
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "y"
                 }
             ],
@@ -580,22 +544,18 @@
             "method": {
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
-                "type": "String",
-                "centers": [
-                    0.607,
-                    0.9
-                ],
                 "ksprings": [
                     750,
                     750
                 ],
+                "centers": [
+                    0.719,
+                    0.719
+                ],
                 "frequency": 1,
                 "time_step": 0.1,
                 "flavor": "FTS",
-                "tolerance": [
-                    0.0001,
-                    0.0001
-                ],
+                "type": "String",
                 "block_iterations": 50,
                 "max_iterations": 1000
             }
@@ -605,13 +565,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "x"
                 },
                 {
-                    "type": "AtomCoordinate",
-                    "atom id": 1,
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
                     "dimension": "y"
                 }
             ],
@@ -620,22 +584,58 @@
             "method": {
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
-                "type": "String",
-                "centers": [
-                    0.7,
-                    1.0
-                ],
                 "ksprings": [
                     750,
                     750
                 ],
+                "centers": [
+                    0.849,
+                    0.849
+                ],
                 "frequency": 1,
                 "time_step": 0.1,
                 "flavor": "FTS",
-                "tolerance": [
-                    0.0001,
-                    0.0001
+                "type": "String",
+                "block_iterations": 50,
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "kappa": 0.1,
+                "umbrella_iterations": 2000,
+                "ksprings": [
+                    750,
+                    750
                 ],
+                "centers": [
+                    0.98,
+                    0.98
+                ],
+                "frequency": 1,
+                "time_step": 0.1,
+                "flavor": "FTS",
+                "type": "String",
                 "block_iterations": 50,
                 "max_iterations": 1000
             }

@@ -25,7 +25,7 @@ The CV header file
 
 Each CV in SSAGES is implemented as a child of the class ``CollectiveVariable``.
 The header file should be placed in the directory ``src/CVs`` and has to
-(re)implement the following methods:
+(re)implement the following functions:
 
 :code:`void Initialize(const Snapshot&)` (optional)
     This method is called during the pre-simulation phase. It is typically used
@@ -117,14 +117,75 @@ To include your new CV, you have to edit the file
 How to write a new method
 -------------------------
 
-The basic steps to create a new method closely resemble the steps to create a
-new CV.
+Each method consists of three components: A header file, a cpp file, and a schema file. The header
+file and cpp file contains the source code for the method and the schema file
+describes the properties of the method in a simple JSON format. Finally, you will
+have to make SSAGES aware of the new method.
 
-.. warning::
+The method header file
+^^^^^^^^^^^^^^^^^^^^^^
 
-    The steps to implement a new method have not been documented yet.
+Each method in SSAGES is implemented as a child of the class ``Methods``.
+The header file should be placed in the directory ``src/methods`` and has to
+(re)implement the following functions:
 
-.. todo::
+:code:`void PreSimulation(Snapshot* snapshot, const CVList& cvs)`
+    Setup done before the method actually runs. This function will be called
+    vefore the simulation is started.
 
-    Describe how to implement a new method, similar to how to implement a new
-    CV.
+:code:`void PostIntegration(Snapshot* snapshot, const CVList& cvs)`
+    This is where the heart of your method should go. By using snapshot and 
+    the cvs, modify the forces, positions, velocities, etc. appropriated by 
+    the new method. This function will be called after each integration MD step.
+
+:code: `void PostSimulation(Snapshot* snapshot, const CVList& cvs)`
+    This function is called at the end of the simulation run. Use it to close files
+    your method opened, to write out data that you have been storing, etc.
+
+The method schema file
+^^^^^^^^^^^^^^^^^^^^^^
+
+Together with the source code of the method, you will
+have to provide a schema file to make the CV accessible to the SSAGES input
+files. The schema file should be placed in the directory ``schema/methods/``. It
+has to be written in the JSON format and should contain the following items:
+
+type
+    The value of *type* should be set to ``object``.
+
+varname
+    The name of your new method.
+
+properties
+    The properties contain the *type* which is the internal name of the method and
+    a set of other properties that have to be supplied to the constructor of the
+    method.
+
+required
+    A list containing the required properties. Optional parameters to the method
+    constructor are not listed here.
+
+additionalProperties
+    Optional properties.
+
+Integrate the new method into SSAGES
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Once you have provided the header and the schema file, there is one more
+steps to do in order to make SSAGES aware of the newly included method.
+
+.. note::
+
+    We are currently working on a method to automate this step. Revisit this
+    section in future releases. Chances are, that you no longer have to worry
+    about this step.
+
+To include your new method, you have to edit the file
+``src/methods/Methods.cpp``, and
+
+1. ``#include`` your method header file at the top of the file.
+2. Add a new ``else if`` clause in ``BuildMethod()``. The if-test checks for the
+   method type set as an enum in the list of properties. Within the if-clause you
+   should parse and validate the JSON schema, read the required properties and
+   create the method. A pointer to the newly created object should
+   be stored in the variable named ``method``.

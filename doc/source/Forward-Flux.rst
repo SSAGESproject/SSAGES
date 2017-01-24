@@ -1,3 +1,5 @@
+.. _Forward-flux:
+
 Forward-Flux
 ------------
 
@@ -372,25 +374,54 @@ inputfile
       MD package to learn about various input options as well as the structure
       and format of input files suitable for MD engine of your choice.
 
+.. _FFS_tutorial:
+
 Tutorial
 ^^^^^^^^
 
-.. todo::
+This tutorial will walk you step by step through the user example provided with
+the SSAGES source code that runs the forward flux method on the alanine dipeptide using
+LAMMPS.  First, be sure you have compiled SSAGES with LAMMPS.  Then, navigate to
+the ``SSAGES/Examples/User/ForwardFlux/ADP`` subdirectory.  Now, take a moment
+to observe the ``in.ADP_Test and data.input`` files in order to familiarize
+yourself with the system being simulated.  
 
-    Give a tutorial. The tutorial can be based on one of the examples for this
-    method. Describe how to compile the input files and how to call SSAGES.
-    Describe how to understand and visualize the results.
+The next two files of interest are the ``FF_Template.json`` input file and the
+``FF_Input_Generator.py`` script.  Both of these files can be modified in your
+text editor of choice to customize the inputs, but for this tutorial, simply
+observe them and leave them be.  FF_Template.json contains all the information
+necessary to fully specify one driver; FF_Input_Generator.py copies this
+information a number of times specified within the script (for this tutorial,
+12 times) while also linearly interpolating through the start and end states
+defined in the script and substituting the correct values into the “centers”
+portion of the method definition.  Execute this script as follows:
+
+.. code-block:: bash
+
+    python FF_Input_Generator.py
+
+You will produce a file called ``EB.json``. You can also open this file to
+verify for yourself that the script did what it was supposed to do.  Now, with
+your JSON input and your SSAGES binary, you have everything you need to perform
+a simulation.  Simply run:
+
+.. code-block:: bash
+
+    mpiexec -np 12 ./ssages FF.json
+
+Allow your system to run for the specified number of iterations (2000 for this
+tutorial).
 
 Developer
 ^^^^^^^^^
 
-Hadi & Joshua Lequieu.
+Ben Sikora, Hadi Ramezani-Dakhel & Joshua Lequieu.
 
 References
 ^^^^^^^^^^
 
 .. [1] R. J. Allen, C. Valeriani, P. R. ten Wolde, *Forward Flux Sampling for
-       Rare Event Simulations*. J Phys-Condens Mat 2009, 21 (46)
+       Rare Event Simulations*. J Phys-Condens Mat 2009, 21 (46).
        
 .. [2] F. A. Escobedo, E. E. Borrero, J. C. Araque, *Transition Path Sampling
        and Forward Flux Sampling. Applications to Biological Systems*.

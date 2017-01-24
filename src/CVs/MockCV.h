@@ -27,18 +27,21 @@
 
 namespace SSAGES
 {
-	// Collective variable to calculate radius of gyration.
-
+	//! Mock collective variable for testing purposes.
 	class MockCV : public CollectiveVariable
 	{
 	private:
+		//! User defined gradient vector.
 		Vector3 _user_defined_grad;
 
 	public:
 
 		//! Constructor.
 		/*!
-		 * \param periodic If \c True consider periodic boundary conditions.
+		 * \param value Value the Mock CV will return.
+		 * \param grad Gradient vector the Mock CV will return.
+		 * \param upper Value for the upper bound of the CV.
+		 * \param lower Value for the lower bound of the CV.
 		 *
 		 * Construct a mock CV
 		 */
@@ -64,7 +67,7 @@ namespace SSAGES
 		/*!
 		 * \param snapshot Current simulation snapshot.
 		 */
-		void Evaluate(const Snapshot&) override
+		void Evaluate(const Snapshot& snapshot) override
 		{
 
 		}
@@ -73,7 +76,7 @@ namespace SSAGES
 		/*!
 		 * \param json JSON value
 		 */
-		void Serialize(Json::Value&) const override
+		void Serialize(Json::Value& json) const override
 		{
 
 		}

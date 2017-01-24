@@ -56,7 +56,7 @@ namespace SSAGES
             unsigned int _unrestrained_steps;
 
             //! For indexing trajectory vectors
-            int _index; 
+            unsigned int _index;
 
             //! Store atom IDs for starting trajecotires
             std::vector<Label> _traj_atomids; 
@@ -69,16 +69,25 @@ namespace SSAGES
 
             //! Flag for determing whether to perform initialization or not
             bool sampling_started;
+            
+            //! Flag for whether a snapshot was stored in the umbrella sampling
+            bool snapshot_stored;        
+            
+            //! Flag for whether a system is initialized at a given iteration
+            bool initialized;
+
+            //! Flag for whether a system was initialized before it checked whether other systems were
+            bool original_initialized; 
 
         public:
 
             //! Constructor.
             /*!
              * \param world MPI global communicator.
-             * \param com MPI local communicator.
+             * \param comm MPI local communicator.
              * \param centers List of centers.
-             * \param NumNodes number of nodes.
-             * \param spring Spring constant.
+             * \param maxiterations Maximum number of iterations.
+             * \param cvspring Spring constants for CVs.
              * \param frequency Aplly method with this frequency.
              * \param InitialSteps Number of initial steps.
              * \param HarvestLength Length of trajectory before weighing.
@@ -114,6 +123,7 @@ namespace SSAGES
             _restrained_steps = _harvest_length*_number_trajectories; 
             _unrestrained_steps = _swarm_length*_number_trajectories;
             sampling_started = false;
+            snapshot_stored = false;
 
             _iterator = 0; //Override default StringMethod.h initializing
         }

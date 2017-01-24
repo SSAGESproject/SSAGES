@@ -44,7 +44,7 @@ namespace SSAGES
 
 			// Update forces.
 			for(size_t j = 0; j < forces.size(); ++j)
-				for(size_t k = 0; k < forces[j].size(); ++k)
+				for(int k = 0; k < forces[j].size(); ++k)
 					forces[j][k] -= D*grad[j][k];
 
 			// If not equilibrating and has evolved enough steps,
@@ -59,11 +59,11 @@ namespace SSAGES
 		// Restart iteration and zero gradients when moving onto
 		// next elastic band iteration
 		if(_iterator > (_equilibrate + _evolution * _nsamples))
-		{
-			PrintString(cvs);
+		{	
 	        StringUpdate();
-	        CheckEnd();
-			UpdateWorldString(); 
+            CheckEnd(cvs);
+			UpdateWorldString(cvs); 
+            PrintString(cvs); 
 
 			_iterator = 0;
 

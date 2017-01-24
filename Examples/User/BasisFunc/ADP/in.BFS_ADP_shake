@@ -12,7 +12,7 @@ pair_modify     mix arithmetic
 kspace_style    none 
 read_data       ./data.input   
 
-velocity all create 300 SEED
+velocity all create 300 8967
 
 timestep        2.0
 

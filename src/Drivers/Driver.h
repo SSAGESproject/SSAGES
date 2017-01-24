@@ -71,7 +71,7 @@ namespace SSAGES
 		//! The observers that will be used for this driver
 		ObserverList _observers;
 
-		// The constraints to use
+		//! List of constraints to use
 		ConstraintList _constraints;
 
 		//! Local input file
@@ -175,7 +175,11 @@ namespace SSAGES
 			CollectiveVariable::BuildCV(json, _CVs, path);
 		}
 
-		// Build CVs
+		// Build Constraints.
+		/*!
+		 * \param json JSON Value containing input information.
+		 * \param path Path for JSON path specification.
+		 */
 		void BuildConstraints(const Json::Value& json, const std::string& path)
 		{
 			Constraint::BuildConstraint(json, _constraints, _comm, path);

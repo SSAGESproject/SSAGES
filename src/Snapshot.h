@@ -19,6 +19,7 @@
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+#include <numeric>
 #include <vector>
 #include <memory>
 #include <boost/mpi.hpp>
@@ -28,6 +29,7 @@
 
 namespace SSAGES
 {
+	//! Quick helper function to round a double.
 	inline double roundf(double x)
 	{
     	return ( x >= 0 ) ? floor( x + 0.5 ) : ceil( x - 0.5 );
@@ -141,8 +143,16 @@ namespace SSAGES
 		 */
 		double GetKb() const { return _kb; }
 
+		//! Get dielectric constant.
+		/*!
+		 * \return dielectric constant.
+		 */
 		double GetDielectric() const { return _dielectric; }
 
+		//! Get qqrd2e value.
+		/*!
+		 * \return Value of qqrd2e.
+		 */
 		double Getqqrd2e() const { return _qqrd2e; }
 		
 		//! Get communicator for group (walker).
@@ -240,13 +250,21 @@ namespace SSAGES
 			_kb = kb;
 			_changed = true;
 		}
-		
+
+		//! Set the dielectric constant.
+		/*!
+		 * \param dielectric Value for the dielectric constant.
+		 */
 		void SetDielectric(double dielectric) 
 		{ 
 			_dielectric = dielectric;
 			_changed = true;
 		}
-	
+
+		//! Set the value for qqrd2e
+		/*!
+		 * \param qqrd2e Value for qqrd2e.
+		 */
 		void Setqqrd2e(double qqrd2e) 
 		{ 
 			_qqrd2e = qqrd2e;
@@ -255,7 +273,7 @@ namespace SSAGES
 
 		//! Set number of atoms in this snapshot.
 		/*!
-		 * \param Number of atoms in this snapshot
+		 * \param natoms Number of atoms in this snapshot
 		 */
 		void SetNumAtoms(unsigned int natoms) { _nlocal = natoms; }
 
@@ -371,6 +389,7 @@ namespace SSAGES
 		//! Apply minimum image to a vector.
 		/*!
 		 * \param v Vector of interest
+		 * \return Return new vector.
 		 */
 		Vector3 ApplyMinimumImage(const Vector3& v) const
 		{
@@ -477,7 +496,7 @@ namespace SSAGES
 		}
 
 		//! Access the atom IDs
-		/*!t
+		/*!
 		 * \return List of atom IDs
 		 */
 		const Label& GetAtomIDs() const { return _atomids; }
@@ -491,7 +510,7 @@ namespace SSAGES
 
 		//! Gets the local atom index corresponding to an atom ID.
 		/*!
-		 * \param Atom ID. 
+		 * \param id Atom ID.
 		 * \return Local atom index or -1 if not found.
 		 */
 		int GetLocalIndex(int id) const
@@ -527,6 +546,8 @@ namespace SSAGES
 		 * \return List of atom charges
 		 */
 		const std::vector<double>& GetCharges() const { return _charges; }
+
+		/*! \copydoc Snapshot::GetCharges() const */
 		std::vector<double>& GetCharges()
 		{
 			_changed = true;
@@ -551,6 +572,8 @@ namespace SSAGES
 		 * \return List of atom sigmas
 		 */
 		const std::vector<std::vector<double>>& GetSigmas() const { return _sigma; }
+
+		/*! \copydoc Snapshot::GetSigmas() const */
 		std::vector<std::vector<double>>& GetSigmas() 
 		{
 			_changed = true; 
@@ -581,6 +604,95 @@ namespace SSAGES
 		 * \param state State to which the "changed" flag is set
 		 */
 		void Changed(bool state) { _changed = state; }
+
+		//! Return the serialized positions across all local cores
+		std::vector<double> SerializePositions()
+		{
+
+			std::vector<int> pcounts(_comm.size(), 0); 
+			std::vector<int> pdispls(_comm.size()+1, 0);
+
+			pcounts[_comm.rank()] = 3*_nlocal;
+
+			// Reduce counts.
+			MPI_Allreduce(MPI_IN_PLACE, pcounts.data(), pcounts.size(), MPI_INT, MPI_SUM, _comm);
+
+			// Compute displacements.
+			std::partial_sum(pcounts.begin(), pcounts.end(), pdispls.begin() + 1);
+
+			// Re-size receiving vectors.
+			std::vector<double> positions;
+			positions.resize(pdispls.back(), 0);
+
+			std::vector<double> ptemp;
+			
+			for(auto& p : _positions)
+			{
+				ptemp.push_back(p[0]);
+				ptemp.push_back(p[1]);
+				ptemp.push_back(p[2]);
+			}
+
+			// All-gather data.
+			MPI_Allgatherv(ptemp.data(), ptemp.size(), MPI_DOUBLE, positions.data(), pcounts.data(), pdispls.data(), MPI_DOUBLE, _comm);
+			return positions;
+		}
+
+		//! Return the serialized velocities across all local cores
+		std::vector<double> SerializeVelocities()
+		{
+			std::vector<int> vcounts(_comm.size(), 0); 
+			std::vector<int> vdispls(_comm.size()+1, 0);
+
+			vcounts[_comm.rank()] = 3*_nlocal;
+
+			// Reduce counts.
+			MPI_Allreduce(MPI_IN_PLACE, vcounts.data(), vcounts.size(), MPI_INT, MPI_SUM, _comm);
+
+			// Compute displacements.
+			std::partial_sum(vcounts.begin(), vcounts.end(), vdispls.begin() + 1);
+
+			// Re-size receiving vectors.
+			std::vector<double> velocities;
+			velocities.resize(vdispls.back(), 0);
+
+			std::vector<double> vtemp;
+			
+			for(auto& v : _velocities)
+			{
+				vtemp.push_back(v[0]);
+				vtemp.push_back(v[1]);
+				vtemp.push_back(v[2]);
+			}
+
+			// All-gather data.
+			MPI_Allgatherv(vtemp.data(), vtemp.size(), MPI_DOUBLE, velocities.data(), vcounts.data(), vdispls.data(), MPI_DOUBLE, _comm);
+			return velocities;
+		}
+
+		//! Return the serialized positions across all local cores
+		std::vector<int> SerializeIDs()
+		{
+			std::vector<int> mcounts(_comm.size(), 0); 
+			std::vector<int> mdispls(_comm.size()+1, 0);
+
+			mcounts[_comm.rank()] = _nlocal;
+
+			// Reduce counts.
+			MPI_Allreduce(MPI_IN_PLACE, mcounts.data(), mcounts.size(), MPI_INT, MPI_SUM, _comm);
+
+			// Compute displacements.
+			std::partial_sum(mcounts.begin(), mcounts.end(), mdispls.begin() + 1);
+
+			// Re-size receiving vectors.
+			std::vector<int> IDs;
+			IDs.resize(mdispls.back(), 0);
+
+			// All-gather data.
+			MPI_Allgatherv(_atomids.data(), _atomids.size(), MPI_INT, IDs.data(), mcounts.data(), mdispls.data(), MPI_INT, _comm);
+			return IDs;
+		}
+
 
 		//! Serialize the Snapshot
 		/*!

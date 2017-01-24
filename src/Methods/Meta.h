@@ -78,9 +78,6 @@ namespace SSAGES
 		//! Hill widths.
 		std::vector<double> _widths;
 
-		//! Gridding flag and grid
-		bool _isgrid;
-
 		//! Derivatives.
 		std::vector<double> _derivatives;
 
@@ -130,10 +127,9 @@ namespace SSAGES
 			 double height, 
 			 const std::vector<double>& widths, 
 			 unsigned int hillfreq,
-			 bool isgrid,
 			 unsigned int frequency) : 
 		Method(frequency, world, comm), _hills(), _height(height), _widths(widths), 
-		  _derivatives(0), _bias(0), _isgrid(isgrid), _hillfreq(hillfreq)
+		  _derivatives(0), _bias(0), _hillfreq(hillfreq)
 		{
 		}
 
@@ -164,7 +160,11 @@ namespace SSAGES
 		 */
 		void Serialize(Json::Value& json) const override
 		{
-
+			json["type"] = "Metadynamics"; 
+			for(auto& w : _widths)
+				json["widths"].append(w);
+			json["height"] = _height;
+			json["hill_frequency"] = _hillfreq;
 		}
 
 		//! Destructor.

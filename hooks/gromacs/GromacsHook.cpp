@@ -13,6 +13,7 @@ namespace SSAGES
 	void GromacsHook::SyncToSnapshot()
 	{
 		gmxpull_();
+		Hook::PostStepHook();
 	}
 
 	MPI_Comm GromacsHook::GetCommunicator()

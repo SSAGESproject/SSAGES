@@ -20,6 +20,8 @@
 
 #pragma once 
 
+#include <numeric>
+
 #include "CollectiveVariable.h"
 #include "Drivers/DriverException.h" 
 
@@ -36,8 +38,11 @@ namespace SSAGES
 	class  ParticleSeparationCV : public CollectiveVariable
 	{
 	private:
-		Label group1_; //! Atom ID's of group 1. 
-		Label group2_; //! Atom ID's of group 2.
+		Label group1_; //!< Atom ID's of group 1.
+		Label group2_; //!< Atom ID's of group 2.
+		
+		//! Each dimension determines if it is applied by the CV.
+		Bool3 dim_; 
 
 	public:
 		//! Constructor
@@ -50,7 +55,23 @@ namespace SSAGES
 		 * \todo bounds needs to be an input.
 		 */
 		ParticleSeparationCV(const Label& group1, const Label& group2) : 
-		group1_(group1), group2_(group2)
+		group1_(group1), group2_(group2), dim_{true, true, true}
+		{}
+
+		//! Constructor
+		/*!
+		 * \param group1 Vector of atom ID's of the first particle.
+		 * \param group2 Vector of atom ID's of the second particle.
+		 * \param fixx If \c False, include x dimension.
+		 * \param fixy If \c False, include y dimension.
+		 * \param fixz If \c False, include z dimension.
+		 *
+		 * Construct a paarticle separation CV.
+		 *
+		 * \todo bounds needs to be an input.
+		 */
+		ParticleSeparationCV(const Label& group1, const Label& group2, bool fixx, bool fixy, bool fixz) : 
+		group1_(group1), group2_(group2), dim_{fixx, fixy, fixz}
 		{}
 
 		//! Initialize necessary variables.
@@ -125,7 +146,7 @@ namespace SSAGES
 			Vector3 com2 = snapshot.CenterOfMass(idx2, mtot2);
 
 			// Account for pbc. 
-			Vector3 rij = snapshot.ApplyMinimumImage(com1 - com2);
+			Vector3 rij = snapshot.ApplyMinimumImage(com1 - com2).cwiseProduct(dim_.cast<double>());
 
 			// Compute gradient.
 			_val = rij.norm();
@@ -153,6 +174,10 @@ namespace SSAGES
 
 			for(auto& bound : _bounds)
 				json["bounds"].append(bound);
+
+			json["dimension"][0] = dim_[0];
+			json["dimension"][1] = dim_[1];
+			json["dimension"][2] = dim_[2];
 		}
 	};
 }

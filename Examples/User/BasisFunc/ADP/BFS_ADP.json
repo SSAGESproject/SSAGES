@@ -4,7 +4,7 @@
         {
             "periodic": true,
             "type": "Torsional",
-            "atom ids": [
+            "atom_ids": [
                 5,
                 7,
                 9,
@@ -14,7 +14,7 @@
         {
             "periodic": true,
             "type": "Torsional",
-            "atom ids": [
+            "atom_ids": [
                 7,
                 9,
                 15,
@@ -30,8 +30,7 @@
         "coeff_filename" : "_adp_5",
         "CV_coefficients" : [ 25, 25 ],
         "weight" : 1.0,
-        "convergence_exit" : false,
-        "read" : false
+        "convergence_exit" : false
     },
     "grid" : {
         "lower" : [-3.13, -3.13],

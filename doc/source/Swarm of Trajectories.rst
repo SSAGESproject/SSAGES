@@ -1,3 +1,5 @@
+.. swarm:
+
 Swarm of Trajectories
 ---------------------
 
@@ -124,6 +126,8 @@ swarm length
     multiplied by number of trajectories specifies how many total steps will be
     spent doing unrestrained sampling.
 
+.. _Swarm_tutorial:
+
 Tutorial
 ^^^^^^^^
 
@@ -193,7 +197,7 @@ this tutorial.
 Developer
 ^^^^^^^^^
 
-Cody.
+Cody Bezik.
 
 References
 ^^^^^^^^^^

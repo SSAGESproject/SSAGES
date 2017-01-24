@@ -20,6 +20,8 @@
  */
 #pragma once 
 
+#include <numeric>
+
 #include "CollectiveVariable.h"
 #include "Drivers/DriverException.h"
 #include <cmath>

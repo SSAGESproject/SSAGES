@@ -21,7 +21,8 @@ set  (UNIT_TESTS "ParticlePositionCVTests"
 				 "FTSTest"
                  "StringMethodTest")
 
-set (INTEGRATION_TESTS "Meta_Single_Atom_Test")
+set (INTEGRATION_TESTS "Meta_Single_Atom_Test"
+                       "Basis_ADP_Test")
 
 foreach (TEST ${UNIT_TESTS})
     add_executable (${TEST} unit_tests/${TEST}.cpp)

@@ -106,15 +106,31 @@ protected:
 		// Set up ABF method.
 		std::vector<std::vector<double>> histdetails;
 		std::vector<std::vector<double>> restraint;
+		std::vector<bool> isperiodic;
+		std::vector<std::vector<double>> periodicboundaries;
 		for(size_t i=0; i<cvlist.size(); ++i)
 		{
 			std::vector<double> temp1 = {-1, 1, 2};
 			std::vector<double> temp2 = {-1.5, 1.5, 10};
 			histdetails.push_back(temp1);
 			restraint.push_back(temp2);
+			isperiodic.push_back(false);
+			periodicboundaries.push_back(std::vector<double>(2, 0.0));
 		}
 
-		Method = new ABF(world, comm, histdetails, restraint, 1, 5, "testout", 10, 1, 1);	
+		Method = new ABF(world, // MPI global communicator
+						 comm,  // MPI local communicator
+						 restraint, // Min, max, spring constant
+						 isperiodic, // Periodicity in CVs
+						 periodicboundaries, // Position of periodic boundaries
+						 5, // min hists before applying bias
+						 false, // mass wheighing
+						 "testout", // filename
+						 histdetails, // hist details
+						 10, // Backup interval
+						 1, // Unit conversion
+						 1, // timestep
+						 1); // frequency
 	}
 
 	virtual void TearDown() 

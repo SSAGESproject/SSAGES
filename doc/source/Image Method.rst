@@ -1,3 +1,5 @@
+.. image_method:
+
 Image Method
 ------------
 
@@ -68,14 +70,14 @@ Nevertheless, we provided options of dumping trajectories and printing out
 force-distance data in the LAMMPS INPUTFILE examples for users to visualize how
 significant the polarization effects are in some cases more conveniently. 
 
+.. _IM_tutorial:
+
 Tutorial
 ^^^^^^^^
 
 .. todo::
 
-    Give a tutorial. The tutorial can be based on one of the examples for this
-    method. Describe how to compile the input files and how to call SSAGES.
-    Describe how to understand and visualize the results.
+    Write a tutorial. 
 
 Developer
 ^^^^^^^^^

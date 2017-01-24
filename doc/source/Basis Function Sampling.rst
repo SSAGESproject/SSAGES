@@ -1,3 +1,5 @@
+.. _basis-function-sampling:
+
 Basis Function Sampling
 -----------------------
 
@@ -126,6 +128,8 @@ units outside the grid boundaries.
 The convergence exit option is available if the user chooses to continue running
 past convergence, but a good heuristic for tolerance is around
 :math:`1\mathrm{e}{-6}`.
+
+.. _BFS-tutorial:
 
 Tutorial
 ^^^^^^^^

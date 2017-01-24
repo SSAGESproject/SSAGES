@@ -1,3 +1,5 @@
+.. _molecular-dynamics:
+
 Generic Metadynamics
 --------------------
 
@@ -14,6 +16,8 @@ Options & Parameters
 .. todo::
 
     Describe options and parameters to control the method.
+
+.. _MD_tutorial:
 
 Tutorial
 ^^^^^^^^

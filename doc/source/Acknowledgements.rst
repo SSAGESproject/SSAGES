@@ -20,8 +20,8 @@ Project Leads
 -------------
 
 * Ben Sikora (SSAGES Core)
-* Hythem Sidky (SSAGES Architecture)
 * Yamil J. Colón (Collective Variables, Methods, and Testing)
+* Hythem Sidky (SSAGES Architecture)
 * Julian Helfferich (Documentation)
 
 SSAGES Core Development

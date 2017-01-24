@@ -2,13 +2,13 @@
     "inputfile" : "in.LAMMPS_Meta_Test",
     "CVs" : [
         {
-            "type" : "AtomCoordinate",
-            "atom id" : 1,
+            "type" : "ParticleCoordinate",
+            "atom_ids" : [1],
             "dimension" : "x"
         },
         {
-            "type" : "AtomCoordinate",
-            "atom id" : 1,
+            "type" : "ParticleCoordinate",
+            "atom_ids" : [1],
             "dimension" : "y"
         }
     ],
@@ -18,10 +18,16 @@
             0.1,
             0.1
         ],
-        "height" : 0.1,
-        "use_grid" : "no"
+        "frequency" : 1,
+        "height" : 0.1
     },
     "driver" : [
+        {
+            "number processors" : 1,
+            "type" : "LAMMPS",
+            "MDSteps" : 40000,
+            "logfile" : "node-1"
+        },
         {
             "number processors" : 1,
             "type" : "LAMMPS",

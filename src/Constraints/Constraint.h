@@ -34,47 +34,92 @@ namespace SSAGES
 	// Forward declare.
 	class Constraint;
 
-	// Typedefs
+	//! List of Constraints
 	using ConstraintList = std::vector<Constraint*>;
 
-	// Interface for Constraint implementations.
+	//! Interface for Constraint implementations.
 	class Constraint : public EventListener, public Serializable
 	{
 	protected:
+		//! MPI global communicator.
 		boost::mpi::communicator _comm;
 
 	public:
-		// Frequency of sampling must be specified by all methods.
+		//! Constructor
+		/*!
+		 * \param frequency Frequency of sampling.
+		 * \param comm MPI global communicator.
+		 *
+		 * \note Frequency of sampling must be specified by all methods.
+		 */
 		Constraint(unsigned int frequency,  
 			boost::mpi::communicator& comm) : 
 		EventListener(frequency), _comm(comm){}
 
+		//! Destructor
 		virtual ~Constraint(){}
 
-		// Method call prior to simulation initiation.
+		//! Method call prior to simulation initiation.
+		/*!
+		 * \param snapshot Simulation snapshot.
+		 * \param cvs List of CVs.
+		 */
 		virtual void PreSimulation(Snapshot* snapshot, const CVList& cvs) override = 0;
 
-		// Method call post integration.
+		//! Method call post integration.
+		/*!
+		 * \param snapshot Pointer to current snapshot.
+		 * \param cvs List of CVs.
+		 */
 		virtual void PostIntegration(Snapshot* snapshot, const CVList& cvs) override = 0;
 
-		// Method call post simulation.
+		//! Method call post simulation.
+		/*!
+		 * \param snapshot Pointer to current snapshot.
+		 * \param cvs List of CVs.
+		 */
 		virtual void PostSimulation(Snapshot* snapshot, const CVList& cvs) override = 0;
 
-		// Builds a constraint from a JSON node. Returns a pointer to the built constraint.
-		// If return value is nullptr, 
-		// then an unknown error occurred. It will throw a BuildException on failure. 
-		// Object lifetime is the caller's responsibility. 
+		//! Build a constraint from a JSON node.
+		/*!
+		 * \param json JSON value containing input information.
+		 * \param comm MPI communicator.
+		 * \return Pointer to the new constraint. \c nullptr in case of an
+		 *         unknown error.
+		 *
+		 * This function builds a constraint from a JSON node. Returns a pointer
+		 * to the built constraint. If an unknown error occured, the return value
+		 * is \c nullptr, but in general, a BuildException will be thrown on
+		 * failure.
+		 *
+		 * \note Object lifetime is the caller's responsibility.
+		 */
 		static Constraint* BuildConstraint(const Json::Value& json, 
 							boost::mpi::communicator& comm);
 
-		// Overloaded function allowing JSON path specification.
+		//! Overloaded function allowing JSON path specification.
+		/*!
+		 * \param json JSON value containing input information.
+		 * \param comm MPI global communicator.
+		 * \param path Path for JSON path specification.
+		 * \return Pointer to the new constraint. \c nullptr in case of an
+		 *         unknown error.
+		 */
 		static Constraint* BuildConstraint(const Json::Value& json,
 							boost::mpi::communicator& comm, 
 							   const std::string& path);
 
-		// Builds constraints and adds them to the constraint list. 
-		// Throws exception on failure. 
-		// Object lifetime management is caller's responsibility. 
+		//! Build constraint.
+		/*!
+		 * \param json JSON value containing input information.
+		 * \param clist List of constraints.
+		 * \param comm MPI global communicator.
+		 * \param path Path for JSON path specification.
+		 *
+		 * This function builds a new constraint and adds it to the specified
+		 * list of constraints. On failure, an exception is thrown.
+		 * \note Object lifetime management is caller's responsibility.
+		 */
 		static void BuildConstraint(const Json::Value& json, 
 							   ConstraintList& clist,
 							   boost::mpi::communicator& comm,

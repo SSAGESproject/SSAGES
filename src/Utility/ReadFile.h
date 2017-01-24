@@ -33,6 +33,14 @@
 
 namespace SSAGES
 {
+	//! Utility class to read file
+	/*!
+	 * Simple utility class to read in a trajectory file.
+	 *
+	 * Supported file types:
+	 *
+	 * * xyz
+	 */
 	class ReadFile
 	{
 	public:
@@ -52,6 +60,12 @@ namespace SSAGES
 		//! Read xyz file
 		/*!
 		 * \param FileName Name of xyz file to read in.
+		 * \return Vector containing information stored in file.
+		 *
+		 * Read in a xyz file. The information will be returned as a vector of
+		 * 4-element arrays. Each array corresponds to one atom and stores the
+		 * following information: atom-ID, x-coordinate, y-coordinate,
+		 * z-coordinate.
 		 */
 		static std::vector<std::array<double,4>> ReadXYZ(std::string FileName)
 		{

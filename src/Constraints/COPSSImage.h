@@ -30,36 +30,54 @@
 
 namespace SSAGES
 {
-	//Image method to include polarization corrections into electrostatic interactions
-	//for systems where dielectric objects are embedded in dielectric continuum
+	//! Image method
+	/*!
+	 * Image method to include polarization corrections into electrostatic
+	 * interactions for systems where dielectric objects are embedded in
+	 * dielectric continuum.
+	 */
 	class COPSSImage : public Constraint
 	{
 	private:
-		//! Dielectric constant of polarizable particles
+		//! Dielectric constant of polarizable particles.
 		double _einner;
 
-		//! Where non polarizable particles start
+		//! Where non polarizable particles start.
 		int _ion_type_start;
 		
-		//! Dielectric constant of outside continuum		
+		//! Dielectric constant of outside continuum.
 		double _eouter;
 
-		//! unit conversion constant
+		//! unit conversion constant.
 		double _qqrd2e;
 		
+		//! Lower value for x.
 		double xlo = 0.0;
 		
+		//! Upper value for x.
 		double xhi = 1.0;
 	
+		//! Number of gaussian integrations.
 		int ngauss = 5;
 
+		//! Magic numbers for x.
 		double _xg0[5] = {-0.9061798459386640,-0.5384693101056831,0.00000000000000000,0.5384693101056831,0.9061798459386640};
 
+		//! Magic numbers for the weight.
    		double _wg0[5] = {0.2369268850561891,0.4786286704993665,0.5688888888888889,0.4786286704993665,0.2369268850561891};	
 		
+		//! List of radii for all atom types.
 		std::vector<double> _atomTypeRadius;
 	
 	public:
+		//! Constructor.
+		/*!
+		 * \param comm MPI global communicator.
+		 * \param frequency Frequency with which this method is invoked.
+		 * \param einner Inner bound for electrostatics.
+		 * \param ion_type_start The ion type to start with.
+		 * \param atomTypeRadius List of atom radii.
+		 */
 		COPSSImage(boost::mpi::communicator& comm, 
 			   unsigned int frequency, 
 			   double einner, 
@@ -67,39 +85,109 @@ namespace SSAGES
 			   std::vector<double> atomTypeRadius):
 		Constraint(frequency, comm), _einner(einner), _ion_type_start(ion_type_start), _eouter(0), _qqrd2e(1), _atomTypeRadius(atomTypeRadius){}
 		
-		// gauss integration auxiliary params
-	                //auxiliary variables for image kernel functions
-         	double _e, _ginv;
+		//! Gauss integration auxiliary parameter e.
+		double _e;
 
-                double Rxkj, Rykj, Rzkj, Rkj2, rkj;
+		//! Gauss integration auxiliary parameter g inverse.
+		double _ginv;
 
-                double Rxij, Ryij, Rzij, Rij2, rij;
+		//! Auxiliary variable R_kj for image kernel functions (x component).
+		double Rxkj;
 
-                double ukj, vkj, wkj;
+		//! Auxiliary variable R_kj for image kernel functions (y component).
+		double Rykj;
 
-                double aux1, aux2;
+		//! Auxiliary variable R_kj for image kernel functions (z component).
+		double Rzkj;
 
-                double auxv_x_integ, auxv_y_integ, auxv_z_integ, aux3_integ, aux3Sqrt_integ;
+		//! Auxiliary variable R_kj squared.
+		double Rkj2;
 
-                double auxv_x_delta, auxv_y_delta, auxv_z_delta, aux3_delta, aux3Sqrt_delta;
+		//! Auxiliary variable r_kj.
+		double rkj;
 
-                double aa;
+		//! Auxiliary variable R_ij (x component).
+		double Rxij;
 
-		//Image method kernel function, 1st order currently
+		//! Auxiliary variable R_ij (y component).
+		double Ryij;
+
+		//! Auxiliary variable R_ij (z component).
+		double Rzij;
+
+		//! Auxiliary variable R_ij squared.
+		double Rij2;
+
+		//! Auxiliary variable r_ij.
+		double rij;
+
+		//! Auxiliary variable u_kj.
+		double ukj;
+
+		//! Auxiliary variable v_kj.
+		double vkj;
+
+		//! Auxiliary variable w_kj.
+		double wkj;
+
+		//! Auxiliary variable.
+		double aux1;
+
+		//! Yet another auxiliary variable.
+		double aux2;
+
+		//! Auxiliary variable for integration (x component).
+		double auxv_x_integ;
+
+		//! Auxiliary variable for integration (y component).
+		double auxv_y_integ;
+
+		//! Auxiliary variable for integration (z component).
+		double auxv_z_integ;
+
+		//! Auxiliary variable for integration.
+		double aux3_integ;
+
+		//! Auxiliary variable, square root of integration result.
+		double aux3Sqrt_integ;
+
+		//! Auxiliary variable, delta (x component).
+		double auxv_x_delta;
+
+		//! Auxiliary variable, delta (y component).
+		double auxv_y_delta;
+
+		//! Auxiliary variable, delta (z component).
+		double auxv_z_delta;
+
+		//! Auxiliary variable, delta.
+		double aux3_delta;
+
+		//! Auxiliary variable, square root of delta.
+		double aux3Sqrt_delta;
+
+		//! Auxiliary variable.
+		double aa;
+
+		//! Image method kernel function, 1st order currently
 		void force_pol (Snapshot*, size_t, size_t, size_t);
 						
-		// Pre-simulation hook
+		//! Pre-simulation hook
 		void PreSimulation(Snapshot*, const CVList&) override;
 
-		// Post-integration hook
+		//! Post-integration hook
 		void PostIntegration(Snapshot* snapshot, const CVList&) override;
 
-		// Post-simulation hook
+		//! Post-simulation hook
 		void PostSimulation(Snapshot*, const CVList&) override;
 
-		void Serialize(Json::Value&) const override {};
+		//! Serialize the class
+		/*!
+		 * \warning Serialization not yet implemented.
+		 */
+		void Serialize(Json::Value& /* json */) const override {};
 	
-		// Destructor
+		//! Destructor
 		~COPSSImage() {}
 	};
 }

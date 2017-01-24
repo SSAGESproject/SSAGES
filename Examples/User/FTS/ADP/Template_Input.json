@@ -9,7 +9,7 @@
 			"CVs" : [
 				{
 					"type" : "Torsional",
-					"atom ids" : [
+					"atom_ids" : [
 						5,
 						7,
 						9,
@@ -19,7 +19,7 @@
 				},
 				{
 					"type": "Torsional",
-					"atom ids" : [
+					"atom_ids" : [
 						7,
 						9,
 						15,
@@ -39,7 +39,6 @@
 				"time_step" : 0.1,
 				"frequency" : 1,
 				"ksprings" : [1000,1000],
-				"tolerance" : [0.001, 0.001],
 				"flavor" : "FTS",
 				"umbrella_iterations" : 2000,
 				"kappa" : 0.1
