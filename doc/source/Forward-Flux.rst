@@ -192,13 +192,15 @@ expression:
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
 
-To run a RBFFS simulation using SSAGES, an input file in JSON format is required
+The notation used in SSAGES implementation of FFS is mainly drawn from Ref. [1]_.
+We recommend referring to this review if the user is unfamiliar with the terminology. 
+To run a DFFS simulation using SSAGES, an input file in JSON format is required
 along with a general input file designed for your choice of molecular dynamics
 engine (MD engine). For your convenience, two files ``Template_Input.json`` and
 ``FF_Input_Generator.py`` are provided to assist you in generating the JSON
 file. Here we describe the parameters and options that should be set in
 ``Template_Input.json`` file in order to successfully generate an input file and
-run a RBFFS simulation.
+run a DFFS simulation.
 
 Input and parameters related to "driver"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -214,157 +216,9 @@ type
 num processors
     + Type: integer
     + Default: 1
-    + Functionality:  Sets the number of processors that each individual drivers
-      uses to run the simulation. In current version of SSAGES, drivers can only
-      use one processor.
-
-MDSteps
-    + Type: integer
-    + Default: 1000000000
-    + Functionality:  Sets the maximum number of MD steps allowed for the FFS
-      simulation on a given walker. We recommend defining a large number here to
-      ensure that the simulation is completed before reaching that many steps.
-      SSAGES will exit upon completion of the FFS simulation.
-
-logfile
-    + Type: string
-    + Default: “none”
-    + Functionality: Sets the name of engine-dependent log file that MD engine
-      uses to write the simulation information including timesteps, energies, etc.
-
-Input and parameters related to "method"
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-type
-    + Type: string
-    + Default: "ForwardFlux"
-    + Functionality:  Specifies that “ForwardFlux” module of SSAGES will be
-      activated. Don’t change this if you plan to run a forward flux sampling
-      simulation.
-
-index_file
-    + Type: string
-    + Default: none
-    + Functionality: Stores interface information in the format:
-      `Interface filename origin`
-      The file-naming scheme is based on the interface the simulation is on and
-      cumulative hash number. Origin is the filename of the file the trajectory
-      was previously fired from to reach the current interface position.
-
-library_file
-    + Type: string 
-    + Default: "library_input.dat"
-    + Functionality:  Sets the name of the file that stores the checkpoints at
-      the initial interface  by running a serial trajectory around state A.
-
-results_file
-    + Type: string 
-    + Default: "results.dat"
-    + Functionality: Specifies the name of the file in which the results of the
-      forward flux simulation is stored. This file can later be helpful for
-      post-processing purposes.
-
-centers
-    + Type: array
-    + Default: none
-    + Functionality:  Defines an array of intermediate interfaces that links the
-      initial state A to the final state B. This array can either be defined in
-      the ``Template_Input.json`` file or ``FF_Input_Generator.py`` file. In the
-      latter case, the values of **centers** is left blank in the
-      ``Template_Input.json`` file.
-
-generate_configs
-    + Type: integer 
-    + Default: 1
-    + Functionality: Defines the number of checkpoints/configurations that ought
-      to be generated at the first interface, i.e. .  
-
-shots
-    + Type: integer
-    + Default: 1
-    + Functionality:  Sets the number of trials that should be initiated from
-      the randomly selected checkpoints at an interface (at the initial
-      interface, all checkpoint are used to generate multiple transition paths).
-      In principle, this can change from interface to interface but in the
-      current implementation of SSAGES, the number of trials/shots from a
-      checkpoint/node is assumed to be a constant number.  
-
-frequency
-    + Type: integer
-    + Default: 1
-    + Functionality:  Specifies the frequency (in timesteps of MD simulation)
-      that SSAGES recomputes the value of “order parameter” and writes the
-      output data. 
-
-restart_type
-    + Type: string
-    + Default: "new_library"
-    + Functionality: Defines how a FFS simulation should be restarted. Several
-      options are available:
-
-        1) "new_library": generates a new starting library. If this option is
-           defined, a new FFS simulation is setup and run.
-        2) "from_library": restarts from a library of available configurations
-           defined by library_file and library_point.
-        3) "from_interface": restarts the simulation from an interface defined
-           by the current position of the CV from configurations found in
-           ``index_contents``.
-        4) "none": SSAGES restarts the FFS simulation using snapshots of
-           trajectories that are not necessarily checkpoints/nodes located at a
-           specific interface.
-
-      "from_library", "from_interface" and "none" are typically reserved for
-      restarting from crashes only. 
-      
-library_point
-    + Type: integer
-    + Default: none
-    + Functionality: Specifies the current library configuration that you are on
-      from the list of configurations found in the library file defined by
-      ``library_file``.
-
-current_hash
-    + Type: integer
-    + Default: 1
-    + Functionality: Used in the file-naming scheme. Mainly needed for restarts,
-      or if specifying where the number scheme should start. Default is based on
-      walker_ID*1000000, meaning walker 0 files will be
-      ``dump_"interface"_0.dump``, ``dump_"interface"_1.dump``, etc.
-
-index_contents
-    + Type: string
-    + Default: none
-    + Functionality: Only used for restarts by SSAGES, includes the same
-      contents as index_file.
-
-successes
-    + Type: array
-    + Default: none
-    + Functionality: Only used for restarts by SSAGES, contains successes on
-      each interface for each library configuration explored so far. Contents
-      are exactly those as ``results_file: walker_id library_point`` "list of
-      successes at each interface". For example, a library consisting of two
-      configurations and 4 interfaces using 1 walker:
-
-      0 0 2 3 4 0
-
-      0 1 1 0 0 0
-
-current_shot
-    + Type: integer
-    + Default: none
-    + Functionality: Mainly used for restarts, indicates which shot this walker
-      is on.
-
-Other required input parameters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-CVs
-    + Type: array
-    + Default: none
-    + Functionality: Selection of "order parameter" or "reaction coordinate".
-      The current implementation of FFS in SSAGES can only take one collective
-      variable. See section XXX for more details.
+    + Functionality:  Sets the number of processors that individual walkers
+      uses to run the simulation. In the current version of SSAGES, this should be set 
+      to 1.
 
 inputfile
     + Type: string
@@ -374,48 +228,136 @@ inputfile
       MD package to learn about various input options as well as the structure
       and format of input files suitable for MD engine of your choice.
 
+MDSteps
+    + Type: integer
+    + Default: 10000000
+    + Functionality:  Sets the maximum number of MD steps allowed for the FFS
+      simulation on a given walker. We recommend defining a large number here to
+      ensure that the simulation is completed before reaching that many steps.
+      SSAGES will exit upon completion of the FFS simulation.
+
+logfile
+    + Type: string
+    + Default: “log”
+    + Functionality: Sets the name of the output file that the MD engine
+      uses to write the simulation information including timesteps, energies, etc.
+
+Input and parameters related to "method"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+type
+    + Type: string
+    + Default: "ForwardFlux"
+    + Functionality:  Specifies that “ForwardFlux” module of SSAGES should be
+      activated. Don’t change this if you plan to run a forward flux sampling
+      simulation.
+
+flavor
+    + Type: string
+    + Default: "DirectForwardFlux"
+    + Functionality: Specifies the desired flavor of the FFS method that SSAGES should run.
+      Currently, DFFS has been implemented in SSAGES. RBFFS and BGFFS will be available in the future releases.
+
+nInterfaces
+    + Type: integer
+    + Default: 5
+    + Functionality:  Sets the total number of interfaces that connects the state A to the State B (including States A and B themselves)
+
+interfaces
+    + Type: array
+    + Default: []
+    + Functionality:  Defines an array of intermediate interfaces that links the
+      initial state A to the final state B. This array can either be defined in
+      the ``Template_Input.json`` file or ``FF_Input_Generator.py`` file. In the
+      latter case, the values of **interfaces** is left blank in the
+      ``Template_Input.json`` file. Minimum of two interfaces must be defined.
+
+N0Target
+    + Type: integer 
+    + Default: 100
+    + Functionality: Defines the number of the configurations that ought
+      to be generated (or have been provided by user) at the first interface.  
+
+trials
+    + Type: array
+    + Default: []
+    + Functionality:  Specifies the number of trials (M[i]) that should be spawned from each 
+      interface. The length of this array should match the length of the array of the "interfaces".
+
+computeInitialFlux
+    + Type: boolean
+    + Default: "true"
+    + Functionality:  Specifies if SSAGES should perform an initial calculations. If this parameter is set to "true", SSAGES would also
+      generate the necessary number of initial configurations at state A. The user is required to provide one configuration in State A, otherwise
+      SSAGES would issue an error. If this parameter is set to "false", the user must provide the initial configurations in the following format:
+
+saveTrajectories
+    + Type: boolean
+    + Default: "true"
+    + Functionality:  
+
+currentInterface
+    + Type: integer 
+    + Default: 0
+    + Functionality: Specifies the interface in which the calculations should start from or should continue from. 
+      This parameter is helpful in restarting a FFS calculation from interfaces other than State A. 
+
+outputDirectoryName
+    + Type: string
+    + Default: "FFSoutput"
+    + Functionality: Specifies the directory name that contains the output of the FFS calculations including 
+      the initial flux, the successful and failed configurations, commitor probabilities, and the trajectories. 
+
+
+
+Other required input parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+CVs
+    + Type: array
+    + Default: none
+    + Functionality: Selection of the "order parameter" or the "reaction coordinate".
+      The current implementation of FFS in SSAGES can takes one collective
+      variable.
+
 .. _FFS_tutorial:
 
 Tutorial
 ^^^^^^^^
 
 This tutorial will walk you step by step through the user example provided with
-the SSAGES source code that runs the forward flux method on the alanine dipeptide using
-LAMMPS.  First, be sure you have compiled SSAGES with LAMMPS.  Then, navigate to
-the ``SSAGES/Examples/User/ForwardFlux/ADP`` subdirectory.  Now, take a moment
-to observe the ``in.ADP_Test and data.input`` files in order to familiarize
+the SSAGES source code that runs the forward flux method on a Langevin particle 
+in a two-dimensional potential energy surface using LAMMPS. First, be sure you
+have compiled SSAGES with LAMMPS. Then, navigate to the ``SSAGES/Examples/User/ForwardFlux``
+subdirectory.  Now, take a moment to observe the ``in.LAMMPS_FF_Test_1d`` file to familiarize
 yourself with the system being simulated.  
 
-The next two files of interest are the ``FF_Template.json`` input file and the
+The next two files of interest are the ``Template_Input.json`` input file and the
 ``FF_Input_Generator.py`` script.  Both of these files can be modified in your
 text editor of choice to customize the inputs, but for this tutorial, simply
-observe them and leave them be.  FF_Template.json contains all the information
+observe them and leave them be. FF_Template.json contains all the information
 necessary to fully specify one driver; FF_Input_Generator.py copies this
-information a number of times specified within the script (for this tutorial,
-12 times) while also linearly interpolating through the start and end states
-defined in the script and substituting the correct values into the “centers”
-portion of the method definition.  Execute this script as follows:
+information a number of times specified within the FF_Input_Generator.py script (for this tutorial,
+2 times). Issue the following command:
 
 .. code-block:: bash
 
     python FF_Input_Generator.py
 
-You will produce a file called ``EB.json``. You can also open this file to
-verify for yourself that the script did what it was supposed to do.  Now, with
-your JSON input and your SSAGES binary, you have everything you need to perform
-a simulation.  Simply run:
+You will produce a file called ``Input-2proc.json`` along with "in.LAMMPS_FF_Test_1d-0"
+and "in.LAMMPS_FF_Test_1d-1". You can also open this file to verify for yourself that
+the script did what it was supposed to do.  Now, with your JSON input and your SSAGES binary,
+you have everything you need to perform a simulation.  Simply run:
 
 .. code-block:: bash
 
-    mpiexec -np 12 ./ssages FF.json
+    mpiexec -np 2 ./ssages Input-2proc.json
 
-Allow your system to run for the specified number of iterations (2000 for this
-tutorial).
 
-Developer
-^^^^^^^^^
+Developers
+^^^^^^^^^^
 
-Ben Sikora, Hadi Ramezani-Dakhel & Joshua Lequieu.
+Joshua Lequieu, Hadi Ramezani-Dakhel, Ben Sikora, Vikram Thapar.
 
 References
 ^^^^^^^^^^
