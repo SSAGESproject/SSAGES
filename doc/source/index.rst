@@ -33,7 +33,7 @@ pathways or to bias the statistics of a simulation for the purposes of
 computing free energies. The internal structure of the code has been designed
 to be simple and extensible to new methods and sampling engines. For further
 details on examples and capabilities of SSAGES, peruse the documentation
-for :ref:`specifc modules <meta-dynamics-methods>`.
+for :ref:`specifc modules <advanced-sampling-methods>`.
 
 Contents:
 
@@ -43,7 +43,7 @@ Contents:
    Introduction
    Getting Started
    Tutorials
-   Meta-Dynamics Methods
+   Advanced Sampling Methods
    Write your own Methods and CVs
    Contribute to SSAGES
    The SSAGES Cookbook
