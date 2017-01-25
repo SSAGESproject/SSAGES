@@ -4,6 +4,8 @@
  *
  * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
  *                Hythem Sidky <hsidky@nd.edu>
+ *                Joshua Lequieu <lequieu@uchicago.edu>
+ *                Hadi Ramezani-Dakhel <ramezani@uchicago.edu>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,95 +35,16 @@ namespace SSAGES
 
 
         std::cout << "\nWARNING! MAKE SURE LAMMPS GIVES A DIFFERENT RANDOM SEED TO EACH PROCESSOR, OTHERWISE EACH FFS TRAJ WILL BE IDENTICAL!\n"; 
-        //code for setting up simple simulation and debugging
-        _ninterfaces = 5;
-        int i;
-        _interfaces.resize(_ninterfaces);
-        _interfaces[0]=-1.0;
-        _interfaces[1]=-0.95;
-        _interfaces[2]=-0.8;
-        _interfaces[3]= 0;
-        _interfaces[4]= 1.0;
-
-        _saveTrajectories = true;
-
-        _current_interface = 0;
-
-        _output_directory = "FFSoutput";
-        //std::mkdir(_output_directory); //how to make directory?
-        _initialFluxFlag = true;
-        _M.resize(_ninterfaces);
-        _A.resize(_ninterfaces);
-        _P.resize(_ninterfaces);
-        _S.resize(_ninterfaces);
-        _N.resize(_ninterfaces);
-        for(i=0;i<_ninterfaces;i++) _M[i] = 50;
-
-        _N0Target = 100;
-
-        
-        // This is to generate an artificial Lambda0ConfigLibrary, Hadi's code does this for real
-        /*
-        Lambda0ConfigLibrary.resize(_N[0]);
-        std::normal_distribution<double> distribution(0,1);
-        for (i = 0; i < _N[0] ; i++){
-          Lambda0ConfigLibrary[i].l = 0;
-          Lambda0ConfigLibrary[i].n = i;
-          Lambda0ConfigLibrary[i].a = 0;
-          Lambda0ConfigLibrary[i].lprev = 0;
-          Lambda0ConfigLibrary[i].nprev = i;
-          Lambda0ConfigLibrary[i].aprev = 0;
        
-          FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
-          // Write the dump file out
-          std::ofstream file;
-          std::string filename = _output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
-          file.open(filename.c_str());
-
-          //first line gives ID of where it came from
-          file << ffsconfig.lprev << " " << ffsconfig.nprev << " " << ffsconfig.aprev << "\n";
-          //write position and velocity
-          file << "1 -1 0 0 " << distribution(_generator) << " "  << distribution(_generator) << " 0\n";
-
-        }
-        */
-        _pop_tried_but_empty_queue = false;
-
-
-    }
-
-	void ForwardFlux::PostIntegration(Snapshot* snapshot, const CVList& cvs)
-	{
-        //check if we want to check FFS interfaces this timestep
-        //for now, do it every time step
-        if (_iteration % 1 != 0) return;
-
-        // check the structure at the beginning of the simulation
-        if (_iteration == 0) {
-          CheckInitialStructure(cvs);
-        }
-
-        // if _computefluxA0
-        if (_initialFluxFlag){
-            ComputeInitialFlux(snapshot,cvs); 
-            if (!_initialFluxFlag){ //only enter here once
-
-              InitializeQueue(snapshot,cvs);
-              PrintQueue();
-            }
-        }
-        // Else check the FFS interfaces
-        else{
-            CheckForInterfaceCrossings(snapshot,cvs);
-            //FluxBruteForce(snapshot,cvs);
-
-        }
-        // Other modes?
-
     }
 
 	void ForwardFlux::PostSimulation(Snapshot* snapshot, const CVList& cvs){
         std::cout << "Post simulation\n";
+
+        ComputeCommittorProbability(snapshot);
+
+        ComputeTransitionProbabilities();
+
         if (_saveTrajectories){
           ReconstructTrajectories(snapshot);	
         }
@@ -135,9 +58,10 @@ namespace SSAGES
 
           // Check if we are in State A
           _cvvalue = cvs[0]->GetValue();
+          _cvvalue_previous = _cvvalue;
           double _firstInterfaceLocation = _interfaces[0];
           if ( _cvvalue > _firstInterfaceLocation) {
-            std::cout << "Please provide an initial configuration in State A. Exiting ...." << std::endl;
+            std::cerr << "Please provide an initial configuration in State A. Exiting ...." << std::endl;
             exit(1);
           }
         }
@@ -145,18 +69,41 @@ namespace SSAGES
     
     int ForwardFlux::HasCrossedInterface(double current, double prev, unsigned int i){
         double interface_location = _interfaces[i];
-        if ((prev <= interface_location) && (current >= interface_location))
-            return 1;
-        else if ((prev >= interface_location) && (current <= interface_location))
-            return -1;
-        else
-            return 0;
+        if (_interfaces_increase){
+          if ((prev <= interface_location) && (current >= interface_location)){
+              return 1;
+          }
+          else if ((prev >= interface_location) && (current <= interface_location)){
+              return -1;
+          }
+          else{
+              return 0;
+          }
+        }
+        else{
+          if ((prev >= interface_location) && (current <= interface_location)){
+              return 1;
+          }
+          else if ((prev <= interface_location) && (current >= interface_location)){
+              return -1;
+          }
+          else{
+              return 0;
+          }
+
+        }
     }
 
     bool ForwardFlux::HasReturnedToA(double current){
         double interface_location = _interfaces[0];
-        if (current < interface_location) return true;
-        else return false;
+        if (_interfaces_increase){
+          if (current < interface_location) return true;
+          else return false;
+        }
+        else{
+          if (current > interface_location) return true;
+          else return false;
+        }
     }
 
 	void ForwardFlux::ComputeInitialFlux(Snapshot* snapshot, const CVList& cvs){
@@ -166,14 +113,13 @@ namespace SSAGES
         //check if we've crossed the first interface (lambda 0)
         int hascrossed = HasCrossedInterface(_cvvalue, _cvvalue_previous, 0);
         bool success_local = false;
-        bool *successes = new bool (_world.size());
+        bool *successes = new bool[_world.size()];
 
-        // If we have crossed the first interface going forward, then write the information to disk
         if (hascrossed == 1){
               success_local = true;
         }
 
-        //for each traj that crossed to lambda0 in forward direction, we need to write it to disk (FFSConfigurationFile)
+        //for each traj that crossed the lambda0 in forward direction, we need to write it to disk (FFSConfigurationFile)
         MPI_Allgather(&success_local,1,MPI::BOOL,successes,1,MPI::BOOL,_world);
 
         int success_count = 0;
@@ -184,6 +130,7 @@ namespace SSAGES
             if (i == _world.rank()){
               int l,n,a,lprev,nprev,aprev;
               //update ffsconfigid's l,n,a
+              //note lprev == l for initial interface
               l = 0;
               n = _N[0] + success_count;
               a = 0;
@@ -194,7 +141,6 @@ namespace SSAGES
               FFSConfigID newid = FFSConfigID(l,n,a,lprev,nprev,aprev);
               Lambda0ConfigLibrary.emplace_back(l,n,a,lprev,nprev,aprev);
               WriteFFSConfiguration(snapshot,newid,1);
-
             }
             success_count++;
           }    
@@ -217,7 +163,6 @@ namespace SSAGES
         _N0TotalSimTime += N0SimTime;
 
 
-
         //print some info
         if (success_local){
             std::cout << "Iteration: "<< _iteration << ", proc " << _world.rank() << std::endl;
@@ -230,7 +175,7 @@ namespace SSAGES
         if (_N[0] >= _N0Target){
             std::cout << "Initial flux calculation was successfully completed" << std::endl;
             // Call a function to compute the actual flux and output the data
-            WriteInitialFlux(snapshot, cvs);
+            WriteInitialFlux();
             //responsible for setting _initialFluxFlag = false when finished
             _initialFluxFlag = false;
         } 
@@ -241,7 +186,8 @@ namespace SSAGES
         //clean up
         delete[] successes;
     }
-  void ForwardFlux::WriteInitialFlux(Snapshot* snapshot, const CVList& cvs){
+
+  void ForwardFlux::WriteInitialFlux(){
 
       std::ofstream file;
       std::string filename = _output_directory + "/initial_flux_value.dat";
@@ -258,18 +204,28 @@ namespace SSAGES
       file.close();
     }
 
-
-
 	void ForwardFlux::ComputeTransitionProbabilities(){
-
+        double Ptotal = 1;
+        for (unsigned int i = 0; i < _ninterfaces -1; i++){
+            Ptotal *= _P[i];
+        }
+        _rate = Ptotal*_fluxA0;
+        
+        //write file
+        std::ofstream file;
+        std::string filename = _output_directory + "/rate.dat";
+ 		file.open(filename.c_str());
+        if (!file) {std::cerr << "Error! Unable to write " << filename << "\n"; exit(1);}
+        file << _rate << "\n";
+        file.close();
     }
-
 	
 	void ForwardFlux::WriteFFSConfiguration(Snapshot* snapshot, FFSConfigID& ffsconfig, bool wassuccess)
 	{
 		const auto& positions = snapshot->GetPositions();
 		const auto& velocities = snapshot->GetVelocities();
 		const auto& atomID = snapshot->GetAtomIDs();
+        //unsigned natoms = snapshot->GetNumAtoms();
 		//const auto& dumpfilename = snapshot->GetSnapshotID();
 
         // Write the dump file out
@@ -290,6 +246,7 @@ namespace SSAGES
 
         // Then write positions and velocities
  		for(size_t i = 0; i< atomID.size(); i++)
+ 		//for(size_t i = 0; i< natoms; i++)
  		{
  			file<<atomID[i]<<" ";
  			file<<positions[i][0]<<" "<<positions[i][1]<<" "<<positions[i][2]<<" ";
@@ -326,7 +283,7 @@ namespace SSAGES
 		}
     }
 
-	void ForwardFlux::ReadFFSConfiguration(Snapshot* snapshot, FFSConfigID& ffsconfig)
+	void ForwardFlux::ReadFFSConfiguration(Snapshot* snapshot, FFSConfigID& ffsconfig, bool wassuccess)
 	{
 		auto& positions = snapshot->GetPositions();
 		auto& velocities = snapshot->GetVelocities();
@@ -335,7 +292,14 @@ namespace SSAGES
 		//auto& ID = snapshot->GetSnapshotID();
 
         std::ifstream file; 
-        std::string filename =  _output_directory + "/l"+ std::to_string(ffsconfig.l) +"-n"+ std::to_string(ffsconfig.n) + ".dat";
+        std::string filename;
+        if (wassuccess){
+          filename =  _output_directory + "/l"+ std::to_string(ffsconfig.l) +"-n"+ std::to_string(ffsconfig.n) + ".dat";
+        }
+        else{
+          filename =  _output_directory + "/fail-l"+ std::to_string(ffsconfig.l) +"-n"+ std::to_string(ffsconfig.n) + ".dat";
+
+        }
         std::string line;
 
         file.open(filename);
@@ -399,7 +363,6 @@ namespace SSAGES
         file.close();
 	}
 
-
     void ForwardFlux::PrintQueue(){
         for (unsigned int i =0 ;i < FFSConfigIDQueue.size(); i++){
             std::cout << i <<" "
@@ -426,7 +389,7 @@ namespace SSAGES
               if (!FFSConfigIDQueue.empty()){ //if queue has tasks
 
                    myFFSConfigID = FFSConfigIDQueue.front();
-                   ReadFFSConfiguration (snapshot, myFFSConfigID);
+                   ReadFFSConfiguration (snapshot, myFFSConfigID,true);
                    
                    //open new trajectory file, write first frame
                    if (_saveTrajectories){ 
@@ -436,7 +399,8 @@ namespace SSAGES
 
                    //Trigger a rebuild of the CVs since we reset the positions
                    cvs[0]->Evaluate(*snapshot);
-                   _cvvalue_previous = cvs[0]->GetValue();
+                   _cvvalue = cvs[0]->GetValue();
+                   _cvvalue_previous = _cvvalue;
 
                   _pop_tried_but_empty_queue = false;
                   FFSConfigIDQueue.pop_front();
@@ -458,8 +422,115 @@ namespace SSAGES
 
 
     }
+
+    void ForwardFlux::ComputeCommittorProbability(Snapshot *snapshot){
+
+        // two dim vectors, first dim is lambda, second is N
+        // this counts the number of atempts from this config eventually reached A (for nA) or B (for nB)
+        // used to compute _pB via:  _pB = nB / (nA + nB)
+        std::vector<std::vector<unsigned int>> nA;
+        std::vector<std::vector<unsigned int>> nB;
+        nA.resize(_ninterfaces);
+        nB.resize(_ninterfaces);
+        for (unsigned int i=0; i<_ninterfaces;i++){
+            nA[i].resize(_N[i],0);
+            nB[i].resize(_N[i],0);
+        }
+
+
+        //Snapshot* snapshot_empty;
+        FFSConfigID ffsconfig;
+        
+        //populate nB
+        unsigned int nsuccess = _N[_ninterfaces-1]; //note -1
+        for(unsigned int i = 0; i < nsuccess ; i++){
+          ffsconfig.l = _ninterfaces-1;
+          ffsconfig.n = i;
+          ffsconfig.a = 0;
+          bool flag = true;
+          //recursively trace successful path and update all the configs it came from
+          while (flag){
+             if (ffsconfig.l == 0){ flag = false;}
+
+             //this is just to populate ffsconfig.{lprev,nprev,aprev}
+             ReadFFSConfiguration(snapshot,ffsconfig,true);
+
+             //update nB 
+             nB[ffsconfig.l][ffsconfig.n]++;
+
+             ffsconfig.l = ffsconfig.lprev;
+             ffsconfig.n = ffsconfig.nprev;
+             ffsconfig.a = ffsconfig.aprev;
+          }
+        }
+
+        //now populate nA (very similar to nB)
+        unsigned int nfail = _nfailure_total; 
+        for(unsigned int i = 0; i < nfail ; i++){
+          ffsconfig.l = 0; //only fail at lambda0 in absence of pruning
+          ffsconfig.n = i;
+          ffsconfig.a = 0;
+          bool flag = true;
+          //this is just to populate ffsconfig.{lprev,nprev,aprev}
+          ReadFFSConfiguration(snapshot,ffsconfig,false);
+
+          //recursively trace successful path and update all the configs it came from
+          while (flag){
+             if ((ffsconfig.l == 0) && (ffsconfig.lprev==0)){ flag = false;}
+
+             //update nA 
+             nA[ffsconfig.l][ffsconfig.n]++;
+
+             ReadFFSConfiguration(snapshot,ffsconfig,true);
+
+             ffsconfig.l = ffsconfig.lprev;
+             ffsconfig.n = ffsconfig.nprev;
+             ffsconfig.a = ffsconfig.aprev;
+          }
+        }
+
+        //Compute _pB
+        _pB.resize(_ninterfaces);
+        unsigned int Nmax = 0;
+        for(unsigned int i = 0; i<_ninterfaces ; i++){
+          _pB[i].resize(_N[i],0);
+          for(unsigned int j = 0; j<_N[i] ; j++){
+            int denom = nA[i][j] + nB[i][j];
+            if (denom != 0){
+              _pB[i][j] = (double)nB[i][j] / denom;
+            }
+          }
+          if (_N[i] > Nmax){ Nmax = _N[i];}
+        }
+
+        //print pB
+        //rows are lambda, cols are n. Thats why its looks complicated
+        std::ofstream file;
+        std::string filename;
+        filename = _output_directory +"/commitor_probabilities.dat";
+        file.open(filename.c_str());
+        if (!file) {std::cerr << "Error! Unable to write " << filename << "\n"; exit(1);}
+
+        for(unsigned int i = 0; i<Nmax ; i++){
+          for(unsigned int j = 0; j<_ninterfaces ; j++){
+            if (i < _N[j]){
+              file << _pB[j][i] << " ";
+            }
+            else{
+              file << "none ";
+            }
+          }
+          file << "\n";
+        }
+
+
+
+    }
     
     void ForwardFlux::ReconstructTrajectories(Snapshot *snapshot){
+
+        //this only reconstructs successful trajectories 
+        //its pretty straightforward to reconstruct failed trajectories, but I dont do it here
 
         int nsuccess = _S[_ninterfaces-2]; //note -2, no attempts from _ninterfaces-1
         
@@ -467,7 +538,6 @@ namespace SSAGES
         FFSConfigID ffsconfig;
 
         for(int i = 0; i < nsuccess ; i++){
-          int lprev,nprev,aprev;
           std::deque<FFSConfigID> path;
 
           ffsconfig.l = _ninterfaces-1;
@@ -480,7 +550,7 @@ namespace SSAGES
 
              //this is just to populate ffsconfig.{lprev,nprev,aprev}
              //ReadFFSConfiguration(snapshot_empty,ffsconfig);
-             ReadFFSConfiguration(snapshot,ffsconfig);
+             ReadFFSConfiguration(snapshot,ffsconfig,true);
              
              //path.emplace_front(ffsconfig); //not sure if new constructor will work
              path.emplace_front(ffsconfig.l,ffsconfig.n, ffsconfig.a, ffsconfig.lprev, ffsconfig.nprev, ffsconfig.aprev); 

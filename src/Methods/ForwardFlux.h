@@ -28,6 +28,7 @@
 #include <deque>
 #include "../FileContents.h"
 #include "../Drivers/DriverException.h"
+#include "sys/stat.h"
 
 namespace SSAGES
 {
@@ -66,32 +67,12 @@ namespace SSAGES
              l(l),n(n),a(a),lprev(lprev),nprev(nprev),aprev(aprev)
             {}
 
-            ////! Yet another constructor
-            //FFSConfigID(FFSConfigID in):
-            //    l(in.l),n(in.n),a(in.a),lprev(in.lprev),nprev(in.nprev),aprev(in.aprev)
-            //{}
-
             //! Empty Constructor
             FFSConfigID():
              l(0),n(0),a(0),lprev(0),nprev(0),aprev(0)
             {}
-
-            ////! Overload = operator, not necessary, this is the default
-            //FFSConfigID& operator=(const FFSConfigID& rhs){
-            //    if (this == &rhs) return *this;
-            //    else{
-            //       l = rhs.l;
-            //       n = rhs.n;
-            //       a = rhs.a;
-            //       lprev = rhs.lprev;
-            //       nprev = rhs.nprev;
-            //       aprev = rhs.aprev;
-            //    }
-            //}
         };
 
-        //! random number generator
-        std::default_random_engine _generator;
 
 		//! Number of FFS interfaces
         //! note that _ninterfaces = n+1 where n is \lambda_n the interface defining B
@@ -100,14 +81,18 @@ namespace SSAGES
 		//! FFS Interfaces
 		std::vector<double> _interfaces;
 
-        //! Current Interface
-        unsigned int _current_interface;
+        //! Interfaces must monotonically increase (or decrease), this determines whether going to the 'next' interface will be higher values of CV, or lower ones
+        bool _interfaces_increase;
+
 
 		//! Previous cv position, used to determine if you've crossed an interface since last time
         double _cvvalue_previous;
 
 		//!  current cv position
         double _cvvalue;
+
+		//!  rate constant
+        double _rate;
 
         //! Data structure that holds a Library N0 configurations at lambda0
         std::vector<FFSConfigID> Lambda0ConfigLibrary;
@@ -128,8 +113,8 @@ namespace SSAGES
         //! Number of attempts from interface i
         std::vector<unsigned int> _A;
 
-        //! Flag to determine wheter fluxA0 should be calculated
-        bool _computefluxA0;
+        //! Flag to determine wheter fluxA0 should be calculated, seems not using this
+        //bool _computefluxA0;
 
         //! Probability of going from lambda_{i} to lambda_{i+1}
         std::vector<double> _P;
@@ -151,6 +136,8 @@ namespace SSAGES
         //! if 1 compute initial flux
         bool _initialFluxFlag;
 
+        bool initializeQueueFlag;
+
         //! The current FFSConfigID of this MPI process
         FFSConfigID myFFSConfigID;
 
@@ -162,7 +149,15 @@ namespace SSAGES
         //! however in the absence of pruning, a traj can only fail at lambda0, so this is just a scalar
         unsigned int _nfailure_total;
 
+        //! commitor probability.
+        //! The probability of a given configuration reaching B
+        std::vector<std::vector<double>> _pB;
 
+        //! Current Interface
+        unsigned int _current_interface;
+
+        //! random number generator
+        std::default_random_engine _generator;
 
         /*! Queue
          *  When a given processor reaches an interface, it pulls a config from this Queue to figure out what it should do next
@@ -185,10 +180,8 @@ namespace SSAGES
         void CheckInitialStructure(const CVList&);
 
         //! Function to compute and write the initial flux
-        void WriteInitialFlux(Snapshot*, const CVList&);
+        void WriteInitialFlux();
 
-        //! Function that checks if interfaces have been crossed (different for each FFS flavor)
-        void CheckForInterfaceCrossings(Snapshot*, const CVList&);
 
         //! Function that adds new FFS configurations to the Queue
         //! Different FFS flavors can have differences in this method
@@ -206,13 +199,16 @@ namespace SSAGES
         void WriteFFSConfiguration(Snapshot *snapshot,FFSConfigID& ffsconfig, bool wassuccess);
 
         //! Read a file corresponding to a FFSConfigID into current snapshot
-        void ReadFFSConfiguration(Snapshot *,FFSConfigID&);
+        void ReadFFSConfiguration(Snapshot *,FFSConfigID&,bool);
        
         //! Compute Initial Flux
         void ComputeInitialFlux(Snapshot*, const CVList&);
 
+        //! Function that checks if interfaces have been crossed (different for each FFS flavor)
+        virtual void CheckForInterfaceCrossings(Snapshot*, const CVList&) =0;
+
         //! Initialize the Queue
-        void InitializeQueue(Snapshot*, const CVList&);
+        virtual void InitializeQueue(Snapshot*, const CVList&) =0;
 
         //! Compute the probability of going from each lambda_i to lambda_{i+1} 
         /*!  
@@ -235,6 +231,9 @@ namespace SSAGES
         
         //! When simulation is finished, parse through the trajectories that reached B, and reconstruct the complete trajectory from where it started at A (lambda0)
         void ReconstructTrajectories(Snapshot *);
+
+        //! When simulation is finished, recursively parse through the trajectories that reached B or failed back to A and calculate the Commitor Probability of that state going to B (_pB)
+        void ComputeCommittorProbability(Snapshot *);
         
         //! Take the current config in snapshot and append it to the provided ofstream
         //! Current format is xyz style (including vx,vy,vz)
@@ -253,9 +252,109 @@ namespace SSAGES
 		 * Create instance of Forward Flux
 		 */
 		ForwardFlux(boost::mpi::communicator& world,
-                    boost::mpi::communicator& comm,
-                    unsigned int frequency) : 
-		 Method(frequency, world, comm) , _generator(1){}
+                    boost::mpi::communicator& comm, 
+                    double ninterfaces, std::vector<double> interfaces,
+                    unsigned int N0Target, std::vector<unsigned int> M,
+                    bool initialFluxFlag, bool saveTrajectories,
+                    unsigned int currentInterface, std::string output_directory, unsigned int frequency) : 
+		 Method(frequency, world, comm), _ninterfaces(ninterfaces), _interfaces(interfaces), _N0Target(N0Target), 
+         _M(M), _initialFluxFlag(initialFluxFlag), _saveTrajectories(saveTrajectories), _current_interface(currentInterface),
+          _output_directory(output_directory), _generator(1) {
+           
+
+              //_output_directory = "FFSoutput";
+              mkdir(_output_directory.c_str(),S_IRWXU); //how to make directory?
+              
+              //_current_interface = 0;
+              _N0TotalSimTime = 0;
+
+              if (!_initialFluxFlag){
+                initializeQueueFlag = true;
+              }
+
+              _A.resize(_ninterfaces);
+              _P.resize(_ninterfaces);
+              _S.resize(_ninterfaces);
+              _N.resize(_ninterfaces);
+              
+              //_N[_current_interface] = _N0Target;
+              /*_M.resize(_ninterfaces);
+              
+              //code for setting up simple simulation and debugging
+              _ninterfaces = 5;
+              int i;
+              _interfaces.resize(_ninterfaces);
+              _interfaces[0]=-1.0;
+              _interfaces[1]=-0.95;
+              _interfaces[2]=-0.8;
+              _interfaces[3]= 0;
+              _interfaces[4]= 1.0;
+
+              _saveTrajectories = true;
+
+              _initialFluxFlag = true;
+
+              for(i=0;i<_ninterfaces;i++) _M[i] = 50;
+
+              _N0Target = 100;*/
+              //_N0Target = 100;
+              _nfailure_total = 0;
+
+
+              //check if interfaces monotonically increase or decrease
+              bool errflag = false;
+              if (_interfaces[0]< _interfaces[1]) _interfaces_increase = true;
+              else if (_interfaces[0] > _interfaces[1]) _interfaces_increase = false;
+              else errflag = true;
+              for (unsigned int i=0;i<_ninterfaces-1;i++){
+                  if ((_interfaces_increase) && (_interfaces[i] >= _interfaces[i+1])){
+                    errflag = true;
+                  }
+                  else if ((!_interfaces_increase) && (_interfaces[i] <= _interfaces[i+1])){
+                    errflag = true;
+                  }
+              }
+              if (errflag){
+                  std::cerr << "Error! The interfaces are poorly defined. They must be monotonically increasing or decreasing and cannot equal one another! Please fix this.\n";
+                  for (auto interface : _interfaces){ std::cerr << interface << " ";}
+                  std::cerr << "\n";
+                  _world.abort(EXIT_FAILURE);
+              }
+
+
+              
+              // This is to generate an artificial Lambda0ConfigLibrary, Hadi's code does this for real
+              // THIS SHOULD BE SOMEWHERE ELSE!!! 
+              Lambda0ConfigLibrary.resize(_N0Target);
+              std::normal_distribution<double> distribution(0,1);
+              for (unsigned int i = 0; i < _N0Target ; i++){
+                Lambda0ConfigLibrary[i].l = 0;
+                Lambda0ConfigLibrary[i].n = i;
+                Lambda0ConfigLibrary[i].a = 0;
+                Lambda0ConfigLibrary[i].lprev = 0;
+                Lambda0ConfigLibrary[i].nprev = i;
+                Lambda0ConfigLibrary[i].aprev = 0;
+             
+                //FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
+              }
+                /*// Write the dump file out
+                std::ofstream file;
+                std::string filename = _output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
+                file.open(filename.c_str());
+
+                //first line gives ID of where it came from
+                file << ffsconfig.lprev << " " << ffsconfig.nprev << " " << ffsconfig.aprev << "\n";
+                //write position and velocity
+                file << "1 -1 0 0 " << distribution(_generator) << " "  << distribution(_generator) << " 0\n";
+
+              }
+              */
+              _pop_tried_but_empty_queue = false;
+
+
+              
+          
+          }
 
 		//! Pre-simulation hook.
 		/*!
@@ -269,7 +368,7 @@ namespace SSAGES
 		 * \param snapshot Current simulation snapshot.
 		 * \param cvs List of CVs.
 		 */
-		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
+		virtual void PostIntegration(Snapshot* snapshot, const CVList& cvs) =0;
 
 		//! Post-simulation hook.
 		/*!

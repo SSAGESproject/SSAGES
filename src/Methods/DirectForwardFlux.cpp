@@ -4,6 +4,8 @@
  *
  * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
  *                Hythem Sidky <hsidky@nd.edu>
+ *                Joshua Lequieu <lequieu@uchicago.edu>
+ *                Hadi Ramezani-Dakhel <ramezani@uchicago.edu>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +20,7 @@
  * You should have received a copy of the GNU General Public License
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "ForwardFlux.h"
+#include "DirectForwardFlux.h"
 #include <iostream>
 #include "../FileContents.h"
 #include <random>
@@ -27,8 +29,42 @@
 namespace SSAGES
 {
 
+	void DirectForwardFlux::PostIntegration(Snapshot* snapshot, const CVList& cvs)
+	{
+        //check if we want to check FFS interfaces this timestep
+        //for now, do it every time step
+        if (_iteration % 1 != 0) return;
+
+        // check the structure at the beginning of the simulation
+        if (_iteration == 0) {
+          CheckInitialStructure(cvs);
+        }
+
+        // if _computefluxA0
+        if (_initialFluxFlag){
+            ComputeInitialFlux(snapshot,cvs); 
+            if (!_initialFluxFlag){ //only enter here once
+
+              InitializeQueue(snapshot,cvs);
+              PrintQueue();
+            }
+        }
+		else if (initializeQueueFlag){
+              InitializeQueue(snapshot,cvs);
+              PrintQueue();
+        }
+        // Else check the FFS interfaces
+        else{
+            CheckForInterfaceCrossings(snapshot,cvs);
+            //FluxBruteForce(snapshot,cvs);
+
+        }
+        // Other modes?
+
+    }
+
     
-    void ForwardFlux::CheckForInterfaceCrossings(Snapshot* snapshot, const CVList& cvs)
+    void DirectForwardFlux::CheckForInterfaceCrossings(Snapshot* snapshot, const CVList& cvs)
     {
         //This is the main FFS method. The magic happens here!
 
@@ -50,8 +86,8 @@ namespace SSAGES
         int hascrossed = HasCrossedInterface(_cvvalue, _cvvalue_previous, _current_interface + 1);
         bool fail_local=false,success_local=false;
         //std::vector<bool> in MPI were strange, ended up using arrays
-        bool *successes = new bool (_world.size());
-        bool *failures = new bool (_world.size());
+        bool *successes = new bool [_world.size()];
+        bool *failures = new bool [_world.size()];
 
         if (!_pop_tried_but_empty_queue){ 
             // make sure this isnt a zombie trajectory that previously failed or succeeded and is just waiting for the queue to get more jobs
@@ -139,22 +175,28 @@ namespace SSAGES
           if (fail_local){
             std::cout << "Failed attempt from interface " << _current_interface 
                       << " l"<<myFFSConfigID.l<<"-n"<<myFFSConfigID.n<<"-a"<<myFFSConfigID.a
-                      << " (cvvalue_previous: " << _cvvalue_previous << " cvvalue " << _cvvalue << " interface[0] = "<< _interfaces[0] << "\n";}
+                      << " (cvvalue_previous: " << _cvvalue_previous << " cvvalue " << _cvvalue << " interface[0] = "<< _interfaces[0] << "\n"
+                      << "nfailuretotal: " << _nfailure_total << "\n";
+          }
           std::cout << "A: ";
-          for (auto a : _A) std::cout << a << " "; std::cout << "\n";
+          for (auto a : _A){ std::cout << a << " ";} std::cout << "\n";
           std::cout << "S: ";
-          for (auto s : _S) std::cout << s << " "; std::cout << "\n";
+          for (auto s : _S){ std::cout << s << " ";} std::cout << "\n";
           std::cout << "M: ";
-          for (auto m : _M) std::cout << m << " "; std::cout << "\n";
+          for (auto m : _M){ std::cout << m << " ";} std::cout << "\n";
         }
         //------------------------------
        
         //create new funciton here? (call it SetupNextInterface()
         // Check if this interface is finished, if so add new tasks to queue, and increment _current_interface
         if (_A[_current_interface] >= _M[_current_interface]){
+          //set N and P
+          _N[_current_interface+1] = _S[_current_interface];
+          _P[_current_interface] = (double) _S[_current_interface] / _A[_current_interface];
+
           if (_current_interface+2 < _ninterfaces){
             _current_interface += 1;
-            _N[_current_interface] = _S[_current_interface-1];
+            //_N[_current_interface] = _S[_current_interface-1];
 
             if (_N[_current_interface] == 0){
                std::cerr << "Error! No successes from interface " << _current_interface-1 << " to " << _current_interface <<"! Try turning up M["<<_current_interface-1<<"] or spacing interfaces closer together.\n";
@@ -168,7 +210,7 @@ namespace SSAGES
 
             if (_world.rank() == 0){
               std::uniform_int_distribution<int> distribution(0,_N[_current_interface]-1);
-              for (int i=0; i < npicks ; i++){
+              for (unsigned int i=0; i < npicks ; i++){
                  picks[i] = distribution(_generator);
               }
             }
@@ -180,7 +222,7 @@ namespace SSAGES
             std::vector<unsigned int> attempt_count;
             attempt_count.resize(_N[_current_interface],0);
 
-            for (int i=0; i < npicks ; i++){
+            for (unsigned int i=0; i < npicks ; i++){
               unsigned int mypick = picks[i];
               int l,n,a,lprev,nprev,aprev;
               lprev = myFFSConfigID.l;
@@ -206,7 +248,7 @@ namespace SSAGES
 
         // Need to account for zombie jobs that are waiting for a new config
         bool shouldpop_local = false;        
-        bool *shouldpop = new bool(_world.size());
+        bool *shouldpop = new bool[_world.size()];
         //std::vector<bool> shouldpop;
         //shouldpop.resize(_world.size());
         if (success_local || fail_local || _pop_tried_but_empty_queue){
@@ -226,14 +268,15 @@ namespace SSAGES
         _iteration++;
 
         delete[] successes;
-        delete[] failures,shouldpop;
+        delete[] failures;
+        delete[] shouldpop;
     }
 
 
 	
 
 
-  void ForwardFlux::InitializeQueue(Snapshot* snapshot, const CVList &cvs){
+  void DirectForwardFlux::InitializeQueue(Snapshot* snapshot, const CVList &cvs){
 
         unsigned int npicks = _M[0];
         std::vector<unsigned int> picks;
@@ -252,7 +295,7 @@ namespace SSAGES
         attempt_count.resize(_N[0],0);
 
         //each proc adds to the queue
-        for (int i=0; i < npicks ; i++){
+        for (unsigned int i=0; i < npicks ; i++){
           unsigned int mypick = picks[i];
           int l,n,a,lprev,nprev,aprev;
           FFSConfigID *myconfig = &Lambda0ConfigLibrary[picks[i]];
@@ -268,7 +311,8 @@ namespace SSAGES
           FFSConfigIDQueue.emplace_back(l,n,a,lprev,nprev,aprev);
         }         
         std::cout << "FFSConfigIDQueue has " << FFSConfigIDQueue.size() << " entries upon initialization\n";
-
+		initializeQueueFlag = false;
+		
         // now that queue is populated initialize tasks for all processors
         // ==============================
 

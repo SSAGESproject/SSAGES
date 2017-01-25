@@ -22,6 +22,7 @@
 #pragma once 
 
 #include "Method.h"
+#include "ForwardFlux.h"
 #include "../CVs/CollectiveVariable.h"
 #include <fstream>
 #include <random>
@@ -45,12 +46,9 @@ namespace SSAGES
         // Private Variables
         //-----------------------------------------------------------------
 
-        //! random number generator
-        std::default_random_engine _generator;
-
         //! Number of trials to attemt from each interface
         //! Note _M[0] sets the number of 'branches' for RBFFS and BGFFS?
-        std::vector<unsigned int> _M;
+        //std::vector<unsigned int> _M;
 
         //-----------------------------------------------------------------
         // Private Functions
@@ -58,10 +56,10 @@ namespace SSAGES
         
 
         //! Function that checks if interfaces have been crossed (different for each FFS flavor)
-        void CheckForInterfaceCrossings(Snapshot*, const CVList&);
+        void CheckForInterfaceCrossings(Snapshot*, const CVList&) override;
 
         //! Initialize the Queue
-        void InitializeQueue(Snapshot*, const CVList&);
+        void InitializeQueue(Snapshot*, const CVList&) override;
 
 	public:
 		//! Constructor
@@ -72,17 +70,14 @@ namespace SSAGES
 		 *
 		 * Create instance of Forward Flux
 		 */
-		ForwardFlux(boost::mpi::communicator& world,
-                    boost::mpi::communicator& comm,
-                    unsigned int frequency) : 
-		 Method(frequency, world, comm) , _generator(1){}
-
-		//! Pre-simulation hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
-		 */
-		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override;
+		DirectForwardFlux(boost::mpi::communicator& world,
+                    boost::mpi::communicator& comm, 
+                    double ninterfaces, std::vector<double> interfaces,
+                    unsigned int N0Target, std::vector<unsigned int> M,
+                    bool initialFluxFlag, bool saveTrajectories, 
+                    unsigned int currentInterface, std::string output_directory, unsigned int frequency)
+		: ForwardFlux(world, comm, ninterfaces, interfaces, N0Target, M, 
+					initialFluxFlag, saveTrajectories, currentInterface, output_directory, frequency) {}
 
 		//! Post-integration hook.
 		/*!
@@ -90,21 +85,6 @@ namespace SSAGES
 		 * \param cvs List of CVs.
 		 */
 		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
-
-		//! Post-simulation hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
-		 */
-		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
-
-		//! \copydoc Serializable::Serialize()
-		void Serialize(Json::Value& json) const override
-		{
-			//Needed to run
-			json["type"] = "ForwardFlux";
-
-        }
 
 	};
 }

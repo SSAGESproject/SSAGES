@@ -17,6 +17,7 @@ set  (UNIT_TESTS "ParticlePositionCVTests"
                  "ReadFileTest"
                  "MockCVTests"
 				 "COMTests"
+                 "DirectForwardFluxTests"
 				 "SwarmTest"
 				 "FTSTest"
                  "StringMethodTest")
