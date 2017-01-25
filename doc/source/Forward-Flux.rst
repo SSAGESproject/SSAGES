@@ -8,15 +8,15 @@ non-equilibrium and equilibrium systems. Several review
 articles in the literature present a comprehensive perspective on the basics,
 applications, implementations, and recent advances of FFS. Here, we provide a
 brief general introduction to FFS, and describe the Rosenbluth-like variant of
-forward flux method, which is implemented in SSAGES. We also explain various
-options and variables to setup and run an efficient FFS simulation using SSAGES.
+forward flux method. We also explain various options and variables to setup 
+and run an efficient FFS simulation using SSAGES.
 
 Introduction
 ^^^^^^^^^^^^
 
 Rare events are ubiquitous in nature. Important examples include crystal nucleation, 
 earthquake formation, slow chemical reactions, protein conformational changes, 
-switching in biochemical networks and translocation through pores. The activated/rare 
+switching in biochemical networks, and translocation through pores. The activated/rare 
 process from a stable/metastable region A to a stable/metastable region B is characterized 
 by a long waiting time between events, which is several orders of magnitude longer than 
 the transition process itself. This long waiting time typically arises due to the presence 
@@ -38,7 +38,7 @@ the final state B (Figure 1). These intermediate states are chosen such that the
 energy barrier between adjacent interfaces are readily surmountable using
 typical simulations. Using the stored configurations at an interface, several
 attempts are made to arrive at the next interface in the forward direction (the
-order parameter must increase monotonically when going from A to B). This
+order parameter must change monotonically when going from A to B). This
 incremental progress makes it more probable to observe a full transition path
 from state A to state B. FFS uses positive flux expression to calculate rate
 constant. The system dynamics are integrated forward in time and therefore
@@ -47,7 +47,7 @@ detailed balance is not required.
 .. figure:: images/forward_flux_image1.png
     :align: center
 
-    In Forward Flux sampling methond, several intermediate states are placed along 
+    In Forward Flux sampling method, several intermediate states are placed along 
     the order parameter to link the initial state A and the final state B. Incremental 
     progress of the system is recorded and analyzed to obtain relevant kinetic and thermodynamic
     properties.
@@ -63,14 +63,10 @@ Several protocols of forward flux method have been adopted in the literature to
 
 * Direct FFS (DFFS)
 * Branched Growth FFS (BGFFS)
-* **Rosenbluth-like FFS (RBFFS)**
+* Rosenbluth-like FFS (RBFFS)
 * Restricted Branched Growth FFS (RBGFFS)
 * FFS Least-Squares Estimation (FFS-LSE)
 * FF Umbrella Sampling (FF-US) 
-
-Rosenbluth-like FFS (RBFFS) has been implemented in the current version of
-SSAGES. Direct FFS (DFFS) and Branched growth FFS (BGFFS) will be included in
-the future release of SSAGES.
 
 Rate Constant and Initial Flux
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -90,14 +86,14 @@ simulating a single trajectory in State A for a certain amount of time
 :math:`t_{A}`, and counting the number of crossings of the initial interface
 :math:`\lambda_{0}`. Alternatively, a simulation may be carried out around state
 A for a period of time until :math:`N_{0}` number of accumulated
-checkpoints is stored (this has been implemented in SSAGES):
+configurations is stored (this has been implemented in SSAGES):
 
 .. math::
 
     \Phi_{A,0} = \frac{N_{0}}{t_{A}}
 
 here, :math:`N_{0}` is the number of instances in which :math:`\lambda_{0}` is
-crossed, and :math:`t_{A}` is the simulation time that the system was run around
+crossed in forward direction, and :math:`t_{A}` is the simulation time that the system was run around
 state A. Note that
 
 1) :math:`\lambda_{0}` can be crossed in either forward
@@ -107,7 +103,7 @@ state A. Note that
 2) :math:`t_{A}` should only include the simulation time around state A and
    thereby the portion of time spent around state B must be excluded, if any. 
 
-In general, the conditional probability  is computed using the following expression:
+In general, the conditional probability is computed using the following expression:
 
 .. math::
 
@@ -119,7 +115,7 @@ In general, the conditional probability  is computed using the following express
 :math:`P\left(\lambda_{i+1}\vert\lambda_{i}\right)` is computed by initiating a
 large number of trials from the current interface and recording the number of
 successful trials that reaches the next interface. The successful trials in
-which the system reaches the next interface are stored in the memory and used as
+which the system reaches the next interface are stored and used as
 checkpoints in the next interface. The failed trajectories that go all the way
 back to state A are terminated. Different flavors of forward flux method use
 their unique protocol to select checkpoints to initiate trials at a given
@@ -192,13 +188,13 @@ expression:
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
 
-The notation used in SSAGES implementation of FFS is mainly drawn from Ref. [1]_.
-We recommend referring to this review if the user is unfamiliar with the terminology. 
+The notation used in SSAGES implementation of the FFS is mainly drawn from Ref. [1]_.
+We recommend referring to this review article if the user is unfamiliar with the terminology. 
 To run a DFFS simulation using SSAGES, an input file in JSON format is required
 along with a general input file designed for your choice of molecular dynamics
 engine (MD engine). For your convenience, two files ``Template_Input.json`` and
 ``FF_Input_Generator.py`` are provided to assist you in generating the JSON
-file. Here we describe the parameters and options that should be set in
+file. Here we describe the parameters and the options that should be set in
 ``Template_Input.json`` file in order to successfully generate an input file and
 run a DFFS simulation.
 
@@ -208,30 +204,30 @@ Input and parameters related to "driver"
 type 
     + Type: string
     + Default:  “LAMMPS”
-    + Functionality:  Defines the preferred MD engine for running the actual
+    + Functionality:  Defines the preferred MD engine to run the actual
       simulation. You are encouraged to read the documentation page of the
-      corresponding MD package to learn about input files and different options
-      of that package.   
+      corresponding MD package to learn about the input files and different options
+      available to that package.   
 
-num processors
+number processors
     + Type: integer
     + Default: 1
     + Functionality:  Sets the number of processors that individual walkers
-      uses to run the simulation. In the current version of SSAGES, this should be set 
+      use to run the simulation. In the current version of SSAGES, this should be set 
       to 1.
 
 inputfile
     + Type: string
-    + Default: none
-    + Functionality: Specifies the name of engine-specific input file name. The
+    + Default: ""
+    + Functionality: Specifies the name of the engine-specific input file. The
       user is encouraged to refer to the documentation page of the corresponding
       MD package to learn about various input options as well as the structure
-      and format of input files suitable for MD engine of your choice.
+      and format of the input files suitable for their MD engine.
 
 MDSteps
     + Type: integer
     + Default: 10000000
-    + Functionality:  Sets the maximum number of MD steps allowed for the FFS
+    + Functionality:  Sets the maximum number of MD steps allowed for a FFS
       simulation on a given walker. We recommend defining a large number here to
       ensure that the simulation is completed before reaching that many steps.
       SSAGES will exit upon completion of the FFS simulation.
@@ -248,20 +244,19 @@ Input and parameters related to "method"
 type
     + Type: string
     + Default: "ForwardFlux"
-    + Functionality:  Specifies that “ForwardFlux” module of SSAGES should be
-      activated. Do not change this if you plan to run a forward flux sampling
-      simulation.
+    + Functionality:  Instructs SSAGES to activate the “ForwardFlux” module.
+      Do not change this if you plan to run a forward flux sampling simulation.
 
 flavor
     + Type: string
     + Default: "DirectForwardFlux"
-    + Functionality: Specifies the desired flavor of the FFS method that SSAGES should run.
+    + Functionality: Specifies the flavor of the FFS method that SSAGES should run.
       Currently, DFFS has been implemented in SSAGES. RBFFS and BGFFS will be available in the future releases.
 
 nInterfaces
     + Type: integer
     + Default: 5
-    + Functionality:  Sets the total number of interfaces that connects the state A to the State B (including States A and B themselves)
+    + Functionality:  Sets the total number of interfaces that connects the initial state A to the final State B (including States A and B themselves)
 
 interfaces
     + Type: array
@@ -281,23 +276,20 @@ N0Target
 trials
     + Type: array
     + Default: []
-    + Functionality:  Specifies the number of trials (M[i]) that should be spawned from each 
+    + Functionality:  Specifies the number of trials that should be spawned from each 
       interface. The length of this array should match the length of the array of the "interfaces".
 
 computeInitialFlux
     + Type: boolean
     + Default: "true"
-    + Functionality:  Specifies if SSAGES should perform an initial flux calculations. If this parameter is set to "true", SSAGES would also
-      generate the user-specified number of initial configurations at the first interface. The initial configuration that user provides must lay in state A, otherwise SSAGES would issue an error. If this parameter is set to "false", the user must provide the necessary number of the initial configurations
-      in separate files. The files name and the files content should follow a specific format. The format of the files name should be "l0-n<n>.dat" where <n> is
-      the configuration number (i.e. 1, 2, 3, ..., N0Target). The first line of the configuration files in general includes three numbers "<l> <n> <a>", where
-      <l> is the interface number (zero here), <n> is the configuration number, and <a> is the attempt number (zero here). The rest of the lines include the atoms IDs and their corresponding positions and velocities, "<atom ID> <x> <y> <z> <vx> <vy> <vz>" where <atom ID> is the ID of an atoms, <x>, <y>, <z> are the coordinates of that atom and <vx>, <vy>, and <vz> are the components of the velocity in the x, y, and z directions. Please note that the stores configurations at other interfaces would follow a similar format.       
+    + Functionality:  Specifies whether a calculation of the initial flux should be performed. If this parameter is set to "true", SSAGES would also
+      generate the user-specified number of initial configurations (N0Target) at the first interface. To compute the initial flux, user must provide an initial configuration in state A, otherwise SSAGES would issue an error. If this parameter is set to "false", the user must provide the necessary number of the initial configurations in separate files. The files name and the files content should follow a specific format. The format of the files name should be "l0-n<n>.dat" where <n> is the configuration number (i.e. 1, 2, 3, ..., N0Target). The first line of the configuration files includes three numbers "<l> <n> <a>", where <l> is the interface number (set to zero here), <n> is the configuration number, and <a> is the attempt number (set to zero here). The rest of the lines include the atoms IDs and their corresponding values of positions and velocities, "<atom ID> <x> <y> <z> <vx> <vy> <vz>" where <atom ID> is the ID of an atoms, <x>, <y>, <z> are the coordinates of that atom and <vx>, <vy>, and <vz> are the components of the velocity in the x, y, and z directions. Please note that the stores configurations at other interfaces would follow a similar format.       
 
 saveTrajectories
     + Type: boolean
     + Default: "true"
     + Functionality: This flag determines if the FFS trajectories should be saved. Be advised that saving the trajectories of thousands of atoms 
-      requires large storage spaces.   
+      mandates large storage spaces.   
 
 currentInterface
     + Type: integer 
@@ -309,7 +301,7 @@ outputDirectoryName
     + Type: string
     + Default: "FFSoutput"
     + Functionality: Specifies the directory name that contains the output of the FFS calculations including 
-      the initial flux, the successful and failed configurations, commitor probabilities, and the trajectories. The output data related to the computation of the initial flux is stored in "initial_flux_value.dat", and the data related to transition probabilities is stored in "commitor_probabilities.dat". 
+      the initial flux, the successful and failed configurations, commitor probabilities, and the trajectories. The output data related to the computation of the initial flux is stored in the file "initial_flux_value.dat", and the data related to transition probabilities is stored in the file "commitor_probabilities.dat". 
 
 
 
