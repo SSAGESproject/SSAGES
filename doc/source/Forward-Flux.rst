@@ -3,10 +3,10 @@
 Forward-Flux
 ------------
 
-Forward Flux Sampling (FFS) is a specialized method to simulate “rare events” in
-non-equilibrium and equilibrium systems with stochastic dynamics. Several review
+Forward Flux Sampling (FFS) is an enhanced sampling method to simulate “rare events” in
+non-equilibrium and equilibrium systems. Several review
 articles in the literature present a comprehensive perspective on the basics,
-applications, implementations, and recent advances of FFS Here, we provide a
+applications, implementations, and recent advances of FFS. Here, we provide a
 brief general introduction to FFS, and describe the Rosenbluth-like variant of
 forward flux method, which is implemented in SSAGES. We also explain various
 options and variables to setup and run an efficient FFS simulation using SSAGES.
@@ -14,13 +14,16 @@ options and variables to setup and run an efficient FFS simulation using SSAGES.
 Introduction
 ^^^^^^^^^^^^
 
-Rare events occur infrequently in nature mainly due to significant activation
-energies necessary to take a system from an initial state (commonly referred to
-as “A”) to a final state (or state “B”). The outcomes of rare events are
+Rare events are ubiquitous in nature. Important examples include crystal nucleation, 
+earthquake formation, slow chemical reactions, protein conformational changes, 
+switching in biochemical networks and translocation through pores. The activated/rare 
+process from a stable/metastable region A to a stable/metastable region B is characterized 
+by a long waiting time between events, which is several orders of magnitude longer than 
+the transition process itself. This long waiting time typically arises due to the presence 
+of a large free energy barrier that the system has to overcome to make the transition 
+from one region to another. The outcomes of rare events are
 generally substantial and thereby it is essential to obtain a molecular-level
-understanding of the mechanisms and kinetics of these events. Examples of
-small-scale rare events include conventional nucleation and growth phenomenon,
-folding/unfolding of large proteins, and non-spontaneous chemical reactions.
+understanding of the mechanisms and kinetics of these events.
 “Thermal fluctuations” commonly drives the systems from an initial state to a
 final state over an energy barrier :math:`\Delta E`. The transition frequency
 from state A to state B is proportional to :math:`e^{\frac{-\Delta E}{k_{B}T}}`,
@@ -28,7 +31,7 @@ where :math:`k_{B}T` is the thermal energy of the system. Accordingly, the time
 required for an equilibrated system in state A to reach state B grows
 exponentially (at a constant temperature) as the energy barrier :math:`\Delta E`
 become larger. Eventually none or only a few transitions may occur within the
-typical timescale of molecular simulations. In FFS method several intermediate
+typical timescale of molecular simulations. In FFS method, several intermediate
 states or so-called interfaces (:math:`\lambda_{i}`) are placed along a
 “reaction coordinate” or an “order parameter” between the initial state A and
 the final state B (Figure 1). These intermediate states are chosen such that the
@@ -44,11 +47,9 @@ detailed balance is not required.
 .. figure:: images/forward_flux_image1.png
     :align: center
 
-    In Forward Flux sampling method, dimensionality of the system is reduced by
-    choosing one or more “reaction coordinate” or “order parameter”. Several
-    equally-spaced intermediate states are placed along the order parameter to
-    link the initial state A and the final state B. Incremental progress of the
-    system is recorded and analyzed to obtain relevant kinetic and thermodynamic
+    In Forward Flux sampling methond, several intermediate states are placed along 
+    the order parameter to link the initial state A and the final state B. Incremental 
+    progress of the system is recorded and analyzed to obtain relevant kinetic and thermodynamic
     properties.
 
 Several protocols of forward flux method have been adopted in the literature to
@@ -57,7 +58,7 @@ Several protocols of forward flux method have been adopted in the literature to
 2) calculate the conditional probability of reaching state B starting from
    state A, :math:`P(\lambda_{B} = \lambda_{n} | \lambda_{A} = \lambda_{0})`,
 3) compute various thermodynamic properties, and
-4) optimize overall efficiency of the method. The followings are the widely-used
+4) optimize overall efficiency of the method. The following are the widely-used
    variants of forward flux sampling method:
 
 * Direct FFS (DFFS)
@@ -86,9 +87,9 @@ interface, and :math:`P\left(\lambda_{N} \vert \lambda_{0}\right)` is the
 conditional probability of the trajectories that initiated from A and reached B
 before returning to A. In practice, :math:`\Phi_{A,0}` can be obtained by
 simulating a single trajectory in State A for a certain amount of time
-:math:`t_{A}`, and counting the number of crossing of the initial interface
+:math:`t_{A}`, and counting the number of crossings of the initial interface
 :math:`\lambda_{0}`. Alternatively, a simulation may be carried out around state
-A for an unlimited period of time until :math:`N_{0}` number of accumulated
+A for a period of time until :math:`N_{0}` number of accumulated
 checkpoints is stored (this has been implemented in SSAGES):
 
 .. math::
@@ -140,14 +141,13 @@ Rosenbluth-like Forward Flux Sampling (RBFFS)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Rosenbluth-like Forward Flux Sampling (RBFFS) method is an adaptation of
-Rosenbluth method in polymer sampling to the simulation of rare events [4]_.
+Rosenbluth method in polymer sampling to simulate rare events [4]_.
 The RBFFS is comparable to Branched Growth Forward Flux (BGFFS) [1]_ [2]_ but,
 in contrast to BGFFS, a single checkpoint is randomly selected at a non-initial
 interface instead of initiation of trials from all checkpoints at a given
 interface (Figure 3). In RBFFS, first a checkpoint at :math:`\lambda_{0}` is
 selected and :math:`k_{0}` trials are initiated. The successful runs that reach
-:math:`\lambda_{1}` are stored and the rest that go back to A are terminated.
-Next, one of the checkpoints at :math:`\lambda_{1}` is randomly chosen (in
+:math:`\lambda_{1}` are stored. Next, one of the checkpoints at :math:`\lambda_{1}` is randomly chosen (in
 contrast to Branched Growth where all checkpoints are involved), and
 :math:`k_{1}` trials are initiated to :math:`\lambda_{2}`. Last, this procedure
 is continued for the following interfaces until state B is reached or all trials
