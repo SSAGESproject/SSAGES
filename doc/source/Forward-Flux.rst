@@ -249,7 +249,7 @@ type
     + Type: string
     + Default: "ForwardFlux"
     + Functionality:  Specifies that “ForwardFlux” module of SSAGES should be
-      activated. Don’t change this if you plan to run a forward flux sampling
+      activated. Do not change this if you plan to run a forward flux sampling
       simulation.
 
 flavor
@@ -287,14 +287,17 @@ trials
 computeInitialFlux
     + Type: boolean
     + Default: "true"
-    + Functionality:  Specifies if SSAGES should perform an initial calculations. If this parameter is set to "true", SSAGES would also
-      generate the necessary number of initial configurations at state A. The user is required to provide one configuration in State A, otherwise
-      SSAGES would issue an error. If this parameter is set to "false", the user must provide the initial configurations in the following format:
+    + Functionality:  Specifies if SSAGES should perform an initial flux calculations. If this parameter is set to "true", SSAGES would also
+      generate the user-specified number of initial configurations at the first interface. The initial configuration that user provides must lay in state A, otherwise SSAGES would issue an error. If this parameter is set to "false", the user must provide the necessary number of the initial configurations
+      in separate files. The files name and the files content should follow a specific format. The format of the files name should be "l0-n<n>.dat" where <n> is
+      the configuration number (i.e. 1, 2, 3, ..., N0Target). The first line of the configuration files in general includes three numbers "<l> <n> <a>", where
+      <l> is the interface number (zero here), <n> is the configuration number, and <a> is the attempt number (zero here). The rest of the lines include the atoms IDs and their corresponding positions and velocities, "<atom ID> <x> <y> <z> <vx> <vy> <vz>" where <atom ID> is the ID of an atoms, <x>, <y>, <z> are the coordinates of that atom and <vx>, <vy>, and <vz> are the components of the velocity in the x, y, and z directions. Please note that the stores configurations at other interfaces would follow a similar format.       
 
 saveTrajectories
     + Type: boolean
     + Default: "true"
-    + Functionality:  
+    + Functionality: This flag determines if the FFS trajectories should be saved. Be advised that saving the trajectories of thousands of atoms 
+      requires large storage spaces.   
 
 currentInterface
     + Type: integer 
@@ -306,7 +309,7 @@ outputDirectoryName
     + Type: string
     + Default: "FFSoutput"
     + Functionality: Specifies the directory name that contains the output of the FFS calculations including 
-      the initial flux, the successful and failed configurations, commitor probabilities, and the trajectories. 
+      the initial flux, the successful and failed configurations, commitor probabilities, and the trajectories. The output data related to the computation of the initial flux is stored in "initial_flux_value.dat", and the data related to transition probabilities is stored in "commitor_probabilities.dat". 
 
 
 
@@ -338,7 +341,7 @@ text editor of choice to customize the inputs, but for this tutorial, simply
 observe them and leave them be. FF_Template.json contains all the information
 necessary to fully specify one driver; FF_Input_Generator.py copies this
 information a number of times specified within the FF_Input_Generator.py script (for this tutorial,
-2 times). Issue the following command:
+2 times). Issue the following command to generate the JSON input file:
 
 .. code-block:: bash
 
@@ -352,6 +355,8 @@ you have everything you need to perform a simulation.  Simply run:
 .. code-block:: bash
 
     mpiexec -np 2 ./ssages Input-2proc.json
+
+This should run a quick FFS calculation and generate the necessary output.
 
 
 Developers
