@@ -6,7 +6,7 @@ Adaptive Biasing Force Algorithm
 Introduction
 ^^^^^^^^^^^^
 
-Adaptive Biasing Force is, at its heart, a flat histogram method. Like many
+Adaptive Biasing Force is a variant of a flat histogram method. Like many
 other methods that seek uniform sampling over CV space such as Metadynamics, it
 adaptively biases the simulation until such diffusive sampling is achieved.
 However, unlike metadynamics, ABF does not estimate the free energy surface.
@@ -259,7 +259,7 @@ For 8 walkers, do:
     mpirun -np 8 ./ssages -ABF_AlaDP_8walkers.json
 
 These will run using the pre-prepared input files in .tpr format. If you wish to
-prepare input files yourself using GROMACS tools:
+prepare the input files yourself using GROMACS tools:
 
 .. code-block:: bash
 
