@@ -6,10 +6,57 @@ Metadynamics
 Introduction
 ^^^^^^^^^^^^
 
+
 .. todo::
 
-    Short introduction to Metadynamics.
+   Add descriptions of methods and options as they are added to the
+   Metadynamics source.
 
+
+Metadynamics defines a class of flat-histogram methods useful for
+molecular dynamics simulations. Within metadynamics, a
+history-dependent bias is accrued through the periodic application of
+elemental Gaussian biases to the collective variables (CVs) of
+interest. The form of the individual biases is
+
+.. math:: g(\vec{\xi},\vec{s}_i) = W_i
+   e^{-\frac{\left[\vec{\xi}-\vec{s}_i\right]^2}{2\sigma_i^2}}\;.
+
+Here :math:`\vec{xi}` is the collective variable, :math:`\vec{s}_i` is
+the location of the :math:`i^{th}` hill, :math:`W_i` is the weight and
+:math:`\sigma_i` the width of the hill. This bias acts to push the
+system away from previously visited states. As this bias accrues to
+the height of nearby features in the free energy surface, the system's
+trajectory will begin to explore an expanded area in CV space. After a
+sufficient number of biases have been applied, the total applied bias
+within a given region will begin to oscillate around the negative of
+the free energy in that region.
+
+The free energy surface (FES) at any time :math:`t` may be
+reconstructed by summing over all applied biases thusly
+
+.. math:: F(\xi,t) = -V(\vec{\xi}) = -\sum_{i<n(t)} W_i
+	  e^{-\frac{\left[\vec{\xi}-\vec{s}_i\right]^2}{2\sigma_i^2}}\;.
+
+Here, :math:`n(t)` refers to the number of biases applied before time
+:math:`t`. The time-dependent FES can be used to determine whether or
+not a simulation has reached a converged FES by computing block
+averages of the applied bias (see [Singh2012]_).
+
+Metadynamics can be applied to unbounded regions of CV space, or to
+bounded regions. For the case of bounded, non-periodic CVs, boundary
+corrections must be applied which alter the structure of the hills
+:math:`g(\vec{\xi},\vec{s}_i)` (see [McGovern2013]_)
+
+Metadynamics exists in many flavors, in which :math:`W_i` and
+:math:`\sigma_i` are altered in a time- or trajectory- dependent
+fashion. These include Well-Tempered Metadynamics, Transition-Tempered
+Metadynamics and Metadynamics with Adaptive Gaussians. Each of these
+methods has advantages and drawbacks. Currently, SSAGES includes only
+standard Metadynamics with fixed-shape hills and no tempering
+algorithm. Details on how to use these algorithms within SSAGES are
+given in the following sections.
+  
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -94,7 +141,7 @@ particle (``Single_Atom`` folder) is sampled. This example requires LAMMPS.
 The files included are described below: 
 
 * ``in.LAMMPS_Meta_Test`` - LAMMPS input file describing the Langevin particle 
-  and underlying free energy surface to be sampled.
+v  and underlying free energy surface to be sampled.
 * ``Meta.json`` - SSAGES JSON input file specifying Metadynamics and CVs to be 
   sampled. In this case the CVs are the *x* and *y* coordinates of the particle. 
 * ``analysis.m`` - MATLAB script that analyzes the output of the Metadynamics 
@@ -128,4 +175,17 @@ Developer
 ^^^^^^^^^
 
 Hythem Sidky.
+
+References Cited
+^^^^^^^^^^^^^^^^
+
+.. [Singh2012] Singh, Sadanand, Manan Chopra, and Juan J. de
+               Pablo. "Density of states–based molecular simulations."
+               Annual review of chemical and biomolecular engineering
+               3 (2012): 369-394.
+
+.. [McGovern2013] McGovern, Michael, and Juan de Pablo. "A boundary
+                  correction algorithm for metadynamics in multiple
+                  dimensions." The Journal of chemical physics 139.8
+                  (2013): 084102.
 
