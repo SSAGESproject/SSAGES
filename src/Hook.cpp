@@ -21,10 +21,66 @@
 
 #include "Hook.h"
 #include "Drivers/Driver.h"
+#include "CVs/CollectiveVariable.h"
 #include <algorithm>
 
 namespace SSAGES
 {
+	void Hook::PreSimulationHook()
+	{
+		_snapshot->Changed(false);
+	
+		// Initialize/evaluate CVs.
+		for(auto& cv : _cvs)
+		{
+			cv->Initialize(*_snapshot);
+			cv->Evaluate(*_snapshot);
+		}
+
+		// Call presimulation method on listeners. 
+		for(auto& listener : _listeners)
+			listener->PreSimulation(_snapshot, _cvs);
+
+		// Sync snapshot to engine.
+		if(_snapshot->HasChanged())
+			SyncToEngine();
+
+		_snapshot->Changed(false);		
+	}
+
+	void Hook::PostIntegrationHook()
+	{
+		_snapshot->Changed(false);
+
+		for(auto& cv : _cvs)
+			cv->Evaluate(*_snapshot);
+
+		for(auto& listener : _listeners)
+			if(_snapshot->GetIteration() % listener->GetFrequency() == 0)
+				listener->PostIntegration(_snapshot, _cvs);
+
+		if(_snapshot->HasChanged())
+			SyncToEngine();
+
+		_snapshot->Changed(false);		
+	}
+
+	void Hook::PostSimulationHook()
+	{
+		_snapshot->Changed(false);
+
+		for(auto& cv : _cvs)
+			cv->Evaluate(*_snapshot);
+		
+		for(auto& listener : _listeners)
+			listener->PostSimulation(_snapshot, _cvs);
+
+		if(_snapshot->HasChanged())
+			SyncToEngine();
+
+		_snapshot->Changed(false);		
+	}
+
 	//! Sets the active snapshot.
 	void Hook::SetSnapshot(Snapshot* snapshot)
 	{
