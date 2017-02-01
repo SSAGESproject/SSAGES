@@ -38,6 +38,7 @@ namespace SSAGES
 	void OpenMDHook::SyncToSnapshot()
 	{
 		auto natoms = siminfo_->getNGlobalAtoms();
+
 		// Resize vectors.
 		auto& pos = _snapshot->GetPositions();
 		pos.resize(natoms);

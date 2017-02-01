@@ -1,0 +1,9 @@
+patch -N -p2 --dry-run --silent -d ${OPENMD_SRC} < ${PROJECT_SOURCE_DIR}/hooks/openmd/openmd.patch 2>/dev/null
+
+#If the patch has not been applied then the $? which is the exit status 
+#for last command would have a success status code = 0
+if [ $? -eq 0 ];
+then
+    #apply the patch
+    patch -N -p2 -d ${OPENMD_SRC} < ${PROJECT_SOURCE_DIR}/hooks/openmd/openmd.patch
+fi

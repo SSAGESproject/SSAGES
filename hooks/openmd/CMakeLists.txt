@@ -1,18 +1,25 @@
-set(ENABLE_OPENMD true)
+elseif(OPENMD_SRC)
+	set(ENABLE_OPENMD true)
 	set(OPENMD_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${PROJECT_SOURCE_DIR}/hooks/openmd -I${Boost_INCLUDE_DIRS} -I${CMAKE_BINARY_DIR}")
 	set(OPENMD_LINKER_ARGS "-L${CMAKE_CURRENT_BINARY_DIR} -lssages -lboost_mpi")
+	
+	# Configure patch.
+	configure_file (
+		"${PROJECT_SOURCE_DIR}/hooks/openmd/apply_patch.sh.in"
+		"${PROJECT_BINARY_DIR}/apply_patch.sh"
+	)
+
 	ExternalProject_Add(
 		openmd
 		PREFIX ${CMAKE_CURRENT_BINARY_DIR}/openmd
 		DOWNLOAD_COMMAND ""
 		SOURCE_DIR ${OPENMD_SRC}
-		#PATCH_COMMAND sh ${CMAKE_BINARY_DIR}/apply_patch.sh
+		PATCH_COMMAND sh ${CMAKE_BINARY_DIR}/apply_patch.sh
 		CMAKE_ARGS
 		-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
 		-DCMAKE_CXX_FLAGS=${OPENMD_CXX_ARGS}
 		-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
 		-DCMAKE_EXE_LINKER_FLAGS=${OPENMD_LINKER_ARGS}
-		#-DGMX_EXTRA_LIBRARIES=${CMAKE_BINARY_DIR}/libssagesgmx.so
 		-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 		BUILD_COMMAND $(MAKE) openmd_core openmd_parallel
 		BUILD_IN_SOURCE false
@@ -29,6 +36,15 @@ set(ENABLE_OPENMD true)
 		DEPENDERS build
 		ALWAYS 1
 	)
+
+	set(HOOKSRC
+		hooks/openmd/OpenMDHook.cpp
+	)
+
+	include_directories(${OPENMD_SRC}/src)
+
+	set(EXTRA_CONFIG "${CMAKE_CURRENT_BINARY_DIR}/openmd/src/openmd-build/config.h")
+endif()
 
 	set(HOOKSRC
 		hooks/openmd/OpenMDHook.cpp
