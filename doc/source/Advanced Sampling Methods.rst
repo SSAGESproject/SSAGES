@@ -1,13 +1,13 @@
-.. _meta-dynamics-methods:
+.. _advanced-sampling-methods:
 
-Meta-Dynamics Methods
-=====================
+Advanced Sampling Methods
+=========================
 
 .. todo::
 
     Give a short overview over all SSAGES methods. Not more than 2 paragraphs.
 
-List of Metadynamics Methods (alphabetical order):
+List of Advanced Sampling Methods (alphabetical order):
 
 .. toctree::
    :maxdepth: 1
@@ -17,7 +17,7 @@ List of Metadynamics Methods (alphabetical order):
    Elastic Band
    Finite Temperature String
    Forward-Flux
-   Generic Metadynamics
+   Metadynamics
    Image Method
    Replica Exchange
    Swarm of Trajectories
