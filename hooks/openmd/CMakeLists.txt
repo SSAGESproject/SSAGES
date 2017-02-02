@@ -1,7 +1,6 @@
 elseif(OPENMD_SRC)
 	set(ENABLE_OPENMD true)
-	set(OPENMD_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${PROJECT_SOURCE_DIR}/hooks/openmd -I${Boost_INCLUDE_DIRS} -I${CMAKE_BINARY_DIR}")
-	set(OPENMD_LINKER_ARGS "-L${CMAKE_CURRENT_BINARY_DIR} -lssages -lboost_mpi")
+	set(OPENMD_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${PROJECT_SOURCE_DIR}/hooks/openmd")
 	
 	# Configure patch.
 	configure_file (
@@ -18,8 +17,7 @@ elseif(OPENMD_SRC)
 		CMAKE_ARGS
 		-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
 		-DCMAKE_CXX_FLAGS=${OPENMD_CXX_ARGS}
-		-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-		-DCMAKE_EXE_LINKER_FLAGS=${OPENMD_LINKER_ARGS}
+		-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
 		-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 		BUILD_COMMAND $(MAKE) openmd_core openmd_parallel
 		BUILD_IN_SOURCE false
@@ -28,7 +26,7 @@ elseif(OPENMD_SRC)
 		-a ${CMAKE_CURRENT_BINARY_DIR}/openmd/src/openmd-build/lib/. ${CMAKE_CURRENT_BINARY_DIR}/
 	)
 
-	# Always build gromacs
+	# Always build openmd
 	ExternalProject_Add_Step(
 		openmd forcebuild
 		COMMAND echo "Force build OpenMD"
@@ -55,9 +53,9 @@ endif()
 	set(EXTRA_CONFIG "${CMAKE_CURRENT_BINARY_DIR}/openmd/src/openmd-build/config.h")
 
 
-    elseif(OPENMD_SRC)
-	add_dependencies(openmd libssages)
-	add_dependencies(ssages openmd)
+ elseif(OPENMD_SRC)
+	add_dependencies(libssages openmd)
+	add_dependencies(ssages libssages openmd)
 	set_target_properties(ssages PROPERTIES
 	COMPILE_DEFINITIONS IS_MPI
 	)

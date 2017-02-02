@@ -47,11 +47,11 @@ set(SOURCE
 	src/Methods/Umbrella.cpp
 	src/Methods/ElasticBand.cpp
 	src/Methods/FiniteTempString.cpp
-    src/Methods/Swarm.cpp
+   	src/Methods/Swarm.cpp
 	src/Methods/ForwardFlux.cpp
 	src/Methods/DirectForwardFlux.cpp
 	src/Methods/ABF.cpp
-    src/Methods/BasisFunc.cpp
+   	src/Methods/BasisFunc.cpp
 	src/Validator/RequirementLoader.cpp
 	src/JSON/jsoncpp.cpp
 	src/CVs/CollectiveVariable.cpp
