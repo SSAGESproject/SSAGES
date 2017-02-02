@@ -3,6 +3,7 @@
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
  * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
+ *                Hythem Sidky <hsidky@nd.edu>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,9 +47,6 @@ namespace SSAGES
 		//! Pointer to the local instance of lammps
 		std::shared_ptr<LAMMPS> _lammps;
 
-		//! The number of MD engine steps you would like to perform
-		int _MDsteps;
-
 		//! The lammps logfile
 		std::string _logfile;
 
@@ -63,14 +61,14 @@ namespace SSAGES
 		LammpsDriver(mpi::communicator& world_comm,
 					 mpi::communicator& local_comm,
 					 int walkerID) : 
-		Driver(world_comm, local_comm, walkerID), _lammps(), _MDsteps(), _logfile() 
+		Driver(world_comm, local_comm, walkerID), _lammps(), _logfile() 
 		{
 		};
 
 		//! Run simulation
 		virtual void Run() override
 		{
-			std::string rline = "run " + std::to_string(_MDsteps);
+			std::string rline = "run " + std::to_string(iterations_);
 			_lammps->input->one(rline.c_str());
 		}
 
@@ -157,7 +155,7 @@ namespace SSAGES
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
 
-			_MDsteps = json.get("MDSteps",1).asInt();
+			iterations_ = json.get("MDSteps",1).asInt();
 			_inputfile = json.get("inputfile","none").asString();
 			_restartname = json.get("restart file", "none").asString();
 			_readrestart = json.get("read restart", false).asBool();
@@ -193,7 +191,7 @@ namespace SSAGES
 			// Call parent first.
 			Driver::Serialize(json);
 
-			json["MDSteps"] = _MDsteps;
+			json["MDSteps"] = iterations_;
 			json["logfile"] = _logfile;
 			json["type"] = "LAMMPS";
 			//if true on first file

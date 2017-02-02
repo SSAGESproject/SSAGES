@@ -68,6 +68,9 @@ namespace SSAGES
 		//! The CVs that will be used
 		CVList _CVs;
 
+		//! Target number of iterations
+		int iterations_;
+
 		//! The observers that will be used for this driver
 		ObserverList _observers;
 
@@ -101,7 +104,7 @@ namespace SSAGES
 			   int walkerID) : 
 		_world(world), _comm(comm), _wid(walkerID),
 		_hook(nullptr), _snapshot(nullptr), _method(nullptr), _CVs(),
-		_observers(), _inputfile("none"), _restartname(),
+		iterations_(0), _observers(), _inputfile("none"), _restartname(),
 		_readrestart(), _rd(), _gen(_rd())
 		 {}
 
@@ -235,6 +238,7 @@ namespace SSAGES
 
 			// Initialize snapshot. 
 			_snapshot = new Snapshot(_comm, _wid);
+			_snapshot->SetTargetIterations(iterations_);
 
 			/* Remove this later? */
 			if(_hook != nullptr)
