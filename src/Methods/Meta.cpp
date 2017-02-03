@@ -52,12 +52,20 @@ namespace SSAGES
 	}
 
 	// Pre-simulation hook.
-	void Meta::PreSimulation(Snapshot*, const CVList& cvs)
+	void Meta::PreSimulation(Snapshot* snapshot, const CVList& cvs)
 	{
 		// Open file for writing and allocate derivatives vector.
 		if(_world.rank() == 0)
 			_hillsout.open("hills.out");
-		_derivatives.resize(cvs.size());	
+
+		auto n = snapshot->GetTargetIterations();
+		n = n ? n : 1e5; // Pre-allocate at least something.
+	
+		_hills.reserve(n+1);
+		_widths.reserve(n+1);
+		_derivatives.resize(cvs.size());
+		_tder.resize(cvs.size());
+		_dx.resize(cvs.size());
 	}
 
 	// Post-integration hook.
@@ -142,35 +150,37 @@ namespace SSAGES
 	void Meta::CalcBiasForce(const CVList& cvs)
 	{	
 		// Reset bias and derivatives.
-		_bias = 0;
+		double bias = 0.;
+		auto n = cvs.size();
+
+		// Reset vectors.
 		std::fill(_derivatives.begin(), _derivatives.end(), 0);
 
 		// Loop through hills and calculate the bias force.
 		for(auto& hill : _hills)
-		{
-			auto n = hill.center.size();
-			std::vector<double> tder(n, 1.0), dx(n, 1); 
+		{		
 			auto tbias = 1.;
-
-			// Initialize dx and tbias.
+			std::fill(_tder.begin(), _tder.end(), 1.0);
+			std::fill(_dx.begin(), _dx.end(), 1.0);
+			
 			for(size_t i = 0; i < n; ++i)
 			{
-				dx[i] = cvs[i]->GetDifference(hill.center[i]);
-				tbias *= gaussian(dx[i], hill.width[i]);
+				_dx[i] = cvs[i]->GetDifference(hill.center[i]);
+				tbias *= gaussian(_dx[i], hill.width[i]);
 			}
 
 			for(size_t i = 0; i < n; ++i)
 				for(size_t j = 0; j < n; ++j)
 				{
 					if(j != i) 
-						tder[i] *= gaussian(dx[j], hill.width[j]);
+						_tder[i] *= gaussian(_dx[j], hill.width[j]);
 					else
-						tder[i] *= gaussianDerv(dx[j], hill.width[j]);
+						_tder[i] *= gaussianDerv(_dx[j], hill.width[j]);
 				}
 
-			_bias += _height * tbias;
+			bias += _height * tbias;
 			for(size_t i = 0; i < n; ++i)
-				_derivatives[i] += _height*tder[i];
+				_derivatives[i] += _height*_tder[i];
 		}
 	}
 }
