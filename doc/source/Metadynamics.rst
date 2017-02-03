@@ -6,13 +6,6 @@ Metadynamics
 Introduction
 ^^^^^^^^^^^^
 
-
-.. todo::
-
-   Add descriptions of methods and options as they are added to the
-   Metadynamics source.
-
-
 Metadynamics defines a class of flat-histogram methods useful for
 molecular dynamics simulations. Within metadynamics, a
 history-dependent bias is accrued through the periodic application of
@@ -64,13 +57,14 @@ Metadynamics is selected by defining ``type" : "Metadynamics"`` as the
 method in the JSON input file. It supports the following options:
 
 widths 
-   *array of doubles (number of CVs) long*.
-   This array defines the width of the Gaussians being depositied over time
+   *array of doubles (length: number of CVs)*.
+   This array defines the width of the Gaussians being deposited over time
    in each CV dimension.
 
 height 
 	*double*. 
-	This value defines the height of the Gaussians being deposited over time. 
+	This value defines the height of the Gaussians being deposited over time,
+	in units of energy used by the MD engine. 
 
 hill_frequency 
 	*double* 
@@ -87,11 +81,12 @@ hill_frequency
 
 .. warning::
 
-	The Metadynamics will run for the duration specified in the 
+	Metadynamics will run for the duration specified in the 
 	input file under ``MDSteps``. It is the user's responsibility to ensure that 
 	enough time is given for Metadynamics to obtain an satisfactory representation
-	of the free energy surface of interest. A simple way to prevent early
-	quitting is to define a very large number of ``MDSteps``` and to periodically
+	of the free energy surface of interest. A simple way to prevent 
+	Metadynamics from terminating before convergence is to define a 
+	very large number of ``MDSteps``` and to periodically
 	check the output file for convergence. 
 
 Example Input 
@@ -110,15 +105,17 @@ Output
 ^^^^^^
 
 The output of Metadynamics is stored in a file called "hills.out". This file 
-contains the Gaussians that have been deposited over time along the CVs. 
-Each time Gaussian is deposited, a new line is written to the file in the following
-format: 
+contains the location, width and height of each Gaussian that has been deposited
+over time. Each time Gaussian is deposited, a new line is written to the file 
+in the following format: 
 
 *center1 center2 ... width1 width2 ... height* 
 
-The centers represent the location in CV space where the Gaussian has been 
-deposited. The widths represent the corresponding Gaussian widths for each 
-CV dimension and the height is the Gaussian height. 
+The centers denote the locations in CV space where each Gaussian has been deposited; 
+these are listed in the order that the CVs appear in the SSAGES JSON input file. 
+The widths denote the corresponding Gaussian widths for each CV dimension. 
+The height is the Gaussian height, which should match the parameter height defined 
+in the JSON input file.
 
 .. note:: 
 
@@ -126,22 +123,23 @@ CV dimension and the height is the Gaussian height.
 	time, future additions to the Metadynamics method will allow for adaptive 
 	Gaussians.
 
-In the ``Examples/User/Meta`` directory, example MATLAB scripts are provided 
-that sum the Gaussians and generate a free energy surface from the "hills.out"
+Example MATLAB scripts are provided in the Examples/User/Meta directory. 
+These scripts sum the Gaussians and generate a free energy surface from the "hills.out" 
 file.
-
 
 
 Tutorial
 ^^^^^^^^
 
 Two Metadynamics examples are included in the ``Examples/User/Meta`` directory. 
-In the first example, the free energy surface of two-dimensional Langevin 
-particle (``Single_Atom`` folder) is sampled. This example requires LAMMPS.
-The files included are described below: 
+In the first example, Metadynamics is used to sample the free energy surface of 
+a two-dimensional particle undergoing Langevin dynamics. This example is found in 
+the `Single_Atom` folder and requires LAMMPS. The files included are described below:
 
 * ``in.LAMMPS_Meta_Test`` - LAMMPS input file describing the Langevin particle 
-v  and underlying free energy surface to be sampled.
+	and underlying free energy surface to be sampled. The free energy surface consists of two
+	Gaussian wells at (0.98, 0.98) and (-0.98, -0.98) respectively, and one Gaussian 
+	barrier at the origin.
 * ``Meta.json`` - SSAGES JSON input file specifying Metadynamics and CVs to be 
   sampled. In this case the CVs are the *x* and *y* coordinates of the particle. 
 * ``analysis.m`` - MATLAB script that analyzes the output of the Metadynamics 
