@@ -78,11 +78,8 @@ namespace SSAGES
 		//! Hill widths.
 		std::vector<double> _widths;
 
-		//! Derivatives.
-		std::vector<double> _derivatives;
-
-		//! Bias magnitude.
-		double _bias;
+		//! Derivatives and temporary storage vectors.
+		std::vector<double> _derivatives, _tder, _dx;
 
 		//! Frequency of new hills
 		unsigned int _hillfreq;
@@ -129,7 +126,7 @@ namespace SSAGES
 			 unsigned int hillfreq,
 			 unsigned int frequency) : 
 		Method(frequency, world, comm), _hills(), _height(height), _widths(widths), 
-		  _derivatives(0), _bias(0), _hillfreq(hillfreq)
+		_derivatives(0), _tder(0), _dx(0), _hillfreq(hillfreq)
 		{
 		}
 

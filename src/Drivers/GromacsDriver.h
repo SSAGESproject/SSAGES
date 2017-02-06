@@ -36,9 +36,6 @@ namespace SSAGES
 		//! Number of walkers.
 		int nwalkers_;
 
-		//! Number of MD steps.
-		int MDSteps_;
-
 		//! Is the simulation a restart?
 		bool restart_;
 
@@ -116,11 +113,11 @@ namespace SSAGES
 		virtual void BuildDriver(const Json::Value& json, const std::string& path) override
 		{
 			_inputfile = json.get("inputfile","none").asString();
-			MDSteps_ = json.get("MDSteps", 1).asInt();
+			iterations_ = json.get("MDSteps", 1).asInt();
 
 			// Set hook. 
 			auto& hook = GromacsHook::Instance();
-			hook.SetIterationTarget(MDSteps_);
+			hook.SetIterationTarget(iterations_);
 			_hook = dynamic_cast<Hook*>(&hook);
 
 			// Restart?
@@ -133,7 +130,7 @@ namespace SSAGES
 			// Call parent first.
 			Driver::Serialize(json);
 
-			json["MDSteps"] = MDSteps_;
+			json["MDSteps"] = iterations_;
 			json["type"] = "Gromacs";
 		}
 	};

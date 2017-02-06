@@ -71,6 +71,7 @@ namespace SSAGES
 		std::vector<std::vector<double> > _sigma; //!< Sigma
 
 		int _iteration; //!< Iteration of Simulation
+		int targetiter_; //!< Iteration target of simulation.
 		double _temperature; //!< Current temperature
 		double _energy; //!< Average per-particle energy
 		double _kb; //!< Kb from the MD driver
@@ -100,6 +101,12 @@ namespace SSAGES
 		 * \return Current Iteration
 		 */
 		int GetIteration() const {return _iteration; }
+		
+		//! Get target iterations
+		/*!
+		 * \return Target Iterations
+		 */
+		int GetTargetIterations() const {return targetiter_; }
 
 		//! Get current temperature
 		/*!
@@ -187,6 +194,16 @@ namespace SSAGES
 		void SetIteration(int iteration) 
 		{
 			_iteration = iteration; 
+			_changed = true; 
+		}
+		
+		//! Set target iterations
+		/*!
+		 * \param target New value for target iterations
+		 */
+		void SetTargetIterations(int target) 
+		{
+			targetiter_ = target; 
 			_changed = true; 
 		}
 
