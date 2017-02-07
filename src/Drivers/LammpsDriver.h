@@ -33,10 +33,6 @@
 #include "update.h"
 #include "fix.h"
 
-namespace mpi = boost::mpi;
-using namespace LAMMPS_NS;
-using namespace Json;
-
 namespace SSAGES
 {
 	//! Driver for LAMMPS simulations
@@ -45,7 +41,7 @@ namespace SSAGES
 	private:
 
 		//! Pointer to the local instance of lammps
-		std::shared_ptr<LAMMPS> _lammps;
+		std::shared_ptr<LAMMPS_NS::LAMMPS> _lammps;
 
 		//! The lammps logfile
 		std::string _logfile;
@@ -58,8 +54,8 @@ namespace SSAGES
 		 * \param local_comm MPI local communicator.
 		 * \param walkerID ID of the walker assigned to this driver.
 		 */
-		LammpsDriver(mpi::communicator& world_comm,
-					 mpi::communicator& local_comm,
+		LammpsDriver(boost::mpi::communicator& world_comm,
+					 boost::mpi::communicator& local_comm,
 					 int walkerID) : 
 		Driver(world_comm, local_comm, walkerID), _lammps(), _logfile() 
 		{
@@ -143,9 +139,9 @@ namespace SSAGES
 		virtual void BuildDriver(const Json::Value& json, const std::string& path) override
 		{
 
-			Value schema;
-			ObjectRequirement validator;
-			Reader reader;
+			Json::Value schema;
+			Json::ObjectRequirement validator;
+			Json::Reader reader;
 
 			reader.parse(JsonSchema::LAMMPSDriver, schema);
 			validator.Parse(schema, path);
@@ -167,7 +163,7 @@ namespace SSAGES
 			char **largs = (char**) malloc(sizeof(char*) * 1);
 			largs[0] = (char*) malloc(sizeof(char) * 1024);
 			sprintf(largs[0], " ");
-			_lammps = std::make_shared<LAMMPS>(1, largs, MPI_Comm(_comm));
+			_lammps = std::make_shared<LAMMPS_NS::LAMMPS>(1, largs, MPI_Comm(_comm));
 
 			// Free.
 			for(int i = 0; i < 1; ++i)

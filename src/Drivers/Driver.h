@@ -38,8 +38,6 @@
 #include "../Simulations/SimObserver.h"
 #include "../Observers/Visitable.h"
 
-namespace mpi = boost::mpi;
-using namespace Json;
 namespace SSAGES
 {
 	//! Abstract driver class for creating driver objects.
