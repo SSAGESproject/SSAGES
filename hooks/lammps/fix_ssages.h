@@ -18,6 +18,10 @@ namespace LAMMPS_NS
 	// be set to 1 in order for the synchronizing to work.
 	class FixSSAGES : public Fix, public SSAGES::Hook
 	{
+	private:
+		// Compute IDs.
+		char *tempid_, *pressid_, *peid_;
+
 	protected:
 		// Implementation of the SyncToEngine interface.
 		void SyncToEngine() override;
@@ -42,6 +46,8 @@ namespace LAMMPS_NS
 
   		// Set mask to let LAMMPS know what triggers we're interested in.
   		int setmask() override;
+
+  		~FixSSAGES();
 	};
 }
 
