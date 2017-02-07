@@ -164,26 +164,15 @@ namespace SSAGES
 				throw BuildException({"You want to run from a restart but no file name provided (see 'restart file' in LAMMPS's schema for more informationz)"});
 			
 			// Silence of the lammps.
-			char **largs = (char**) malloc(sizeof(char*) * 5);
-			for(int i = 0; i < 5; ++i)
-				largs[i] = (char*) malloc(sizeof(char) * 1024);
+			char **largs = (char**) malloc(sizeof(char*) * 1);
+			largs[0] = (char*) malloc(sizeof(char) * 1024);
 			sprintf(largs[0], " ");
-			sprintf(largs[1], "-screen");
-			sprintf(largs[2], "none");
-			sprintf(largs[3], "-log");
-			_logfile = json.get("logfile", "none").asString();
-			if(_logfile != "none")
-				sprintf(largs[4], "%s-MPI_ID-%d",_logfile.c_str(), _wid);
-			else
-				sprintf(largs[4], "none");
-
-			_lammps = std::make_shared<LAMMPS>(5, largs, MPI_Comm(_comm));
+			_lammps = std::make_shared<LAMMPS>(1, largs, MPI_Comm(_comm));
 
 			// Free.
-			for(int i = 0; i < 5; ++i)
+			for(int i = 0; i < 1; ++i)
 				free(largs[i]);
 			free(largs);
-
 		}
 
 		virtual void Serialize(Json::Value& json) const override

@@ -22,6 +22,42 @@ namespace LAMMPS_NS
 	FixSSAGES::FixSSAGES(LAMMPS *lmp, int narg, char **arg) : 
 	Fix(lmp, narg, arg), Hook()
 	{
+		int n = strlen(id) + 5;
+		tempid_ = new char[n];
+		strcpy(tempid_,id);
+		strcat(tempid_,"_temp");
+		char **newarg = new char*[3];
+
+		newarg[0] = tempid_;
+		newarg[1] = (char *) "all";
+		newarg[2] = (char *) "temp";
+		modify->add_compute(3,newarg);
+		delete [] newarg;
+
+		n = strlen(id) + 6;
+		pressid_ = new char[n];
+		strcpy(pressid_,id);
+		strcat(pressid_,"_press");
+
+		newarg = new char*[4];
+		newarg[0] = pressid_;
+		newarg[1] = (char *) "all";
+		newarg[2] = (char *) "pressure";
+		newarg[3] = tempid_;
+		modify->add_compute(4,newarg);
+		delete [] newarg;
+
+		n = strlen(id) + 3;
+		peid_= new char[n];
+		strcpy(peid_,id);
+		strcat(peid_,"_pe");
+
+		newarg = new char*[3];
+		newarg[0] = peid_;
+		newarg[1] = (char *) "all";
+		newarg[2] = (char *) "pe";
+		modify->add_compute(3,newarg);
+		delete [] newarg;
 	}
 
 	void FixSSAGES::setup(int)
@@ -117,19 +153,19 @@ namespace LAMMPS_NS
 		int icompute; 
 
 		//Temperature
-		const char* id_temp = "thermo_temp";
-		icompute = modify->find_compute(id_temp);
+		icompute = modify->find_compute(tempid_);
 		auto* temperature = modify->compute[icompute];
 		_snapshot->SetTemperature(temperature->compute_scalar());
+		temperature->addstep(update->ntimestep + 1);
 		
 		//Energy
 		double etot = 0;
 
 		// Get potential energy.
-		const char* id_pe = "thermo_pe";
-		icompute = modify->find_compute(id_pe);
+		icompute = modify->find_compute(peid_);
 		auto* pe = modify->compute[icompute];
 		etot += pe->scalar;
+		pe->addstep(update->ntimestep + 1);
 
 		// Compute kinetic energy.
 		double ekin = 0.5 * temperature->scalar * temperature->dof  * force->boltz;
@@ -253,6 +289,16 @@ namespace LAMMPS_NS
 		// updated information. No need to sync thermo data
 		// from snapshot to engine.
 		// However, this will change in the future.
+	}
+
+	FixSSAGES::~FixSSAGES()
+	{
+		modify->delete_compute(tempid_);
+		modify->delete_compute(pressid_);
+		modify->delete_compute(peid_);
+		delete tempid_;
+		delete pressid_;
+		delete peid_;
 	}
 }
 
