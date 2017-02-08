@@ -127,6 +127,7 @@ Example MATLAB scripts are provided in the Examples/User/Meta directory.
 These scripts sum the Gaussians and generate a free energy surface from the "hills.out" 
 file.
 
+.. _metadynamics-tutorial:
 
 Tutorial
 ^^^^^^^^
