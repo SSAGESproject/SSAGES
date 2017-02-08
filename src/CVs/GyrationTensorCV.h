@@ -119,7 +119,7 @@ namespace SSAGES
 			auto masstot = snapshot.TotalMass(idx);
 			Vector3 com = snapshot.CenterOfMass(idx, masstot);
 
-			// Gyration tensor an temporary vector to store positions in inertial frame. 
+			// Gyration tensor and temporary vector to store positions in inertial frame. 
 			Matrix3 S = Matrix3::Zero();
 			std::vector<Vector3> ris; 
 			ris.reserve(idx.size());
@@ -193,6 +193,7 @@ namespace SSAGES
 						_grad[i] = 3.*(l1*dl1+l2*dl2+l3*dl3)/(sum*sum) - 
 						           3.*sqsum*(dl1+dl2+dl3)/(sum*sum*sum);
 						_val = 1.5*sqsum/(sum*sum) - 0.5;
+						break;
 				}
 
 				++j;
