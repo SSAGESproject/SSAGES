@@ -29,9 +29,9 @@ namespace SSAGES
 	enum GyrationTensor
 	{
 		Rg = 0, // Radius of gyration (squared)
-		principal1 = 1, // First (largest) principal moment (squared)
-		principal2 = 2, // Second (middle) principal moment (squared)
-		principal3 = 3, // Third (smallest) principal moment (squared)
+		principal1 = 1, // First (largest) principal moment 
+		principal2 = 2, // Second (middle) principal moment 
+		principal3 = 3, // Third (smallest) principal moment
 		asphericity = 4 // Asphericity 
 	};
 
@@ -152,35 +152,37 @@ namespace SSAGES
 			for(auto& i : idx)
 			{
 				// Compute derivative of each eigenvalue and use combos in components. 
-				auto dl1 = 2.*masses[i]/masstot*ris[j].dot(n1)*n1;
-				auto dl2 = 2.*masses[i]/masstot*ris[j].dot(n2)*n2;
-				auto dl3 = 2.*masses[i]/masstot*ris[j].dot(n3)*n3;
+				auto dl1 = 2.*masses[i]/masstot*(1.-masses[i]/masstot)*ris[j].dot(n1)*n1;
+				auto dl2 = 2.*masses[i]/masstot*(1.-masses[i]/masstot)*ris[j].dot(n2)*n2;
+				auto dl3 = 2.*masses[i]/masstot*(1.-masses[i]/masstot)*ris[j].dot(n3)*n3;
 
 				// It is inefficient to keep reassigning val, but it's better than having two 
 				// switches, and the compiler will probably optimize it out anyways.
 				switch(component_)
 				{
 					case Rg:
-						_grad[i] = 2.*l1*dl1 + 2.*l2*dl2 + 2.*l3*dl3;
-						_val = l1*l1 + l2*l2 + l3*l3; 
+						_grad[i] = dl1 + dl2 + dl3;
+						_val = l1 + l2 + l3; 
 						break;
 					case principal1:
-						_grad[i] = 2.*l1*dl1;
-						_val = l1*l1;
+						_grad[i] = dl1;
+						_val = l1;
 						break;
 					case principal2:
-						_grad[i] = 2.*l2*dl2;
-						_val = l2*l2;
+						_grad[i] = dl2;
+						_val = l2;
 						break;
 					case principal3:
-						_grad[i] = 2.*l3*dl3;
-						_val = l3*l3;
+						_grad[i] = dl3;
+						_val = l3;
 						break;
 					case asphericity:
-						_grad[i] = 2.*l1*dl1 - l2*dl2 - l3*dl3;
-						_val = l1*l1 - 0.5*(l2*l2 + l3*l3);
+						_grad[i] = dl1 - 0.5*(dl2 + dl3);
+						_val = l1 - 0.5*(l2 + l3);
 						break;
 				}
+
+				++j;
 			}
 		}
 
