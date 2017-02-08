@@ -31,7 +31,6 @@
 #include "ParticleSeparationCV.h"
 #include "TorsionalCV.h"
 #include "AngleCV.h"
-#include "RadiusOfGyrationCV.h"
 #include "GyrationTensorCV.h"
 #include "RMSDCV.h"
 
@@ -190,24 +189,6 @@ namespace SSAGES
 
 			cv = static_cast<CollectiveVariable*>(c);
 		}
-		else if(type == "RadiusOfGyration")
-		{
-			reader.parse(JsonSchema::RadiusOfGyrationCV, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-			
-			std::vector<int> atomids;
-			for(auto& s : json["atom_ids"])
-				atomids.push_back(s.asInt());
-
-			auto* c = new RadiusOfGyrationCV(atomids);
-			
-			cv = static_cast<CollectiveVariable*>(c);
-		}
 		else if(type == "GyrationTensor")
 		{
 			reader.parse(JsonSchema::GyrationTensorCV, schema); 
@@ -222,7 +203,7 @@ namespace SSAGES
 			for(auto& s : json["atom_ids"])
 				atomids.push_back(s.asInt());
 
-			GyrationTensor component;
+			GyrationTensor component = Rg;
 			auto comp = json["component"].asString();
 			
 			if(comp == "Rg")
