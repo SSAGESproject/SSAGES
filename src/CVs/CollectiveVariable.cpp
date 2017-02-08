@@ -31,7 +31,7 @@
 #include "ParticleSeparationCV.h"
 #include "TorsionalCV.h"
 #include "AngleCV.h"
-#include "RadiusOfGyrationCV.h"
+#include "GyrationTensorCV.h"
 #include "RMSDCV.h"
 
 using namespace Json;
@@ -189,22 +189,39 @@ namespace SSAGES
 
 			cv = static_cast<CollectiveVariable*>(c);
 		}
-		else if(type == "RadiusOfGyration")
+		else if(type == "GyrationTensor")
 		{
-			reader.parse(JsonSchema::RadiusOfGyrationCV, schema);
-			validator.Parse(schema, path);
+			reader.parse(JsonSchema::GyrationTensorCV, schema); 
+			validator.Parse(schema, path); 
 
-			// Validate inputs.
-			validator.Validate(json, path);
+			// Validate inputs. 
+			validator.Validate(json, path); 
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
-			
-			std::vector<int> atomids;
+
+			std::vector<int> atomids; 
 			for(auto& s : json["atom_ids"])
 				atomids.push_back(s.asInt());
 
-			auto* c = new RadiusOfGyrationCV(atomids);
+			GyrationTensor component = Rg;
+			auto comp = json["component"].asString();
 			
+			if(comp == "Rg")
+				component = Rg; 
+			else if(comp == "principal1")
+				component = principal1;
+			else if(comp == "principal2")
+				component = principal2;
+			else if(comp == "principal3")
+				component = principal3;
+			else if(comp == "asphericity")
+				component = asphericity;
+			else if(comp == "acylindricity")
+				component = acylindricity;
+			else if(comp == "shapeaniso")
+				component = shapeaniso;
+
+			auto* c = new GyrationTensorCV(atomids, component);
 			cv = static_cast<CollectiveVariable*>(c);
 		}
 		else if(type == "RMSD")
