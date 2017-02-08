@@ -16,7 +16,15 @@
 		},
 		"component" : {
 			"type" : "string",
-			"enum" : ["Rg", "principal1", "principal2", "principal3", "asphericity"]
+			"enum" : [
+				"Rg", 
+				"principal1", 
+				"principal2", 
+				"principal3", 
+				"asphericity",
+				"acylindricity",
+				"shapeansio"
+			]
 		},
 		"bounds" : {
 			"type" : "array",

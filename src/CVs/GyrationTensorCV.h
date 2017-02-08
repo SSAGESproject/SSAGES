@@ -32,7 +32,9 @@ namespace SSAGES
 		principal1 = 1, // First (largest) principal moment 
 		principal2 = 2, // Second (middle) principal moment 
 		principal3 = 3, // Third (smallest) principal moment
-		asphericity = 4 // Asphericity 
+		asphericity = 4, // Asphericity 
+		acylindricity = 5, // Acylindricity
+		shapeaniso = 6 // Relative shape anisotropy
 	};
 
 	//! Collective variable on components of the gyration tensor.
@@ -138,7 +140,7 @@ namespace SSAGES
 			const auto& eigvals = solver.eigenvalues();
 			const auto& eigvecs = solver.eigenvectors();
 			
-			// Assign variables for clarity. 
+			// Assign variables for clarity. l1 is largest.
 			auto l1 = eigvals[2], 
 			     l2 = eigvals[1], 
 			     l3 = eigvals[0];
@@ -180,6 +182,17 @@ namespace SSAGES
 						_grad[i] = dl1 - 0.5*(dl2 + dl3);
 						_val = l1 - 0.5*(l2 + l3);
 						break;
+					case acylindricity:
+						_grad[i] = dl2 - dl3;
+						_val = l2 - l3; 
+						break;
+					case shapeaniso:
+						auto l1_2 = l1*l1, l2_2 = l2*l2, l3_2 = l3*l3; 
+						auto sum = l1 + l2 + l3;
+						auto sqsum = l1_2 + l2_2 + l3_2;
+						_grad[i] = 3.*(l1*dl1+l2*dl2+l3*dl3)/(sum*sum) - 
+						           3.*sqsum*(dl1+dl2+dl3)/(sum*sum*sum);
+						_val = 1.5*sqsum/(sum*sum) - 0.5;
 				}
 
 				++j;
@@ -216,6 +229,12 @@ namespace SSAGES
 					break;
 				case asphericity:
 					json["component"] = "asphericity"; 
+					break;
+				case acylindricity:
+					json["component"] = "acylindricity";
+					break;
+				case shapeaniso:
+					json["component"] = "shapeaniso";
 					break;
 			}
 		}

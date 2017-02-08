@@ -216,6 +216,10 @@ namespace SSAGES
 				component = principal3;
 			else if(comp == "asphericity")
 				component = asphericity;
+			else if(comp == "acylindricity")
+				component = acylindricity;
+			else if(comp == "shapeaniso")
+				component = shapeaniso;
 
 			auto* c = new GyrationTensorCV(atomids, component);
 			cv = static_cast<CollectiveVariable*>(c);
