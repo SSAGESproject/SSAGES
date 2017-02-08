@@ -32,6 +32,7 @@
 #include "TorsionalCV.h"
 #include "AngleCV.h"
 #include "RadiusOfGyrationCV.h"
+#include "GyrationTensorCV.h"
 #include "RMSDCV.h"
 
 using namespace Json;
@@ -205,6 +206,37 @@ namespace SSAGES
 
 			auto* c = new RadiusOfGyrationCV(atomids);
 			
+			cv = static_cast<CollectiveVariable*>(c);
+		}
+		else if(type == "GyrationTensor")
+		{
+			reader.parse(JsonSchema::GyrationTensorCV, schema); 
+			validator.Parse(schema, path); 
+
+			// Validate inputs. 
+			validator.Validate(json, path); 
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+
+			std::vector<int> atomids; 
+			for(auto& s : json["atom_ids"])
+				atomids.push_back(s.asInt());
+
+			GyrationTensor component;
+			auto comp = json["component"].asString();
+			
+			if(comp == "Rg")
+				component = Rg; 
+			else if(comp == "principal1")
+				component = principal1;
+			else if(comp == "principal2")
+				component = principal2;
+			else if(comp == "principal3")
+				component = principal3;
+			else if(comp == "asphericity")
+				component = asphericity;
+
+			auto* c = new GyrationTensorCV(atomids, component);
 			cv = static_cast<CollectiveVariable*>(c);
 		}
 		else if(type == "RMSD")

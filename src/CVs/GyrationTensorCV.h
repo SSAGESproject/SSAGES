@@ -1,0 +1,222 @@
+/**
+ * This file is part of
+ * SSAGES - Suite for Advanced Generalized Ensemble Simulations
+ *
+ * Copyright 2017 Hythem Sidky <hsidky@nd.edu>
+ *
+ * SSAGES is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * SSAGES is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once 
+
+#include "CVs/CollectiveVariable.h"
+#include "Drivers/DriverException.h"
+#include <Eigen/Eigenvalues>
+
+namespace SSAGES
+{
+	enum GyrationTensor
+	{
+		Rg = 0, // Radius of gyration (squared)
+		principal1 = 1, // First (largest) principal moment (squared)
+		principal2 = 2, // Second (middle) principal moment (squared)
+		principal3 = 3, // Third (smallest) principal moment (squared)
+		asphericity = 4 // Asphericity 
+	};
+
+	//! Collective variable on components of the gyration tensor.
+	/*!
+	 * Collective variable on components of gyration tensor. Depending on the 
+	 * user selection, this will specify a principal moment, radius of gyration, 
+	 * or another shape descriptor.
+	 *
+	 * \ingroup CVs
+	 */
+	class GyrationTensorCV : public CollectiveVariable
+	{
+	private:
+		Label atomids_; //!< IDs of the atoms used for calculation
+		GyrationTensor component_; //!< Component of gyration tensor to compute.
+
+	public: 
+		//! Constructor.
+		/*!
+		 * \param atomids IDs of the atoms defining gyration tensor.
+		 * \param component Specification of component to compute.
+		 *
+		 * Construct a GyrationTensorCV.
+		 *
+		 */
+		GyrationTensorCV(const Label& atomids, GyrationTensor component) :
+		atomids_(atomids), component_(component)
+		{
+		}
+
+		//! Initialize necessary variables.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 */
+		void Initialize(const Snapshot& snapshot) override
+		{
+			using std::to_string;
+
+			auto n = atomids_.size();
+
+			// Make sure atom ID's are on at least one processor. 
+			std::vector<int> found(n, 0);
+			for(size_t i = 0; i < n; ++i)
+			{
+				if(snapshot.GetLocalIndex(atomids_[i]) != -1)
+					found[i] = 1;
+			}
+
+			MPI_Allreduce(MPI_IN_PLACE, found.data(), n, MPI_INT, MPI_SUM, snapshot.GetCommunicator());
+			unsigned ntot = std::accumulate(found.begin(), found.end(), 0, std::plus<int>());
+			if(ntot != n)
+				throw BuildException({
+					"GyrationTensorCV: Expected to find " + 
+					to_string(n) + 
+					" atoms, but only found " + 
+					to_string(ntot) + "."
+				});		
+		}		
+
+		//! Evaluate the CV.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 */
+		void Evaluate(const Snapshot& snapshot) override
+		{
+			using namespace Eigen; 
+
+			// Get local atom indices and compute COM. 
+			std::vector<int> idx;
+			snapshot.GetLocalIndices(atomids_, &idx);
+
+			// Get data from snapshot. 
+			auto n = snapshot.GetNumAtoms();
+			const auto& masses = snapshot.GetMasses();
+			const auto& pos = snapshot.GetPositions();
+
+			// Initialize gradient.
+			std::fill(_grad.begin(), _grad.end(), Vector3{0,0,0});
+			_grad.resize(n, Vector3{0,0,0});
+			
+			// Compute total and center of mass.
+			auto masstot = snapshot.TotalMass(idx);
+			Vector3 com = snapshot.CenterOfMass(idx, masstot);
+
+			// Gyration tensor an temporary vector to store positions in inertial frame. 
+			Matrix3 S = Matrix3::Zero();
+			std::vector<Vector3> ris; 
+			ris.reserve(idx.size());
+			for(auto& i : idx)
+			{
+				ris.emplace_back(snapshot.ApplyMinimumImage(pos[i] - com));
+				S.noalias() += masses[i]*ris.back()*ris.back().transpose();
+			}
+
+			// Reduce gyration tensor across processors and normalize.
+			MPI_Allreduce(MPI_IN_PLACE, S.data(), S.size(), MPI_DOUBLE, MPI_SUM, snapshot.GetCommunicator());
+			S /= masstot;
+
+			// Perform EVD. The columns are the eigenvectors. 
+			// SelfAdjoint solver sorts in ascending order. 
+			SelfAdjointEigenSolver<Matrix3> solver;
+			solver.computeDirect(S);
+			const auto& eigvals = solver.eigenvalues();
+			const auto& eigvecs = solver.eigenvectors();
+			
+			// Assign variables for clarity. 
+			auto l1 = eigvals[2], 
+			     l2 = eigvals[1], 
+			     l3 = eigvals[0];
+			const auto& n1 = eigvecs.col(2), 
+			            n2 = eigvecs.col(1), 
+			            n3 = eigvecs.col(0);
+
+			// Compute gradient.
+			size_t j = 0;
+			_val = 0;
+			for(auto& i : idx)
+			{
+				// Compute derivative of each eigenvalue and use combos in components. 
+				auto dl1 = 2.*masses[i]/masstot*ris[j].dot(n1)*n1;
+				auto dl2 = 2.*masses[i]/masstot*ris[j].dot(n2)*n2;
+				auto dl3 = 2.*masses[i]/masstot*ris[j].dot(n3)*n3;
+
+				// It is inefficient to keep reassigning val, but it's better than having two 
+				// switches, and the compiler will probably optimize it out anyways.
+				switch(component_)
+				{
+					case Rg:
+						_grad[i] = 2.*l1*dl1 + 2.*l2*dl2 + 2.*l3*dl3;
+						_val = l1*l1 + l2*l2 + l3*l3; 
+						break;
+					case principal1:
+						_grad[i] = 2.*l1*dl1;
+						_val = l1*l1;
+						break;
+					case principal2:
+						_grad[i] = 2.*l2*dl2;
+						_val = l2*l2;
+						break;
+					case principal3:
+						_grad[i] = 2.*l3*dl3;
+						_val = l3*l3;
+						break;
+					case asphericity:
+						_grad[i] = 2.*l1*dl1 - l2*dl2 - l3*dl3;
+						_val = l1*l1 - 0.5*(l2*l2 + l3*l3);
+						break;
+				}
+			}
+		}
+
+		//! Serialize this CV for restart purposes.
+		/*!
+		 * \param json JSON value
+		 */
+		virtual void Serialize(Json::Value& json) const override
+		{
+			json["type"] = "GyrationTensor"; 
+
+			for(auto& id : atomids_)
+				json["atom_ids"].append(id);
+
+			for(auto& bound: _bounds)
+				json["bounds"].append(bound);
+
+			switch(component_)
+			{
+				case Rg:
+					json["component"] = "Rg";
+					break;
+				case principal1:
+					json["component"] = "principal1"; 
+					break;
+				case principal2:
+					json["component"] = "principal2";
+					break;
+				case principal3:
+					json["component"] = "principal3";
+					break;
+				case asphericity:
+					json["component"] = "asphericity"; 
+					break;
+			}
+		}
+
+	};
+}
