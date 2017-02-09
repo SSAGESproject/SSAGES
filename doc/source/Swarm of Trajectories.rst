@@ -7,29 +7,26 @@ Introduction
 ^^^^^^^^^^^^
 
 Like all string methods in general, the **string method with swarms of
-trajectories** (often abbreviated to “swarm of trajectories” or even
-more simply “SoT”) is a method to identify a transition pathway in an
-arbitrarily high-dimensional collective variable space between two
-metastable states of a system. This pathway (the string) is a
-parametrized curve discretized into a set of images, each of which is
-itself a molecular system. The classical *string method in collective
-variables* evolves each image by estimating a mean force and metric
-tensor at each image with restrained molecular dynamics simulations. In
-the SoT method, the string is instead evolved by launching a large
-number (a swarm) of **unrestrained** trajectories from each image and
-estimating the average drift of the collective variables over the swarm.
+trajectories** (often abbreviated to "swarm of trajectories" or even more simply
+"SoT") is a method to identify a transition pathway in an arbitrarily
+high-dimensional collective variable space between two metastable states of a
+system.  This pathway (the string) is a parametrized curve discretized into a
+set of images, each of which is itself a molecular system.  The classical *string
+method in collective variables* evolves each image by estimating a mean force and
+metric tensor at each image with restrained molecular dynamics simulations.  In
+the SoT method, the string is instead evolved by launching a large number (a
+swarm) of **unrestrained** trajectories from each image and estimating the average
+drift of the collective variables over the swarm.  
 
-The mathematical background of the method can be expressed in a few
-relatively straightforward equations, with further detail available in the original work of
-Benoit Roux and collaborators [1]_.  First, consider
-a path **z**\ (:math:`\alpha`) constructed between two metastable
-states, such that :math:`\alpha=0` represents the starting state and
-:math:`\alpha=1` is the final state. The “most probable transition
-pathway” (MPTP) is defined such that a molecular system started from
-anywhere on the path will most probably evolve while staying on the
-path. It is shown in the original work that a mathematical definition
-for such a path is given when the collective variables evolve according
-to:
+The mathematical background of the method can be expressed in a few relatively
+straightforward equations, with further detail available in the original work of
+Benoit Roux and collaborators [1]_.  First, consider a path :math:`z(\alpha)`
+constructed between two metastable states, such that :math:`\alpha=0` represents
+the starting state and :math:`\alpha=1` is the final state.  The "most probable
+transition pathway" (MPTP) is defined such that a molecular system started from
+anywhere on the path will most probably evolve while staying on the path.  It is
+shown in the original work that a mathematical definition for such a path is
+given when the collective variables evolve according to:
 
 .. math::
 
