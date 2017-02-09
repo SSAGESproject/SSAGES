@@ -30,62 +30,56 @@ given when the collective variables evolve according to:
 
 .. math::
 
-   z_{i}(\alpha) = z_{i}(\alpha') + \sum\limits_{j}\left(
-   \beta D_{ij}\left[ z(0) \right] F_{j}\left[z(0)\right] +
-   \frac{\partial}{\partial z_{j}}\left( D_{ij}\left[z(0)\right]\right)
-   \right)\delta\tau
+    z_{i}(\alpha) = z_{i}(\alpha') + \sum\limits_{j}\left(
+    \beta D_{ij}\left[ z(0) \right] F_{j}\left[z(0)\right] +
+    \frac{\partial}{\partial z_{j}}\left( D_{ij}\left[z(0)\right]\right)
+    \right)\delta\tau
 
-Where the following notation is used: :math:`z_{i}` represents the
-collective variables belonging to the string, :math:`\alpha` represents
-the parameter identifying that point on the string, :math:`\beta`
-represents the temperature, :math:`D_{ij}` represents the diffusion
-tensor, :math:`F_{j}` represents the mean force, :math:`z` represents
-the collective variables constructed from the molecular system at a
-given moment in time, and :math:`\delta\tau` represents the time step of
-the evolution of the dynamics. The SoT method approximates this equation
-using the average drift evaluated from a large number of unbiased
-trajectories, each of length :math:`\delta\tau`, launched from each
-image:
+Where the following notation is used: :math:`z_{i}` represents the collective
+variables belonging to the string, :math:`\alpha` represents the parameter
+identifying that point on the string, :math:`\beta` represents the temperature,
+:math:`D_{ij}` represents the diffusion tensor, :math:`F_{j}` represents the
+mean force, :math:`z` represents the collective variables constructed from the
+molecular system at a given moment in time, and :math:`\delta\tau` represents
+the time step of the evolution of the dynamics.  The SoT method approximates
+this equation using the average drift evaluated from a large number of unbiased
+trajectories, each of length :math:`\delta\tau`, launched from each image:
 
 .. math::
 
-   \overline{\Delta z_{i}(\delta\tau)} = \overline{z_{i}(\delta\tau) - z_{i}(0)} \equiv
-   \sum\limits_{j} \left( \beta D_{ij}\left[z(0)\right] F_{j}\left[z(0)]\right] +
-   \frac{\partial}{\partial z_{j}}\left( D_{ij}\left[ z(0)\right]\right)\right)\delta\tau
+    \bar{\Delta z_{i}(\delta\tau)} = \bar{z_{i}(\delta\tau) - z_{i}(0)} \equiv
+    \sum\limits_{j} \left( \beta D_{ij}\left[z(0)\right] F_{j}\left[z(0)]\right] +
+    \frac{\partial}{\partial z_{j}}\left( D_{ij}\left[ z(0)\right]\right)\right)\delta\tau
 
 Like all string methods, there is an additional step beyond evolving the
-collective variables - after one iteration of evolution, the images
-along the path must be reparametrized such that they lie (for example)
-an equal arc length apart. This step is necessary to ensure that all
-images do not fall into one metastable basin or the other.
+collective variables - after one iteration of evolution, the images along the
+path must be reparametrized such that they lie (for example) an equal arc length
+apart.  This step is necessary to ensure that all images do not fall into one
+metastable basin or the other.
 
 Algorithmically, the SoT method is implemented as follows:
 
-#. An initial string is defined between the two states of interest. This
-   can be defined however one wishes; often it is simply a linear
-   interpolation through the space of the collective variables. In fact,
-   the ends of the string need not necessarily be in the basins of
-   interest; the dynamic nature of the method should allow the ends to
-   naturally fall into nearby metastable basins.
+1. An initial string is defined between the two states of interest.  This can be
+   defined however one wishes; often it is simply a linear interpolation through
+   the space of the collective variables.  In fact, the ends of the string need
+   not necessarily be in the basins of interest; the dynamic nature of the
+   method should allow the ends to naturally fall into nearby metastable basins.
 
-#. For each image of the string, a molecular system with atomic
-   coordinates that roughly correspond to the collective variables of
-   that image is constructed.
+2. For each image of the string, a molecular system with atomic coordinates that
+   roughly correspond to the collective variables of that image is constructed.
 
-#. A set of equilibrium trajectories are generated from that system by
-   performing restrained sampling around the image’s collective
-   variables.
+3. A set of equilibrium trajectories are generated from that system by performing
+   restrained sampling around the image’s collective variables. 
 
-#. That set of equilibrium trajectories is used as the starting point of
-   a large number of short unbiased trajectories; the resulting average
-   displacement of each collective variable is used to update the
-   positions of the images.
+4. That set of equilibrium trajectories is used as the starting point of a large
+   number of short unbiased trajectories; the resulting average displacement of
+   each collective variable is used to update the positions of the images.
 
-#. A reparameterization scheme is enforced to ensure that, for example,
-   the string images are equally distant in collective variable space.
+5. A reparameterization scheme is enforced to ensure that, for example, the
+   string images are equally distant in collective variable space.
 
-Steps two through five are iterated upon, leading to convergence of the
-method and the MPTP.
+Steps two through five are iterated upon, leading to convergence of the method
+and the MPTP. 
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -155,6 +149,8 @@ that will be written out.
 frequency
    This specifies how often a restart file is written out, in terms of MD
 steps taken.
+
+.. _Swarm_tutorial:
 
 Tutorial
 ^^^^^^^^
