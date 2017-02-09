@@ -1,5 +1,10 @@
+.. swarm:
+
+Swarm of Trajectories
+---------------------
+
 Introduction
-============
+^^^^^^^^^^^^
 
 Like all string methods in general, the **string method with swarms of
 trajectories** (often abbreviated to “swarm of trajectories” or even
@@ -15,8 +20,8 @@ number (a swarm) of **unrestrained** trajectories from each image and
 estimating the average drift of the collective variables over the swarm.
 
 The mathematical background of the method can be expressed in a few
-relatively straightforward equations, with further detail available in
-the original work of Benoit Roux and collaborators [1]. First, consider
+relatively straightforward equations, with further detail available in the original work of
+Benoit Roux and collaborators [1]_.  First, consider
 a path **z**\ (:math:`\alpha`) constructed between two metastable
 states, such that :math:`\alpha=0` represents the starting state and
 :math:`\alpha=1` is the final state. The “most probable transition
@@ -86,7 +91,7 @@ Steps two through five are iterated upon, leading to convergence of the
 method and the MPTP.
 
 Options & Parameters
-====================
+^^^^^^^^^^^^^^^^^^^^
 
 | To construct a Swarm input file, the following options ae available. A
 complete Swarm JSON file will inherit some of its inputs from the String
@@ -150,7 +155,7 @@ that will be written out.
 steps taken.
 
 Tutorial
-========
+^^^^^^^^
 
 | This tutorial will walk you step by step through the user example
 provided with the SSAGES source code that runs the SoT method on the
@@ -216,10 +221,13 @@ And in a moment you should have a graph of your converged string. Thus
 concludes this tutorial.
 
 Developer
-=========
+^^^^^^^^^
 
 Cody Bezik.
 
-9 Pan, A. C., Sezer, D. & Roux, B. *Finding Transition Pathways Using
-the String Method with Swarms of Trajectories.* J. Phys. Chem. B
-**112**, 3432\ :math:`-`\ 3440 (2008).
+References
+^^^^^^^^^^
+
+.. [1] Pan, A. C., Sezer, D. & Roux, B. *Finding Transition Pathways Using the
+       String Method with Swarms of Trajectories*.
+       J. Phys. Chem. B **112**, 3432–3440 (2008).
