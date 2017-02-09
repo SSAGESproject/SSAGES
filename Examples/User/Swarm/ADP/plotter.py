@@ -1,4 +1,4 @@
-#!/usr/bin/python
+##special_bonds	lj/coul 0.0 0.0 0.5!/usr/bin/python
 
 #Execute this script in the folder with your node-00XX.log outputs to get a graph of initial and final images
 
@@ -23,7 +23,7 @@ for i in range(0, nodes):
     end_lines.append(lineList[-1])
     start_lines.append(lineList[0])
     fileHandle.close()
-    
+
 for line in end_lines:
     end_data.append(line.split(' '))
 

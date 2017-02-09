@@ -1,5 +1,4 @@
 .. _elastic-band:
-
 Elastic Band
 ------------
 
@@ -91,49 +90,74 @@ and the MEP.
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
 
-These are all the options that SSAGES provides for running the NEB method. In
-order to add NEB to the JSON file, the method should be labeled as "ElasticBand".
+To construct an EB input file, the following options ae available. A
+complete EB JSON file will inherit some of its inputs from the String
+schema (for parameters common to all string methods) as well as the
+Observer schema (for restarts). The options unique to EB are:
 
-centers
-    For each driver, the initial values of each CV should be specified as a list
-    under "centers".  In this way, the initial band is defined.
+equilibration_steps
+   The number of MD steps to simply perform umbrella sampling without
+invoking the NEB method. A sufficiently long number of steps ensures
+that the underlying molecular systems have CVs close to the CVs of their
+associated image on the band.
 
-number samples
-    A specification of how many times to sample the gradient during the umbrella
-    sampling portion of the method.  
-
-time step
-    The time step used in the Verlet integration of the force to update the
-    images of the band.  
-
-ksprings
-    The constant used in performing umbrella sampling for the simulation; it can
-    be specified uniquely for each image and for each CV.  Please notice its
-    difference from kstring.
+evolution_steps
+   The number of steps to perform the NEB over; the band is updated after
+evolution steps times the number of samples total MD steps. A new value
+of the gradient is harvested every time the number of MD steps taken is
+an integer multiple of evolution steps.
 
 kstring
-    The constant used in calculating the spring force at each image.  It can be
-    specified uniquely for each image.  Please notice its difference from
-    kpsrings.    
+   The constant used in calculating the spring force at each image. It
+can be specified uniquely for each image. Please notice its difference
+from kpsrings.
+
+From the String schema, the options are:
+
+type
+   This parameter identifies that a String-type method is being used, and
+thus should be set to “String”
+
+flavor
+   This parameter identifies the specific kind of string-type method
+being used; for EB, it should be set to “ElasticBand”.
+
+centers
+   For each driver, the initial values of each CV should be specified as
+a list under “centers”. In this way, the initial band is defined.
+
+tolerance
+   This is a tolerance threshold that can be set to trigger the end of
+the method; it is a percentage by which, if no node CV changes by this
+percentage, the method will end. It must be specified as an array with
+one entry for each CV desired.
+
+max_iterations
+   A complementary stopping criterion can be specified; the method will
+stop if it undergoes this many iterations of the string method.
+
+ksprings
+   A unique spring constant must be defined for each CV; its purpose is
+described above.
 
 frequency
-    The frequency of each integration step. This should almost always be set to
-    1.
+   The frequency of each integration step. This should almost always be
+set to 1.
 
-equilibration steps
-    The number of MD steps to simply perform umbrella sampling without invoking
-    the NEB method.  A sufficiently long number of steps ensures that the
-    underlying molecular systems have CVs close to the CVs of their associated
-    image on the band.  
+From the Observer schema, the options are:
 
-max iterations
-    The simulation will terminate after the specified number of iterations.
+type
+   This can currently only be set to “JSON”; specifies to write out JSON
+type restart files.
 
-evolution steps
-    The number of steps to perform the NEB over; the band is updated after
-    evolution steps times the number of samples total MD steps.  A new value of
-    the gradient is harvested every time the number of MD steps taken is an
-    integer multiple of evolution steps.
+file name
+   This is a prefix which will be attached to the various restart files
+that will be written out.
+
+frequency
+   This specifies how often a restart file is written out, in terms of MD
+steps taken.
+
 
 .. _EB_tutorial:
 
