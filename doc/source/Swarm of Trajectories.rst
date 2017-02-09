@@ -90,132 +90,137 @@ method and the MPTP.
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
 
-| To construct a Swarm input file, the following options ae available. A
+To construct a Swarm input file, the following options ae available. A
 complete Swarm JSON file will inherit some of its inputs from the String
 schema (for parameters common to all string methods) as well as the
 Observer schema (for restarts). The options unique to Swarm are:
-| ***initial\_steps***
-| For each iteration of the method, this is the number of steps to spend
+
+initial_steps
+   For each iteration of the method, this is the number of steps to spend
 doing restrained sampling and not harvesting trajectories. This time is
 important to ensure the underlying molecular system’s CV values are
 close to the string CV values.
-| ***harvest\_length***
-| After the initial restraining is finished, a trajectory is harvested
-for later use in launching an unrestrained trajectory every so often -
-harvest length specifies how often this will be done. Harvest length
-multiplied by number of trajectories (see below) will determine overall
-how many more steps will be taken under restrained sampling.
-| ***number\_of\_trajectories***
-| The total number of unrestrained trajectories to be included in each
-swarm.
-| ***swarm\_length***
-| The length of each unrestrained trajectory in the swarm. Swarm length
-multiplied by number of trajectories specifies how many total steps will
-be spent doing unrestrained sampling.
 
-| From the String schema, the options are:
+harvest_length
+   After the initial restraining is finished, a trajectory is harvested for later use in launching an unrestrained trajectory every so often - harvest length specifies how often this will be done. Harvest length multiplied by number of trajectories (see below) will determine overall how many more steps will be taken under restrained sampling.
+ 
+number_of_trajectories
+   The total number of unrestrained trajectories to be included in each swarm.
+   
+swarm_length
+   The length of each unrestrained trajectory in the swarm. Swarm length multiplied by number of trajectories specifies how many total steps will be spent doing unrestrained sampling. 
 
-| ***type***
-| This parameter identifies that a String-type method is being used, and
+From the String schema, the options are:
+
+type
+   This parameter identifies that a String-type method is being used, and
 thus should be set to “String”
-| ***flavor***
-| This parameter identifies the specific kind of string-type method
+
+flavor
+   This parameter identifies the specific kind of string-type method
 being used; for swarm, it should be set to “Swarm”.
-| ***centers***
-| For each driver, the initial values of each CV should be specified as
+
+centers
+   For each driver, the initial values of each CV should be specified as
 a list under “centers”. In this way, the initial string is defined.
-| ***tolerance***
-| This is a tolerance threshold that can be set to trigger the end of
+
+tolerance
+   This is a tolerance threshold that can be set to trigger the end of
 the method; it is a percentage by which, if no node CV changes by this
 percentage, the method will end. It must be specified as an array with
 one entry for each CV desired.
-| ***max\_iterations***
-| A complementary stopping criterion can be specified; the method will
+
+max_iterations
+   A complementary stopping criterion can be specified; the method will
 stop if it undergoes this many iterations of the string method.
-| ***ksprings***
-| A unique spring constant must be defined for each CV; its purpose is
+
+ksprings
+   A unique spring constant must be defined for each CV; its purpose is
 described above.
-| ***frequency***
-| The frequency of each integration step. This should almost always be
+
+frequency
+   The frequency of each integration step. This should almost always be
 set to 1.
 
-| From the Observer schema, the options are:
+From the Observer schema, the options are:
 
-| ***type***
-| This can currently only be set to “JSON”; specifies to write out JSON
+type
+   This can currently only be set to “JSON”; specifies to write out JSON
 type restart files.
-| ***file name***
-| This is a prefix which will be attached to the various restart files
+
+file name
+   This is a prefix which will be attached to the various restart files
 that will be written out.
-| ***frequency***
-| This specifies how often a restart file is written out, in terms of MD
+
+frequency
+   This specifies how often a restart file is written out, in terms of MD
 steps taken.
 
 Tutorial
 ^^^^^^^^
 
-| This tutorial will walk you step by step through the user example
-provided with the SSAGES source code that runs the SoT method on the
-alanine dipeptide using LAMMPS. First, be sure you have compiled SSAGES
-with LAMMPS. Then, navigate to the SSAGES/Examples/User/Swarm/ADP
-subdirectory. Now, take a moment to observe the in.ADP\_Test and
-data.input files. In general, these should be the same as what you would
-use for any other method, but for the SoT method, it is important to
-define a larger skin distance than one normally would in the neighbor
-command in LAMMPS. This is because, under the hood, each unrestrained
-trajectory in the swarm is started by manually resetting the positions
-of each atom in the LAMMPS simulation to the start of a new trajectory.
-From the perspective of LAMMPS, this is a huge amount of distance to
-move in a single time step; this move triggers neighbor list rebuilding,
-but LAMMPS considers it a “dangerous build” which threatens to crash the
-simulation. Thus, we increase the skin distance, which forces LAMMPS to
-keep track of more pairs in the neighbor lists, and thus reduces the
-number of dangerous builds. Keep this in mind for future runs of the SoT
-method.
+This tutorial will walk you step by step through the user example provided with
+the SSAGES source code that runs the SoT method on the alanine dipeptide using
+LAMMPS.  First, be sure you have compiled SSAGES with LAMMPS.  Then, navigate to
+the ``SSAGES/Examples/User/Swarm/ADP`` subdirectory.  Now, take a moment to
+observe the ``in.ADP_Test and data.input`` files.  In general, these should be
+the same as what you would use for any other method, but for the SoT method, it
+is important to define a larger skin distance than one normally would in the
+neighbor command in LAMMPS.  This is because, under the hood, each unrestrained
+trajectory in the swarm is started by manually resetting the positions of each
+atom in the LAMMPS simulation to the start of a new trajectory.  From the
+perspective of LAMMPS, this is a huge amount of distance to move in a single
+time step; this move triggers neighbor list rebuilding, but LAMMPS considers it
+a "dangerous build" which threatens to crash the simulation.  Thus, we increase
+the skin distance, which forces LAMMPS to keep track of more pairs in the
+neighbor lists, and thus reduces the number of dangerous builds.  Keep this in
+mind for future runs of the SoT method.
 
-| The next two files of interest are the Template\_Input.json input file
-and the Input\_Generator.py script. Both of these files can be modified
-in your text editor of choice to customize the inputs, but for this
-tutorial, simply observe them and leave them be. Template\_Input.json
-contains all the information necessary to fully specify one driver;
-Input\_Generator.py copies this information a number of times specified
-within the script (for this tutorial, 12 times) while also linearly
-interpolating through the start and end states defined in the script and
-substituting the correct values into the “centers” portion of the method
-definition. Execute this script as follows:
+The next two files of interest are the ``Template_Input.json`` input file and
+the ``Input_Generator.py`` script.  Both of these files can be modified in your
+text editor of choice to customize the inputs, but for this tutorial, simply
+observe them and leave them be.  ``Template_Input.json`` contains all the
+information necessary to fully specify one driver; ``Input_Generator.py`` copies
+this information a number of times specified within the script (for this
+tutorial, 12 times) while also linearly interpolating through the start and end
+states defined in the script and substituting the correct values into the
+"centers" portion of the method definition.  Execute this script as follows:
 
-| python Input\_Generator.py
+.. code-block:: bash
 
-| You will produce a file called Swarm.json. You can also open this file
-to verify for yourself that the script did what it was supposed to do.
-Now, with your JSON input and your SSAGES binary, you have everything
-you need to perform a simulation. Simply run:
+    python Input_Generator.py
 
-| mpiexec -np 12 ./ssages Swarm.json
+You will produce a file called ``Swarm.json``.  You can also open this file to
+verify for yourself that the script did what it was supposed to do.  Now, with
+your JSON input and your SSAGES binary, you have everything you need to perform
+a simulation.  Simply run:
 
-| Soon, the simulation will produce a node-X.log file for each driver,
-where X is the number specifying the driver (in this case, 0-11 for our
-12 drivers). Each one will report the following information, in order:
-the node number, the iteration number, and for each CV, the current
-value of the string CV as well as the current value of the CV calculated
-from the molecular system.
+.. code-block:: bash
 
-| Allow your system to run for the desired number of MD steps, but keep
-an eye on it - the system should exit once one driver reaches the
-maximum number of MD steps, but it is possible that instead one driver
-will exit and the rest will get stuck. Check in on your node files and
-see if they have been updated recently - if not, the simulation has
-likely finished. Once this is done, you can execute the included
-plotter.py function in a directory containing the node files with the
-command line argument of how many images your string had. The script
-also accepts an argument to plot a free energy surface alongside the
-string, but that goes beyond the scope of this tutorial. Thus, simply
-execute:
+    mpiexec -np 12 ./ssages Swarm.json
 
-| python plotter.py 12 none
+Soon, the simulation will produce a ``node-X.log`` file for each driver, where
+X is the number specifying the driver (in this case, 0-11 for our 12 drivers).
+Each one will report the following information, in order: the node number, the
+iteration number, and for each CV, the current value of the string CV as well as
+the current value of the CV calculated from the molecular system.  
 
-And in a moment you should have a graph of your converged string. Thus
-concludes this tutorial.
+Allow your system to run for the desired number of MD steps, but keep an eye on
+it - the system should exit once one driver reaches the maximum number of MD
+steps, but it is possible that instead one driver will exit and the rest will
+get stuck.  Check in on your node files and see if they’ve been updated recently - if
+not, the simulation has likely finished.  Once this is done, you can execute the
+included plotter.py function in a directory containing the node files with the
+command line argument of how many images your string had.  The script also
+accepts an argument to plot a free energy surface alongside the string, but that
+goes beyond the scope of this tutorial.  Thus, simply execute:
+
+.. code-block:: bash
+
+    python plotter.py 12 none
+
+And in a moment you should have a graph of your converged string.  Thus concludes
+this tutorial.
 
 Developer
 ^^^^^^^^^
