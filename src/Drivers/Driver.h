@@ -48,47 +48,47 @@ namespace SSAGES
 	{
 
 	protected:
-		boost::mpi::communicator _world; //!< MPI global communicator
-		boost::mpi::communicator _comm; //!< MPI local communicator
+		boost::mpi::communicator world_; //!< MPI global communicator
+		boost::mpi::communicator comm_; //!< MPI local communicator
 
 		//! The node id that this driver belongs to
-		const int _wid;
+		const int wid_;
 
 		//! The hook that hooks into the MD simulation engine
-		Hook* _hook;
+		Hook* hook_;
 
 		//! The snapshot of your system
-		Snapshot* _snapshot;
+		Snapshot* snapshot_;
 
 		//! The Method that will be used
-		Method* _method;
+		Method* method_;
 
 		//! The CVs that will be used
-		CVList _CVs;
+		CVList CVs_;
 
 		//! Target number of iterations
 		int iterations_;
 
 		//! The observers that will be used for this driver
-		ObserverList _observers;
+		ObserverList observers_;
 
 		//! List of constraints to use
-		ConstraintList _constraints;
+		ConstraintList constraints_;
 
 		//! Local input file
-		std::string _inputfile;
+		std::string inputfile_;
 
 		//! MD engine Restart file name
-		std::string _restartname;
+		std::string restartname_;
 
 		//! Read a restart file
-		bool _readrestart;
+		bool readrestart_;
 
 		//! Random number generators for setting seeds
-		std::random_device _rd;
+		std::random_device rd_;
 
 		//! Alternative random number generator
-		std::mt19937 _gen;
+		std::mt19937 gen_;
 
 	public:
 		//! Constructor
@@ -100,32 +100,32 @@ namespace SSAGES
 		Driver(boost::mpi::communicator& world, 
 			   boost::mpi::communicator& comm,
 			   int walkerID) : 
-		_world(world), _comm(comm), _wid(walkerID),
-		_hook(nullptr), _snapshot(nullptr), _method(nullptr), _CVs(),
-		iterations_(0), _observers(), _inputfile("none"), _restartname(),
-		_readrestart(), _rd(), _gen(_rd())
+		world_(world), comm_(comm), wid_(walkerID),
+		hook_(nullptr), snapshot_(nullptr), method_(nullptr), CVs_(),
+		iterations_(0), observers_(), inputfile_("none"), restartname_(),
+		readrestart_(), rd_(), gen_(rd_())
 		 {}
 
 		//! Destructor
 		virtual ~Driver()
 		{
-			for(auto& cv : _CVs)
+			for(auto& cv : CVs_)
 				delete cv;
 
-			for(auto& o : _observers)
+			for(auto& o : observers_)
 				delete o;
 
-			_CVs.clear();
-			_observers.clear();
+			CVs_.clear();
+			observers_.clear();
 
-			delete _snapshot;
+			delete snapshot_;
 
-			delete _method;
+			delete method_;
 
-			for(auto& constraint : _constraints)
+			for(auto& constraint : constraints_)
 				delete constraint;
 
-			_constraints.clear();
+			constraints_.clear();
 		}
 
 		//! Run simulation
@@ -149,14 +149,14 @@ namespace SSAGES
 
 		//! Get the input file contents
 		/*!
-		 * \returns The contents of \c _inputfile.
+		 * \returns The contents of \c inputfile_.
 		 *
 		 * This function returns the contents of the input file.
 		 *
 		 * \note This function does not load the input file. If the input file
 		 *       has not been loaded before, an empty string will be returned.
 		 */
-		std::string GetInputFile(){return _inputfile;}
+		std::string GetInputFile(){return inputfile_;}
 
 		//! Set the input file
 		/*!
@@ -164,7 +164,7 @@ namespace SSAGES
 		 *
 		 * This function sets the name of the input file for the driver.
 		 */
-		void SetInputFile(const std::string filename){ _inputfile = filename;}
+		void SetInputFile(const std::string filename){ inputfile_ = filename;}
 
 		//! Build CVs
 		/*!
@@ -173,7 +173,7 @@ namespace SSAGES
 		 */
 		void BuildCVs(const Json::Value& json, const std::string& path)
 		{
-			CollectiveVariable::BuildCV(json, _CVs, path);
+			CollectiveVariable::BuildCV(json, CVs_, path);
 		}
 
 		// Build Constraints.
@@ -183,7 +183,7 @@ namespace SSAGES
 		 */
 		void BuildConstraints(const Json::Value& json, const std::string& path)
 		{
-			Constraint::BuildConstraint(json, _constraints, _comm, path);
+			Constraint::BuildConstraint(json, constraints_, comm_, path);
 		}
 
 		//! Build method(s).
@@ -193,7 +193,7 @@ namespace SSAGES
 		 */
 		void BuildMethod(const Json::Value& json, const std::string& path)
 		{
-			_method = Method::BuildMethod(json, _world, _comm, path);
+			method_ = Method::BuildMethod(json, world_, comm_, path);
 		}
 
 		//! Build observer(s).
@@ -204,9 +204,9 @@ namespace SSAGES
 		void BuildObservers(const Json::Value& json,
 			int nwalks)
 		{
-			SimObserver::BuildObservers(json, _world, _comm, nwalks, _wid, _observers);
+			SimObserver::BuildObservers(json, world_, comm_, nwalks, wid_, observers_);
 
-			for(auto& o : _observers)
+			for(auto& o : observers_)
 				this->AddObserver(o);
 		}
 
@@ -217,7 +217,7 @@ namespace SSAGES
 		 */
 		void BuildGrid(const Json::Value& json, const std::string& path)
 		{
-			_method->BuildGrid(json, path);
+			method_->BuildGrid(json, path);
 		}
 
 		//! Finalize the setup
@@ -228,33 +228,33 @@ namespace SSAGES
 		void Finalize()
 		{
 			// Check that Hook is not a Null pointer
-			if (!_hook) {
+			if (!hook_) {
 				throw std::runtime_error(
 					"Trying to finalize simulation with invalid Hook."
 				);
 			}
 
 			// Initialize snapshot. 
-			_snapshot = new Snapshot(_comm, _wid);
-			_snapshot->SetTargetIterations(iterations_);
+			snapshot_ = new Snapshot(comm_, wid_);
+			snapshot_->SetTargetIterations(iterations_);
 
 			/* Remove this later? */
-			if(_hook != nullptr)
+			if(hook_ != nullptr)
 			{
 				// Set the hook to snapshot
-				_hook->SetSnapshot(_snapshot);
+				hook_->SetSnapshot(snapshot_);
 
 				//Set the driver in the hook
-				_hook->SetMDDriver(this);
+				hook_->SetMDDriver(this);
 
-			    if(_method)
-				    _hook->AddListener(_method);
+			    if(method_)
+				    hook_->AddListener(method_);
 
-			    for(auto&c : _constraints)
-				    _hook->AddListener(c);
+			    for(auto&c : constraints_)
+				    hook_->AddListener(c);
 
-				for(auto&cv : _CVs)
-					_hook->AddCV(cv);
+				for(auto&cv : CVs_)
+					hook_->AddCV(cv);
 			}
 		}
 
@@ -263,21 +263,21 @@ namespace SSAGES
 		{
 			SerializeObservers(json["observers"]);
 
-			_method->Serialize(json["method"]);
+			method_->Serialize(json["method"]);
 
-			auto* Grid = _method->GetGrid();
+			auto* Grid = method_->GetGrid();
 
 			if(Grid)
 				Grid->Serialize(json["grid"]);
 
 			auto& tmp = json["CVs"];
-			for(unsigned int i = 0; i < _CVs.size();i++)
-				_CVs[i]->Serialize(tmp[i]);
+			for(unsigned int i = 0; i < CVs_.size();i++)
+				CVs_[i]->Serialize(tmp[i]);
 
-			json["inputfile"] = _inputfile;
-			json["number processors"] = _comm.size();
-			json["restart file"] = _restartname;
-			json["read restart"] = _readrestart;
+			json["inputfile"] = inputfile_;
+			json["number processors"] = comm_.size();
+			json["restart file"] = restartname_;
+			json["read restart"] = readrestart_;
 		}
 
      	// Accept a visitor.

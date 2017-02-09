@@ -37,30 +37,30 @@ namespace SSAGES
 	{
 	private:
 		//! Vector of spring constants.
-		std::vector<double> _kspring;
+		std::vector<double> kspring_;
 
 		//! Vector of equilibrium distances.
-		std::vector<double> _centers0, _centers1;
+		std::vector<double> centers0_, centers1_;
 
 		//! Amount of time over which to scale centers.
-		int _time;
+		int time_;
 
 		//! File name
-		std::string _filename;
+		std::string filename_;
 
 		//! Log every n time steps
-		int _logevery;
+		int logevery_;
 
 		//! Output stream for umbrella data.
-		std::ofstream _umbrella;
+		std::ofstream umbrella_;
 
 		double GetCurrentCenter(int iteration, unsigned i)
 		{
 			// We are at the end.
-			if(iteration >= _time) return _centers1[i];
+			if(iteration >= time_) return centers1_[i];
 
 			// Scale linearly.
-			return (_centers1[i] - _centers0[i])/_time*iteration + _centers0[i]; 
+			return (centers1_[i] - centers0_[i])/time_*iteration + centers0_[i]; 
 		}
 
 		//! Print umbrella values.
@@ -89,8 +89,8 @@ namespace SSAGES
 				 const std::vector<double>& centers,
 				 std::string name,
 				 unsigned int frequency) : 
-		Method(frequency, world, comm), _kspring(kspring), _centers0(centers),
-		_centers1(centers), _time(0), _filename(name), _logevery(1)
+		Method(frequency, world, comm), kspring_(kspring), centers0_(centers),
+		centers1_(centers), time_(0), filename_(name), logevery_(1)
 		{}
 
 		//! Constructor.
@@ -116,8 +116,8 @@ namespace SSAGES
 				 int timesteps,
 				 std::string name,
 				 unsigned int frequency) : 
-		Method(frequency, world, comm), _kspring(kspring), _centers0(centers0),
-		_centers1(centers1), _time(timesteps), _filename(name), _logevery(1)
+		Method(frequency, world, comm), kspring_(kspring), centers0_(centers0),
+		centers1_(centers1), time_(timesteps), filename_(name), logevery_(1)
 		{}
 
 		//! Pre-simulation hook.
@@ -147,7 +147,7 @@ namespace SSAGES
 		 */
 		void SetLogStep(const int iter)
 		{
-			_logevery = iter;
+			logevery_ = iter;
 		}
 
 		//! \copydoc Serializable::Serialize()
@@ -157,28 +157,28 @@ namespace SSAGES
 		void Serialize(Json::Value& json) const override
 		{
 			json["type"] = "Umbrella";
-			for(auto& k : _kspring)
+			for(auto& k : kspring_)
 				json["ksprings"].append(k);
 
-			if(_time != 0 )
+			if(time_ != 0 )
 			{
-				for(auto& c : _centers0)
+				for(auto& c : centers0_)
 					json["centers0"].append(c);
 				
-				for(auto& c : _centers1)
+				for(auto& c : centers1_)
 					json["centers1"].append(c);
 
-				json["timesteps"] = _time;
+				json["timesteps"] = time_;
 			}
 			else
 			{			
-				for(auto& c : _centers0)
+				for(auto& c : centers0_)
 					json["centers"].append(c);
 			}
 
-			json["file name"] = _filename;
-			json["iteration"] = _iteration;
-			json["log every"] = _logevery;
+			json["file name"] = filename_;
+			json["iteration"] = iteration_;
+			json["log every"] = logevery_;
 		}
 
 	};

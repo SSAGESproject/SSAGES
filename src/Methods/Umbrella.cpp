@@ -26,8 +26,8 @@ namespace SSAGES
 {
 	void Umbrella::PreSimulation(Snapshot* /* snapshot */, const CVList& /* cvs */)
 	{
-		if(_comm.rank() == 0)
-		 	_umbrella.open(_filename.c_str(), std::ofstream::out | std::ofstream::app);
+		if(comm_.rank() == 0)
+		 	umbrella_.open(filename_.c_str(), std::ofstream::out | std::ofstream::app);
 	}
 
 	void Umbrella::PostIntegration(Snapshot* snapshot, const CVList& cvs)
@@ -43,35 +43,35 @@ namespace SSAGES
 
 			// Compute dV/dCV.
 			auto center = GetCurrentCenter(snapshot->GetIteration(), i);
-			auto D = _kspring[i]*(cv->GetDifference(center));
+			auto D = kspring_[i]*(cv->GetDifference(center));
 
 			// Update forces.
 			for(size_t j = 0; j < forces.size(); ++j)
 				forces[j] -= D*grad[j];
 		}
 
-		_iteration++;
-		if(_iteration % _logevery == 0)
+		iteration_++;
+		if(iteration_ % logevery_ == 0)
 			PrintUmbrella(cvs);
 	}
 
 	void Umbrella::PostSimulation(Snapshot*, const CVList&)
 	{
-		if(_comm.rank() ==0)
-			_umbrella.close();
+		if(comm_.rank() ==0)
+			umbrella_.close();
 	}
 
 	void Umbrella::PrintUmbrella(const CVList& cvs)
 	{
-		if(_comm.rank() ==0)
+		if(comm_.rank() ==0)
 		{
-			_umbrella.precision(8);
-			_umbrella << _iteration << " ";
+			umbrella_.precision(8);
+			umbrella_ << iteration_ << " ";
 
 			for(size_t i = 0; i < cvs.size(); i++)
-				_umbrella << GetCurrentCenter(_iteration, i) << " " << cvs[i]->GetValue() << " "; 
+				umbrella_ << GetCurrentCenter(iteration_, i) << " " << cvs[i]->GetValue() << " "; 
 
-			_umbrella << std::endl;
+			umbrella_ << std::endl;
 		}
 	}
 }

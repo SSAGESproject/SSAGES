@@ -33,32 +33,32 @@ namespace SSAGES
 		if(cvs.size() > 1)
 			throw BuildException({"Forwardflux currently only works with one cv."});
 
-		switch(_restart)
+		switch(restart_)
 		{
 			case NEW:
 			{
-				_indexfile.open(_indexfilename.c_str(),std::ofstream::out | std::ofstream::trunc);
-				_resultsfile.open(_resultsfilename.c_str(),std::ofstream::out | std::ofstream::trunc);
-				_libraryfile.open(_libraryfilename.c_str(),std::ofstream::out | std::ofstream::trunc);
+				indexfile_.open(indexfilename_.c_str(),std::ofstream::out | std::ofstream::trunc);
+				resultsfile_.open(resultsfilename_.c_str(),std::ofstream::out | std::ofstream::trunc);
+				libraryfile_.open(libraryfilename_.c_str(),std::ofstream::out | std::ofstream::trunc);
 				break;
 			}
 			default:
 			{
-				_indexfile.open(_indexfilename.c_str(),std::ofstream::out | std::ofstream::app);
-				_resultsfile.open(_resultsfilename.c_str(),std::ofstream::out | std::ofstream::app);
-				_libraryfile.open(_libraryfilename.c_str(),std::ofstream::out | std::ofstream::app);
+				indexfile_.open(indexfilename_.c_str(),std::ofstream::out | std::ofstream::app);
+				resultsfile_.open(resultsfilename_.c_str(),std::ofstream::out | std::ofstream::app);
+				libraryfile_.open(libraryfilename_.c_str(),std::ofstream::out | std::ofstream::app);
 				break;
 			}
 		}
 
-		_currentnode = AtInterface(cvs);
+		currentnode_ = AtInterface(cvs);
 
-		_iteration = 0;
+		iteration_ = 0;
 	}
 
 	void ForwardFlux::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
-		switch(_restart)
+		switch(restart_)
 		{
 			case NEW:
 			{
@@ -67,70 +67,70 @@ namespace SSAGES
 			}
 			case LIBRARY:
 			{
-				if(_world.rank() == 0 && _currentstartingpoint != 0)
+				if(world_.rank() == 0 && currentstartingpoint_ != 0)
 				{
-					for(auto& value : _successes)
-						_resultsfile<<value<<" ";
-					_resultsfile<<"\n";
+					for(auto& value : successes_)
+						resultsfile_<<value<<" ";
+					resultsfile_<<"\n";
 				}
 
-				mpi::all_reduce(_world, _totalcontents, _globalcontents, std::plus<std::string>());
+				mpi::all_reduce(world_, totalcontents_, globalcontents_, std::plus<std::string>());
 				//Close local and global files
-				if(_world.rank() == 0)
+				if(world_.rank() == 0)
 				{
-					_indexfile<<_globalcontents<<std::endl;
+					indexfile_<<globalcontents_<<std::endl;
 				}
-				_totalcontents += _indexcontents;
-				_indexcontents = "";
+				totalcontents_ += indexcontents_;
+				indexcontents_ = "";
 
-				_currentshot = 0;
+				currentshot_ = 0;
 
-				std::fill(_localsuccesses.begin(),_localsuccesses.end(),0);
-				std::fill(_successes.begin(),_successes.end(),0);
+				std::fill(localsuccesses_.begin(),localsuccesses_.end(),0);
+				std::fill(successes_.begin(),successes_.end(),0);
 
-				_currentnode = 1;
+				currentnode_ = 1;
 
 				std::vector<std::vector<std::string> > tmp;
-				if(!(ExtractInterfaceIndices(0, _librarycontents, tmp)))
+				if(!(ExtractInterfaceIndices(0, librarycontents_, tmp)))
 				{
 					std::cout<< "Could not locate any files";
 					std::cout<< " at first interface!"<<std::endl;
-					std::cout<< _librarycontents<<std::endl;
+					std::cout<< librarycontents_<<std::endl;
 					PostSimulation(snapshot, cvs);
-					_world.abort(0);
+					world_.abort(0);
 				}
 
-				if(_currentstartingpoint >= tmp.size())
+				if(currentstartingpoint_ >= tmp.size())
 				{
-					if(_world.rank()==0)
+					if(world_.rank()==0)
 						std::cout<<"Ending Simulation..."<<std::endl;
 					PostSimulation(snapshot, cvs);
-					_world.abort(0);
+					world_.abort(0);
 				}
 
-				_shootingconfigfile = tmp[_currentstartingpoint][1];
-				if(_world.rank() == 0)
-					_currentconfig = GetFileContents(_shootingconfigfile.c_str());
-				mpi::broadcast(_world, _currentconfig, 0);
+				shootingconfigfile_ = tmp[currentstartingpoint_][1];
+				if(world_.rank() == 0)
+					currentconfig_ = GetFileContents(shootingconfigfile_.c_str());
+				mpi::broadcast(world_, currentconfig_, 0);
 
-				ReadConfiguration(snapshot, _currentconfig);
-				_restart = NONE;
-				_currentstartingpoint++;
+				ReadConfiguration(snapshot, currentconfig_);
+				restart_ = NONE;
+				currentstartingpoint_++;
 				return;
 			}
 			case NEWCONFIG:
 			{
-				_currentshot = 0;
-				mpi::all_reduce(_world, _indexcontents, _globalcontents, std::plus<std::string>());
+				currentshot_ = 0;
+				mpi::all_reduce(world_, indexcontents_, globalcontents_, std::plus<std::string>());
 
-				_shootingconfigfile = PickConfiguration(_currentnode, _globalcontents);
+				shootingconfigfile_ = PickConfiguration(currentnode_, globalcontents_);
 
-				if(_world.rank() == 0)
-					_currentconfig = GetFileContents(_shootingconfigfile.c_str());
+				if(world_.rank() == 0)
+					currentconfig_ = GetFileContents(shootingconfigfile_.c_str());
 				
-				mpi::broadcast(_world, _currentconfig, 0);
-				ReadConfiguration(snapshot, _currentconfig);
-				_restart = NONE;
+				mpi::broadcast(world_, currentconfig_, 0);
+				ReadConfiguration(snapshot, currentconfig_);
+				restart_ = NONE;
 
 				return;
 			}
@@ -143,61 +143,61 @@ namespace SSAGES
 		// Locate the interface you are at and check if:
 		// Returned to origin or at next interface
 		unsigned int atinter = AtInterface(cvs);
-		if(atinter == _currentnode + 1 || atinter == 0)
+		if(atinter == currentnode_ + 1 || atinter == 0)
 		{
-			_currentnode++;			
+			currentnode_++;			
 			// Check if you made it to the next one!
-			if(atinter == _currentnode)
+			if(atinter == currentnode_)
 			{
 				auto& ID = snapshot->GetSnapshotID();
-				ID = "dump_"+std::to_string(_currentnode)+"_"+std::to_string(_currenthash)+".dump";
-				_currenthash++;
-				if(_comm.rank()==0)
+				ID = "dump_"+std::to_string(currentnode_)+"_"+std::to_string(currenthash_)+".dump";
+				currenthash_++;
+				if(comm_.rank()==0)
 				{
 					WriteConfiguration(snapshot);
-					_localsuccesses[_currentnode]++;
+					localsuccesses_[currentnode_]++;
 				}
 			}
 
-			if(_currentshot < _numshots)
+			if(currentshot_ < numshots_)
 			{
-				_currentshot++;
-				ReadConfiguration(snapshot, _currentconfig);
-				_currentnode--;
-				_iteration++;
+				currentshot_++;
+				ReadConfiguration(snapshot, currentconfig_);
+				currentnode_--;
+				iteration_++;
 				return;
 			}
 
-			mpi::all_reduce(_world, _localsuccesses[_currentnode], _successes[_currentnode], std::plus<int>());
-			if(_successes[_currentnode] > 0)
+			mpi::all_reduce(world_, localsuccesses_[currentnode_], successes_[currentnode_], std::plus<int>());
+			if(successes_[currentnode_] > 0)
 			{
-				_restart = NEWCONFIG;
+				restart_ = NEWCONFIG;
 
 				// If you have reached the final interface you are "done" with that path
-				if(_currentnode >= _centers.size()-1)
+				if(currentnode_ >= centers_.size()-1)
 				{
 					std::cout<< "Found finishing configuration! "<<std::endl;
-					_restart = LIBRARY;
+					restart_ = LIBRARY;
 				}
 			}
 			else
-				_restart = LIBRARY;
+				restart_ = LIBRARY;
 
-			_iteration++;
+			iteration_++;
 		}
 	}
 
 	void ForwardFlux::PostSimulation(Snapshot*, const CVList&)
 	{
 		//Close local and global files
-		if(_world.rank() == 0)
+		if(world_.rank() == 0)
 		{
-			_resultsfile<<"flux in: "<<_fluxin<<std::endl;
-			_resultsfile<<"flux out: "<<_fluxout<<std::endl;
+			resultsfile_<<"flux in: "<<fluxin_<<std::endl;
+			resultsfile_<<"flux out: "<<fluxout_<<std::endl;
 
-			_indexfile.close();
-			_resultsfile.close();
-			_libraryfile.close();
+			indexfile_.close();
+			resultsfile_.close();
+			libraryfile_.close();
 		}
 	}
 
@@ -206,38 +206,38 @@ namespace SSAGES
 	{
 		// Get CV values check if at next interface, if so store configuration
 		int interface = AtInterface(cvs);
-		_shootingconfigfile = "Origin";
+		shootingconfigfile_ = "Origin";
 
 		// Flux out of A
-		if(interface == 1 && _currentnode == 0)
+		if(interface == 1 && currentnode_ == 0)
 		{
 			auto& ID = snapshot->GetSnapshotID();
-			ID = "dump_"+std::to_string(interface)+"_"+std::to_string(_currenthash)+".dump";
-			_currenthash++;
-			if(_comm.rank()==0)
+			ID = "dump_"+std::to_string(interface)+"_"+std::to_string(currenthash_)+".dump";
+			currenthash_++;
+			if(comm_.rank()==0)
 			{
 				WriteConfiguration(snapshot);
-				_localsuccesses[_currentnode]++;
+				localsuccesses_[currentnode_]++;
 			}
 
-			_fluxout++;
+			fluxout_++;
 		}
 		// Flux back in towards A
-		else if(interface == 0 && _currentnode == 1)
-			_fluxin++;
+		else if(interface == 0 && currentnode_ == 1)
+			fluxin_++;
 
-		_currentnode = interface;
+		currentnode_ = interface;
 
 		std::vector<std::vector<std::string> > TempLibrary;
-		ExtractInterfaceIndices(0, _indexcontents, TempLibrary);
+		ExtractInterfaceIndices(0, indexcontents_, TempLibrary);
 
-		if(TempLibrary.size() >= _requiredconfigs && _currentnode == 0)
+		if(TempLibrary.size() >= requiredconfigs_ && currentnode_ == 0)
 		{
-			_restart = LIBRARY;
-			mpi::all_reduce(_world, _indexcontents, _librarycontents, std::plus<std::string>());
-			_currentstartingpoint = 0;
-			if(_world.rank()==0)
-				_libraryfile<<_librarycontents<<std::endl;
+			restart_ = LIBRARY;
+			mpi::all_reduce(world_, indexcontents_, librarycontents_, std::plus<std::string>());
+			currentstartingpoint_ = 0;
+			if(world_.rank()==0)
+				libraryfile_<<librarycontents_<<std::endl;
 		}
 	}
 
@@ -260,12 +260,12 @@ namespace SSAGES
 		}
 
 		std::vector<std::string> tmpstr;
-		tmpstr.push_back(std::to_string(_currentnode));
+		tmpstr.push_back(std::to_string(currentnode_));
 		tmpstr.push_back(dumpfilename);
- 		tmpstr.push_back(_shootingconfigfile);
+ 		tmpstr.push_back(shootingconfigfile_);
 
  		// Update index file of new configuration
- 		_indexcontents += tmpstr[0]+" "+tmpstr[1]+" "+tmpstr[2]+"\n";
+ 		indexcontents_ += tmpstr[0]+" "+tmpstr[1]+" "+tmpstr[2]+"\n";
  		dumpfile.close();
 	}
 
@@ -304,7 +304,7 @@ namespace SSAGES
 		auto& forces = snapshot->GetForces();
 		auto& ID = snapshot->GetSnapshotID();
 
-		ID = _shootingconfigfile;
+		ID = shootingconfigfile_;
 
 		//Extract currentconfig information
 		std::istringstream f(FileContents);
@@ -321,9 +321,9 @@ namespace SSAGES
 
 			if(tokens.size() != 7)
 			{
-				std::cout<<"error, incorrect line format in "<<_shootingconfigfile<<" on line: "<<std::endl;
+				std::cout<<"error, incorrect line format in "<<shootingconfigfile_<<" on line: "<<std::endl;
 				std::cout<<line<<std::endl;
-				_world.abort(-1);	
+				world_.abort(-1);	
 			}
 
 			for(size_t i=0; i < atomID.size(); i++)
@@ -335,7 +335,7 @@ namespace SSAGES
 			if(atomindex < 0)
 			{
 				std::cout<<"error, could not locate atomID "<<tokens[0]<<" from dumpfile"<<std::endl;
-				_world.abort(-1);
+				world_.abort(-1);
 			}
 
 			positions[atomindex][0] = std::stod(tokens[1]);
@@ -354,7 +354,7 @@ namespace SSAGES
 	std::string ForwardFlux::PickConfiguration(unsigned int interface, const std::string& contents)
 	{
 		std::string configfilename;
-		if(_world.rank() == 0)
+		if(world_.rank() == 0)
 		{
 			std::vector<std::vector<std::string> > files; 
 			if(!(ExtractInterfaceIndices(interface, contents, files)))
@@ -362,15 +362,15 @@ namespace SSAGES
 				std::cout<< "Could not locate any files at interface ";
 				std::cout<< interface<<" in PickCOnfiguration!"<<std::endl;
 				std::cout<< contents<<std::endl;
-				_world.abort(-1);
+				world_.abort(-1);
 			}
 
 			std::uniform_int_distribution<> dis(0, files.size()-1);
-			int configfile = dis(_gen);
+			int configfile = dis(gen_);
 			configfilename = files[configfile][1];
 		}
 
-		mpi::broadcast(_world, configfilename, 0);
+		mpi::broadcast(world_, configfilename, 0);
 
 		return configfilename;
 	}

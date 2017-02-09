@@ -136,8 +136,8 @@ namespace SSAGES
 			const auto& masses = snapshot.GetMasses();
 
 			// Initialize gradient.
-			std::fill(_grad.begin(), _grad.end(), Vector3{0,0,0});
-			_grad.resize(n, Vector3{0,0,0});
+			std::fill(grad_.begin(), grad_.end(), Vector3{0,0,0});
+			grad_.resize(n, Vector3{0,0,0});
 
 			// Get centers of mass.
 			auto mtot1 = snapshot.TotalMass(idx1);		
@@ -149,13 +149,13 @@ namespace SSAGES
 			Vector3 rij = snapshot.ApplyMinimumImage(com1 - com2).cwiseProduct(dim_.cast<double>());
 
 			// Compute gradient.
-			_val = rij.norm();
+			val_ = rij.norm();
 
 			for(auto& id : idx1)
-				_grad[id] = rij/_val*masses[id]/mtot1;
+				grad_[id] = rij/val_*masses[id]/mtot1;
 			
 			for(auto& id : idx2)
-				_grad[id] = -rij/_val*masses[id]/mtot2;
+				grad_[id] = -rij/val_*masses[id]/mtot2;
 		}
 
 		//! Serialize this CV for restart purposes.
@@ -172,7 +172,7 @@ namespace SSAGES
 			for(auto& id : group2_)
 				json["group2"].append(id);
 
-			for(auto& bound : _bounds)
+			for(auto& bound : bounds_)
 				json["bounds"].append(bound);
 
 			json["dimension"][0] = dim_[0];

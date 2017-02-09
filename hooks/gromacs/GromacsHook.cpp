@@ -18,7 +18,7 @@ namespace SSAGES
 
 	MPI_Comm GromacsHook::GetCommunicator()
 	{
-		return static_cast<MPI_Comm>(_snapshot->GetCommunicator());
+		return static_cast<MPI_Comm>(snapshot_->GetCommunicator());
 	}
 
 	template<typename T>
@@ -37,21 +37,21 @@ namespace SSAGES
 		double kb)
 	{
 		// Resize vectors.
-		auto& pos = _snapshot->GetPositions();
+		auto& pos = snapshot_->GetPositions();
 		pos.resize(natoms);
-		auto& vel = _snapshot->GetVelocities();
+		auto& vel = snapshot_->GetVelocities();
 		vel.resize(natoms);
-		auto& frc = _snapshot->GetForces();
+		auto& frc = snapshot_->GetForces();
 		frc.resize(natoms);
-		auto& mass = _snapshot->GetMasses();
+		auto& mass = snapshot_->GetMasses();
 		mass.resize(natoms);
-		auto& ids = _snapshot->GetAtomIDs();
+		auto& ids = snapshot_->GetAtomIDs();
 		ids.resize(natoms);
-		auto& typs = _snapshot->GetAtomTypes();
+		auto& typs = snapshot_->GetAtomTypes();
 		typs.resize(natoms);
 
 		// Reduce temperature/pressure/energy.
-		auto& comm = _snapshot->GetCommunicator();
+		auto& comm = snapshot_->GetCommunicator();
 
 		// Atom weighted averages for temperature. Potential energy is extensive.
 		// NOTE: pressure is just wrong.
@@ -63,11 +63,11 @@ namespace SSAGES
 		temperature /= ntot;
 
 		// Load em up.
-		_snapshot->SetIteration(iteration);
-		_snapshot->SetTemperature(temperature);
-		_snapshot->SetEnergy(potenergy);
-		_snapshot->SetKb(kb);
-		_snapshot->SetNumAtoms(natoms);
+		snapshot_->SetIteration(iteration);
+		snapshot_->SetTemperature(temperature);
+		snapshot_->SetEnergy(potenergy);
+		snapshot_->SetKb(kb);
+		snapshot_->SetNumAtoms(natoms);
 
 		for(int i = 0; i < natoms; ++i)
 		{
@@ -99,7 +99,7 @@ namespace SSAGES
 		H << boxmat[0][0], boxmat[0][1], boxmat[0][2],
 		     boxmat[1][0], boxmat[1][1], boxmat[1][2],
 		     boxmat[2][0], boxmat[2][1], boxmat[2][2];
-		_snapshot->SetHMatrix(H);
+		snapshot_->SetHMatrix(H);
 	}
 
  	template<typename T>
@@ -112,12 +112,12 @@ namespace SSAGES
 		T velocities[][3],
 		T forces[][3])
 	{
-		const auto& pos = _snapshot->GetPositions();
-		const auto& vel = _snapshot->GetVelocities();
-		const auto& frc = _snapshot->GetForces();
-		const auto& mass = _snapshot->GetMasses();
-		const auto& ids = _snapshot->GetAtomIDs();
-		const auto& typs = _snapshot->GetAtomTypes();
+		const auto& pos = snapshot_->GetPositions();
+		const auto& vel = snapshot_->GetVelocities();
+		const auto& frc = snapshot_->GetForces();
+		const auto& mass = snapshot_->GetMasses();
+		const auto& ids = snapshot_->GetAtomIDs();
+		const auto& typs = snapshot_->GetAtomTypes();
 
 		for(int i = 0; i < natoms; ++i)
 		{

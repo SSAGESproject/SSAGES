@@ -97,53 +97,53 @@ namespace SSAGES
          * dimensional data over the number of walkers using a row major
          * mapping.
          */
-        std::vector<Map> _hist;
+        std::vector<Map> hist_;
 
         //! Locally defined histogram array for easy mpi operations.
         /*!
          * \note It does take up more memory.
          */
-        std::vector<int> _histlocal;
+        std::vector<int> histlocal_;
 
         //! Globally defined histogram array for easy mpi operations.
         /*!
          * \note Needs lots of memory.
          */
-        std::vector<int> _histglobal;
+        std::vector<int> histglobal_;
 
         //! Globally located coefficient values.
 		/*!
          * As coefficients are updated at the same time, the coefficients
          * should only be defined globally.
          */
-		std::vector<Map> _coeff;
+		std::vector<Map> coeff_;
 
         //! The biased histogram of states.
         /*!
-         * The biased histogram of states has the form _hist*exp(phi*beta),
+         * The biased histogram of states has the form hist_*exp(phi*beta),
          * where phi is the bias potential and beta is the inverse of the
          * temperature. It is defined globally.
          */
-        std::vector<double> _unbias;
+        std::vector<double> unbias_;
 
         //! The coefficient array for restart runs
-        std::vector<double> _coeff_arr;
+        std::vector<double> coeff_arr_;
 
         //! The Basis set lookup table, also defined globally
-		std::vector<BasisLUT> _LUT;
+		std::vector<BasisLUT> LUT_;
 
         //! Derivatives of the bias potential
         /*!
          * The derivatives of the bias potential imposed on the system.
          * They are evaluated by using the lookup table.
          */
-		std::vector<double> _derivatives;
+		std::vector<double> derivatives_;
 
         //! The order of the basis polynomials
-        std::vector<unsigned int> _polyords;
+        std::vector<unsigned int> polyords_;
 
         //! Storing number of bins for simplicity and readability of code
-        std::vector<int> _nbins;
+        std::vector<int> nbins_;
 
         //! Spring constants for restrained system.
         /*!
@@ -151,19 +151,19 @@ namespace SSAGES
          * on the defined interval. The user inputs the spring constants if the
          * system is not periodic.
          */
-        std::vector<double> _restraint;
+        std::vector<double> restraint_;
 
         //! Upper position of the spring restraint.
-        std::vector<double> _boundUp;
+        std::vector<double> boundUp_;
 
         //! Lower position of the spring restraint.
-        std::vector<double> _boundLow;
+        std::vector<double> boundLow_;
         
         //! Frequency of coefficient updates
-		unsigned int _cyclefreq;
+		unsigned int cyclefreq_;
         
         //! The node that the current system belongs to, primarily for printing and debugging.
-        unsigned int _mpiid;
+        unsigned int mpiid_;
 
         //! Weighting for potentially faster sampling.
         /*!
@@ -171,7 +171,7 @@ namespace SSAGES
          * cause the simulation to explode. By default this value will be set
          * to 1.0
          */
-        double _weight;
+        double weight_;
 
         //! Self-defined temperature.
         /*!
@@ -179,16 +179,16 @@ namespace SSAGES
          * option to throw it into the method is available. If not provided it
          * takes the value from the engine.
          */
-        double _temperature;
+        double temperature_;
 
         //! The tolerance criteria for the system .
-        double _tol;
+        double tol_;
 
         //! A variable to check to see if the simulation is in bounds or not.
-        bool _bounds;
+        bool bounds_;
 
         //! A check to see if you want the system to end when it reaches the convergence criteria.
-        bool _converge_exit;
+        bool converge_exit_;
 
 		//! Updates the bias projection of the PMF.
         /*!
@@ -217,17 +217,17 @@ namespace SSAGES
         void BasisInit(const CVList& cvs);
 
 		//! Output stream for basis projection data.
-		std::ofstream _basisout;
+		std::ofstream basisout_;
 
         //! Output stream for coefficients (for reading purposes)
-        std::ofstream _coeffout;
+        std::ofstream coeffout_;
 
         //! The option to name both the basis and coefficient files will be given
         //! Basis filename 
-        std::string _bnme;
+        std::string bnme_;
 
         //! Coefficient filename
-        std::string _cnme;
+        std::string cnme_;
 
 
 	public:
@@ -250,7 +250,7 @@ namespace SSAGES
          *
          * Constructs an instance of the Basis function sampling method. The
          * coefficients describes the basis projection of the system. This is
-         * updated once every _cyclefreq. For now, only the Legendre polynomial
+         * updated once every cyclefreq_. For now, only the Legendre polynomial
          * is implemented. Others will be added later.
          */
 		Basis(boost::mpi::communicator& world,
@@ -267,12 +267,12 @@ namespace SSAGES
              const double tol,
              const double weight,
              bool converge) : 
-		Method(frequency, world, comm), _hist(), _histlocal(), _histglobal(),
-        _coeff(), _unbias(), _coeff_arr(), _LUT(), _derivatives(), _polyords(polyord),
-        _nbins(), _restraint(restraint), _boundUp(boundUp), _boundLow(boundLow),
-        _cyclefreq(cyclefreq), _mpiid(0), _weight(weight),
-        _temperature(temperature), _tol(tol),
-        _converge_exit(converge), _bnme(bnme), _cnme(cnme)
+		Method(frequency, world, comm), hist_(), histlocal_(), histglobal_(),
+        coeff_(), unbias_(), coeff_arr_(), LUT_(), derivatives_(), polyords_(polyord),
+        nbins_(), restraint_(restraint), boundUp_(boundUp), boundLow_(boundLow),
+        cyclefreq_(cyclefreq), mpiid_(0), weight_(weight),
+        temperature_(temperature), tol_(tol),
+        converge_exit_(converge), bnme_(bnme), cnme_(cnme)
 		{
 		}
 
@@ -306,7 +306,7 @@ namespace SSAGES
          */
         void SetIteration(const int iter)
         {
-            _iteration = iter;
+            iteration_ = iter;
         }
 
         //! Set the values for the basis.
@@ -319,8 +319,8 @@ namespace SSAGES
          */
         void SetBasis(const std::vector<double>&coeff, std::vector<double>&unbias)
         {
-            _coeff_arr = coeff;
-            _unbias = unbias;
+            coeff_arr_ = coeff;
+            unbias_ = unbias;
         }
 
         //! \copydoc Serializable::Serialize()
@@ -330,39 +330,39 @@ namespace SSAGES
 		void Serialize(Json::Value& json) const override
 		{
             json["type"] = "Basis";
-            for(auto& p: _polyords)
+            for(auto& p: polyords_)
                 json["CV_coefficients"].append(p);
 
-            for(auto& k: _restraint)
+            for(auto& k: restraint_)
                 json["CV_restraint_spring_constants"].append(k);
 
-            for(auto& u: _boundUp)
+            for(auto& u: boundUp_)
                 json["CV_restraint_maximums"].append(u);
 
-            for(auto& l: _boundLow)
+            for(auto& l: boundLow_)
                 json["CV_restraint_minimums"].append(l);
 
-            for(auto& b: _unbias)
+            for(auto& b: unbias_)
                 json["bias_hist"].append(b);
 
-            for(auto& c: _coeff_arr)
+            for(auto& c: coeff_arr_)
                 json["coefficients"].append(c);
 
-            json["tolerance"] = _tol;
+            json["tolerance"] = tol_;
 
-            json["convergence_exit"] = _converge_exit;
+            json["convergence_exit"] = converge_exit_;
 
-            json["basis_filename"] = _bnme;
+            json["basis_filename"] = bnme_;
 
-            json["coeff_filename"] = _cnme;
+            json["coeff_filename"] = cnme_;
 
-            json["iteration"] = _iteration;
+            json["iteration"] = iteration_;
 
-            json["cycle_frequency"] = _cyclefreq;
+            json["cycle_frequency"] = cyclefreq_;
 
-            json["weight"] = _weight;
+            json["weight"] = weight_;
 
-            json["temperature"] = _temperature;
+            json["temperature"] = temperature_;
 		}
 
         //! Destructor.

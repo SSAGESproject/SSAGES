@@ -52,14 +52,14 @@ namespace SSAGES
 		//! Pre-simulation hook.
 		void PreSimulation(Snapshot* /* snapshot */, const CVList& /* cvs */) override
 		{
-			if(!_grid)
+			if(!grid_)
 			{
 				throw BuildException({"Method expected a grid but no grid built!"});
-				_world.abort(-1);
+				world_.abort(-1);
 			}
-			_grid->PrintGrid();
+			grid_->PrintGrid();
 
-			_iteration = 0;
+			iteration_ = 0;
 		}
 
 		//! Post-integration hook.
@@ -67,7 +67,7 @@ namespace SSAGES
 		{
 			std::vector<int> Indices;
 			std::vector<double> vals;
-			int NDim = _grid->GetDimension();
+			int NDim = grid_->GetDimension();
 			for(int i=0; i<NDim; i++)
 			{
 				Indices.push_back(2);
@@ -75,28 +75,28 @@ namespace SSAGES
 			}
 
 			double val = 10;
-			val += _grid->GetValue(Indices);
-			_grid->PrintGrid();
-			_grid->SetValue(Indices, val);
-			_grid->PrintGrid();
+			val += grid_->GetValue(Indices);
+			grid_->PrintGrid();
+			grid_->SetValue(Indices, val);
+			grid_->PrintGrid();
 
-			std::vector<double> spacing = _grid->GetSpacing();
-			std::vector<double> upper = _grid->GetUpper();
-			std::vector<double> lower = _grid->GetLower();
-			std::vector<bool> periodic = _grid->GetPeriodic();
-			std::vector<int> numpoints = _grid->GetNumPoints();
+			std::vector<double> spacing = grid_->GetSpacing();
+			std::vector<double> upper = grid_->GetUpper();
+			std::vector<double> lower = grid_->GetLower();
+			std::vector<bool> periodic = grid_->GetPeriodic();
+			std::vector<int> numpoints = grid_->GetNumPoints();
 
 			for(int i = 0;i<NDim;i++)
 				std::cout<<spacing[i]<<" "<<upper[i]<<" "<<lower[i]<<" "<<periodic[i]<<" "<<numpoints[i]<<std::endl;
 
 			std::cout<<spacing.size()<<" "<<upper.size()<<" "<<lower.size()<<" "<<periodic.size()<<" "<<numpoints.size()<<std::endl;
 			std::cout<<"Indices at value 0 are: ";
-			Indices = _grid->GetIndices(vals);
+			Indices = grid_->GetIndices(vals);
 			for(int i = 0; i<NDim; i++)
 				std::cout<<Indices[i]<<" ";
 			std::cout<<std::endl;
 
-			_iteration ++;
+			iteration_ ++;
 		}
 
 		//! Post-simulation hook.

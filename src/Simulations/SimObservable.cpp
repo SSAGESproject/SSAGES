@@ -31,22 +31,22 @@ namespace SSAGES
 	// Add simulation observer.
 	void SimObservable::AddObserver(SimObserver* observer)
 	{
-		_observers.push_back(observer);
+		observers_.push_back(observer);
 	}
 
 	// Remove simulation observer.
 	void SimObservable::RemoveObserver(SimObserver* observer)
 	{
-		_observers.erase(
-			std::remove(_observers.begin(), _observers.end(), observer), 
-			_observers.end()
+		observers_.erase(
+			std::remove(observers_.begin(), observers_.end(), observer), 
+			observers_.end()
 		);
 	}
 
 	// Notify all observers of a simulation event.
 	void SimObservable::NotifyObservers(const SimEvent& event)
 	{
-		for(auto& observer : _observers)
+		for(auto& observer : observers_)
 			observer->Update(event);
 	}
 }

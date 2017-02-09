@@ -42,7 +42,7 @@ namespace SSAGES
 	{
 	protected:
 		//! MPI global communicator.
-		boost::mpi::communicator _comm;
+		boost::mpi::communicator comm_;
 
 	public:
 		//! Constructor
@@ -54,7 +54,7 @@ namespace SSAGES
 		 */
 		Constraint(unsigned int frequency,  
 			boost::mpi::communicator& comm) : 
-		EventListener(frequency), _comm(comm){}
+		EventListener(frequency), comm_(comm){}
 
 		//! Destructor
 		virtual ~Constraint(){}

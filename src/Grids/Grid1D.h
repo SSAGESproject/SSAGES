@@ -42,23 +42,23 @@ namespace SSAGES
 		 */
 		Grid1D(std::vector<double> lower, std::vector<double> upper, std::vector<int> num_points)
 		{
-			_NDim = 1;
+			NDim_ = 1;
 			for(size_t i =0; i <lower.size(); i++)
 			{
-				_lower.push_back(lower[i]);
-				_upper.push_back(upper[i]);
-				_num_points.push_back(num_points[i]);
-				_spacing.push_back((_upper[i] - _lower[i])/double(_num_points[i] - 1));
-				_periodic.push_back(false);
+				lower_.push_back(lower[i]);
+				upper_.push_back(upper[i]);
+				num_points_.push_back(num_points[i]);
+				spacing_.push_back((upper_[i] - lower_[i])/double(num_points_[i] - 1));
+				periodic_.push_back(false);
 			}
 
 			// Construct flat vector 
-			_flatvector.resize(_num_points[0]);
+			flatvector_.resize(num_points_[0]);
 
-			for(int i = 0; i < _num_points[0]; i++)
+			for(int i = 0; i < num_points_[0]; i++)
 			{
-				_flatvector[i].first = std::vector<double>(2, 0.0);
-				_flatvector[i].second.push_back(_lower[0] + _spacing[0]*i);
+				flatvector_[i].first = std::vector<double>(2, 0.0);
+				flatvector_[i].second.push_back(lower_[0] + spacing_[0]*i);
 			}
 		}
 
@@ -71,16 +71,16 @@ namespace SSAGES
 			{
 				int vertex = 0;
 
-				vertex = int((val[i] - _lower[i])/_spacing[i]);
+				vertex = int((val[i] - lower_[i])/spacing_[i]);
 
-				if(_periodic[i])
+				if(periodic_[i])
 				{
-					vertex = vertex % _num_points[i];
+					vertex = vertex % num_points_[i];
 					if(vertex<0)
-						vertex += _num_points[i];
+						vertex += num_points_[i];
 				}
 
-				if(vertex < 0 || vertex >=_num_points[i]) // out of bounds
+				if(vertex < 0 || vertex >=num_points_[i]) // out of bounds
 					throw std::out_of_range("Voxel not in grid!");
 
 				vertices.push_back(vertex);

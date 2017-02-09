@@ -12,16 +12,16 @@ namespace SSAGES
 	{
 	private:
 		// Vector of spring constants.
-		std::vector<double> _kspring;
+		std::vector<double> kspring_;
 
 		// Vector of equilibrium distances.
-		std::vector<double> _centers;
+		std::vector<double> centers_;
 
 		// iterator for this method
-		int _currentiter;
+		int currentiter_;
 
 		// Output stream for umbrella data.
-		std::ofstream _umbrella;
+		std::ofstream umbrella_;
 
 	public:
 		// Create instance of umbrella with spring constants "kspring", 
@@ -32,7 +32,7 @@ namespace SSAGES
 				 const std::vector<double>& kspring,
 				 const std::vector<double>& centers,
 				 unsigned int frequency) : 
-		Method(frequency, world, comm), _kspring(kspring), _centers(centers)
+		Method(frequency, world, comm), kspring_(kspring), centers_(centers)
 		{}
 
 		// Pre-simulation hook.

@@ -41,10 +41,10 @@ namespace SSAGES
 	private:
 
 		//! Pointer to the local instance of lammps
-		std::shared_ptr<LAMMPS_NS::LAMMPS> _lammps;
+		std::shared_ptr<LAMMPS_NS::LAMMPS> lammps_;
 
 		//! The lammps logfile
-		std::string _logfile;
+		std::string logfile_;
 
 	public:
 
@@ -57,7 +57,7 @@ namespace SSAGES
 		LammpsDriver(boost::mpi::communicator& world_comm,
 					 boost::mpi::communicator& local_comm,
 					 int walkerID) : 
-		Driver(world_comm, local_comm, walkerID), _lammps(), _logfile() 
+		Driver(world_comm, local_comm, walkerID), lammps_(), logfile_() 
 		{
 		};
 
@@ -65,7 +65,7 @@ namespace SSAGES
 		virtual void Run() override
 		{
 			std::string rline = "run " + std::to_string(iterations_);
-			_lammps->input->one(rline.c_str());
+			lammps_->input->one(rline.c_str());
 		}
 
 		//! Run LAMMPS input file
@@ -84,9 +84,9 @@ namespace SSAGES
 			std::istringstream ss(contents);
 			bool reading_restart = false;
 
-			if(_restartname != "none" && _readrestart)
+			if(restartname_ != "none" && readrestart_)
 			{
-				_lammps->input->one(("read_restart " + _restartname + " remap").c_str());
+				lammps_->input->one(("read_restart " + restartname_ + " remap").c_str());
 				while(std::getline(ss, token, '\n'))
 					if(token.find("#RESTART") != std::string::npos)
 						reading_restart = true;
@@ -102,32 +102,32 @@ namespace SSAGES
 				if(token.find("#RESTART") != std::string::npos)
 					reading_restart = false;
 
-				if(_readrestart && reading_restart)
+				if(readrestart_ && reading_restart)
 					continue;
 
-				_lammps->input->one(token.c_str());
+				lammps_->input->one(token.c_str());
 			}
 
 			// Initialize and create the restart parameters
-			for(auto* o : _observers)
+			for(auto* o : observers_)
 			{
 				if(o->GetName() == "JSON")
 				{
-					_readrestart = true;
+					readrestart_ = true;
 					JSONObserver* obs = static_cast<JSONObserver*>(o);
-					std::string filename1 = obs->GetPrefix() + "_" + std::to_string(_wid) + ".restart";
-					std::string filename2 = obs->GetPrefix() + "_" + std::to_string(_wid) + "b.restart";
-					_lammps->input->one(("restart  " + std::to_string(obs->GetFrequency()) + " " + filename1 + " " + filename2).c_str());
+					std::string filename1 = obs->GetPrefix() + "_" + std::to_string(wid_) + ".restart";
+					std::string filename2 = obs->GetPrefix() + "_" + std::to_string(wid_) + "b.restart";
+					lammps_->input->one(("restart  " + std::to_string(obs->GetFrequency()) + " " + filename1 + " " + filename2).c_str());
 				}
 			}
 
-			auto fid = _lammps->modify->find_fix("ssages");
+			auto fid = lammps_->modify->find_fix("ssages");
 			if(fid < 0)
 				throw BuildException({"Could not find ssages fix in given input file!"});
 
-			if(!(_hook = dynamic_cast<Hook*>(_lammps->modify->fix[fid])))
+			if(!(hook_ = dynamic_cast<Hook*>(lammps_->modify->fix[fid])))
 			{
-				throw BuildException({"Unable to dynamic cast hook on node " + std::to_string(_world.rank())});			
+				throw BuildException({"Unable to dynamic cast hook on node " + std::to_string(world_.rank())});			
 			}
 		}
 		
@@ -152,18 +152,18 @@ namespace SSAGES
 				throw BuildException(validator.GetErrors());
 
 			iterations_ = json.get("MDSteps",1).asInt();
-			_inputfile = json.get("inputfile","none").asString();
-			_restartname = json.get("restart file", "none").asString();
-			_readrestart = json.get("read restart", false).asBool();
+			inputfile_ = json.get("inputfile","none").asString();
+			restartname_ = json.get("restart file", "none").asString();
+			readrestart_ = json.get("read restart", false).asBool();
 
-			if(_readrestart && _restartname == "none")
+			if(readrestart_ && restartname_ == "none")
 				throw BuildException({"You want to run from a restart but no file name provided (see 'restart file' in LAMMPS's schema for more informationz)"});
 			
 			// Silence of the lammps.
 			char **largs = (char**) malloc(sizeof(char*) * 1);
 			largs[0] = (char*) malloc(sizeof(char) * 1024);
 			sprintf(largs[0], " ");
-			_lammps = std::make_shared<LAMMPS_NS::LAMMPS>(1, largs, MPI_Comm(_comm));
+			lammps_ = std::make_shared<LAMMPS_NS::LAMMPS>(1, largs, MPI_Comm(comm_));
 
 			// Free.
 			for(int i = 0; i < 1; ++i)
@@ -177,16 +177,16 @@ namespace SSAGES
 			Driver::Serialize(json);
 
 			json["MDSteps"] = iterations_;
-			json["logfile"] = _logfile;
+			json["logfile"] = logfile_;
 			json["type"] = "LAMMPS";
 			//if true on first file
-			if(_lammps->output->restart_toggle)
+			if(lammps_->output->restart_toggle)
 			{
-				json["restart file"] = std::string(_lammps->output->restart2a);
+				json["restart file"] = std::string(lammps_->output->restart2a);
 			}
 			else
 			{
-				json["restart file"] = std::string(_lammps->output->restart2b);
+				json["restart file"] = std::string(lammps_->output->restart2b);
 			}
 		}
 	};

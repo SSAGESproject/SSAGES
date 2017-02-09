@@ -55,24 +55,24 @@ namespace SSAGES
 	void Meta::PreSimulation(Snapshot* snapshot, const CVList& cvs)
 	{
 		// Open file for writing and allocate derivatives vector.
-		if(_world.rank() == 0)
-			_hillsout.open("hills.out");
+		if(world_.rank() == 0)
+			hillsout_.open("hills.out");
 
 		auto n = snapshot->GetTargetIterations();
 		n = n ? n : 1e5; // Pre-allocate at least something.
 	
-		_hills.reserve(n+1);
-		_widths.reserve(n+1);
-		_derivatives.resize(cvs.size());
-		_tder.resize(cvs.size());
-		_dx.resize(cvs.size());
+		hills_.reserve(n+1);
+		widths_.reserve(n+1);
+		derivatives_.resize(cvs.size());
+		tder_.resize(cvs.size());
+		dx_.resize(cvs.size());
 	}
 
 	// Post-integration hook.
 	void Meta::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
 		// Add hills when needed.
-		if(snapshot->GetIteration() % _hillfreq == 0)
+		if(snapshot->GetIteration() % hillfreq_ == 0)
 			AddHill(cvs);
 
 		// Always calculate the current bias.
@@ -91,15 +91,15 @@ namespace SSAGES
 			// CV to each atom based on the gradient of the CV.
 			for (size_t j = 0; j < forces.size(); ++j)
 				for(size_t k = 0; k < 3; ++k)
-					forces[j][k] -= _derivatives[i]*grad[j][k];
+					forces[j][k] -= derivatives_[i]*grad[j][k];
 		}
 	}
 
 	// Post-simulation hook.
 	void Meta::PostSimulation(Snapshot*, const CVList&)
 	{
-		if(_world.rank() == 0)
-			_hillsout.close();	
+		if(world_.rank() == 0)
+			hillsout_.close();	
 	}
 
 	// Drop a new hill.
@@ -108,43 +108,43 @@ namespace SSAGES
 		int n = cvs.size();
 
 		// Assume we have the same number of procs per walker.
-		int nwalkers = _world.size()/_comm.size();
+		int nwalkers = world_.size()/comm_.size();
 
 		// We need to exchange CV values across the walkers 
 		// and to each proc on a walker.	
 		std::vector<double> cvals(n*nwalkers, 0);
 
-		if(_comm.rank() == 0)
+		if(comm_.rank() == 0)
 		{
-			for(auto i = 0, j = _world.rank()/_comm.size()*n; i < n; ++i,++j)
+			for(auto i = 0, j = world_.rank()/comm_.size()*n; i < n; ++i,++j)
 				cvals[j] = cvs[i]->GetValue();
 		}
 
 		// Reduce across all processors and add hills.
-		MPI_Allreduce(MPI_IN_PLACE, cvals.data(), n*nwalkers, MPI_DOUBLE, MPI_SUM, _world);
+		MPI_Allreduce(MPI_IN_PLACE, cvals.data(), n*nwalkers, MPI_DOUBLE, MPI_SUM, world_);
 		
 		for(int i = 0; i < n*nwalkers; i += n)
 		{
 			std::vector<double> cval(cvals.begin() + i, cvals.begin() + i + n);
-			_hills.emplace_back(cval, _widths, _height);
+			hills_.emplace_back(cval, widths_, height_);
 			
 			// Write hill to file.
-			if(_world.rank() == 0)
-				PrintHill(_hills.back());
+			if(world_.rank() == 0)
+				PrintHill(hills_.back());
 		}
 	}
 
 	//Ruthless pragmatism
 	void Meta::PrintHill(const Hill& hill)
 	{
-		_hillsout.precision(8);
+		hillsout_.precision(8);
 		for(auto& cv : hill.center)
-			_hillsout << cv << " ";
+			hillsout_ << cv << " ";
 		
 		for(auto& w : hill.width)
-			_hillsout << w << " ";
+			hillsout_ << w << " ";
 
-		_hillsout << _height << std::endl;
+		hillsout_ << height_ << std::endl;
 	}
 
 	void Meta::CalcBiasForce(const CVList& cvs)
@@ -154,33 +154,33 @@ namespace SSAGES
 		auto n = cvs.size();
 
 		// Reset vectors.
-		std::fill(_derivatives.begin(), _derivatives.end(), 0);
+		std::fill(derivatives_.begin(), derivatives_.end(), 0);
 
 		// Loop through hills and calculate the bias force.
-		for(auto& hill : _hills)
+		for(auto& hill : hills_)
 		{		
 			auto tbias = 1.;
-			std::fill(_tder.begin(), _tder.end(), 1.0);
-			std::fill(_dx.begin(), _dx.end(), 1.0);
+			std::fill(tder_.begin(), tder_.end(), 1.0);
+			std::fill(dx_.begin(), dx_.end(), 1.0);
 			
 			for(size_t i = 0; i < n; ++i)
 			{
-				_dx[i] = cvs[i]->GetDifference(hill.center[i]);
-				tbias *= gaussian(_dx[i], hill.width[i]);
+				dx_[i] = cvs[i]->GetDifference(hill.center[i]);
+				tbias *= gaussian(dx_[i], hill.width[i]);
 			}
 
 			for(size_t i = 0; i < n; ++i)
 				for(size_t j = 0; j < n; ++j)
 				{
 					if(j != i) 
-						_tder[i] *= gaussian(_dx[j], hill.width[j]);
+						tder_[i] *= gaussian(dx_[j], hill.width[j]);
 					else
-						_tder[i] *= gaussianDerv(_dx[j], hill.width[j]);
+						tder_[i] *= gaussianDerv(dx_[j], hill.width[j]);
 				}
 
-			bias += _height * tbias;
+			bias += height_ * tbias;
 			for(size_t i = 0; i < n; ++i)
-				_derivatives[i] += _height*_tder[i];
+				derivatives_[i] += height_*tder_[i];
 		}
 	}
 }

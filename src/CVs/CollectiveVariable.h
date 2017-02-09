@@ -41,17 +41,17 @@ namespace SSAGES
 	{
 	protected:
 		//! Gradient vector dCv/dxi.
-		std::vector<Vector3> _grad;
+		std::vector<Vector3> grad_;
 		
 	 	//! Current value of CV.
-		double _val;				
+		double val_;				
 
 		//! Bounds on CV.
-		std::array<double, 2> _bounds;		
+		std::array<double, 2> bounds_;		
 	public:
 		//! Constructor.
 		CollectiveVariable() : 
-		_grad(0), _val(0), _bounds{{0,0}}
+		grad_(0), val_(0), bounds_{{0,0}}
 		{}
 
 		//! Destructor.
@@ -84,7 +84,7 @@ namespace SSAGES
 		 */
 		double GetValue() const
 		{
-			return _val;
+			return val_;
 		}
 
         //! Returns the minimum image of a CV based on the input location.
@@ -96,7 +96,7 @@ namespace SSAGES
 		 */
 		virtual double GetMinimumImage(double /*location*/) const
 		{
-			return _val;
+			return val_;
 		}
 
 		//! Apply periodic boundaries to a given value.
@@ -125,7 +125,7 @@ namespace SSAGES
 		 */
 		const std::vector<Vector3>& GetGradient() const
 		{
-			return _grad;
+			return grad_;
 		}
 
 		//! Get CV boundaries.
@@ -138,7 +138,7 @@ namespace SSAGES
 		 */
 		const std::array<double, 2>& GetBoundaries()
 		{
-			return _bounds;
+			return bounds_;
 		}
 
 		//! Get difference between current CV value and a given value, taking
@@ -148,14 +148,14 @@ namespace SSAGES
 		 * \return Difference taking periodic boundaries into account.
 		 *
 		 * Returns the difference betwen the current cv value and Location:
-		 * (_value - Location) respecting periodic boundary conditions of the
+		 * (value_ - Location) respecting periodic boundary conditions of the
 		 * CV, if the CV has periodic boundary conditions. For example Torsional
 		 * angle has boundaries at pi and -pi, in which the difference beteen
 		 * the angles is 0 not 2pi
 		 */
 		virtual double GetDifference(double location) const
 		{
-			return _val - location;
+			return val_ - location;
 		}
 
 		//! Set up collective variable.

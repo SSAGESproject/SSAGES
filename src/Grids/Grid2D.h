@@ -41,29 +41,29 @@ namespace SSAGES
 		 */
 		Grid2D(std::vector<double> lower, std::vector<double> upper, std::vector<int> num_points)
 		{
-			_NDim = 2;
+			NDim_ = 2;
 			for(size_t i =0; i <lower.size(); i++)
 			{
-				_lower.push_back(lower[i]);
-				_upper.push_back(upper[i]);
-				_periodic.push_back(false);
-				_num_points.push_back(num_points[i]);
-				_spacing.push_back(0.0);
+				lower_.push_back(lower[i]);
+				upper_.push_back(upper[i]);
+				periodic_.push_back(false);
+				num_points_.push_back(num_points[i]);
+				spacing_.push_back(0.0);
 			}
 			//Generate Grid
-			for(size_t i = 0; i < _spacing.size(); i++)
-				_spacing[i] = (_upper[i] - _lower[i])/double(_num_points[i] - 1);
+			for(size_t i = 0; i < spacing_.size(); i++)
+				spacing_[i] = (upper_[i] - lower_[i])/double(num_points_[i] - 1);
 
 			// Construct flat vector 
-			_flatvector.resize(_num_points[0]*_num_points[1]);
-			for(int i = 0; i < _num_points[0]; i++)
+			flatvector_.resize(num_points_[0]*num_points_[1]);
+			for(int i = 0; i < num_points_[0]; i++)
 			{
-				for(int j = 0; j < _num_points[1]; j++)
+				for(int j = 0; j < num_points_[1]; j++)
 				{
-					int flat = FlattenIndices({i,j}, _num_points);
-					_flatvector[flat].first = std::vector<double>(3, 0.0);
-					_flatvector[flat].second.push_back(_lower[0] + _spacing[0]*i);
-					_flatvector[flat].second.push_back(_lower[1] + _spacing[1]*j);
+					int flat = FlattenIndices({i,j}, num_points_);
+					flatvector_[flat].first = std::vector<double>(3, 0.0);
+					flatvector_[flat].second.push_back(lower_[0] + spacing_[0]*i);
+					flatvector_[flat].second.push_back(lower_[1] + spacing_[1]*j);
 				}
 			}
 		}
@@ -77,16 +77,16 @@ namespace SSAGES
 			{
 				int vertex = 0;
 
-				vertex = int((val[i] - _lower[i])/_spacing[i]);
+				vertex = int((val[i] - lower_[i])/spacing_[i]);
 
-				if(_periodic[i])
+				if(periodic_[i])
 				{
-					vertex = vertex % _num_points[i];
+					vertex = vertex % num_points_[i];
 					if(vertex<0)
-						vertex += _num_points[i];
+						vertex += num_points_[i];
 				}
 
-				if(vertex < 0 || vertex >=_num_points[i]) // out of bounds
+				if(vertex < 0 || vertex >=num_points_[i]) // out of bounds
 					throw std::out_of_range("Voxel not in grid!");
 
 				vertices.push_back(vertex);
@@ -131,7 +131,7 @@ namespace SSAGES
 			ival +=  (val[0] - gridpos[3][0])*(val[1] - gridpos[3][1]) * gridval[0];
 
 
-			ival /= _spacing[0]*_spacing[1];
+			ival /= spacing_[0]*spacing_[1];
 
 			return ival;
 		}
@@ -158,7 +158,7 @@ namespace SSAGES
 			ival += -(val[0] - gridpos[2][0])*(val[1] - gridpos[2][1]) * gridval[1][dim];
 			ival +=  (val[0] - gridpos[3][0])*(val[1] - gridpos[3][1]) * gridval[0][dim];
 
-			ival /= _spacing[0]*_spacing[1];
+			ival /= spacing_[0]*spacing_[1];
 
 			return ival;
 		}
