@@ -35,7 +35,7 @@ obtained from Wikipedia_:
 				"type": "home",
 				"number": "212 555-1234"
 			},
-		    {
+			{
 				"type": "fax",
 				"number": "646 555-4567"
 			}
@@ -69,8 +69,9 @@ Before moving on to SSAGES specific JSON, we'll mention a few more things about 
 - Types matter in JSON. Notice how ``#/age`` is specified by a number that is not
   surrounded in quotes. This is a number, more specifically an integer. 
   ``#/address/postalCode`` on the other hand is a string, even though the contents of 
-  the string are all numbers. Some fields in SSAGES may require the input to be a string,
-  integer or number and the user should be aware of this difference.
+  the string are all numbers. Certain fields in a SSAGES input file may be required 
+  to be a string, integer, or number. The user should be aware of this and take care 
+  to format their input file appropriately.
 
 
 Basic User Tutorial
