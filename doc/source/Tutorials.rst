@@ -3,6 +3,77 @@
 Tutorials
 =========
 
+JSON 
+----
+
+SSAGES is run using input files written in the JSON_ file format. JSON is a 
+lightweight text format which is easy for humans to read and write and for 
+machines to parse and generate. Almost every programming language offers some 
+level of native JSON support, making it particularly convenient to script or 
+automate input file generation using, say, Python. If you've never used JSON before, 
+don't worry. Throughout the documentation we make no assumptions about 
+the user's knowledge of JSON and provide clear easy-to-follow examples.
+
+A SSAGES input file is a valid JSON document. Here we will define a bit of 
+terminology relating to JSON. Take the following JSON structure as an example, 
+obtained from Wikipedia_:
+
+.. code-block:: javascript
+	
+	{
+		"firstName": "John",
+		"lastName": "Smith",
+		"age": 25,
+		"address": {
+			"streetAddress": "21 2nd Street",
+			"city": "New York",
+			"state": "NY",
+			"postalCode": "10021"
+		},
+		"phoneNumber": [
+			{
+				"type": "home",
+				"number": "212 555-1234"
+			},
+			{
+				"type": "fax",
+				"number": "646 555-4567"
+			}
+		],
+		"gender": {
+	  		"type": "male"
+	  	}
+	}
+
+
+The first pair of curly brackets define the *root* section, we will signify this using 
+``#``. An item in the hierarchy, such as the street address, can be referenced like this: 
+``#/address/streetAddress``. 
+
+Before moving on to SSAGES specific JSON, we'll mention a few more things about JSON.
+
+- Square brackets ``[]`` in JSON refer to *arrays*, while curly brackets refer to 
+  *objects*. They can be thought of as Python lists and dictionaries respectively. 
+  That would make ``#/phoneNumber`` an array of phone number objects, each containing 
+  a type and a number. The fax number can be referenced by ``#/phoneNumber/1/number``,
+  where ``1`` is the array index beginning from zero.
+
+- Items in a JSON object (Python dictionary) are unique. In the example above, 
+  ``#/age`` can only be defined once - it is a key in the root tree. 
+  Defining ``#/age`` again will not throw an error, but instead the last definition 
+  will override any previous definitions. This is actually very powerful behavior. 
+  It means a user can import a general template JSON file and override whatever
+  parameters they wish. The exact behavior of the merging process is described in 
+  detail in the user guide.
+
+- Types matter in JSON. Notice how ``#/age`` is specified by a number that is not
+  surrounded in quotes. This is a number, more specifically an integer. 
+  ``#/address/postalCode`` on the other hand is a string, even though the contents of 
+  the string are all numbers. Certain fields in a SSAGES input file may be required 
+  to be a string, integer, or number. The user should be aware of this and take care 
+  to format their input file appropriately.
+
+
 Basic User Tutorial
 -------------------
 
@@ -61,8 +132,11 @@ Method-specific tutorials
 
 :ref:`Image Method <IM_tutorial>`
 
-:ref:`Metadynamics <MD_tutorial>`
+:ref:`Metadynamics <metadynamics-tutorial>`
 
 :ref:`Swarm <Swarm_tutorial>`
 
 :ref:`Umbrella Sampling <Umbrella_tutorial>`
+
+.. _JSON: http://json.org
+.. _Wikipedia: https://en.wikipedia.org/wiki/JSON#JSON_sample
