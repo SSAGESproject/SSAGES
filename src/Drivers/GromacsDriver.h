@@ -64,7 +64,7 @@ namespace SSAGES
 			largs[2] = new char[128];
 
 			// Trim input file extension.
-			auto s = _inputfile.substr(0, _inputfile.find_last_of("."));
+			auto s = inputfile_.substr(0, inputfile_.find_last_of("."));
 
 			sprintf(largs[0], "ssages");
 			sprintf(largs[1], "-deffnm");
@@ -112,13 +112,13 @@ namespace SSAGES
 		 */
 		virtual void BuildDriver(const Json::Value& json, const std::string& path) override
 		{
-			_inputfile = json.get("inputfile","none").asString();
+			inputfile_ = json.get("inputfile","none").asString();
 			iterations_ = json.get("MDSteps", 1).asInt();
 
 			// Set hook. 
 			auto& hook = GromacsHook::Instance();
 			hook.SetIterationTarget(iterations_);
-			_hook = dynamic_cast<Hook*>(&hook);
+			hook_ = dynamic_cast<Hook*>(&hook);
 
 			// Restart?
 			restart_ = json.get("restart", false).asBool();

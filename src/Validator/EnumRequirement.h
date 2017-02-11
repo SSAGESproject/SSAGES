@@ -36,16 +36,16 @@ namespace Json
 	class EnumRequirement : public Requirement
 	{
 	private:
-		std::vector<Value> _enum; //!< Enum value.
+		std::vector<Value> enum_; //!< Enum value.
 	
 	public:
 		//! Constructor
-		EnumRequirement() : _enum(0) {}
+		EnumRequirement() : enum_(0) {}
 
 		//! Clear enum value.
 		virtual void Reset() 
 		{
-			_enum.clear();
+			enum_.clear();
 		}
 
 		//! Parse JSON input value to generate enum.
@@ -56,7 +56,7 @@ namespace Json
 		{
 			if(json.isArray())
 				for(auto& val : json)
-					_enum.push_back(val);
+					enum_.push_back(val);
 		}
 
 		//! Validate that JSON value is member of the parsed enum.
@@ -68,7 +68,7 @@ namespace Json
 		{
 			bool found = false;
 
-			for(auto& val : _enum)
+			for(auto& val : enum_)
 				if(json == val)
 					found = true;
 

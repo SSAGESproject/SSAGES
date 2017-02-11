@@ -32,7 +32,7 @@ namespace SSAGES
 	{
 	private:
 		//! User defined gradient vector.
-		Vector3 _user_defined_grad;
+		Vector3 usergrad_;
 
 	public:
 
@@ -46,10 +46,10 @@ namespace SSAGES
 		 * Construct a mock CV
 		 */
 		MockCV(double value, const Vector3& grad, double upper, double lower) :
-		_user_defined_grad(grad)
+		usergrad_(grad)
 		{
-			_val = value;
-			_bounds = {{upper, lower}};
+			val_ = value;
+			bounds_ = {{upper, lower}};
 		}
 
 		//! Initialize necessary variables.
@@ -60,7 +60,7 @@ namespace SSAGES
 		{
 			// Initialize gradient
 			auto n = snapshot.GetPositions().size();
-			_grad.resize(n, _user_defined_grad);
+			grad_.resize(n, usergrad_);
 		}
 
 		//! Evaluate the CV.

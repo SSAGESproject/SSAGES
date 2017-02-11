@@ -41,13 +41,13 @@ namespace SSAGES
 	{
 		private:
 			//! Pointer to the observable object from which the Event is originating.
-			SimObservable* _observable;
+			SimObservable* observable_;
 
 			//! Iteration of the simulation.
-			int _iteration;
+			int iteration_;
 
 			//! Force the observation of this event.
-			bool _forceObserve = false;
+			bool forceObserve_ = false;
 
 		public:
 			//! Constructor
@@ -57,25 +57,25 @@ namespace SSAGES
 			 * \param forceObserve If \c True force the observers to observe this event.
 			 */
 			SimEvent(SimObservable* observable, int iteration, bool forceObserve = false)
-				: _observable(observable), _iteration(iteration), _forceObserve(forceObserve){}
+				: observable_(observable), iteration_(iteration), forceObserve_(forceObserve){}
 
 			//! Get Sim Observable.
 			/*!
 			 * \return Pointer to the observable object.
 			 */
-			SimObservable const * GetObservable() const { return _observable; }
+			SimObservable const * GetObservable() const { return observable_; }
 
 			//! Get iteration.
 			/*!
 			 * \return Iteration.
 			 */
-			int GetIteration() const { return _iteration; }
+			int GetIteration() const { return iteration_; }
 
 			//! Tell the observer that they should observe this event.
 			/*!
 			 * \return \c True if Observers are forced to observe the event.
 			 */
-			bool ForceObserve() const { return _forceObserve; }
+			bool ForceObserve() const { return forceObserve_; }
 
 			//! Destructor.
 			virtual ~SimEvent() {}

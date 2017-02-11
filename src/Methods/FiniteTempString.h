@@ -38,28 +38,28 @@ namespace SSAGES
 	private:	
 
 		//! String modification parameter
-		double _kappa;
+		double kappa_;
 
 		//! Number of steps to block average the CV's postions over
-		unsigned int _blockiterations;
+		unsigned int blockiterations_;
 
 		//! Time step of string change
-		double _tau;
+		double tau_;
 
 		//! Minimum number of steps to apply umbrella sampling.
-		unsigned int _min_num_umbrella_steps;
+		unsigned int min_num_umbrella_steps_;
 
 		//! Flag to run umbrella or not during post-integration        
-        bool _run_umbrella;
+        bool run_umbrella_;
 
         //! Iterator that keeps track of umbrella iterations
-		unsigned int _umbrella_iter;
+		unsigned int umbrella_iter_;
 
 		//! Stores the last positions of the CVs
-		std::vector<double> _prev_CVs;
+		std::vector<double> prev_CVs_;
 
         //! Stores the last step's atom IDs
-        Label _prev_ids;
+        Label prev_ids_;
 
 		//! Checks if CV is in voronoi cell
 		bool InCell(const CVList& cvs) const;
@@ -97,17 +97,17 @@ namespace SSAGES
 					unsigned int springiter,
 			 		unsigned int frequency) : 
 		StringMethod(world, comm, centers, maxiterations, cvspring, frequency),
-		_kappa(kappa), _blockiterations(blockiterations), _tau(tau), 
-		_min_num_umbrella_steps(springiter), _run_umbrella(true),
-		_umbrella_iter(1), reset_for_umbrella(false)
+		kappa_(kappa), blockiterations_(blockiterations), tau_(tau), 
+		min_num_umbrella_steps_(springiter), run_umbrella_(true),
+		umbrella_iter_(1), reset_for_umbrella(false)
         {
 			//! Store positions for starting trajectories
-			_prev_positions.resize(1);
+			prev_positions_.resize(1);
 
 			//! Store velocities for starting trajectories
-			_prev_velocities.resize(1);
+			prev_velocities_.resize(1);
 
-			_prev_IDs.resize(1);
+			prev_ids_.resize(1);
 
 		}
 
@@ -118,13 +118,13 @@ namespace SSAGES
         {
         	StringMethod::Serialize(json);
 
-            json["umbrella_iterations"] = _min_num_umbrella_steps;
+            json["umbrella_iterations"] = min_num_umbrella_steps_;
             json["flavor"] = "FTS";
-            json["kappa"] = _kappa;
-            json["block_iterations"] = _blockiterations;
-            json["time_step"] = _tau;
+            json["kappa"] = kappa_;
+            json["block_iterations"] = blockiterations_;
+            json["time_step"] = tau_;
 
-            for(auto& nw : _newcenters)
+            for(auto& nw : newcenters_)
             	json["running_average"].append(nw);
         }
 

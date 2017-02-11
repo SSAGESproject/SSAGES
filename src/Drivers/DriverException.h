@@ -34,14 +34,14 @@ namespace SSAGES
 	class BuildException : public std::runtime_error
 	{
 	private:
-		std::vector<std::string> _errors; //!< Error message.
+		std::vector<std::string> errors_; //!< Error message.
 	public:
 		//! Constructor
 		/*!
 		 * \param errors Error message
 		 */
 		BuildException(std::vector<std::string> errors) : 
-			std::runtime_error("Object build error"), _errors(errors)
+			std::runtime_error("Object build error"), errors_(errors)
 		{
 		}
 
@@ -65,7 +65,7 @@ namespace SSAGES
 		 */
 		std::vector<std::string> GetErrors()
 		{
-			return _errors;
+			return errors_;
 		}
 	};
 

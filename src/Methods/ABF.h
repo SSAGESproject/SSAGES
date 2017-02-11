@@ -56,7 +56,7 @@ namespace SSAGES
 		 * A 1D vector, but will hold N-dimensional data, where N is number of
 		 * CVs +1. This will be size (CVbinNr1*CVbinNr2*..)*3.
 		 */
-		Eigen::VectorXd _Fworld;
+		Eigen::VectorXd Fworld_;
 
 		//! To store number of hits at a given CV bin.
 		/*!
@@ -70,41 +70,41 @@ namespace SSAGES
 		 * A 1D vector, but will hold N-dimensional data, where N is number of
 		 * CVs. This will be size (CVbinNr1*CVbinNr2*..).
 		 */
-		std::vector<int> _Nworld;
+		std::vector<int> Nworld_;
 
 		//! Information for a harmonic restraint to keep CV in the region of interest. 
 		/*!
 		 * This is a 2 Dimensional object set up as the following:
-		 * _restraint is a vector of (nr of CV) vectors, ordered in CV order.
+		 * restraint_ is a vector of (nr of CV) vectors, ordered in CV order.
 		 * Each of those vectors are 3 long.
 		 * First entry of each vector holds the lower bound for that CV restraint.
 		 * Second entry of each vector holds the upper bound for that CV restraint.
 		 * Third entry of each vector holds the spring constant for that CV restraint.
 		 */
-		std::vector<std::vector<double>> _restraint;
+		std::vector<std::vector<double>> restraint_;
 
 		//! For each CV, holds whether that CV has periodic boundaries or not.
-		std::vector<bool> _isperiodic;
+		std::vector<bool> isperiodic_;
 
 		//! Holds periodic boundaries of CVs.
 		/*!
 		 * This is a 2 Dimensional object set up as the following:
-		 * _periodicboundaries is a vector of (nr of CV) vectors, ordered in CV order.
+		 * periodicboundaries_ is a vector of (nr of CV) vectors, ordered in CV order.
 		 * Each of those vectors are 2 long.
 		 * First entry of each vector holds the lower bound for that CV periodic boundary.
 		 * Second entry of each vector holds the upper bound for that CV periodic boundary.
 		 */
-		std::vector<std::vector<double>> _periodicboundaries;		
+		std::vector<std::vector<double>> periodicboundaries_;		
 
 		//! The minimum number of hits required before full biasing, bias is
-		//!_F[i]/max(_N[i],_min).
-		int _min;
+		//!_F[i]/max(_N[i],min_).
+		int min_;
 
 		//! To hold last two iterations wdotp value for derivative
-		Eigen::VectorXd _wdotp1, _wdotp2;
+		Eigen::VectorXd wdotp1_, wdotp2_;
 
 		//! To hold last iterations _F value for removing bias
-		Eigen::VectorXd _Fold;
+		Eigen::VectorXd Fold_;
 
 		//! Get coordinates of histogram bin corresponding to given list of CVs.
 		/*!
@@ -118,25 +118,25 @@ namespace SSAGES
 		int histCoords(const CVList& cvs);
 
 		//! Mass weighing of bias enabled/disabled
-		bool _massweigh;
+		bool massweigh_;
 
 		//! Biases.	
-		std::vector<Vector3> _biases;
+		std::vector<Vector3> biases_;
 
 		//! Number of CVs in system
-		unsigned int _dim;
+		unsigned int dim_;
 
 		//! Output stream for walker-specific data.
-		std::ofstream _walkerout;
+		std::ofstream walkerout_;
 
 		//! Output stream for world data.
-		std::ofstream _worldout;
+		std::ofstream worldout_;
 
 		//! File name for world data
-		std::string _filename;
+		std::string filename_;
 
 		//! The node this belongs to
-		unsigned int _mpiid;
+		unsigned int mpiid_;
 
 		//! Histogram details. 
 		/*!
@@ -147,13 +147,13 @@ namespace SSAGES
 		 * Second entry of each vector holds the upper bound for that CV.
 		 * Third entry of each vector holds the nr of bins for that CV dimension.
 		*/ 
-		std::vector<std::vector<double>> _histdetails;
+		std::vector<std::vector<double>> histdetails_;
 
 		//! Integer to hold F estimate backup information
 		/*!
 		 * Print every how many timesteps? ; -1: Do not backup during simulation
 		 */
-		int _FBackupInterv;
+		int FBackupInterv_;
 
 		//! Unit Conversion Constant from W dot P to Force
 		/*!
@@ -162,7 +162,7 @@ namespace SSAGES
 		 * For LAMMPS using units real, this is
 		 * 2390.06 (gram.angstrom/mole.femtosecond^2 -> kcal/mole.angstrom)
 		 */
-		double _unitconv;
+		double unitconv_;
 
 		//! Computes the bias force.
 		void CalcBiasForce(const Snapshot* snapshot, const CVList& cvs, int coord);
@@ -171,13 +171,13 @@ namespace SSAGES
 		void WriteData();
 
 		//! Timestep of integration
-		double _timestep;
+		double timestep_;
 
 		//! Number of cvs
-		int _ncv = 0;
+		int ncv_ = 0;
 
 		//! Mass vector. Empty unless required.
-		Eigen::VectorXd _mass;
+		Eigen::VectorXd mass_;
 
 	public: 
 		//! Constructor 
@@ -197,7 +197,7 @@ namespace SSAGES
 		 *
 		 * Constructs an instance of Adaptive Biasing Force method.
 		 * \note The restraints should be outside of the range defined in
-		 *       _histdetails by at least one bin size on each side.
+		 *       histdetails_ by at least one bin size on each side.
 		 */ 
 		ABF(boost::mpi::communicator& world,
 			boost::mpi::communicator& comm,
@@ -212,11 +212,11 @@ namespace SSAGES
 			double unitconv,
 			double timestep,
 			unsigned int frequency) :
-		Method(frequency, world, comm), _F(), _Fworld(), _N(0), _Nworld(0),
-		_restraint(restraint), _isperiodic(isperiodic), _periodicboundaries(periodicboundaries),
-		 _min(min), _wdotp1(), _wdotp2(), _Fold(), _massweigh(massweigh),
-		_biases(), _dim(0), _filename(filename), _mpiid(0), _histdetails(histdetails), 
-		_FBackupInterv(FBackupInterv), _unitconv(unitconv), _timestep(timestep)
+		Method(frequency, world, comm), _F(), Fworld_(), _N(0), Nworld_(0),
+		restraint_(restraint), isperiodic_(isperiodic), periodicboundaries_(periodicboundaries),
+		 min_(min), wdotp1_(), wdotp2_(), Fold_(), massweigh_(massweigh),
+		biases_(), dim_(0), filename_(filename), mpiid_(0), histdetails_(histdetails), 
+		FBackupInterv_(FBackupInterv), unitconv_(unitconv), timestep_(timestep)
 		{
 		}
 
@@ -258,7 +258,7 @@ namespace SSAGES
 		 */
 		void SetIteration(const int iter)
 		{
-			_iteration = iter;
+			iteration_ = iter;
 		}			
 
 		//! \copydoc Serializable::Serialize()
@@ -267,26 +267,26 @@ namespace SSAGES
 		
 			json["type"] = "ABF";
 
-			for(size_t i = 0; i < _histdetails.size(); ++i)
+			for(size_t i = 0; i < histdetails_.size(); ++i)
 			{
-				json["CV_lower_bounds"].append(_histdetails[i][0]);				
-				json["CV_upper_bounds"].append(_histdetails[i][1]);
-				json["CV_bins"].append(_histdetails[i][2]);
+				json["CV_lower_bounds"].append(histdetails_[i][0]);				
+				json["CV_upper_bounds"].append(histdetails_[i][1]);
+				json["CV_bins"].append(histdetails_[i][2]);
 			}
 
-			for(size_t i = 0; i < _restraint.size(); ++i)
+			for(size_t i = 0; i < restraint_.size(); ++i)
 			{
-				json["CV_restraint_minimums"].append(_restraint[i][0]);
-				json["CV_restraint_maximums"].append(_restraint[i][1]);
-				json["CV_restraint_spring_constants"].append(_restraint[i][2]);
+				json["CV_restraint_minimums"].append(restraint_[i][0]);
+				json["CV_restraint_maximums"].append(restraint_[i][1]);
+				json["CV_restraint_spring_constants"].append(restraint_[i][2]);
 			}
 
-			json["timestep"] = _timestep;
-			json["minimum_count"] = _min;
-			json["backup_frequency"] = _FBackupInterv;			
-			json["unit_conversion"] = _unitconv;
-			json["iteration"] = _iteration;
-			json["filename"] = _filename;		
+			json["timestep"] = timestep_;
+			json["minimum_count"] = min_;
+			json["backup_frequency"] = FBackupInterv_;			
+			json["unit_conversion"] = unitconv_;
+			json["iteration"] = iteration_;
+			json["filename"] = filename_;		
 				
 			for(int i = 0; i < _F.size(); ++i)
 				json["F"].append(_F[i]);

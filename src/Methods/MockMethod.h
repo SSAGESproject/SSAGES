@@ -35,7 +35,7 @@ namespace SSAGES
 	class MockMethod : public Method
 	{
 	private:
-		std::ofstream _myout; //!< Output stream.
+		std::ofstream myout_; //!< Output stream.
 
 	public:
 		//! Constructor
@@ -49,7 +49,7 @@ namespace SSAGES
 				   unsigned int frequency) : 
 		Method(frequency,world,comm)
 		{
-			_myout.open("foo.out");
+			myout_.open("foo.out");
 		}
 
 		//! Pre-simulation hook.
@@ -93,6 +93,6 @@ namespace SSAGES
 		}
 
 		//! Destructor.
-		~MockMethod() { _myout.close(); }
+		~MockMethod() { myout_.close(); }
 	};
 }

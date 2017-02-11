@@ -33,7 +33,7 @@ namespace SSAGES
 	{
 	private:
 		//! Output stream for debug output.
-		std::ofstream _myout;
+		std::ofstream myout_;
 
 	public:
 		//! Constructor.
@@ -45,13 +45,13 @@ namespace SSAGES
 				   unsigned int frequency) : 
 		Constraint(frequency, comm)
 		{
-			_myout.open("test.out");
+			myout_.open("test.out");
 		}
 
 		//! Pre-Simulation Hook.
 		void PreSimulation(Snapshot*, const CVList&) override
 		{
-			_myout<<"In PreSimulation"<<std::endl;
+			myout_<<"In PreSimulation"<<std::endl;
 		}
 
 		//! Post-Integration Hook.
@@ -63,7 +63,7 @@ namespace SSAGES
 			using std::setprecision;
 			
 
-			_myout << snapshot->GetWalkerID() 
+			myout_ << snapshot->GetWalkerID() 
 			<< " " << snapshot->GetCommunicator().rank() << std::endl;
 			auto& f = snapshot->GetForces();
 			f[0][0] = 1.000000*f[0][0];
@@ -72,7 +72,7 @@ namespace SSAGES
 		//! Post-Simulation Hook.
 		void PostSimulation(Snapshot*, const CVList&) override
 		{
-			_myout <<" Post simulation"<<std::endl;
+			myout_ <<" Post simulation"<<std::endl;
 		}
 
 		//! Serialize the class
@@ -85,6 +85,6 @@ namespace SSAGES
 		}
 
 		//! Destructor.
-		~COPSS() { _myout.close(); }
+		~COPSS() { myout_.close(); }
 	};
 }

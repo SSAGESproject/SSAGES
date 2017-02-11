@@ -41,9 +41,9 @@ TEST(UCVector, ConvertToUCVector)
 // {
 	// boost::mpi::communicator comm;
 
-	// Hook* _hook;
+	// Hook* hook_;
 
-	// std::shared_ptr<LAMMPS> _lammps;
+	// std::shared_ptr<LAMMPS> lammps_;
 
 	// // Silence of the lammps.
 	// char **largs = (char**) malloc(sizeof(char*) * 5);
@@ -55,13 +55,13 @@ TEST(UCVector, ConvertToUCVector)
 	// sprintf(largs[3], "-log");
 	// sprintf(largs[4], "none");
 
-	// _lammps = std::make_shared<LAMMPS>(5, largs, MPI_Comm(comm));
+	// lammps_ = std::make_shared<LAMMPS>(5, largs, MPI_Comm(comm));
 
-	// _lammps->input->one(("region simple block 0.5 35.8 0.6 30.0 -1.2 10.6").c_str());
+	// lammps_->input->one(("region simple block 0.5 35.8 0.6 30.0 -1.2 10.6").c_str());
 
-	// if(!(_hook = dynamic_cast<Hook*>(_lammps->modify->fix[fid])))
+	// if(!(hook_ = dynamic_cast<Hook*>(lammps_->modify->fix[fid])))
 	// {
-	// 	throw BuildException({"Unable to dynamic cast hook on node " + std::to_string(_world.rank())});			
+	// 	throw BuildException({"Unable to dynamic cast hook on node " + std::to_string(world_.rank())});			
 	// }
 
 	//Need to finish Unit test here

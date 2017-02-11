@@ -43,7 +43,7 @@ namespace SSAGES
 	{
 	private:
 		//! List of plugins
-		std::vector<std::unique_ptr<JSONLoaderPlugin>> _plugins;
+		std::vector<std::unique_ptr<JSONLoaderPlugin>> plugins_;
 
 	public:
 		//! Constructor
@@ -51,9 +51,9 @@ namespace SSAGES
 		 * The constructer automatically inserts the IncludePlugin into the
 		 * list of plugins.
 		 */
-		JSONLoader() : _plugins(0)
+		JSONLoader() : plugins_(0)
 		{
-			_plugins.push_back(std::unique_ptr<JSONLoaderPlugin>(new IncludePlugin()));
+			plugins_.push_back(std::unique_ptr<JSONLoaderPlugin>(new IncludePlugin()));
 		}
 
 		//! Load file and return JSON tree.
@@ -63,7 +63,7 @@ namespace SSAGES
 		 * \return JSON Value containing the contents of the file.
 		 *
 		 * This function loads JSON content from a given file. For each plugin
-		 * in \c _plugins the filter defined with this plugin will be applied
+		 * in \c plugins_ the filter defined with this plugin will be applied
 		 * to the contents loaded from the file.
 		 */
 		Json::Value LoadFile(const std::string& filename, boost::mpi::communicator& world)
@@ -78,7 +78,7 @@ namespace SSAGES
 			mpi::broadcast(world, contents, 0);
 			mpi::broadcast(world, path, 0);
 
-			for(auto& plugin : _plugins)
+			for(auto& plugin : plugins_)
 				plugin->ApplyFilter(contents, path);
 
 			// Read JSON.

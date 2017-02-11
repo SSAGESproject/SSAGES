@@ -112,8 +112,8 @@ namespace SSAGES
 			const auto& pos = snapshot.GetPositions();
 
 			// Initialize gradient.
-			std::fill(_grad.begin(), _grad.end(), Vector3{0,0,0});
-			_grad.resize(n, Vector3{0,0,0});
+			std::fill(grad_.begin(), grad_.end(), Vector3{0,0,0});
+			grad_.resize(n, Vector3{0,0,0});
 			
 			// Compute total and center of mass.
 			auto masstot = snapshot.TotalMass(idx);
@@ -150,7 +150,7 @@ namespace SSAGES
 
 			// Compute gradient.
 			size_t j = 0;
-			_val = 0;
+			val_ = 0;
 			for(auto& i : idx)
 			{
 				// Compute derivative of each eigenvalue and use combos in components. 
@@ -163,36 +163,36 @@ namespace SSAGES
 				switch(component_)
 				{
 					case Rg:
-						_grad[i] = dl1 + dl2 + dl3;
-						_val = l1 + l2 + l3; 
+						grad_[i] = dl1 + dl2 + dl3;
+						val_ = l1 + l2 + l3; 
 						break;
 					case principal1:
-						_grad[i] = dl1;
-						_val = l1;
+						grad_[i] = dl1;
+						val_ = l1;
 						break;
 					case principal2:
-						_grad[i] = dl2;
-						_val = l2;
+						grad_[i] = dl2;
+						val_ = l2;
 						break;
 					case principal3:
-						_grad[i] = dl3;
-						_val = l3;
+						grad_[i] = dl3;
+						val_ = l3;
 						break;
 					case asphericity:
-						_grad[i] = dl1 - 0.5*(dl2 + dl3);
-						_val = l1 - 0.5*(l2 + l3);
+						grad_[i] = dl1 - 0.5*(dl2 + dl3);
+						val_ = l1 - 0.5*(l2 + l3);
 						break;
 					case acylindricity:
-						_grad[i] = dl2 - dl3;
-						_val = l2 - l3; 
+						grad_[i] = dl2 - dl3;
+						val_ = l2 - l3; 
 						break;
 					case shapeaniso:
 						auto l1_2 = l1*l1, l2_2 = l2*l2, l3_2 = l3*l3; 
 						auto sum = l1 + l2 + l3;
 						auto sqsum = l1_2 + l2_2 + l3_2;
-						_grad[i] = 3.*(l1*dl1+l2*dl2+l3*dl3)/(sum*sum) - 
+						grad_[i] = 3.*(l1*dl1+l2*dl2+l3*dl3)/(sum*sum) - 
 						           3.*sqsum*(dl1+dl2+dl3)/(sum*sum*sum);
-						_val = 1.5*sqsum/(sum*sum) - 0.5;
+						val_ = 1.5*sqsum/(sum*sum) - 0.5;
 						break;
 				}
 
@@ -211,7 +211,7 @@ namespace SSAGES
 			for(auto& id : atomids_)
 				json["atom_ids"].append(id);
 
-			for(auto& bound: _bounds)
+			for(auto& bound: bounds_)
 				json["bounds"].append(bound);
 
 			switch(component_)

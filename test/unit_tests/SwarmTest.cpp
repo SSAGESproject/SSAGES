@@ -35,26 +35,26 @@ protected:
         mpiid = world.rank();
 
         // Set up Swarm parameters.		
-        std::vector<double> _centers;
-        _centers.resize(2); //Centers will contain two elements to check against
+        std::vector<double> centers_;
+        centers_.resize(2); //Centers will contain two elements to check against
 		if(mpiid == 0)
-			_centers = {-0.49, -0.51};
+			centers_ = {-0.49, -0.51};
 		else if(mpiid == 1)
-			_centers = {2.2, -1.8};
+			centers_ = {2.2, -1.8};
 		else if(mpiid == 2)
-			_centers = {2.8, 2.2};
-        std::vector<double> _cvspring;
+			centers_ = {2.8, 2.2};
+        std::vector<double> cvspring_;
         
         unsigned int iteration = 5;
 		unsigned int numnodes = world.size();
 		worldstring = {{-0.49, -0.51}, {2.2, -1.8}, {2.8, 2.2}};
 
         //Dummy Swarm constructor - world, comm, centers, maxiterations, cvspring, frequency, initial steps, harvest length, number trajectories, swarm length
-        Swarm_Method = new Swarm(world, comm, _centers, 1000, _cvspring, 1, 10000, 10, 100, 20); 
-        Swarm_Method->_worldstring = worldstring;
-        Swarm_Method->_mpiid = mpiid;
-        Swarm_Method->_numnodes = numnodes;
-        Swarm_Method->_iteration = iteration;
+        Swarm_Method = new Swarm(world, comm, centers_, 1000, cvspring_, 1, 10000, 10, 100, 20); 
+        Swarm_Method->worldstring_ = worldstring;
+        Swarm_Method->mpiid_ = mpiid;
+        Swarm_Method->numnodes_ = numnodes;
+        Swarm_Method->iteration_ = iteration;
     }
 
 	virtual void TearDown() 
@@ -94,13 +94,13 @@ TEST_F(SwarmTest,dummytest)
     //Test for CV Initialized
     if(mpiid == 0)
     {
-        bool _should_be_initialized = Swarm_Method->CVInitialized(cvlist_initialized);
-        bool _should_not_be_initialized = Swarm_Method->CVInitialized(cvlist_not_initialized);
+        bool should_be_initialized = Swarm_Method->CVInitialized(cvlist_initialized);
+        bool should_not_be_initialized = Swarm_Method->CVInitialized(cvlist_not_initialized);
 
         //Backwards logic could be cleaned up in swarm itself
-        //std::cout << Swarm_Method->_centers[0] << " " << Swarm_Method->_centers[1] << std::endl;
-        EXPECT_TRUE(_should_be_initialized);
-        EXPECT_FALSE(_should_not_be_initialized);
+        //std::cout << Swarm_Method->centers_[0] << " " << Swarm_Method->centers_[1] << std::endl;
+        EXPECT_TRUE(should_be_initialized);
+        EXPECT_FALSE(should_not_be_initialized);
     }
 
     //Test for string update to work correctly
@@ -108,11 +108,11 @@ TEST_F(SwarmTest,dummytest)
     //Create hypothetical drifts; add them to our initialized mock CVs, then check that each processor has the right values of reparameterized centers
     
     if(mpiid == 0)
-        Swarm_Method->_cv_drift = {0.3, 1.0};
+        Swarm_Method->cv_drift_ = {0.3, 1.0};
     else if(mpiid == 1)
-        Swarm_Method->_cv_drift = {-0.4, 0.8};
+        Swarm_Method->cv_drift_ = {-0.4, 0.8};
     else if(mpiid == 2)
-        Swarm_Method->_cv_drift = {-0.2, -0.5};
+        Swarm_Method->cv_drift_ = {-0.2, -0.5};
     
     //std::cout << " Hello 2 " << std::endl; //Debugging
     Swarm_Method->UpdateWorldString(cvlist_initialized);
@@ -120,21 +120,21 @@ TEST_F(SwarmTest,dummytest)
     Swarm_Method->StringUpdate();
     //std::cout << " Hello 3 " << std::endl; //Debugging
 
-    //std::cout << mpiid << " " << Swarm_Method->_centers[0] << " " << Swarm_Method->_centers[1] << std::endl; //Debugging
+    //std::cout << mpiid << " " << Swarm_Method->centers_[0] << " " << Swarm_Method->centers_[1] << std::endl; //Debugging
     if(mpiid == 0)
     {
-        EXPECT_NEAR(Swarm_Method->_centers[0], -0.19, eps);
-        EXPECT_NEAR(Swarm_Method->_centers[1], 0.49, eps);
+        EXPECT_NEAR(Swarm_Method->centers_[0], -0.19, eps);
+        EXPECT_NEAR(Swarm_Method->centers_[1], 0.49, eps);
     }
     else if(mpiid == 1)
     {
-        EXPECT_NEAR(Swarm_Method->_centers[0], 1.8882355, eps);
-        EXPECT_NEAR(Swarm_Method->_centers[1], -0.966577, eps);
+        EXPECT_NEAR(Swarm_Method->centers_[0], 1.8882355, eps);
+        EXPECT_NEAR(Swarm_Method->centers_[1], -0.966577, eps);
     }
     else if(mpiid == 2)
     {
-        EXPECT_NEAR(Swarm_Method->_centers[0], 2.6, eps);
-        EXPECT_NEAR(Swarm_Method->_centers[1], 1.7, eps);
+        EXPECT_NEAR(Swarm_Method->centers_[0], 2.6, eps);
+        EXPECT_NEAR(Swarm_Method->centers_[1], 1.7, eps);
     }
 
     std::cout.clear();

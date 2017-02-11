@@ -43,10 +43,10 @@ namespace SSAGES
 	{
 	private:
 		//! Vector of 4 atom ID's of interest.
-		Label _atomids;
+		Label atomids_;
 
 		//! If \c True, use periodic boundary conditions.
-		bool _periodic;
+		bool periodic_;
 
 	public:
 		//! Constructor.
@@ -62,7 +62,7 @@ namespace SSAGES
 		 * \todo Bounds needs to be an input and periodic boundary conditions
 		 */
 		TorsionalCV(int atomid1, int atomid2, int atomid3, int atomid4, bool periodic) : 
-		_atomids({atomid1, atomid2, atomid3, atomid4}), _periodic(periodic)
+		atomids_({atomid1, atomid2, atomid3, atomid4}), periodic_(periodic)
 		{
 		}
 
@@ -75,7 +75,7 @@ namespace SSAGES
 			using std::to_string;
 			
 			std::vector<int> found;
-			snapshot.GetLocalIndices(_atomids, &found);
+			snapshot.GetLocalIndices(atomids_, &found);
 			int nfound = found.size();
 			MPI_Allreduce(MPI_IN_PLACE, &nfound, 1, MPI_INT, MPI_SUM, snapshot.GetCommunicator());
 			
@@ -100,15 +100,15 @@ namespace SSAGES
 			auto& comm = snapshot.GetCommunicator();
 
 			// Initialize gradient.
-			std::fill(_grad.begin(), _grad.end(), Vector3{0,0,0});
-			_grad.resize(n, Vector3{0,0,0});
+			std::fill(grad_.begin(), grad_.end(), Vector3{0,0,0});
+			grad_.resize(n, Vector3{0,0,0});
 
 			Vector3 xi{0, 0, 0}, xj{0, 0, 0}, xk{0, 0, 0}, xl{0, 0, 0};
 
-			auto iindex = snapshot.GetLocalIndex(_atomids[0]);
-			auto jindex = snapshot.GetLocalIndex(_atomids[1]);
-			auto kindex = snapshot.GetLocalIndex(_atomids[2]);
-			auto lindex = snapshot.GetLocalIndex(_atomids[3]);
+			auto iindex = snapshot.GetLocalIndex(atomids_[0]);
+			auto jindex = snapshot.GetLocalIndex(atomids_[1]);
+			auto kindex = snapshot.GetLocalIndex(atomids_[2]);
+			auto lindex = snapshot.GetLocalIndex(atomids_[3]);
 
 			if(iindex != -1) xi = pos[iindex];
 			if(jindex != -1) xj = pos[jindex];
@@ -132,7 +132,7 @@ namespace SSAGES
 			auto y = B.cross(A).dot(G.normalized());
 			auto x = A.dot(B);
 
-			_val = atan2(y, x);
+			val_ = atan2(y, x);
 
 			auto Zed = F.dot(G.normalized())/A.dot(A); 
 			auto Ned = H.dot(G.normalized())/B.dot(B);
@@ -142,10 +142,10 @@ namespace SSAGES
 			if(lindex != -1) gradl = G.norm()*B/B.dot(B);
 			MPI_Allreduce(MPI_IN_PLACE, gradi.data(), 3, MPI_DOUBLE, MPI_SUM, comm);
 			MPI_Allreduce(MPI_IN_PLACE, gradl.data(), 3, MPI_DOUBLE, MPI_SUM, comm);
-			if(iindex != -1) _grad[iindex] = gradi;
-			if(lindex != -1) _grad[lindex] = gradl;
-			if(jindex != -1) _grad[jindex] = Zed*A - Ned*B - gradi;
-			if(kindex != -1) _grad[kindex] = Ned*B  - Zed*A - gradl;
+			if(iindex != -1) grad_[iindex] = gradi;
+			if(lindex != -1) grad_[lindex] = gradl;
+			if(jindex != -1) grad_[jindex] = Zed*A - Ned*B - gradi;
+			if(kindex != -1) grad_[kindex] = Ned*B  - Zed*A - gradl;
 		}
 
 		//! Return value taking periodic boundary conditions into account
@@ -160,7 +160,7 @@ namespace SSAGES
 		 */
 		double GetPeriodicValue(double Location) const override
 		{
-			if(!_periodic)
+			if(!periodic_)
 				return Location;
 
 			int n = (int)(Location/(2.0*M_PI));
@@ -187,9 +187,9 @@ namespace SSAGES
 		 */
 		double GetDifference(const double Location) const override
 		{
-			double PeriodicDiff = _val - Location;
+			double PeriodicDiff = val_ - Location;
 
-			if(!_periodic)
+			if(!periodic_)
 				return PeriodicDiff;
 
 			PeriodicDiff = GetPeriodicValue(PeriodicDiff);
@@ -212,17 +212,17 @@ namespace SSAGES
 		 */
 		double GetMinimumImage(const double Location) const override
 		{
-			double PeriodicDiff = _val - Location;
+			double PeriodicDiff = val_ - Location;
 
-			if(!_periodic)
-				return _val;	
+			if(!periodic_)
+				return val_;	
 
 			if(PeriodicDiff > M_PI)
-				return (_val - 2.0*M_PI);
+				return (val_ - 2.0*M_PI);
 			else if(PeriodicDiff < -M_PI)
-				return (_val + 2.0*M_PI);	
+				return (val_ + 2.0*M_PI);	
 
-            return _val;
+            return val_;
 		}
 
 		//! Serialize this CV for restart purposes.
@@ -232,12 +232,12 @@ namespace SSAGES
 		void Serialize(Json::Value& json) const override
 		{
 			json["type"] = "Torsional";
-			json["periodic"] = _periodic;
+			json["periodic"] = periodic_;
 			
-			for(auto& id : _atomids)
+			for(auto& id : atomids_)
 				json["atom_ids"].append(id);
 
-			for(auto& bound : _bounds)
+			for(auto& bound : bounds_)
 				json["bounds"].append(bound);	
 		}
 	};
