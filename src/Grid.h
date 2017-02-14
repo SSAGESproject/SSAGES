@@ -116,8 +116,13 @@ private:
         size_t fac = 1;
         std::vector<int> wrappedIndices = wrapIndices(indices);
         for (size_t i=0; i<dimension_; ++i) {
-            idx += (wrappedIndices.at(i) + 1) * fac;
-            fac *= numPoints_.at(i) + 2;
+            if (GetPeriodic(i)) {
+                idx += wrappedIndices.at(i) * fac;
+                fac *= GetNumPoints(i);
+            } else {
+                idx += (wrappedIndices.at(i) + 1) * fac;
+                fac *= GetNumPoints(i) + 2;
+            }
         }
         return idx;
     }
@@ -162,7 +167,9 @@ public:
         }
         size_t data_size = 1;
         for (size_t d = 0; d < GetDimension(); ++d) {
-            data_size *= GetNumPoints(d)+2;
+            size_t storage_size = GetNumPoints(d);
+            if (!GetPeriodic(d)) { storage_size += 2; }
+            data_size *= storage_size;
         }
 
         data_.resize(data_size);
@@ -265,6 +272,24 @@ public:
     }
 
     //! Return the Grid indices for a given point.
+    /*!
+     * \param x Point in space.
+     * \return Indices of the grid point to which the point in space pertains.
+     *
+     * The grid discretizes the continuous space. For a given point in this
+     * continuous space, this function will return the indices of the grid point
+     * covering the point in space.
+     *
+     * If the grid is non-periodic in a given dimension and x is lower than the
+     * lower edge in this dimension, the function will return -1, the index of
+     * the underflow bin. Similarly, it will return numPoints, the index of the
+     * overflow bin, if x is larger than the upper edge.
+     *
+     * In periodic dimensions, the index can take any integer value and will not
+     * be wrapped to the interval [0, numPoints). For example, the index will be
+     * negative, if x is lower than the lower edge. The grid point can still be
+     * accessed using these grid indices in Grid::at(std::vector<int> &indices).
+     */
     std::vector<int> GetIndices(const std::vector<double> &x) const
     {
         // Check that input vector has the correct dimensionality
@@ -297,6 +322,14 @@ public:
     }
 
     //! Return the Grid index for a one-dimensional grid.
+    /*!
+     * \param x Point in space.
+     * \return Grid index to which the point pertains.
+     *
+     * Return the Grid index pertaining to the given point in space. This
+     * function is for convenience when accessing 1d-Grids. For
+     * higher-dimensional grids, x needs to be a vector of doubles.
+     */
     int GetIndex(double x) const
     {
         if (dimension_ != 1) {
@@ -309,6 +342,15 @@ public:
     //! Access Grid element read-only
     /*!
      * \param indices Vector of integers specifying the grid point.
+     * \return const reference of the value stored at the given grid point.
+     *
+     * In non-periodic dimensions, the index needs to be in the interval
+     * [-1, numPoints]. Grid::at(-1) accessed the underflow bin,
+     * Grid::at(numPoints) accesses the overflow bin.
+     *
+     * In periodic dimensions, the index may take any integer value and will be
+     * mapped back to the interval [0, numPoints-1]. Thus, Grid::at(-1) will
+     * access the same value as Grid::at(numPoints-1).
      */
     const T& at(const std::vector<int> &indices) const
     {
