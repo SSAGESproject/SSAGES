@@ -18,7 +18,7 @@ read_data		data.input
 group			mobile union all
 timestep		1
 velocity all create 300 13882
-thermo			1
+thermo			1000
 fix 1 all nvt temp 300 300 100
 fix ssages all ssages
 
