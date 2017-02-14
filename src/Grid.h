@@ -145,7 +145,7 @@ public:
     Grid(std::vector<size_t> numPoints,
          std::vector<double> lower,
          std::vector<double> upper,
-         std::vector<bool> isPeriodic = std::vector<bool>())
+         std::vector<bool> isPeriodic)
       : dimension_(numPoints.size()),
         numPoints_(numPoints),
         edges_(std::pair< std::vector<double>, std::vector<double> >(lower, upper)),
@@ -612,11 +612,7 @@ public:
         }
 
         // Construct the grid.
-        Grid<T>* grid = new Grid(number_points, lower, upper);
-
-        // Since BuildGrid() is a method of Grid, we can access private
-        // variables.
-        grid->isPeriodic_ = isPeriodic;
+        Grid<T>* grid = new Grid(number_points, lower, upper, isPeriodic);
 
         return grid;
     }
