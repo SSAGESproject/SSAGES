@@ -230,7 +230,7 @@ namespace SSAGES
         std::string cnme_;
 
         //! Grid pointer
-        Grid<int> *_grid;
+        Grid<int> *grid_;
 
 	public:
         //! Constructor
@@ -373,7 +373,7 @@ namespace SSAGES
         //! Destructor.
         ~Basis()
         {
-            delete _grid;
+            delete grid_;
         }
 	};
 }
