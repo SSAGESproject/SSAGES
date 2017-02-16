@@ -87,7 +87,7 @@ private:
     std::vector<T> data_;
 
     //! Wrap the index around periodic boundaries
-    std::vector<int> &wrapIndices(std::vector<int> &indices)
+    std::vector<int> wrapIndices(const std::vector<int> &indices) const
     {
         std::vector<int> newIndices(dimension_);
         for (size_t i=0; i<dimension_; ++i) {
@@ -108,19 +108,21 @@ private:
     /*!
      * Map a set of indices to the index of the 1d data vector. Keep in mind,
      * that the data includes underflow (index -1) and overflow (index
-     * numPoints) bins in each dimension.
+     * numPoints) bins in periodic dimension.
+     *
+     * This function does not check if the indices are in bounds. This is done
+     * in the function(s) calling mapTo1d().
      */
-    size_t mapTo1d(std::vector<int> &indices)
+    size_t mapTo1d(const std::vector<int> &indices) const
     {
         size_t idx = 0;
         size_t fac = 1;
-        std::vector<int> wrappedIndices = wrapIndices(indices);
         for (size_t i=0; i<dimension_; ++i) {
             if (GetPeriodic(i)) {
-                idx += wrappedIndices.at(i) * fac;
+                idx += indices.at(i) * fac;
                 fac *= GetNumPoints(i);
             } else {
-                idx += (wrappedIndices.at(i) + 1) * fac;
+                idx += (indices.at(i) + 1) * fac;
                 fac *= GetNumPoints(i) + 2;
             }
         }
@@ -134,10 +136,7 @@ public:
      * \param lower Lower edges of the grid.
      * \param upper Upper edges of the grid.
      * \param isPeriodic Bools specifying the periodicity in the respective
-     *                   dimension. Default: Non-periodic in all dimensions.
-     *
-     * The constructor is intentionally private to make sure, that it is only
-     * called via BuildGrid().
+     *                   dimension.
      *
      * The dimension of the grid is determined by the size of the parameter
      * vectors.
@@ -285,10 +284,8 @@ public:
      * the underflow bin. Similarly, it will return numPoints, the index of the
      * overflow bin, if x is larger than the upper edge.
      *
-     * In periodic dimensions, the index can take any integer value and will not
-     * be wrapped to the interval [0, numPoints). For example, the index will be
-     * negative, if x is lower than the lower edge. The grid point can still be
-     * accessed using these grid indices in Grid::at(std::vector<int> &indices).
+     * In periodic dimensions, the index can take any integer value and will be
+     * wrapped to the interval [0, numPoints).
      */
     std::vector<int> GetIndices(const std::vector<double> &x) const
     {
@@ -318,7 +315,7 @@ public:
             indices.at(i) = (xpos - GetLower(i)) / (GetUpper(i) - GetLower(i)) + round;
         }
 
-        return indices;
+        return wrapIndices(indices);
     }
 
     //! Return the Grid index for a one-dimensional grid.
@@ -363,7 +360,9 @@ public:
         // Check if an index is out of bounds
         for (size_t i=0; i<dimension_; ++i) {
             int index = indices.at(i);
-            if (!isPeriodic_.at(i) && (index < -1 || index > numPoints_.at(i))) {
+            if (isPeriodic_.at(i) && (index < 0 || index >= numPoints_.at(i)) ||
+                !isPeriodic_.at(i) && (index < -1 || index > numPoints_.at(i)))
+            {
                 throw std::out_of_range("Grid index out of range.");
             }
         }
