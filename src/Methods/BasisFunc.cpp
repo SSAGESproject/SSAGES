@@ -50,7 +50,7 @@ namespace SSAGES
         // There are a few error messages / checks that are in place with defining CVs and grids
         else
         {
-            if(grid_->GetDimension() != (int)cvs.size())
+            if(grid_->GetDimension() != cvs.size())
             {
                 std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
                 std::cerr<<"ERROR: Grid dimensions doesn't match number of CVS."<<std::endl;
@@ -82,7 +82,7 @@ namespace SSAGES
         // Setting the number of bins here for simplicity
         nbins_.resize(cvs.size());
         for(size_t i = 0; i < cvs.size(); ++i)
-            nbins_[i] = grid_->GetNumPoints()[i];
+            nbins_[i] = grid_->GetNumPoints(i);
 
         // This is to check for non-periodic bounds. It comes into play in the update bias function
         bounds_ = true;
@@ -434,7 +434,7 @@ namespace SSAGES
             for(size_t k = 0; k < cvs.size(); ++k)
             {
                 // Evaluate the CV values for printing purposes
-                pos = (hist_[j].map[k]+0.5)*(grid_->GetUpper()[k] - grid_->GetLower()[k]) * 1.0 /(double)( nbins_[k]) + grid_->GetLower()[k];
+                pos = (hist_[j].map[k]+0.5)*(grid_->GetUpper(k) - grid_->GetLower(k)) * 1.0 /(double)( nbins_[k]) + grid_->GetLower(k);
                 basisout_ << pos << std::setw(35);
             }
             basisout_ << -bias[j] << std::setw(35);
@@ -471,10 +471,10 @@ namespace SSAGES
         for (size_t j = 0; j < cvs.size(); ++j)
         {
             x[j] = cvs[j]->GetValue();
-            double min = grid_->GetLower()[j];
-            double max = grid_->GetUpper()[j];
+            double min = grid_->GetLower(j);
+            double max = grid_->GetUpper(j);
 
-            if(!grid_->GetPeriodic()[j])
+            if(!grid_->GetPeriodic(j))
             {
                 // In order to prevent the index for the histogram from going out of bounds a check is in place
                 if(x[j] > max && bounds_)
@@ -518,7 +518,7 @@ namespace SSAGES
                     temp = 1.0;
                     for (size_t k = 0; k < cvs.size(); ++k)
                     {
-                        temp *= j == k ?  LUT_[k].derivs[hist_[ii].map[k] + coeff_[i].map[k]*(nbins_[k])] * 2.0 / (grid_->GetUpper()[j] - grid_->GetLower()[j])
+                        temp *= j == k ?  LUT_[k].derivs[hist_[ii].map[k] + coeff_[i].map[k]*(nbins_[k])] * 2.0 / (grid_->GetUpper(j) - grid_->GetLower(j))
                                        :  LUT_[k].values[hist_[ii].map[k] + coeff_[i].map[k]*(nbins_[k])];
                     }
                     derivatives_[j] -= coeff_[i].value * temp;
@@ -530,10 +530,10 @@ namespace SSAGES
         for(size_t j = 0; j < cvs.size(); ++j)
         {
             // Are these used?
-            // double min = grid_->GetLower()[j];
-            // double max = grid_->GetUpper()[j];
+            // double min = grid_->GetLower(j);
+            // double max = grid_->GetUpper(j);
 
-            if(!grid_->GetPeriodic()[j]) 
+            if(!grid_->GetPeriodic(j)) 
             {
                 if(x[j] > boundUp_[j])
                     derivatives_[j] -= restraint_[j] * (x[j] - boundUp_[j]);
