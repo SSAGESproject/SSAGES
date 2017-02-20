@@ -48,15 +48,15 @@ namespace SSAGES
 	class SimObserver : public Visitor, public Serializable
 	{
 		private:
-			unsigned int _frequency = 1; //!< Frequency of observation.
-			SimEvent _event; //!< Simulation event to be observed.
+			unsigned int frequency_ = 1; //!< Frequency of observation.
+			SimEvent event_; //!< Simulation event to be observed.
 
 		protected:
 
-			boost::mpi::communicator _world; //!< MPI global communicator.
-			boost::mpi::communicator _comm; //!< MPI local communicator.
-			int _numwalkers; //!< Number of walkers.
-			int _wid; //!< ID of walker to be observed.
+			boost::mpi::communicator world_; //!< MPI global communicator.
+			boost::mpi::communicator comm_; //!< MPI local communicator.
+			int numwalkers_; //!< Number of walkers.
+			int wid_; //!< ID of walker to be observed.
 
 			//! Get current simulation event
 			/*!
@@ -64,7 +64,7 @@ namespace SSAGES
 			 */
 			SimEvent& GetEvent()
 			{
-				return _event;
+				return event_;
 			}
 
 			//! Set logging frequency.
@@ -74,7 +74,7 @@ namespace SSAGES
 			 */
 			unsigned int SetFrequency(int f)
 			{
-				return _frequency = f;
+				return frequency_ = f;
 			}
 
 			//! Get current event iteration
@@ -83,7 +83,7 @@ namespace SSAGES
 			 */
 			unsigned int GetIteration()
 			{
-				return _event.GetIteration();
+				return event_.GetIteration();
 			}
 
 			//! Get caller identifier.
@@ -112,8 +112,8 @@ namespace SSAGES
 						int nws,
 						int wid,
 						unsigned int frequency = 1)
-				: _frequency(frequency), _event(nullptr, 0),
-				_world(world), _comm(comm), _numwalkers(nws), _wid(wid){}
+				: frequency_(frequency), event_(nullptr, 0),
+				world_(world), comm_(comm), numwalkers_(nws), wid_(wid){}
 
 			//! Update observer when simulation has changed.
 			/*!
@@ -125,7 +125,7 @@ namespace SSAGES
 			/*!
 			 * \return Logging frequency.
 			 */
-			unsigned int GetFrequency() const { return _frequency; }
+			unsigned int GetFrequency() const { return frequency_; }
 
 			//! Get name.
 			/*!

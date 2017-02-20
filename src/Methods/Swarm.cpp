@@ -40,13 +40,13 @@ namespace SSAGES
         //On the first iteration, check that the CVs are within (threshold*100)% of the center value they're associated to
         for(size_t i = 0; i < cvs.size(); i++)
         {
-            if(_centers[i] <= eps)
-            {//e.g. if _centers[i] = 0
-                diff = std::abs((cvs[i]->GetValue() - (_centers[i]+eps)) / ((cvs[i]->GetValue() + (eps + _centers[i]))/2.0));
+            if(centers_[i] <= eps)
+            {//e.g. if centers_[i] = 0
+                diff = std::abs((cvs[i]->GetValue() - (centers_[i]+eps)) / ((cvs[i]->GetValue() + (eps + centers_[i]))/2.0));
             }
             else
             {
-                diff = std::abs((cvs[i]->GetValue() - (_centers[i])) / ((cvs[i]->GetValue() + (_centers[i]))/2.0));
+                diff = std::abs((cvs[i]->GetValue() - (centers_[i])) / ((cvs[i]->GetValue() + (centers_[i]))/2.0));
             }
             if(diff >= threshold)
             {
@@ -78,13 +78,13 @@ namespace SSAGES
         {
             if(!snapshot_stored)
             {
-                _prev_positions[_index] = snapshot->SerializePositions();
-                _prev_velocities[_index] = snapshot->SerializeVelocities();
-                _prev_IDs[_index] = snapshot->SerializeIDs();
+                prev_positions_[index_] = snapshot->SerializePositions();
+                prev_velocities_[index_] = snapshot->SerializeVelocities();
+                prev_IDs_[index_] = snapshot->SerializeIDs();
                 snapshot_stored = true;
             }
         }
-        MPI_Allreduce(MPI::IN_PLACE, &initialized, 1, MPI::BOOL, MPI::LAND, _world);
+        MPI_Allreduce(MPI::IN_PLACE, &initialized, 1, MPI::BOOL, MPI::LAND, world_);
         if(!initialized && !sampling_started)
         {//Ensure CVs are initialized well
             //Do restrained sampling, and do not harvest trajectories 
@@ -97,7 +97,7 @@ namespace SSAGES
                     auto& grad = cv->GetGradient();
 
                     //Compute dV/dCV
-                    auto D = _cvspring[i]*(cv->GetDifference(_centers[i]));
+                    auto D = cvspring_[i]*(cv->GetDifference(centers_[i]));
 
                     //Update forces
                     for(size_t j = 0; j < forces.size(); j++)
@@ -112,22 +112,22 @@ namespace SSAGES
             else
             {
                 //Reset positions and forces, keeping them at their initialized value
-                _index = 0;
+                index_ = 0;
                 for(auto& force: forces)
                     force.setZero();
 
-                for(size_t i = 0; i < _prev_IDs[_index].size(); i++)
+                for(size_t i = 0; i < prev_IDs_[index_].size(); i++)
                 {
-                    auto localindex = snapshot->GetLocalIndex(_prev_IDs[_index][i]);
+                    auto localindex = snapshot->GetLocalIndex(prev_IDs_[index_][i]);
                     if(localindex!= -1)
                     {
-                        positions[localindex][0] = _prev_positions[_index][i*3];
-                        positions[localindex][1] = _prev_positions[_index][i*3 + 1];
-                        positions[localindex][2] = _prev_positions[_index][i*3 + 2];
+                        positions[localindex][0] = prev_positions_[index_][i*3];
+                        positions[localindex][1] = prev_positions_[index_][i*3 + 1];
+                        positions[localindex][2] = prev_positions_[index_][i*3 + 2];
 
-                        velocities[localindex][0] = _prev_positions[_index][i*3];
-                        velocities[localindex][1] = _prev_positions[_index][i*3 + 1];
-                        velocities[localindex][2] = _prev_positions[_index][i*3 + 2];
+                        velocities[localindex][0] = prev_positions_[index_][i*3];
+                        velocities[localindex][1] = prev_positions_[index_][i*3 + 1];
+                        velocities[localindex][2] = prev_positions_[index_][i*3 + 2];
 
                     }
                 }
@@ -139,21 +139,21 @@ namespace SSAGES
             {
                 sampling_started = true; //Flag to prevent unneeded umbrella sampling 
             }
-            if(_iterator <= _initialize_steps + _restrained_steps)
+            if(iterator_ <= initialize_steps_ + restrained_steps_)
             {
                 //Do restrained sampling, and do not harvest trajectories
                 for(size_t i = 0; i < cvs.size(); i++)
                 {
-                    if(_iterator == 0)
+                    if(iterator_ == 0)
                     {
-                        _index = 0; //Reset index when starting
+                        index_ = 0; //Reset index when starting
                     }
                     //Get current CV and gradient
                     auto& cv = cvs[i];
                     auto& grad = cv->GetGradient();
 
                     //Compute dV/dCV
-                    auto D = _cvspring[i]*(cv->GetDifference(_centers[i]));
+                    auto D = cvspring_[i]*(cv->GetDifference(centers_[i]));
 
                     //Update forces
                     for(size_t j = 0; j < forces.size(); j++)
@@ -164,98 +164,98 @@ namespace SSAGES
                         }
                     }
                 }
-                if(_iterator > _initialize_steps)
+                if(iterator_ > initialize_steps_)
                 {
-                    //Harvest a trajectory every _harvest_length steps
-                    if(_iterator % _harvest_length == 0)
+                    //Harvest a trajectory every harvest_length_ steps
+                    if(iterator_ % harvest_length_ == 0)
                     {
-                        _prev_positions[_index] = snapshot->SerializePositions();
-                        _prev_velocities[_index] = snapshot->SerializeVelocities();
-                        _prev_IDs[_index] = snapshot->SerializeIDs();
-                        _index++;
+                        prev_positions_[index_] = snapshot->SerializePositions();
+                        prev_velocities_[index_] = snapshot->SerializeVelocities();
+                        prev_IDs_[index_] = snapshot->SerializeIDs();
+                        index_++;
                     }
                 }
-                if(_iterator == _initialize_steps + _restrained_steps)
+                if(iterator_ == initialize_steps_ + restrained_steps_)
                 {
                     //Reset positions and forces before first call to unrestrained sampling
-                    _index = 0;
+                    index_ = 0;
                     for(auto& force: forces)
                         force.setZero();
 
-                    for(size_t i = 0; i < _prev_IDs[_index].size(); i++)
+                    for(size_t i = 0; i < prev_IDs_[index_].size(); i++)
                     {
-                        auto localindex = snapshot->GetLocalIndex(_prev_IDs[_index][i]);
+                        auto localindex = snapshot->GetLocalIndex(prev_IDs_[index_][i]);
                         if(localindex!= -1)
                         {
-                            positions[localindex][0] = _prev_positions[_index][i*3];
-                            positions[localindex][1] = _prev_positions[_index][i*3 + 1];
-                            positions[localindex][2] = _prev_positions[_index][i*3 + 2];
+                            positions[localindex][0] = prev_positions_[index_][i*3];
+                            positions[localindex][1] = prev_positions_[index_][i*3 + 1];
+                            positions[localindex][2] = prev_positions_[index_][i*3 + 2];
 
-                            velocities[localindex][0] = _prev_positions[_index][i*3];
-                            velocities[localindex][1] = _prev_positions[_index][i*3 + 1];
-                            velocities[localindex][2] = _prev_positions[_index][i*3 + 2];
+                            velocities[localindex][0] = prev_positions_[index_][i*3];
+                            velocities[localindex][1] = prev_positions_[index_][i*3 + 1];
+                            velocities[localindex][2] = prev_positions_[index_][i*3 + 2];
 
                         }
                     }
                 }
-                _iterator++;
+                iterator_++;
             }
-            else if(_iterator <= _initialize_steps + _restrained_steps + _unrestrained_steps)
+            else if(iterator_ <= initialize_steps_ + restrained_steps_ + unrestrained_steps_)
             {
                 //Launch unrestrained trajectories
-                if((_iterator - _initialize_steps - _restrained_steps) % _swarm_length == 0)
+                if((iterator_ - initialize_steps_ - restrained_steps_) % swarm_length_ == 0)
                 {
                     //End of trajectory, harvest drift
-                    for(size_t i = 0; i < _cv_drift.size(); i++)
+                    for(size_t i = 0; i < cv_drift_.size(); i++)
                     { 
-                        _cv_drift[i] = (_cv_drift[i]*_index + cvs[i]->GetMinimumImage(_centers[i])  - _centers[i]) / (_index+1); //Calculate running average of drifts 
+                        cv_drift_[i] = (cv_drift_[i]*index_ + cvs[i]->GetMinimumImage(centers_[i])  - centers_[i]) / (index_+1); //Calculate running average of drifts 
                     }
                     //Set up for next trajectory
-                    _index++;
+                    index_++;
 
-                    if(_index < _number_trajectories)
+                    if(index_ < number_trajectories_)
                     {
                         for(auto& force: forces)
                             force.setZero();
 
-                        for(size_t i = 0; i < _prev_IDs[_index].size(); i++)
+                        for(size_t i = 0; i < prev_IDs_[index_].size(); i++)
                         {
-                            auto localindex = snapshot->GetLocalIndex(_prev_IDs[_index][i]);
+                            auto localindex = snapshot->GetLocalIndex(prev_IDs_[index_][i]);
                             if(localindex!= -1)
                             {
-                                positions[localindex][0] = _prev_positions[_index][i*3];
-                                positions[localindex][1] = _prev_positions[_index][i*3 + 1];
-                                positions[localindex][2] = _prev_positions[_index][i*3 + 2];
+                                positions[localindex][0] = prev_positions_[index_][i*3];
+                                positions[localindex][1] = prev_positions_[index_][i*3 + 1];
+                                positions[localindex][2] = prev_positions_[index_][i*3 + 2];
 
-                                velocities[localindex][0] = _prev_positions[_index][i*3];
-                                velocities[localindex][1] = _prev_positions[_index][i*3 + 1];
-                                velocities[localindex][2] = _prev_positions[_index][i*3 + 2];
+                                velocities[localindex][0] = prev_positions_[index_][i*3];
+                                velocities[localindex][1] = prev_positions_[index_][i*3 + 1];
+                                velocities[localindex][2] = prev_positions_[index_][i*3 + 2];
 
                             }
                         }
                     }
                 }
-                _iterator++;
+                iterator_++;
             }
             else
             {
                 //Evolve CVs, reparametrize, and reset vectors
-                _iteration++;
+                iteration_++;
                 
-                MPI_Barrier(_world);
+                MPI_Barrier(world_);
                 StringUpdate();
                 CheckEnd(cvs);
-                MPI_Barrier(_world);
+                MPI_Barrier(world_);
 			    UpdateWorldString(cvs); 
                 PrintString(cvs);
 
-                _iterator = 0;
-                _index = 0;
+                iterator_ = 0;
+                index_ = 0;
                 snapshot_stored = false;
 
-                for(size_t i = 0; i < _cv_drift.size(); i++)
+                for(size_t i = 0; i < cv_drift_.size(); i++)
                 {
-                    _cv_drift[i] = 0; 
+                    cv_drift_[i] = 0; 
                 }
             }
         } 
@@ -264,19 +264,19 @@ namespace SSAGES
     void Swarm::StringUpdate()
 	{
 		// Update node locations toward running averages:
-		for(size_t i = 0; i < _centers.size(); i++)
+		for(size_t i = 0; i < centers_.size(); i++)
 		{
          
-            _centers[i] = _centers[i] + _cv_drift[i];
+            centers_[i] = centers_[i] + cv_drift_[i];
         }
         
 		std::vector<double> lcv0, ucv0;
-		lcv0.resize(_centers.size(), 0);
-		ucv0.resize(_centers.size(), 0);
+		lcv0.resize(centers_.size(), 0);
+		ucv0.resize(centers_.size(), 0);
      
 		GatherNeighbors(&lcv0, &ucv0);
     
-		double alphastar = distance(_centers, lcv0);
+		double alphastar = distance(centers_, lcv0);
   
 		StringReparam(alphastar);
   

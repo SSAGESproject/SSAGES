@@ -1,7 +1,7 @@
 Introduction
 ============
 
-Welcome to SSAGES, our new and shiny Meta-Dynamics package.
+Welcome to SSAGES, our new and shiny advanced sampling package.
 
 Over the past several decades, molecular simulation has emerged as a powerful
 tool for investigating a wide range of physical phenomena. Molecular simulation

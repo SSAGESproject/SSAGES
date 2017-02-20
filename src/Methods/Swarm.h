@@ -35,31 +35,31 @@ namespace SSAGES
         private:
 
             //! Drift of CVs for one iteration
-            std::vector<double> _cv_drift; 
+            std::vector<double> cv_drift_; 
                         
             //! Total number of MD steps for initialization for one iteration
-            unsigned int _initialize_steps; 
+            unsigned int initialize_steps_; 
 
             //! Length to run before harvesting a trajectory for unrestrained sampling
-            unsigned int _harvest_length;
+            unsigned int harvest_length_;
 
             //! Total number of restrained MD steps for one iteration
-            unsigned int _restrained_steps; 
+            unsigned int restrained_steps_; 
 
             //! Number of trajectories per swarm
-            unsigned int _number_trajectories;
+            unsigned int number_trajectories_;
 
             //! Length of unrestrained trajectories
-            unsigned int _swarm_length;
+            unsigned int swarm_length_;
 
             //! Total number of unrestrained MD steps for one iteration
-            unsigned int _unrestrained_steps;
+            unsigned int unrestrained_steps_;
 
             //! For indexing trajectory vectors
-            unsigned int _index;
+            unsigned int index_;
 
             //! Store atom IDs for starting trajecotires
-            std::vector<Label> _traj_atomids; 
+            std::vector<Label> traj_atomids_; 
 
             //! Updates the positions of the string
             void StringUpdate();
@@ -107,25 +107,25 @@ namespace SSAGES
                     unsigned int NumberTrajectories, 
                     unsigned int SwarmLength) : 
                 StringMethod(world, comm, centers, maxiterations, cvspring, frequency),                 
-                _cv_drift(), 
-                _initialize_steps(InitialSteps), 
-                _harvest_length(HarvestLength), 
-                _number_trajectories(NumberTrajectories), 
-                _swarm_length(SwarmLength)
+                cv_drift_(), 
+                initialize_steps_(InitialSteps), 
+                harvest_length_(HarvestLength), 
+                number_trajectories_(NumberTrajectories), 
+                swarm_length_(SwarmLength)
         {
-            _cv_drift.resize(_centers.size(), 0);
-            _prev_positions.resize(_number_trajectories);
-            _prev_velocities.resize(_number_trajectories);
-            _prev_IDs.resize(_number_trajectories);
+            cv_drift_.resize(centers_.size(), 0);
+            prev_positions_.resize(number_trajectories_);
+            prev_velocities_.resize(number_trajectories_);
+            prev_IDs_.resize(number_trajectories_);
             //Additional initializing
 
-            _index = 0;  
-            _restrained_steps = _harvest_length*_number_trajectories; 
-            _unrestrained_steps = _swarm_length*_number_trajectories;
+            index_ = 0;  
+            restrained_steps_ = harvest_length_*number_trajectories_; 
+            unrestrained_steps_ = swarm_length_*number_trajectories_;
             sampling_started = false;
             snapshot_stored = false;
 
-            _iterator = 0; //Override default StringMethod.h initializing
+            iterator_ = 0; //Override default StringMethod.h initializing
         }
 
             //! Post-integration hook
@@ -137,10 +137,10 @@ namespace SSAGES
 
                 json["flavor"] = "SWARM";
 
-                json["initial_steps"] = _initialize_steps;
-                json["harvest_length"] = _harvest_length;
-                json["number_of_trajectories"] = _number_trajectories;
-                json["swarm_length"] = _swarm_length; 
+                json["initial_steps"] = initialize_steps_;
+                json["harvest_length"] = harvest_length_;
+                json["number_of_trajectories"] = number_trajectories_;
+                json["swarm_length"] = swarm_length_; 
             }
 
             //! Destructor

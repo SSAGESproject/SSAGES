@@ -34,24 +34,24 @@ protected:
         mpiid = world.rank();
 
         // Set up FTS parameters.	
-        _centers.resize(2); // Centers will contain two elements to check against
+        centers_.resize(2); // Centers will contain two elements to check against
 		if(mpiid == 0)
-			_centers = {-0.49, -0.51};
+			centers_ = {-0.49, -0.51};
 		else if(mpiid == 1)
-			_centers = {2.2, -1.8};
+			centers_ = {2.2, -1.8};
 		else if(mpiid == 2)
-			_centers = {2.8, 2.2};
+			centers_ = {2.8, 2.2};
 		else if(mpiid == 3)
-			_centers = {4.5, 3.7};
+			centers_ = {4.5, 3.7};
 
 		worldstring = {{-0.49, -0.51}, {2.2, -1.8}, {2.8, 2.2}, {4.5, 3.7}};
 
 		/* FTS dummy constructor: 	world, comm, centers, maxiterations, blockiterations, tau, 
 		 * 							cvspring, kappa, spring iter, frequency */
-		FTS_Method = new FiniteTempString(world, comm, _centers, 5, 100, 0.1, _cvspring, 0.1, 1, 1);
-		FTS_Method->_worldstring = worldstring;
-		FTS_Method->_mpiid = mpiid;
-		FTS_Method->_numnodes = world.size();
+		FTS_Method = new FiniteTempString(world, comm, centers_, 5, 100, 0.1, cvspring_, 0.1, 1, 1);
+		FTS_Method->worldstring_ = worldstring;
+		FTS_Method->mpiid_ = mpiid;
+		FTS_Method->numnodes_ = world.size();
     }
 
 	virtual void TearDown() 
@@ -66,8 +66,8 @@ protected:
     boost::mpi::communicator comm = world.split(world.rank() < 4 ? world.rank() : 5);
     
     unsigned int mpiid;
-	std::vector<double> _centers;
-	std::vector<double> _cvspring;
+	std::vector<double> centers_;
+	std::vector<double> cvspring_;
 	std::vector<std::vector<double>> worldstring;
 
 	MockCV* CV1;
@@ -90,7 +90,7 @@ TEST_F(FTSTest,dummytest)
 	ASSERT_TRUE(4 == world.size()) << "ERROR: FTS unit test must be run with 4 processes";
 
 	/* Test FTS_Method->InCell(cvlist)
-	 * Check if current CVs is within current Voronoi cell, as defined by centers in _worldstring */
+	 * Check if current CVs is within current Voronoi cell, as defined by centers in worldstring_ */
 	if(mpiid == 0){
 		EXPECT_TRUE(FTS_Method->InCell(cvlist)) << "ERROR: CVs are within cell but InCell() returns false";
 	} else {
@@ -101,29 +101,29 @@ TEST_F(FTSTest,dummytest)
 	 * Test that string is updated correctly after moving toward running averages and 
 	 * equal arc length reparametrization */
 	if(mpiid == 0)
-		FTS_Method->_newcenters = {-1, -1};
+		FTS_Method->newcenters_ = {-1, -1};
 	else if (mpiid == 1)
-		FTS_Method->_newcenters = {0, 0};
+		FTS_Method->newcenters_ = {0, 0};
 	else if (mpiid == 2)
-		FTS_Method->_newcenters = {3, 2};
+		FTS_Method->newcenters_ = {3, 2};
 	else if (mpiid == 3)
-		FTS_Method->_newcenters = {5, 4};
+		FTS_Method->newcenters_ = {5, 4};
 
 	FTS_Method->SetSendRecvNeighbors();
 	FTS_Method->StringUpdate();
 
 	if(mpiid == 0){
-		EXPECT_NEAR(FTS_Method->_centers[0], -0.541, reparam_eps) << "ERROR: StringUpdate() updates _centers incorrectly";
-		EXPECT_NEAR(FTS_Method->_centers[1], -0.559, reparam_eps) << "ERROR: StringUpdate() updates _centers incorrectly";
+		EXPECT_NEAR(FTS_Method->centers_[0], -0.541, reparam_eps) << "ERROR: StringUpdate() updates centers_ incorrectly";
+		EXPECT_NEAR(FTS_Method->centers_[1], -0.559, reparam_eps) << "ERROR: StringUpdate() updates centers_ incorrectly";
 	} else if (mpiid == 1){
-		EXPECT_NEAR(FTS_Method->_centers[0], 1.9631, reparam_eps) << "ERROR: StringUpdate() updates _centers incorrectly";
-		EXPECT_NEAR(FTS_Method->_centers[1], -1.3254, reparam_eps) << "ERROR: StringUpdate() updates _centers incorrectly";
+		EXPECT_NEAR(FTS_Method->centers_[0], 1.9631, reparam_eps) << "ERROR: StringUpdate() updates centers_ incorrectly";
+		EXPECT_NEAR(FTS_Method->centers_[1], -1.3254, reparam_eps) << "ERROR: StringUpdate() updates centers_ incorrectly";
 	} else if (mpiid == 2){
-		EXPECT_NEAR(FTS_Method->_centers[0], 2.6365, reparam_eps) << "ERROR: StringUpdate() updates _centers incorrectly";
-		EXPECT_NEAR(FTS_Method->_centers[1], 1.2956, reparam_eps) << "ERROR: StringUpdate() updates _centers incorrectly";
+		EXPECT_NEAR(FTS_Method->centers_[0], 2.6365, reparam_eps) << "ERROR: StringUpdate() updates centers_ incorrectly";
+		EXPECT_NEAR(FTS_Method->centers_[1], 1.2956, reparam_eps) << "ERROR: StringUpdate() updates centers_ incorrectly";
 	} else if (mpiid == 3){
-		EXPECT_NEAR(FTS_Method->_centers[0], 4.2824, reparam_eps) << "ERROR: StringUpdate() updates _centers incorrectly";
-		EXPECT_NEAR(FTS_Method->_centers[1], 3.5016, reparam_eps) << "ERROR: StringUpdate() updates _centers incorrectly";
+		EXPECT_NEAR(FTS_Method->centers_[0], 4.2824, reparam_eps) << "ERROR: StringUpdate() updates centers_ incorrectly";
+		EXPECT_NEAR(FTS_Method->centers_[1], 3.5016, reparam_eps) << "ERROR: StringUpdate() updates centers_ incorrectly";
 	}
     
 	std::cout.clear();

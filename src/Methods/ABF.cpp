@@ -53,10 +53,10 @@ namespace SSAGES
 		// Third vector holds number of histogram bins for the CVs in order.
 	
 		// The first mapping starts here.
-		for(size_t i = 0; i < _histdetails.size(); ++i)
+		for(size_t i = 0; i < histdetails_.size(); ++i)
 		{
 			// Check if CV is in bounds for each CV.
-			if ((cvs[i]->GetValue()<_histdetails[i][0]) || (cvs[i]->GetValue()>_histdetails[i][1]))
+			if ((cvs[i]->GetValue()<histdetails_[i][0]) || (cvs[i]->GetValue()>histdetails_[i][1]))
 				return -1;
 		}
 
@@ -64,13 +64,13 @@ namespace SSAGES
 		std::vector<int> coords(cvs.size());
 		
 		// Loop over each CV dimension.
-		for(size_t i = 0; i < _histdetails.size(); ++i)
+		for(size_t i = 0; i < histdetails_.size(); ++i)
 		{
 			// Loop over all bins in each CV dimensions
-			for(int j = 0; j < _histdetails[i][2] ; ++j)
+			for(int j = 0; j < histdetails_[i][2] ; ++j)
 			{
-				if((_histdetails[i][0] + j*((_histdetails[i][1]-_histdetails[i][0])/_histdetails[i][2]) < cvs[i]->GetValue()) && 
-				   (_histdetails[i][0] + (j+1)*((_histdetails[i][1]-_histdetails[i][0])/_histdetails[i][2]) > cvs[i]->GetValue()))
+				if((histdetails_[i][0] + j*((histdetails_[i][1]-histdetails_[i][0])/histdetails_[i][2]) < cvs[i]->GetValue()) && 
+				   (histdetails_[i][0] + (j+1)*((histdetails_[i][1]-histdetails_[i][0])/histdetails_[i][2]) > cvs[i]->GetValue()))
 				{
 					coords[i] = j;
 				}
@@ -81,11 +81,11 @@ namespace SSAGES
 		int finalcoord = 0;
 		int indexer = 1;
 		// Loop over each CV dimension.
-		for(size_t i = 0; i < _histdetails.size(); ++i)
+		for(size_t i = 0; i < histdetails_.size(); ++i)
 		{
 			indexer = 1;
-			for(size_t j = i+1; j < _histdetails.size(); ++j)
-				indexer = indexer*_histdetails[j][2];
+			for(size_t j = i+1; j < histdetails_.size(); ++j)
+				indexer = indexer*histdetails_[j][2];
 
 			finalcoord += coords[i]*indexer;
 		}
@@ -96,38 +96,38 @@ namespace SSAGES
 	// Pre-simulation hook.
 	void ABF::PreSimulation(Snapshot* snapshot, const CVList& cvs)
 	{
-		_mpiid = snapshot->GetWalkerID();
+		mpiid_ = snapshot->GetWalkerID();
 		char file[1024];
-		sprintf(file, "node-%04d.log",_mpiid);
-	 	_walkerout.open(file);
+		sprintf(file, "node-%04d.log",mpiid_);
+	 	walkerout_.open(file);
 
-		if(_mpiid == 0)
-		 	_worldout.open(_filename.c_str());
+		if(mpiid_ == 0)
+		 	worldout_.open(filename_.c_str());
 
 		// Convenience. Number of CVs.
-		_ncv = cvs.size();
+		ncv_ = cvs.size();
 
-		// Size and initialize _Fold
-		_Fold.setZero(_ncv);
+		// Size and initialize Fold_
+		Fold_.setZero(ncv_);
 		
-		// Size and initialize _Fworld and _Nworld		
+		// Size and initialize Fworld_ and Nworld_		
 		auto nel = 1;
-		for(auto i = 0; i < _ncv; ++i)
-			nel *= _histdetails[i][2];
+		for(auto i = 0; i < ncv_; ++i)
+			nel *= histdetails_[i][2];
 
-		_Fworld.setZero(nel*_ncv);
-		_Nworld.resize(nel, 0);
+		Fworld_.setZero(nel*ncv_);
+		Nworld_.resize(nel, 0);
 
 		// If F or N are empty, size appropriately. 
-		if(_F.size() == 0) _F.setZero(nel*_ncv);
+		if(_F.size() == 0) _F.setZero(nel*ncv_);
 		if(_N.size() == 0) _N.resize(nel, 0);
 
 		// Initialize biases.
-		_biases.resize(snapshot->GetPositions().size(), Vector3{0, 0, 0});
+		biases_.resize(snapshot->GetPositions().size(), Vector3{0, 0, 0});
 		
 		// Initialize w \dot p's for finite difference. 
-		_wdotp1.setZero(_ncv);
-		_wdotp2.setZero(_ncv);
+		wdotp1_.setZero(ncv_);
+		wdotp2_.setZero(ncv_);
 		
 	}
 
@@ -142,7 +142,7 @@ namespace SSAGES
 	 */
 	void ABF::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
-		++_iteration;
+		++iteration_;
 
 		// Gather information.
 		auto& vels = snapshot->GetVelocities();
@@ -154,10 +154,10 @@ namespace SSAGES
 		int coord = histCoords(cvs);
 
 		//! Eigen::MatrixXd to hold the CV gradient.
-		Eigen::MatrixXd J(_ncv, 3*n);
+		Eigen::MatrixXd J(ncv_, 3*n);
 
 		// Fill J. Each column represents grad(CV) with flattened Cartesian elements. 
-		for(int i = 0; i < _ncv; ++i)
+		for(int i = 0; i < ncv_; ++i)
 		{
 			auto& grad = cvs[i]->GetGradient();
 			for(size_t j = 0; j < n; ++j)
@@ -167,14 +167,14 @@ namespace SSAGES
 		//* Calculate W using Darve's approach (http://mc.stanford.edu/cgi-bin/images/0/06/Darve_2008.pdf).
 		Eigen::MatrixXd Jmass = J.transpose();
 		
-		if(_massweigh)
+		if(massweigh_)
 		{
 			for(size_t i = 0; i < forces.size(); ++i)
-				Jmass.block(3*i, 0, 3, _ncv) = Jmass.block(3*i, 0, 3, _ncv)/mass[i];
+				Jmass.block(3*i, 0, 3, ncv_) = Jmass.block(3*i, 0, 3, ncv_)/mass[i];
 		}
 							
 		Eigen::MatrixXd Minv = J*Jmass;
-		MPI_Allreduce(MPI_IN_PLACE, Minv.data(), Minv.size(), MPI_DOUBLE, MPI_SUM, _comm);
+		MPI_Allreduce(MPI_IN_PLACE, Minv.data(), Minv.size(), MPI_DOUBLE, MPI_SUM, comm_);
 
 		Eigen::MatrixXd Wt = Minv.inverse()*Jmass.transpose();	
 
@@ -187,33 +187,33 @@ namespace SSAGES
 		Eigen::VectorXd wdotp = Wt*momenta;
 
 		// Reduce dot product across processors.
-		MPI_Allreduce(MPI_IN_PLACE, wdotp.data(), wdotp.size(), MPI_DOUBLE, MPI_SUM, _comm);
+		MPI_Allreduce(MPI_IN_PLACE, wdotp.data(), wdotp.size(), MPI_DOUBLE, MPI_SUM, comm_);
 
 		// Compute d(wdotp)/dt second order backwards finite difference. 
 		// Adding old force removes bias. 
-		Eigen::VectorXd dwdotpdt = _unitconv*(1.5*wdotp - 2.0*_wdotp1 + 0.5*_wdotp2)/_timestep + _Fold;
+		Eigen::VectorXd dwdotpdt = unitconv_*(1.5*wdotp - 2.0*wdotp1_ + 0.5*wdotp2_)/timestep_ + Fold_;
 
 		// If we are in bounds, sum force into running total.
 		if(coord != -1)
 		{
-			_F.segment(_ncv*coord, _ncv) += dwdotpdt;
+			_F.segment(ncv_*coord, ncv_) += dwdotpdt;
 			++_N[coord];
 		}
 
 		// Reduce data across processors.
-		MPI_Allreduce(_F.data(), _Fworld.data(), _F.size(), MPI_DOUBLE, MPI_SUM, _world);
-		MPI_Allreduce(_N.data(), _Nworld.data(), _N.size(), MPI_INT, MPI_SUM, _world);
+		MPI_Allreduce(_F.data(), Fworld_.data(), _F.size(), MPI_DOUBLE, MPI_SUM, world_);
+		MPI_Allreduce(_N.data(), Nworld_.data(), _N.size(), MPI_INT, MPI_SUM, world_);
 
 		// If we are in bounds, store the old summed force.
 		if(coord != -1)
-			_Fold = _Fworld.segment(_ncv*coord, _ncv)/std::max(_min, _Nworld[coord]);
+			Fold_ = Fworld_.segment(ncv_*coord, ncv_)/std::max(min_, Nworld_[coord]);
 	
 		// Update finite difference time derivatives.
-		_wdotp2 = _wdotp1;
-		_wdotp1 = wdotp;		
+		wdotp2_ = wdotp1_;
+		wdotp1_ = wdotp;		
 
 		// Write out data to file.
-		if(_iteration % _FBackupInterv == 0)
+		if(iteration_ % FBackupInterv_ == 0)
 			WriteData();
 		
 		// Calculate the bias from averaged F at current CV coordinates
@@ -222,110 +222,110 @@ namespace SSAGES
 		// Update the forces in snapshot by adding in the force bias from each
 		// CV to each atom based on the gradient of the CV.
 		for (size_t j = 0; j < forces.size(); ++j)
-			forces[j] += _biases[j];	
+			forces[j] += biases_[j];	
 	}
 
 	// Post-simulation hook.
 	void ABF::PostSimulation(Snapshot*, const CVList&)
 	{
 		WriteData();
-		_worldout.close();		
-		_walkerout.close();
+		worldout_.close();		
+		walkerout_.close();
 	}
 
 	void ABF::CalcBiasForce(const Snapshot* snapshot, const CVList& cvs, int coord)
 	{
 		// Reset the bias.
-		_biases.resize(snapshot->GetNumAtoms(), Vector3{0,0,0});
-		for(auto& b : _biases)
+		biases_.resize(snapshot->GetNumAtoms(), Vector3{0,0,0});
+		for(auto& b : biases_)
 			b.setZero();
 		
 		// Compute bias if within bounds
 		if(coord != -1)
 		{
-			for(int i = 0; i < _ncv; ++i)
+			for(int i = 0; i < ncv_; ++i)
 			{
 				auto& grad = cvs[i]->GetGradient();
-				for(size_t j = 0; j < _biases.size(); ++j)
-					_biases[j] -= _Fworld[_ncv*coord+i]*grad[j]/std::max(_min, _Nworld[coord]);
+				for(size_t j = 0; j < biases_.size(); ++j)
+					biases_[j] -= Fworld_[ncv_*coord+i]*grad[j]/std::max(min_, Nworld_[coord]);
 			}
 		}
 		else
 		{
-			for(int i = 0; i < _ncv; ++i)
+			for(int i = 0; i < ncv_; ++i)
 			{
 				double cvVal = cvs[i]->GetValue();
 				auto k = 0.;
 				auto x0 = 0.;
 				
-				if(_isperiodic[i])
+				if(isperiodic_[i])
 					{
-					double periodsize = _periodicboundaries[i][1]-_periodicboundaries[i][0];
-					double cvRestrMidpoint = (_restraint[i][1]+_restraint[i][0])/2;
+					double periodsize = periodicboundaries_[i][1]-periodicboundaries_[i][0];
+					double cvRestrMidpoint = (restraint_[i][1]+restraint_[i][0])/2;
 					while((cvVal-cvRestrMidpoint) > periodsize/2)
 						cvVal -= periodsize;
 					while((cvVal-cvRestrMidpoint) < -periodsize/2)
 						cvVal += periodsize;
 					}
 
-				if(cvVal < _restraint[i][0] && _restraint[i][2] > 0)
+				if(cvVal < restraint_[i][0] && restraint_[i][2] > 0)
 				{
-					k = _restraint[i][2];
-					x0 = _restraint[i][0];
+					k = restraint_[i][2];
+					x0 = restraint_[i][0];
 				}
-				else if (cvVal > _restraint[i][1] && _restraint[i][2] > 0)
+				else if (cvVal > restraint_[i][1] && restraint_[i][2] > 0)
 				{
-					k = _restraint[i][2];
-					x0 = _restraint[i][1];
+					k = restraint_[i][2];
+					x0 = restraint_[i][1];
 				}
 
 				auto& grad = cvs[i]->GetGradient();
-				for(size_t j = 0; j < _biases.size(); ++j)
-					_biases[j] -= (cvVal - x0)*k*grad[j];
+				for(size_t j = 0; j < biases_.size(); ++j)
+					biases_[j] -= (cvVal - x0)*k*grad[j];
 			}	
 		}
 	}
 
 	void ABF::WriteData()
 	{		
-		if(_mpiid != 0)
+		if(mpiid_ != 0)
 			return;
 
-		_worldout << std::endl;
-		_worldout << "Iteration: " << _iteration << std::endl;			
-		_worldout << "Printing out the current Adaptive Biasing Vector Field." << std::endl;
-		_worldout << "First (Nr of CVs) columns are the coordinates, the next (Nr of CVs) columns are components of the Adaptive Force vector at that point." << std::endl;
-		_worldout << "The columns are " << _N.size() << " long, mapping out a surface of ";
+		worldout_ << std::endl;
+		worldout_ << "Iteration: " << iteration_ << std::endl;			
+		worldout_ << "Printing out the current Adaptive Biasing Vector Field." << std::endl;
+		worldout_ << "First (Nr of CVs) columns are the coordinates, the next (Nr of CVs) columns are components of the Adaptive Force vector at that point." << std::endl;
+		worldout_ << "The columns are " << _N.size() << " long, mapping out a surface of ";
 		
-		for(size_t i = 0; i < _histdetails.size()-1; ++i)
-			_worldout << _histdetails[i][2] << " by ";
+		for(size_t i = 0; i < histdetails_.size()-1; ++i)
+			worldout_ << histdetails_[i][2] << " by ";
 		
-		_worldout << _histdetails[_histdetails.size()-1][2] 
-		          << " points in " << _histdetails.size() 
+		worldout_ << histdetails_[histdetails_.size()-1][2] 
+		          << " points in " << histdetails_.size() 
 		          << " dimensions." <<std::endl;
 
 		int modulo = 1;
 		int index = 0;
-		for(size_t i = 0; i < _Nworld.size(); ++i)
+		for(size_t i = 0; i < Nworld_.size(); ++i)
 		{
 			index = i;
-			_worldout << std::endl;
-			for(size_t j=0 ; j < _histdetails.size(); ++j)
+			worldout_ << std::endl;
+			for(size_t j=0 ; j < histdetails_.size(); ++j)
 			{
 				modulo = 1;
-				for(size_t k=j+1 ; k <_histdetails.size(); ++k)
-					modulo = modulo * _histdetails[k][2];
+				for(size_t k=j+1 ; k <histdetails_.size(); ++k)
+					modulo = modulo * histdetails_[k][2];
 
-				_worldout << (floor(index/modulo)+0.5)*((_histdetails[j][1]-_histdetails[j][0])/_histdetails[j][2]) + _histdetails[j][0] << " ";
+				worldout_ << (floor(index/modulo)+0.5)*((histdetails_[j][1]-histdetails_[j][0])/histdetails_[j][2]) + histdetails_[j][0] << " ";
 				index = index % modulo;
 			}
 
-			for(int j = 0; j < _ncv; ++j)
-				_worldout << _Fworld[_ncv*i+j]/std::max(_Nworld[i],_min) << " ";
+			for(int j = 0; j < ncv_; ++j)
+				worldout_ << Fworld_[ncv_*i+j]/std::max(Nworld_[i],min_) << " ";
 		}
 
-		_worldout << std::endl;
-		_worldout << std::endl;
+		worldout_ << std::endl;
+		worldout_ << std::endl;
 	}
 }
 

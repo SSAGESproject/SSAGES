@@ -46,38 +46,39 @@ namespace SSAGES
 	{
 	private:
 		//! Local snapshot (walker) communicator.
-		boost::mpi::communicator _comm;
+		boost::mpi::communicator comm_;
 
-		unsigned _wid; //!< Walker ID.
-		unsigned _nlocal; //!< Number of atoms located on this snapshot
+		unsigned wid_; //!< Walker ID.
+		unsigned nlocal_; //!< Number of atoms located on this snapshot
 
-		std::string _ID; //!< ID string
+		std::string ID_; //!< ID string
 
 		Matrix3 _H; //!< Parrinello-Rahman box H-matrix.
-		Matrix3 _Hinv; //!< Parinello-Rahman box inverse.
+		Matrix3 Hinv_; //!< Parinello-Rahman box inverse.
 
-		Vector3 _origin; //!< Box origin.
+		Vector3 origin_; //!< Box origin.
 
-		Bool3 _isperiodic; //!< Periodicity of box.
+		Bool3 isperiodic_; //!< Periodicity of box.
 
-		std::vector<Vector3> _positions; //!< Positions
-		std::vector<Integer3> _images; //!< Unwrapped positions
-		std::vector<Vector3> _velocities; //!< Velocities
-		std::vector<Vector3> _forces; //!< Forces
-		std::vector<double> _masses; //!< Masses
-		std::vector<double> _charges; //!< Charges
-		Label _atomids; //!< List of Atom IDs
-		Label _types; //!< List of Atom types
-		std::vector<std::vector<double> > _sigma; //!< Sigma
+		std::vector<Vector3> positions_; //!< Positions
+		std::vector<Integer3> images_; //!< Unwrapped positions
+		std::vector<Vector3> velocities_; //!< Velocities
+		std::vector<Vector3> forces_; //!< Forces
+		std::vector<double> masses_; //!< Masses
+		std::vector<double> charges_; //!< Charges
+		Label atomids_; //!< List of Atom IDs
+		Label types_; //!< List of Atom types
+		std::vector<std::vector<double> > sigma_; //!< Sigma
 
-		int _iteration; //!< Iteration of Simulation
-		double _temperature; //!< Current temperature
-		double _energy; //!< Average per-particle energy
-		double _kb; //!< Kb from the MD driver
+		int iteration_; //!< Iteration of Simulation
+		int targetiter_; //!< Iteration target of simulation.
+		double temperature_; //!< Current temperature
+		double energy_; //!< Average per-particle energy
+		double kb_; //!< Kb from the MD driver
 
-		double _dielectric; //!< Dielectric
-		double _qqrd2e; //!<qqrd2e
-		bool _changed; //!< \c TRUE is Simulation state changed
+		double dielectric_; //!< Dielectric
+		double qqrd2e_; //!<qqrd2e
+		bool changed_; //!< \c TRUE is Simulation state changed
 
 	public:
 		//! Constructor
@@ -89,29 +90,35 @@ namespace SSAGES
 		 * correpsonding walker ID.
 		 */
 		Snapshot(boost::mpi::communicator& comm, unsigned wid) :
-		_comm(comm), _wid(wid), _H(), _Hinv(), _origin({0,0,0}), 
-		_isperiodic({true, true, true}), _positions(0), _images(0), 
-		_velocities(0), _forces(0), _masses(0), _atomids(0), _types(0), 
-		_iteration(0), _temperature(0), _energy(0), _kb(0)
+		comm_(comm), wid_(wid), _H(), Hinv_(), origin_({0,0,0}), 
+		isperiodic_({true, true, true}), positions_(0), images_(0), 
+		velocities_(0), forces_(0), masses_(0), atomids_(0), types_(0), 
+		iteration_(0), temperature_(0), energy_(0), kb_(0)
 		{}
 
 		//! Get the current iteration
 		/*!
 		 * \return Current Iteration
 		 */
-		int GetIteration() const {return _iteration; }
+		int GetIteration() const {return iteration_; }
+		
+		//! Get target iterations
+		/*!
+		 * \return Target Iterations
+		 */
+		int GetTargetIterations() const {return targetiter_; }
 
 		//! Get current temperature
 		/*!
 		 * \return System temperature
 		 */
-		double GetTemperature() const {return _temperature; }
+		double GetTemperature() const {return temperature_; }
 
 		//! Get per-particle energy
 		/*!
 		 * \return Current average per-particle energy
 		 */
-		double GetEnergy() const { return _energy; }
+		double GetEnergy() const { return energy_; }
 
 		//! Get system H-matrix
 		/*! 
@@ -123,13 +130,13 @@ namespace SSAGES
 		/*! 
 		 * \return Vector containing coordinates of box origin.
 		 */
-		const Vector3& GetOrigin() const { return _origin; }
+		const Vector3& GetOrigin() const { return origin_; }
 
 		//! Get periodicity of three dimensions. 
 		/*! 
 		 * \return Three dimensional boolean containing periodicity of each dimension.
 		 */
-		const Bool3& IsPeriodic() const {return _isperiodic; }
+		const Bool3& IsPeriodic() const {return isperiodic_; }
 
 		//! Get system volume
 		/*!
@@ -141,19 +148,19 @@ namespace SSAGES
 		/*!
 		 * \return Kb of the current simulation box
 		 */
-		double GetKb() const { return _kb; }
+		double GetKb() const { return kb_; }
 
 		//! Get dielectric constant.
 		/*!
 		 * \return dielectric constant.
 		 */
-		double GetDielectric() const { return _dielectric; }
+		double GetDielectric() const { return dielectric_; }
 
 		//! Get qqrd2e value.
 		/*!
 		 * \return Value of qqrd2e.
 		 */
-		double Getqqrd2e() const { return _qqrd2e; }
+		double Getqqrd2e() const { return qqrd2e_; }
 		
 		//! Get communicator for group (walker).
 		/*!
@@ -164,21 +171,21 @@ namespace SSAGES
 		 */
 		const boost::mpi::communicator& GetCommunicator() const
 		{
-			return _comm;
+			return comm_;
 		}
 
 		//! Get walker ID.
 		/*!
 		 * \return ID of the Walker
 		 */
-		unsigned GetWalkerID() const { return _wid; }
+		unsigned GetWalkerID() const { return wid_; }
 
 
 		//! Get number of atoms in this snapshot.
 		/*!
 		 * \return Number of atoms in this snapshot
 		 */
-		unsigned GetNumAtoms() const { return _nlocal; }
+		unsigned GetNumAtoms() const { return nlocal_; }
 
 		//! Set the iteration
 		/*!
@@ -186,8 +193,18 @@ namespace SSAGES
 		 */
 		void SetIteration(int iteration) 
 		{
-			_iteration = iteration; 
-			_changed = true; 
+			iteration_ = iteration; 
+			changed_ = true; 
+		}
+		
+		//! Set target iterations
+		/*!
+		 * \param target New value for target iterations
+		 */
+		void SetTargetIterations(int target) 
+		{
+			targetiter_ = target; 
+			changed_ = true; 
 		}
 
 		//! Change the temperature
@@ -196,8 +213,8 @@ namespace SSAGES
 		 */
 		void SetTemperature(double temperature) 
 		{ 
-			_temperature = temperature;
-			_changed = true;
+			temperature_ = temperature;
+			changed_ = true;
 		}
 
 		//! Change the energy
@@ -206,8 +223,8 @@ namespace SSAGES
 		 */
 		void SetEnergy(double energy) 
 		{
-			_energy = energy;
-			_changed = true;
+			energy_ = energy;
+			changed_ = true;
 		}
 
 		//! Change the Box H-matrix. 
@@ -217,8 +234,8 @@ namespace SSAGES
 		void SetHMatrix(const Matrix3& hmat)
 		{
 			_H = hmat;
-			_Hinv = hmat.inverse();
-			_changed = true;
+			Hinv_ = hmat.inverse();
+			changed_ = true;
 		}
 
 		//! Change the box origin.
@@ -227,8 +244,8 @@ namespace SSAGES
 		 */
 		void SetOrigin(const Vector3& origin)
 		{
-			_origin = origin; 
-			_changed = true;
+			origin_ = origin; 
+			changed_ = true;
 		}
 
 		//! Change the periodicity of the system
@@ -237,8 +254,8 @@ namespace SSAGES
 		 */
 		void SetPeriodicity(const Bool3& isperiodic)
 		{
-			_isperiodic = isperiodic;
-			_changed = true;
+			isperiodic_ = isperiodic;
+			changed_ = true;
 		}
 
 		//! Change the kb
@@ -247,8 +264,8 @@ namespace SSAGES
 		 */
 		void SetKb(double kb) 
 		{
-			_kb = kb;
-			_changed = true;
+			kb_ = kb;
+			changed_ = true;
 		}
 
 		//! Set the dielectric constant.
@@ -257,8 +274,8 @@ namespace SSAGES
 		 */
 		void SetDielectric(double dielectric) 
 		{ 
-			_dielectric = dielectric;
-			_changed = true;
+			dielectric_ = dielectric;
+			changed_ = true;
 		}
 
 		//! Set the value for qqrd2e
@@ -267,66 +284,66 @@ namespace SSAGES
 		 */
 		void Setqqrd2e(double qqrd2e) 
 		{ 
-			_qqrd2e = qqrd2e;
-			_changed = true;
+			qqrd2e_ = qqrd2e;
+			changed_ = true;
 		}
 
 		//! Set number of atoms in this snapshot.
 		/*!
 		 * \param natoms Number of atoms in this snapshot
 		 */
-		void SetNumAtoms(unsigned int natoms) { _nlocal = natoms; }
+		void SetNumAtoms(unsigned int natoms) { nlocal_ = natoms; }
 
 		//! Access the particle positions
 		/*!
 		 * \return List of particle positions
 		 */
-		const std::vector<Vector3>& GetPositions() const { return _positions; }
+		const std::vector<Vector3>& GetPositions() const { return positions_; }
 
 		/*! \copydoc Snapshot::GetPositions() const */
 		std::vector<Vector3>& GetPositions() 
 		{ 
-			_changed = true;
-			return _positions; 
+			changed_ = true;
+			return positions_; 
 		}
 
 		//! Access the particles image flags
 		/*!
 		 * \return List of particle image flags
 		 */
-		const std::vector<Integer3>& GetImageFlags() const { return _images; }
+		const std::vector<Integer3>& GetImageFlags() const { return images_; }
 
 		//! \copydoc Snapshot::GetImageFlags() const
 		std::vector<Integer3>& GetImageFlags() 
 		{ 
-			_changed = true;
-			return _images; 
+			changed_ = true;
+			return images_; 
 		}
 
 		//! Access the particle velocities
 		/*!
 		 * \return List of particle velocities
 		 */
-		const std::vector<Vector3>& GetVelocities() const { return _velocities; }
+		const std::vector<Vector3>& GetVelocities() const { return velocities_; }
 
 		/*! \copydoc Snapshot::GetVelocities() const */
 		std::vector<Vector3>& GetVelocities() 
 		{
-			_changed = true;
-			return _velocities; 
+			changed_ = true;
+			return velocities_; 
 		}
 
 		//! Access the per-particle forces
 		/*!
 		 * \return List of per-particle forces
 		 */
-		const std::vector<Vector3>& GetForces() const { return _forces; }
+		const std::vector<Vector3>& GetForces() const { return forces_; }
 
 		/*! \copydoc Snapshot::GetForces() const */
 		std::vector<Vector3>& GetForces() 
 		{
-			_changed = true; 
-			return _forces; 
+			changed_ = true; 
+			return forces_; 
 		}
 
 		//! Const access to the particle masses
@@ -336,13 +353,13 @@ namespace SSAGES
 		 * Note that the Masses can be either stored as per-atom or per-type
 		 * depending on the Lammps Atom type used.
 		 */
-		const std::vector<double>& GetMasses() const { return _masses; }
+		const std::vector<double>& GetMasses() const { return masses_; }
 
 		/*! \copydoc Snapshot::GetMasses() const */
 		std::vector<double>& GetMasses() 
 		{
-			_changed = true; 
-			return _masses; 
+			changed_ = true; 
+			return masses_; 
 		}
 
 		//! Scale a vector into fractional coordinates
@@ -352,7 +369,7 @@ namespace SSAGES
 		 */
 		Vector3 ScaleVector(const Vector3& v) const
 		{
-			return _Hinv*(v-_origin);
+			return Hinv_*(v-origin_);
 		}
 
 		//! Unwrap a vector's real coordinates according to its image replica count. 
@@ -378,10 +395,10 @@ namespace SSAGES
 		 */
 		void ApplyMinimumImage(Vector3* v) const
 		{
-			Vector3 scaled = _Hinv*(*v);
+			Vector3 scaled = Hinv_*(*v);
 
 			for(int i = 0; i < 3; ++i)
-				scaled[i] -= _isperiodic[i]*roundf(scaled[i]);
+				scaled[i] -= isperiodic_[i]*roundf(scaled[i]);
 
 			*v = _H*scaled;
 		}
@@ -393,10 +410,10 @@ namespace SSAGES
 		 */
 		Vector3 ApplyMinimumImage(const Vector3& v) const
 		{
-			Vector3 scaled = _Hinv*v;
+			Vector3 scaled = Hinv_*v;
 
 			for(int i = 0; i < 3; ++i)
-				scaled[i] -= _isperiodic[i]*roundf(scaled[i]);
+				scaled[i] -= isperiodic_[i]*roundf(scaled[i]);
 
 			return _H*scaled;	
 		}
@@ -413,8 +430,8 @@ namespace SSAGES
 		{
 			auto mtot = 0.;
 			for(auto& i : indices)
-				mtot += _masses[i];
-			MPI_Allreduce(MPI_IN_PLACE, &mtot, 1, MPI_DOUBLE, MPI_SUM, _comm);
+				mtot += masses_[i];
+			MPI_Allreduce(MPI_IN_PLACE, &mtot, 1, MPI_DOUBLE, MPI_SUM, comm_);
 			return mtot;
 		}
 
@@ -445,15 +462,15 @@ namespace SSAGES
 		{
 			// Store coorinates and masses in vectors to gather. 
 			std::vector<double> pos, mass, gpos, gmass;
-			std::vector<int> pcounts(_comm.size(), 0), mcounts(_comm.size(), 0); 
-			std::vector<int> pdispls(_comm.size()+1, 0), mdispls(_comm.size()+1, 0);
+			std::vector<int> pcounts(comm_.size(), 0), mcounts(comm_.size(), 0); 
+			std::vector<int> pdispls(comm_.size()+1, 0), mdispls(comm_.size()+1, 0);
 
-			pcounts[_comm.rank()] = 3*indices.size();
-			mcounts[_comm.rank()] = indices.size();
+			pcounts[comm_.rank()] = 3*indices.size();
+			mcounts[comm_.rank()] = indices.size();
 
 			// Reduce counts.
-			MPI_Allreduce(MPI_IN_PLACE, pcounts.data(), pcounts.size(), MPI_INT, MPI_SUM, _comm);
-			MPI_Allreduce(MPI_IN_PLACE, mcounts.data(), mcounts.size(), MPI_INT, MPI_SUM, _comm);
+			MPI_Allreduce(MPI_IN_PLACE, pcounts.data(), pcounts.size(), MPI_INT, MPI_SUM, comm_);
+			MPI_Allreduce(MPI_IN_PLACE, mcounts.data(), mcounts.size(), MPI_INT, MPI_SUM, comm_);
 
 			// Compute displacements.
 			std::partial_sum(pcounts.begin(), pcounts.end(), pdispls.begin() + 1);
@@ -462,11 +479,11 @@ namespace SSAGES
 			// Fill up mass and position vectors.
 			for(auto& idx : indices)
 			{
-				auto& p = _positions[idx];
+				auto& p = positions_[idx];
 				pos.push_back(p[0]);
 				pos.push_back(p[1]);
 				pos.push_back(p[2]);
-				mass.push_back(_masses[idx]);
+				mass.push_back(masses_[idx]);
 			}
 
 			// Re-size receiving vectors. 
@@ -474,8 +491,8 @@ namespace SSAGES
 			gmass.resize(mdispls.back(), 0);
 
 			// All-gather data.
-			MPI_Allgatherv(pos.data(), pos.size(), MPI_DOUBLE, gpos.data(), pcounts.data(), pdispls.data(), MPI_DOUBLE, _comm);
-			MPI_Allgatherv(mass.data(), mass.size(), MPI_DOUBLE, gmass.data(), mcounts.data(), mdispls.data(), MPI_DOUBLE, _comm);
+			MPI_Allgatherv(pos.data(), pos.size(), MPI_DOUBLE, gpos.data(), pcounts.data(), pdispls.data(), MPI_DOUBLE, comm_);
+			MPI_Allgatherv(mass.data(), mass.size(), MPI_DOUBLE, gmass.data(), mcounts.data(), mdispls.data(), MPI_DOUBLE, comm_);
 
 			// Loop through atoms and compute mass weighted sum. 
 			// We march linearly through list and find nearest image
@@ -499,13 +516,13 @@ namespace SSAGES
 		/*!
 		 * \return List of atom IDs
 		 */
-		const Label& GetAtomIDs() const { return _atomids; }
+		const Label& GetAtomIDs() const { return atomids_; }
 
 		/*! \copydoc Snapshot::GetAtomIDs() const */
 		Label& GetAtomIDs()
 		{
-			_changed = true;
-			return _atomids;
+			changed_ = true;
+			return atomids_;
 		}
 
 		//! Gets the local atom index corresponding to an atom ID.
@@ -516,11 +533,11 @@ namespace SSAGES
 		int GetLocalIndex(int id) const
 		{
 
-			auto s = std::find(_atomids.begin(), _atomids.end(), id);
-			if(s == _atomids.end())
+			auto s = std::find(atomids_.begin(), atomids_.end(), id);
+			if(s == atomids_.end())
 				return -1;
 			else
-				return s - _atomids.begin();
+				return s - atomids_.begin();
 		}
 
 		//! Gets the local atom indices corresponding to atom IDs in the 
@@ -545,77 +562,77 @@ namespace SSAGES
 		/*!
 		 * \return List of atom charges
 		 */
-		const std::vector<double>& GetCharges() const { return _charges; }
+		const std::vector<double>& GetCharges() const { return charges_; }
 
 		/*! \copydoc Snapshot::GetCharges() const */
 		std::vector<double>& GetCharges()
 		{
-			_changed = true;
-			return _charges;
+			changed_ = true;
+			return charges_;
 		}
 		
 		//! Access the atom types
 		/*!
 		 * \return List of atom types
 		 */
-		const Label& GetAtomTypes() const { return _types; }
+		const Label& GetAtomTypes() const { return types_; }
 
 		/*! \copydoc Snapshot::GetAtomTypes() const */
 		Label& GetAtomTypes() 
 		{
-			_changed = true; 
-			return _types; 
+			changed_ = true; 
+			return types_; 
 		}
 
 		//! Access the atom sigmas
 		/*!
 		 * \return List of atom sigmas
 		 */
-		const std::vector<std::vector<double>>& GetSigmas() const { return _sigma; }
+		const std::vector<std::vector<double>>& GetSigmas() const { return sigma_; }
 
 		/*! \copydoc Snapshot::GetSigmas() const */
 		std::vector<std::vector<double>>& GetSigmas() 
 		{
-			_changed = true; 
-			return _sigma;
+			changed_ = true; 
+			return sigma_;
 		}
 
 		//! Access the snapshot ID
 		/*!
 		 * \return Snapshot ID
 		 */
-		const std::string& GetSnapshotID() const { return _ID; }
+		const std::string& GetSnapshotID() const { return ID_; }
 
 		/*! \copydoc Snapshot::GetSnapshotID() const */
 		std::string& GetSnapshotID() 
 		{
-			_changed = true; 
-			return _ID; 
+			changed_ = true; 
+			return ID_; 
 		}
 
 		//! Query if Snapshot was modified
 		/*!
 		 * \return \c True if Snapshot was modified, else return \c False
 		 */
-		bool HasChanged() const { return _changed; }
+		bool HasChanged() const { return changed_; }
 
 		//! Set the "changed" flag of the Snapshot
 		/*!
 		 * \param state State to which the "changed" flag is set
 		 */
-		void Changed(bool state) { _changed = state; }
+		void Changed(bool state) { changed_ = state; }
 
 		//! Return the serialized positions across all local cores
 		std::vector<double> SerializePositions()
 		{
 
-			std::vector<int> pcounts(_comm.size(), 0); 
-			std::vector<int> pdispls(_comm.size()+1, 0);
+			std::vector<int> pcounts(comm_.size(), 0); 
+			std::vector<int> pdispls(comm_.size()+1, 0);
 
-			pcounts[_comm.rank()] = 3*_nlocal;
+			pcounts[comm_.rank()] = 3*nlocal_;
 
 			// Reduce counts.
-			MPI_Allreduce(MPI_IN_PLACE, pcounts.data(), pcounts.size(), MPI_INT, MPI_SUM, _comm);
+			MPI_Allreduce(MPI_IN_PLACE, pcounts.data(), pcounts.size(), MPI_INT, MPI_SUM, comm_);
 
 			// Compute displacements.
 			std::partial_sum(pcounts.begin(), pcounts.end(), pdispls.begin() + 1);
@@ -626,7 +643,7 @@ namespace SSAGES
 
 			std::vector<double> ptemp;
 			
-			for(auto& p : _positions)
+			for(auto& p : positions_)
 			{
 				ptemp.push_back(p[0]);
 				ptemp.push_back(p[1]);
@@ -634,20 +651,20 @@ namespace SSAGES
 			}
 
 			// All-gather data.
-			MPI_Allgatherv(ptemp.data(), ptemp.size(), MPI_DOUBLE, positions.data(), pcounts.data(), pdispls.data(), MPI_DOUBLE, _comm);
+			MPI_Allgatherv(ptemp.data(), ptemp.size(), MPI_DOUBLE, positions.data(), pcounts.data(), pdispls.data(), MPI_DOUBLE, comm_);
 			return positions;
 		}
 
 		//! Return the serialized velocities across all local cores
 		std::vector<double> SerializeVelocities()
 		{
-			std::vector<int> vcounts(_comm.size(), 0); 
-			std::vector<int> vdispls(_comm.size()+1, 0);
+			std::vector<int> vcounts(comm_.size(), 0); 
+			std::vector<int> vdispls(comm_.size()+1, 0);
 
-			vcounts[_comm.rank()] = 3*_nlocal;
+			vcounts[comm_.rank()] = 3*nlocal_;
 
 			// Reduce counts.
-			MPI_Allreduce(MPI_IN_PLACE, vcounts.data(), vcounts.size(), MPI_INT, MPI_SUM, _comm);
+			MPI_Allreduce(MPI_IN_PLACE, vcounts.data(), vcounts.size(), MPI_INT, MPI_SUM, comm_);
 
 			// Compute displacements.
 			std::partial_sum(vcounts.begin(), vcounts.end(), vdispls.begin() + 1);
@@ -658,7 +675,7 @@ namespace SSAGES
 
 			std::vector<double> vtemp;
 			
-			for(auto& v : _velocities)
+			for(auto& v : velocities_)
 			{
 				vtemp.push_back(v[0]);
 				vtemp.push_back(v[1]);
@@ -666,20 +683,20 @@ namespace SSAGES
 			}
 
 			// All-gather data.
-			MPI_Allgatherv(vtemp.data(), vtemp.size(), MPI_DOUBLE, velocities.data(), vcounts.data(), vdispls.data(), MPI_DOUBLE, _comm);
+			MPI_Allgatherv(vtemp.data(), vtemp.size(), MPI_DOUBLE, velocities.data(), vcounts.data(), vdispls.data(), MPI_DOUBLE, comm_);
 			return velocities;
 		}
 
 		//! Return the serialized positions across all local cores
 		std::vector<int> SerializeIDs()
 		{
-			std::vector<int> mcounts(_comm.size(), 0); 
-			std::vector<int> mdispls(_comm.size()+1, 0);
+			std::vector<int> mcounts(comm_.size(), 0); 
+			std::vector<int> mdispls(comm_.size()+1, 0);
 
-			mcounts[_comm.rank()] = _nlocal;
+			mcounts[comm_.rank()] = nlocal_;
 
 			// Reduce counts.
-			MPI_Allreduce(MPI_IN_PLACE, mcounts.data(), mcounts.size(), MPI_INT, MPI_SUM, _comm);
+			MPI_Allreduce(MPI_IN_PLACE, mcounts.data(), mcounts.size(), MPI_INT, MPI_SUM, comm_);
 
 			// Compute displacements.
 			std::partial_sum(mcounts.begin(), mcounts.end(), mdispls.begin() + 1);
@@ -689,7 +706,7 @@ namespace SSAGES
 			IDs.resize(mdispls.back(), 0);
 
 			// All-gather data.
-			MPI_Allgatherv(_atomids.data(), _atomids.size(), MPI_INT, IDs.data(), mcounts.data(), mdispls.data(), MPI_INT, _comm);
+			MPI_Allgatherv(atomids_.data(), atomids_.size(), MPI_INT, IDs.data(), mcounts.data(), mdispls.data(), MPI_INT, comm_);
 			return IDs;
 		}
 
@@ -700,26 +717,26 @@ namespace SSAGES
 		 */
 		void Serialize(Json::Value& json) const override
 		{
-			json["walker id"] = _wid;
-			json["id"] = _ID;
+			json["walker id"] = wid_;
+			json["id"] = ID_;
 
-			for(unsigned int i = 0; i < _atomids.size(); i++)
+			for(unsigned int i = 0; i < atomids_.size(); i++)
 			{
-				json["Atom"][i]["ID"] = _atomids[i];
-				json["Atom"][i]["type"] = _types[i];
-				json["Atom"][i]["mass"] = _masses[i];
+				json["Atom"][i]["ID"] = atomids_[i];
+				json["Atom"][i]["type"] = types_[i];
+				json["Atom"][i]["mass"] = masses_[i];
 				for(int j = 0; j<3; j++)
 				{
-					json["Atom"][i]["positions"][j] = _positions[i][j];
-					json["Atom"][i]["velocities"][j] = _velocities[i][j];
-					json["Atom"][i]["forces"][j] = _forces[i][j];
+					json["Atom"][i]["positions"][j] = positions_[i][j];
+					json["Atom"][i]["velocities"][j] = velocities_[i][j];
+					json["Atom"][i]["forces"][j] = forces_[i][j];
 				}
 			}
 			
-			json["iteration"] = _iteration; 
-			json["temperature"] = _temperature; 
-			json["energy"] = _energy;
-			json["kb"] = _kb;
+			json["iteration"] = iteration_; 
+			json["temperature"] = temperature_; 
+			json["energy"] = energy_;
+			json["kb"] = kb_;
 
 			for(int i = 0; i < 3; ++i)
 				for(int j = 0; j < 3; ++j)

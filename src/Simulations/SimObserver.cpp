@@ -39,11 +39,11 @@ namespace SSAGES
 	void SimObserver::Update(const SimEvent& e)
 	{
 		// Only lock and proceed if we have to.
-		if(e.GetIteration() % _frequency == 0 || e.ForceObserve())
+		if(e.GetIteration() % frequency_ == 0 || e.ForceObserve())
 		{
-			_event = e;
+			event_ = e;
 			PreVisit();
-			_event.GetObservable()->AcceptVisitor(*this);
+			event_.GetObservable()->AcceptVisitor(*this);
 			PostVisit();
 		}
 	};

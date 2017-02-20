@@ -39,10 +39,10 @@ namespace SSAGES
 	{
 	private:
 		//! IDs of atoms of interest. 
-	 	Label _atomids; 
+	 	Label atomids_; 
 
 		//! Index of dimension.
-	 	Dimension _dim;
+	 	Dimension dim_;
 
 	public:
 		//! Constructor.
@@ -56,7 +56,7 @@ namespace SSAGES
 		 * \todo Bounds needs to be an input.
 		 */	 	
 		ParticleCoordinateCV(const Label& atomids, Dimension dim) : 
-		_atomids(atomids), _dim(dim)
+		atomids_(atomids), dim_(dim)
 		{}
 
 		//! Initialize necessary variables.
@@ -67,13 +67,13 @@ namespace SSAGES
 		{
 			using std::to_string;
 
-			auto n = _atomids.size();
+			auto n = atomids_.size();
 
 			// Make sure atom ID's are on at least one processor. 
 			std::vector<int> found(n, 0);
 			for(size_t i = 0; i < n; ++i)
 			{
-				if(snapshot.GetLocalIndex(_atomids[i]) != -1)
+				if(snapshot.GetLocalIndex(atomids_[i]) != -1)
 					found[i] = 1;
 			}
 
@@ -96,40 +96,40 @@ namespace SSAGES
 		{
 			// Get local atom indices and compute COM. 
 			std::vector<int> idx;
-			snapshot.GetLocalIndices(_atomids, &idx);
+			snapshot.GetLocalIndices(atomids_, &idx);
 
 			// Get data from snapshot. 
 			auto n = snapshot.GetNumAtoms();
 			const auto& masses = snapshot.GetMasses();
 
 			// Initialize gradient.
-			std::fill(_grad.begin(), _grad.end(), Vector3{0,0,0});
-			_grad.resize(n, Vector3{0,0,0});
+			std::fill(grad_.begin(), grad_.end(), Vector3{0,0,0});
+			grad_.resize(n, Vector3{0,0,0});
 			
 			// Compute total and center of mass.
 			auto masstot = snapshot.TotalMass(idx);
 			Vector3 com = snapshot.CenterOfMass(idx, masstot);
 
 			// Assign CV value. 
-			switch(_dim)
+			switch(dim_)
 			{
 				case Dimension::x:
-					_val = com[0];
+					val_ = com[0];
 					break;
 				case Dimension::y:
-					_val = com[1];
+					val_ = com[1];
 					break;
 				case Dimension::z:
-					_val = com[2];
+					val_ = com[2];
 					break;
 			}
 
 			// Assign gradient to appropriate atoms.
 			for(auto& id : idx)
 			{
-				_grad[id][0] = (_dim == Dimension::x) ? masses[id]/masstot : 0;
-				_grad[id][1] = (_dim == Dimension::y) ? masses[id]/masstot : 0;
-				_grad[id][2] = (_dim == Dimension::z) ? masses[id]/masstot : 0;
+				grad_[id][0] = (dim_ == Dimension::x) ? masses[id]/masstot : 0;
+				grad_[id][1] = (dim_ == Dimension::y) ? masses[id]/masstot : 0;
+				grad_[id][2] = (dim_ == Dimension::z) ? masses[id]/masstot : 0;
 			}
 		}
 
@@ -159,7 +159,7 @@ namespace SSAGES
 		 */
 		double GetDifference(const double Location) const override
 		{
-			return _val - Location;
+			return val_ - Location;
 		}
 
 		//! Serialize this CV for restart purposes.
@@ -169,7 +169,7 @@ namespace SSAGES
 		void Serialize(Json::Value& json) const override
 		{
 			json["type"] = "ParticleCoordinate";			
-			switch(_dim)
+			switch(dim_)
 			{
 				case Dimension::x:
 					json["dimension"] = "x";
@@ -182,10 +182,10 @@ namespace SSAGES
 					break;
 			}
 			
-			for(auto& id : _atomids)
+			for(auto& id : atomids_)
 				json["atom_ids"].append(id);
 
-			for(auto& bound : _bounds)
+			for(auto& bound : bounds_)
 				json["bounds"].append(bound);
 		}
 

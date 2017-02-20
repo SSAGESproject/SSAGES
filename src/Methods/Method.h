@@ -41,14 +41,14 @@ namespace SSAGES
 	class Method : public EventListener, public Serializable
 	{
 	protected:
-		boost::mpi::communicator _world; //!< Global MPI communicator
-		boost::mpi::communicator _comm; //!< Local MPI communicator
+		boost::mpi::communicator world_; //!< Global MPI communicator
+		boost::mpi::communicator comm_; //!< Local MPI communicator
 
 		//! Pointer to grid
-		Grid* _grid;
+		Grid* grid_;
 
 		//! Number of the method iteration.
-		unsigned int _iteration;
+		unsigned int iteration_;
 
 	public:
 		//! Constructor
@@ -62,14 +62,14 @@ namespace SSAGES
 		Method(unsigned int frequency, 
 			boost::mpi::communicator& world, 
 			boost::mpi::communicator& comm) : 
-		EventListener(frequency), _world(world), _comm(comm),
-		_grid(nullptr), _iteration(0){}
+		EventListener(frequency), world_(world), comm_(comm),
+		grid_(nullptr), iteration_(0){}
 
 		//! Set Method's iteration.
 		/*!
 		 * \param iter int value for what the method iteration should be.
 		 */
-		void SetIteration(int iter) {_iteration = iter;}
+		void SetIteration(int iter) {iteration_ = iter;}
 
 		//! Method call prior to simulation initiation.
 		/*!
@@ -105,11 +105,11 @@ namespace SSAGES
 		 */
 		void BuildGrid(const Json::Value& json, const std::string& path)
 		{
-			_grid = Grid::BuildGrid(json, path);
+			grid_ = Grid::BuildGrid(json, path);
 		}
 
 		//! Get the Grid
-		Grid* GetGrid() const {return _grid;}
+		Grid* GetGrid() const {return grid_;}
 
 		//! Set up the Method
 		/*!
@@ -133,7 +133,7 @@ namespace SSAGES
 		//! Destructor
 		virtual ~Method() 
 		{
-			delete _grid;
+			delete grid_;
 		}
 	};
 }

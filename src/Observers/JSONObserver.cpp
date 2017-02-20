@@ -55,12 +55,12 @@ namespace SSAGES
 								int numwalkers,
 								int wid,
 								unsigned int frequency) : 
-	SimObserver(world, comm, numwalkers, wid, frequency), _prefix(prefix), _root(), _writetoother(true)
+	SimObserver(world, comm, numwalkers, wid, frequency), prefix_(prefix), root_(), writetoother_(true)
 	{
-		if(_comm.rank() != 0)
+		if(comm_.rank() != 0)
 			return;
 
-		std::string Name = _prefix + "_" + std::to_string(_wid) +".json";
+		std::string Name = prefix_ + "_" + std::to_string(wid_) +".json";
 		std::string BckupName = Name + "_backup";
 
 		// Don't overwrite JSON file if same name exists
@@ -68,42 +68,42 @@ namespace SSAGES
 		if(result == 0)
 			std::cout<<"Same restart file name! Moving " + Name + " to " + Name + "_copy"<<std::endl;
 		
-		_jsonfs = std::unique_ptr<std::ofstream>(
+		jsonfs_ = std::unique_ptr<std::ofstream>(
 		new std::ofstream(Name));
-		_jsonfs = std::unique_ptr<std::ofstream>(
+		jsonfs_ = std::unique_ptr<std::ofstream>(
 		new std::ofstream(BckupName));
 		
-		if(_world.rank()!=0)
+		if(world_.rank()!=0)
 		{
 			return;
 		}
 
 		for(int i = 0; i<numwalkers; i++)
-			_root["driver"][i] = "@include(" + _prefix + "_" + std::to_string(i) + ".json)";
-		_jsonfs = std::unique_ptr<std::ofstream>(
-			new std::ofstream(_prefix + ".json")
+			root_["driver"][i] = "@include(" + prefix_ + "_" + std::to_string(i) + ".json)";
+		jsonfs_ = std::unique_ptr<std::ofstream>(
+			new std::ofstream(prefix_ + ".json")
 		);
 
-		_jsonfs->precision(20);
+		jsonfs_->precision(20);
 
-		*_jsonfs;
+		*jsonfs_;
 		Json::StreamWriterBuilder builder;
 		builder["commentStyle"] = "None";
 		builder["indentation"] = "\t";
 		std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
-		writer->write(_root, &*_jsonfs);
-		*_jsonfs << std::endl;
+		writer->write(root_, &*jsonfs_);
+		*jsonfs_ << std::endl;
 
-		_jsonfs->close();
-		_root.clear();
+		jsonfs_->close();
+		root_.clear();
 	}
 
 	void JSONObserver::PreVisit()
 	{
-		if(_comm.rank() != 0)
+		if(comm_.rank() != 0)
 			return;
 
-		std::string Name = _prefix + "_" + std::to_string(_wid) +".json";
+		std::string Name = prefix_ + "_" + std::to_string(wid_) +".json";
 		std::string BckupName = Name + "_backup";
 		std::string tempName = BckupName + "_temp";
 
@@ -118,7 +118,7 @@ namespace SSAGES
 			throw std::runtime_error("Could not move restart file to backup file!");
 		
 		// Create pointer to New file
-		_jsonfs = std::unique_ptr<std::ofstream>(
+		jsonfs_ = std::unique_ptr<std::ofstream>(
 			new std::ofstream(Name));
 
 		// Delete temp file
@@ -126,36 +126,36 @@ namespace SSAGES
 		if(result != 0)
 			throw std::runtime_error("Could not remove temp file!");
 
-		_jsonfs->precision(20);
+		jsonfs_->precision(20);
 	}
 
 	void JSONObserver::PostVisit()
 	{
-		if(_comm.rank() != 0)
+		if(comm_.rank() != 0)
 			return;
 		
-		*_jsonfs;
+		*jsonfs_;
 		Json::StreamWriterBuilder builder;
 		builder["commentStyle"] = "None";
 		builder["indentation"] = "\t";
 		std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
-		writer->write(_root, &*_jsonfs);
-		*_jsonfs << std::endl;
+		writer->write(root_, &*jsonfs_);
+		*jsonfs_ << std::endl;
 
-		_jsonfs->close();
-		_root.clear();
+		jsonfs_->close();
+		root_.clear();
 	}
 
 	void JSONObserver::Visit(const Driver& d)
 	{
-		d.Serialize(_root);
+		d.Serialize(root_);
 	}
 
 	void JSONObserver::Serialize(Json::Value& json) const
 	{
 		json["type"] = "JSON";
 		json["frequency"] = GetFrequency();
-		json["file name"] = _prefix;
+		json["file name"] = prefix_;
 	}
 
 }

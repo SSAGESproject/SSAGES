@@ -43,16 +43,16 @@ namespace Json
 	class ArrayRequirement : public Requirement
 	{
 	private:
-		RequireList _items; //!< List of Requirements.
-		std::unique_ptr<Requirement> _item; //!< Single Requirement.
+		RequireList items_; //!< List of Requirements.
+		std::unique_ptr<Requirement> item_; //!< Single Requirement.
 
-		bool _addItems; //!< \c True if items can be added.
-		bool _setMin; //!< \c True if minimum has been set.
-		bool _setMax; //!< \c True if maximum has been set.
-		bool _unique; //!< \c True if all Requirements are unique.
+		bool addItems_; //!< \c True if items can be added.
+		bool setMin_; //!< \c True if minimum has been set.
+		bool setMax_; //!< \c True if maximum has been set.
+		bool unique_; //!< \c True if all Requirements are unique.
 
-		int _min; //!< Minimum value.
-		int _max; //!< Maximum value.
+		int min_; //!< Minimum value.
+		int max_; //!< Maximum value.
 
 		//! Test if set is unique
 		/*!
@@ -70,21 +70,21 @@ namespace Json
 	public:
 		//! Constructor
 		ArrayRequirement() : 
-		_items(0), _item(nullptr), _addItems(true),
-		_setMin(false), _setMax(false), _unique(false), 
-		_min(0), _max(0) {}
+		items_(0), item_(nullptr), addItems_(true),
+		setMin_(false), setMax_(false), unique_(false), 
+		min_(0), max_(0) {}
 		~ArrayRequirement() 
 		{
-			_items.clear();
+			items_.clear();
 		}
 
 		//! Clear list of error messages for all Requirements.
 		virtual void ClearErrors() override
 		{
-			if(_item != nullptr)
-				_item->ClearErrors();
+			if(item_ != nullptr)
+				item_->ClearErrors();
 
-			for(auto& c : _items)
+			for(auto& c : items_)
 				c->ClearErrors();
 
 			Requirement::ClearErrors();
@@ -93,10 +93,10 @@ namespace Json
 		//! Clear notices for all Requirements.
 		virtual void ClearNotices() override
 		{
-			if(_item != nullptr)
-				_item->ClearNotices();
+			if(item_ != nullptr)
+				item_->ClearNotices();
 
-			for(auto& c : _items)
+			for(auto& c : items_)
 				c->ClearNotices();
 
 			Requirement::ClearNotices();
@@ -105,13 +105,13 @@ namespace Json
 		//! Reset array.
 		virtual void Reset() override
 		{
-			_items.clear();
+			items_.clear();
 
-			_item.reset();
+			item_.reset();
 
-			_addItems = true;
-			_setMin = _setMax = _unique = false;
-			_min = _max = 0;
+			addItems_ = true;
+			setMin_ = setMax_ = unique_ = false;
+			min_ = max_ = 0;
 		}
 
 		//! Parse JSON value and fill array.
@@ -129,8 +129,8 @@ namespace Json
 			
 			if(json.isMember("items") && json["items"].isObject())
 			{
-				if((_item = loader.LoadRequirement(json["items"])))
-					_item->Parse(json["items"], path);				
+				if((item_ = loader.LoadRequirement(json["items"])))
+					item_->Parse(json["items"], path);				
 			}
 			else if(json.isMember("items") && json["items"].isArray())
 			{
@@ -138,29 +138,29 @@ namespace Json
 				{			
 					if(auto iptr = loader.LoadRequirement(item))
 					{
-						_items.push_back(std::move(iptr));
-						_items.back()->Parse(item, path);
+						items_.push_back(std::move(iptr));
+						items_.back()->Parse(item, path);
 					}
 				}
 			}
 
 			if(json.isMember("additionalItems") && json["additionalItems"].isBool())
-				_addItems = json["additionalItems"].asBool();
+				addItems_ = json["additionalItems"].asBool();
 
 			if(json.isMember("minItems") && json["minItems"].isInt())
 			{
-				_setMin = true;
-				_min = json["minItems"].asInt();
+				setMin_ = true;
+				min_ = json["minItems"].asInt();
 			}
 
 			if(json.isMember("maxItems") && json["maxItems"].isInt())
 			{
-				_setMax = true;
-				_max = json["maxItems"].asInt();
+				setMax_ = true;
+				max_ = json["maxItems"].asInt();
 			}
 
 			if(json.isMember("uniqueItems") && json["uniqueItems"].isBool())
-				_unique = json["uniqueItems"].asBool();
+				unique_ = json["uniqueItems"].asBool();
 		}
 
 		//! Validate json value.
@@ -176,50 +176,50 @@ namespace Json
 				return;
 			}
 
-			if(_item != nullptr)
+			if(item_ != nullptr)
 			{
 				int i = 0;
 				for(const auto& item : json)
 				{
-					_item->Validate(item, path + "/" + std::to_string(i));
+					item_->Validate(item, path + "/" + std::to_string(i));
 					++i;
 				}
 
 				// Merge errors.
-				for(const auto& error : _item->GetErrors())
+				for(const auto& error : item_->GetErrors())
 					PushError(error);
 
-				for(const auto& notice : _item->GetNotices())
+				for(const auto& notice : item_->GetNotices())
 					PushNotice(notice);
 			}
 
-			if(_items.size() != 0)
+			if(items_.size() != 0)
 			{
 				
-				if(!_addItems && json.size() >  _items.size())
+				if(!addItems_ && json.size() >  items_.size())
 					PushError(path + ": There cannot be any additional items in the array");
 
-				int iv = std::min((int)_items.size(), (int)json.size());
+				int iv = std::min((int)items_.size(), (int)json.size());
 				for(int i = 0; i < iv; ++i)
 				{
-					_items[i]->Validate(json[i], path);
+					items_[i]->Validate(json[i], path);
 
 					// Merge errors.
-					for(const auto& error : _items[i]->GetErrors())
+					for(const auto& error : items_[i]->GetErrors())
 						PushError(error);
 
-					for(const auto& notice : _items[i]->GetNotices())
+					for(const auto& notice : items_[i]->GetNotices())
 						PushNotice(notice);
 				}					
 			}
 
-			if(_setMin && (int)json.size() < _min)
-				PushError(path + ": There must be at least " + std::to_string(_min) + " elements in the array");
+			if(setMin_ && (int)json.size() < min_)
+				PushError(path + ": There must be at least " + std::to_string(min_) + " elements in the array");
 				
-			if(_setMax && (int)json.size() > _max)
-				PushError(path + ": There must be no more than " + std::to_string(_max) + " elements in the array");
+			if(setMax_ && (int)json.size() > max_)
+				PushError(path + ": There must be no more than " + std::to_string(max_) + " elements in the array");
 
-			if(_unique && !IsUnique(json))
+			if(unique_ && !IsUnique(json))
 				PushError(path + ": Entries must be unique");
 
 

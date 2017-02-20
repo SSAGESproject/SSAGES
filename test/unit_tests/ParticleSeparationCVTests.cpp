@@ -16,6 +16,8 @@ protected:
     {
 
         COMDist = new ParticleSeparationCV({1,2,3}, {4,5,6});
+        
+        COMDistXY = new ParticleSeparationCV({1,2,3}, {4,5,6}, true, true, false);
 
     	// Set up snapshot No. 1
         // Snapshot 1 contains six atoms
@@ -74,7 +76,13 @@ protected:
 
     }
 
-    ParticleSeparationCV *COMDist;
+    virtual void TearDown()
+    {
+        delete COMDist;
+        delete COMDistXY;
+    }
+
+    ParticleSeparationCV *COMDist, *COMDistXY;
 
     boost::mpi::communicator comm;
 
@@ -83,10 +91,18 @@ protected:
 
 TEST_F(ParticleSeparationCVTests, compareCOMDist)
 {
-	COMDist->Initialize(*snapshot1);
+    COMDist->Initialize(*snapshot1);
     COMDist->Evaluate(*snapshot1);
 
     EXPECT_NEAR(COMDist->GetValue(), 6.596547918756026, eps);
+}
+
+TEST_F(ParticleSeparationCVTests, compareCOMDistXY)
+{
+	COMDistXY->Initialize(*snapshot1);
+    COMDistXY->Evaluate(*snapshot1);
+
+    EXPECT_NEAR(COMDistXY->GetValue(), 4.884669896727925, eps);
 }
 
 int main(int argc, char *argv[])

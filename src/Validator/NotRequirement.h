@@ -37,17 +37,17 @@ namespace Json
 	class NotRequirement : public Requirement
 	{
 	private:
-		std::unique_ptr<Requirement> _req; //!< Requirement to negate.
+		std::unique_ptr<Requirement> req_; //!< Requirement to negate.
 
 	public:
 		//! Constructor.
-		NotRequirement() : _req(nullptr) {}
+		NotRequirement() : req_(nullptr) {}
 
 		//! Clear list of error messages.
 		virtual void ClearErrors() override
 		{
-			if(_req)
-				_req->ClearErrors();
+			if(req_)
+				req_->ClearErrors();
 
 			Requirement::ClearErrors();
 		}
@@ -55,8 +55,8 @@ namespace Json
 		//! Clear list of notices.
 		virtual void ClearNotices() override
 		{
-			if(_req != nullptr)
-				_req->ClearNotices();
+			if(req_ != nullptr)
+				req_->ClearNotices();
 		
 			Requirement::ClearNotices();
 		} 
@@ -67,7 +67,7 @@ namespace Json
 			ClearErrors();
 			ClearNotices();
 			
-			_req.reset();		
+			req_.reset();		
 		}
 
 		//! Parse JSON value and generate Requirement to be negated.
@@ -81,8 +81,8 @@ namespace Json
 			RequirementLoader loader;
 
 			auto& head = json.isMember("not") ? json["not"] : json;
-			if((_req = loader.LoadRequirement(head)))
-				_req->Parse(head, path);
+			if((req_ = loader.LoadRequirement(head)))
+				req_->Parse(head, path);
 		}
 
 		//! Validate that JSON value fails the given Requirement.
@@ -96,8 +96,8 @@ namespace Json
 		 */
 		virtual void Validate(const Value& json, const std::string& path) override
 		{
-			_req->Validate(json, path);
-			if(!_req->HasErrors())
+			req_->Validate(json, path);
+			if(!req_->HasErrors())
 				PushError(path + ": Value must not validate against requirement.");
 		}
 	};

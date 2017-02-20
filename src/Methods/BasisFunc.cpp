@@ -33,71 +33,71 @@ namespace SSAGES
         size_t coeff_size = 1, bin_size = 1;
        
         // For print statements and file I/O, the walker IDs are used
-        _mpiid = snapshot->GetWalkerID();
+        mpiid_ = snapshot->GetWalkerID();
 
         // Make sure the iteration index is set correctly
-        _iteration = 0;
+        iteration_ = 0;
 
-        if(!_grid)
+        if(!grid_)
 		{
             std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
 			std::cerr<<"ERROR: Method expected a grid but no grid built."<<std::endl;
-            std::cerr<<"Exiting on node ["<<_mpiid<<"]"<<std::endl;
+            std::cerr<<"Exiting on node ["<<mpiid_<<"]"<<std::endl;
             std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-			_world.abort(EXIT_FAILURE);
+			world_.abort(EXIT_FAILURE);
 		}
 
         // There are a few error messages / checks that are in place with defining CVs and grids
         else
         {
-            if(_grid->GetDimension() != (int)cvs.size())
+            if(grid_->GetDimension() != (int)cvs.size())
             {
                 std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
                 std::cerr<<"ERROR: Grid dimensions doesn't match number of CVS."<<std::endl;
-                std::cerr<<"Exiting on node ["<<_mpiid<<"]"<<std::endl;
+                std::cerr<<"Exiting on node ["<<mpiid_<<"]"<<std::endl;
                 std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                _world.abort(EXIT_FAILURE);
+                world_.abort(EXIT_FAILURE);
             }
-            else if(cvs.size() != _polyords.size())
+            else if(cvs.size() != polyords_.size())
             {
                 std::cout<<cvs.size()<<std::endl;
-                std::cout<<_polyords.size()<<std::endl;
+                std::cout<<polyords_.size()<<std::endl;
                 std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
                 std::cout<<"WARNING: The number of polynomial orders is not the same"<<std::endl;
                 std::cout<<"as the number of CVs"<<std::endl;
                 std::cout<<"The simulation will take the first defined input"<<std::endl;
-                std::cout<<"as the same for all CVs. ["<<_polyords[0]<<"]"<<std::endl;
+                std::cout<<"as the same for all CVs. ["<<polyords_[0]<<"]"<<std::endl;
                 std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
                
                 //! Resize the polynomial vector so that it doesn't crash here
-                _polyords.resize(cvs.size());
+                polyords_.resize(cvs.size());
                 //! And now reinitialize the vector
                 for(size_t i = 0; i < cvs.size(); ++i)
                 {
-                    _polyords[i] = _polyords[0];
+                    polyords_[i] = polyords_[0];
                 }
             }
         }
 
         // Setting the number of bins here for simplicity
-        _nbins.resize(cvs.size());
+        nbins_.resize(cvs.size());
         for(size_t i = 0; i < cvs.size(); ++i)
-            _nbins[i] = _grid->GetNumPoints()[i];
+            nbins_[i] = grid_->GetNumPoints()[i];
 
         // This is to check for non-periodic bounds. It comes into play in the update bias function
-        _bounds = true;
+        bounds_ = true;
                  
         for(size_t i = 0; i < cvs.size(); ++i)
         {
-            bin_size   *= _nbins[i];
-            coeff_size *= _polyords[i]+1;
+            bin_size   *= nbins_[i];
+            coeff_size *= polyords_[i]+1;
         }
 
-		_derivatives.resize(cvs.size());
-        _histlocal.resize(bin_size,0);
-        _histglobal.resize(bin_size,0);
-        _unbias.resize(bin_size,0);
-        _coeff_arr.resize(coeff_size,0);
+		derivatives_.resize(cvs.size());
+        histlocal_.resize(bin_size,0);
+        histglobal_.resize(bin_size,0);
+        unbias_.resize(bin_size,0);
+        coeff_arr_.resize(coeff_size,0);
 
         std::vector<int> idx(cvs.size(), 0);
         std::vector<int> jdx(cvs.size(), 0);
@@ -108,7 +108,7 @@ namespace SSAGES
         {
             for(size_t j = 0; j < idx.size(); ++j)
             {
-                if(idx[j] > 0 && idx[j] % (_nbins[j]) == 0)
+                if(idx[j] > 0 && idx[j] % (nbins_[j]) == 0)
                 {
                     if(j != cvs.size() - 1)
                     { 
@@ -120,7 +120,7 @@ namespace SSAGES
 				temp_map.value  = 0.0; 
             } 
             // Resize histogram vectors to correct size
-            _hist.push_back(temp_map);
+            hist_.push_back(temp_map);
             idx[0]++;
         }
  
@@ -129,7 +129,7 @@ namespace SSAGES
         {
             for(size_t j = 0; j < jdx.size(); ++j)
             {
-                if(jdx[j] > 0 && jdx[j] % (_polyords[j]+1) == 0)
+                if(jdx[j] > 0 && jdx[j] % (polyords_[j]+1) == 0)
                 {
                     if(j != cvs.size() - 1)
                     { 
@@ -140,8 +140,8 @@ namespace SSAGES
                 temp_map.map[j] = jdx[j];
 				temp_map.value  = 0; 
             }
-			_coeff.push_back(temp_map);           
-            _coeff[i].value = _coeff_arr[i];
+			coeff_.push_back(temp_map);           
+            coeff_[i].value = coeff_arr_[i];
             jdx[0]++;
         }
 
@@ -165,22 +165,22 @@ namespace SSAGES
             x[i] = cvs[i]->GetValue();
         }
        
-        if(_bounds)
+        if(bounds_)
         {
             // Convert the CV value to its discretized value through the grid tool
-            idx = _grid->GetIndices(x);
+            idx = grid_->GetIndices(x);
            
             // Map the grid index to the form of the hist and unbias mapping
             for(size_t i = 0; i < cvs.size(); ++i)
             {
-                ii += (idx[i])*std::pow(_nbins[i],i);
+                ii += (idx[i])*std::pow(nbins_[i],i);
             } 
 
             // The histogram is updated based on the index
-            _hist[ii].value++;
+            hist_[ii].value++;
     
             // Update the basis projection after a predefined number of steps
-            if(snapshot->GetIteration()  % _cyclefreq == 0) {	
+            if(snapshot->GetIteration()  % cyclefreq_ == 0) {	
                 double beta;
                 beta = 1.0 / (snapshot->GetTemperature() * snapshot->GetKb());
 
@@ -188,20 +188,20 @@ namespace SSAGES
 
                 if(snapshot->GetTemperature() == 0)
                 {
-                    beta = _temperature;
-                    if(_temperature == 0)
+                    beta = temperature_;
+                    if(temperature_ == 0)
                     {
                         std::cout<<std::endl;
                         std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
                         std::cerr<<"ERROR: Input temperature needs to be defined for this simulation"<<std::endl;
-                        std::cerr<<"Exiting on node ["<<_mpiid<<"]"<<std::endl;
+                        std::cerr<<"Exiting on node ["<<mpiid_<<"]"<<std::endl;
                         std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
                         exit(EXIT_FAILURE);
                     }
                 }
-                _iteration+= 1;
+                iteration_+= 1;
                 UpdateBias(cvs,beta);
-                std::cout<<"Node: ["<<_mpiid<<"]"<<std::setw(10)<<"\tSweep: "<<_iteration<<std::endl;
+                std::cout<<"Node: ["<<mpiid_<<"]"<<std::setw(10)<<"\tSweep: "<<iteration_<<std::endl;
             }
         }
 
@@ -219,7 +219,7 @@ namespace SSAGES
              */
 			for (size_t j = 0; j < forces.size(); ++j) 
 				for(size_t k = 0; k < 3; ++k) 
-					forces[j][k] += _derivatives[i]*grad[j][k];
+					forces[j][k] += derivatives_[i]*grad[j][k];
 		}
 	}
 
@@ -236,43 +236,43 @@ namespace SSAGES
     {
 		for( size_t k = 0; k < cvs.size(); k++)
 		{
-			size_t ncoeff = _polyords[k]+1;
+			size_t ncoeff = polyords_[k]+1;
 
-			std::vector<double> dervs(_nbins[k]*ncoeff,0);
-			std::vector<double> vals(_nbins[k]*ncoeff,0);
-            std::vector<double> x(_nbins[k],0);
+			std::vector<double> dervs(nbins_[k]*ncoeff,0);
+			std::vector<double> vals(nbins_[k]*ncoeff,0);
+            std::vector<double> x(nbins_[k],0);
 
             /*As the values for Legendre polynomials can be defined recursively, \
              *both the derivatives and values are defined at the same time,
              */
-			for (int i = 0; i < _nbins[k]; ++i)
+			for (int i = 0; i < nbins_[k]; ++i)
 			{
-                x[i] = 2.0*(i + 0.5)/(double)(_nbins[k]) - 1.0;
+                x[i] = 2.0*(i + 0.5)/(double)(nbins_[k]) - 1.0;
 				vals[i] = 1.0;
 				dervs[i] = 0.0;
 			}
 
-			for (int i = 0; i < _nbins[k]; ++i)
+			for (int i = 0; i < nbins_[k]; ++i)
 			{
-				vals[i+_nbins[k]] = x[i];
-				dervs[i+_nbins[k]] = 1.0;
+				vals[i+nbins_[k]] = x[i];
+				dervs[i+nbins_[k]] = 1.0;
 			}
 
 			for (size_t j = 2; j < ncoeff; j++)
 			{
-				for (int i = 0; i < _nbins[k]; i++)
+				for (int i = 0; i < nbins_[k]; i++)
 				{
                     //Evaluate the values of the Legendre polynomial at each bin
-					vals[i+j*_nbins[k]] = ((double) ( 2*j - 1 ) * x[i] * vals[i+(j-1)*_nbins[k]]
-					- (double) (j - 1) * vals[i+(j-2)*_nbins[k]]) / (double) (j);
+					vals[i+j*nbins_[k]] = ((double) ( 2*j - 1 ) * x[i] * vals[i+(j-1)*nbins_[k]]
+					- (double) (j - 1) * vals[i+(j-2)*nbins_[k]]) / (double) (j);
 
                     //Evaluate the derivatives of the Legendre polynomial at each bin
-                    dervs[i+j*_nbins[k]] = ((double) ( 2*j - 1 ) * ( vals[i+(j-1)*_nbins[k]] + x[i] * dervs[i+(j-1)*_nbins[k]] )
-                    - (double) (j - 1) * dervs[i+(j-2)*_nbins[k]]) / (double) (j);
+                    dervs[i+j*nbins_[k]] = ((double) ( 2*j - 1 ) * ( vals[i+(j-1)*nbins_[k]] + x[i] * dervs[i+(j-1)*nbins_[k]] )
+                    - (double) (j - 1) * dervs[i+(j-2)*nbins_[k]]) / (double) (j);
 				}
 			}
             BasisLUT TempLUT(vals,dervs);
-            _LUT.push_back(TempLUT);
+            LUT_.push_back(TempLUT);
         }
 	}
     
@@ -280,38 +280,38 @@ namespace SSAGES
 	void Basis::UpdateBias(const CVList& cvs, const double beta)
 	{
         std::vector<double> x(cvs.size(), 0);
-        std::vector<double> coeffTemp(_coeff.size(), 0);
+        std::vector<double> coeffTemp(coeff_.size(), 0);
         double sum  = 0.0;
         double bias = 0.0;
         double basis = 1.0;
 
         // For multiple walkers, the struct is unpacked
-        for(size_t i = 0; i < _hist.size(); ++i)
-            _histlocal[i] = (int)_hist[i].value;
+        for(size_t i = 0; i < hist_.size(); ++i)
+            histlocal_[i] = (int)hist_[i].value;
 
         // Summed between all walkers
-        MPI_Allreduce(&_histlocal[0], &_histglobal[0], _hist.size(), MPI_INT, MPI_SUM, _world);
+        MPI_Allreduce(&histlocal_[0], &histglobal_[0], hist_.size(), MPI_INT, MPI_SUM, world_);
 
         // And then it is repacked into the struct
-        for(size_t i = 0; i < _hist.size(); ++i)
-            _hist[i].value = _histglobal[i];
+        for(size_t i = 0; i < hist_.size(); ++i)
+            hist_[i].value = histglobal_[i];
 
         // Construct the biased histogram
-        for(size_t i = 0; i < _hist.size(); ++i)
+        for(size_t i = 0; i < hist_.size(); ++i)
         {
-            auto& hist = _hist[i];
+            auto& hist = hist_[i];
 
             // This is to make sure that the CV projects across the entire surface
             if(hist.value == 0) {hist.value = 1;} 
            
             // The loop builds the previous basis projection for each bin of the histogram
-            for(size_t k = 1; k < _coeff.size(); ++k)
+            for(size_t k = 1; k < coeff_.size(); ++k)
             {
-                auto& coeff = _coeff[k];
+                auto& coeff = coeff_[k];
                 for(size_t l = 0; l < cvs.size(); ++l)
                 { 
                     // The previous bias is only calculated after each sweep has happened
-                    basis *= _LUT[l].values[hist.map[l] + coeff.map[l]*(_nbins[l])];
+                    basis *= LUT_[l].values[hist.map[l] + coeff.map[l]*(nbins_[l])];
                 }
                 bias += coeff.value*basis;
                 basis = 1.0;
@@ -320,39 +320,39 @@ namespace SSAGES
             /* The evaluation of the biased histogram which projects the histogram to the
              * current bias of CV space.
              */
-            _unbias[i] += hist.value * exp(bias) * _weight / (double)(_cyclefreq); 
+            unbias_[i] += hist.value * exp(bias) * weight_ / (double)(cyclefreq_); 
             bias = 0.0;
         }
 
         // The coefficients and histograms are reset after evaluating the biased histogram values
-        for(size_t i = 0; i < _coeff.size(); ++i)
+        for(size_t i = 0; i < coeff_.size(); ++i)
         {
-            coeffTemp[i] = _coeff[i].value;
-            _coeff[i].value = 0.0;
+            coeffTemp[i] = coeff_[i].value;
+            coeff_[i].value = 0.0;
         }
 
-        for(size_t i = 0; i < _hist.size(); ++i)
+        for(size_t i = 0; i < hist_.size(); ++i)
         {
-            _hist[i].value = 0.0;
-            _histlocal[i] = 0;
-            _histglobal[i] = 0;
+            hist_[i].value = 0.0;
+            histlocal_[i] = 0;
+            histglobal_[i] = 0;
         }
 
         // The loop that evaluates the new coefficients by integrating the CV space
-        for(size_t i = 1; i < _coeff.size(); ++i)
+        for(size_t i = 1; i < coeff_.size(); ++i)
         {
-            auto& coeff = _coeff[i];
+            auto& coeff = coeff_[i];
             
             // The method uses a standard integration with trap rule weights
-            for(size_t j = 0; j < _hist.size(); ++j)
+            for(size_t j = 0; j < hist_.size(); ++j)
             {
-                auto& hist = _hist[j];
+                auto& hist = hist_[j];
                 double weight = std::pow(2.0,cvs.size());
 
                 // This adds in a trap-rule type weighting which lowers error significantly at the boundaries
                 for(size_t k = 0; k < cvs.size(); ++k)
                 {
-                    if(hist.map[k] == 0 || hist.map[k] == _nbins[k]-1)
+                    if(hist.map[k] == 0 || hist.map[k] == nbins_[k]-1)
                         weight /= 2.0;
                 }
             
@@ -361,26 +361,26 @@ namespace SSAGES
                  */
                 for(size_t l = 0; l < cvs.size(); l++)
                 {
-                    basis *= _LUT[l].values[hist.map[l] + coeff.map[l]*(_nbins[l])];
-                    basis *=  1.0 / (_nbins[l])*(2 * coeff.map[l] + 1.0);
+                    basis *= LUT_[l].values[hist.map[l] + coeff.map[l]*(nbins_[l])];
+                    basis *=  1.0 / (nbins_[l])*(2 * coeff.map[l] + 1.0);
                 }
-                coeff.value += basis * log(_unbias[j]) * weight/std::pow(2.0,cvs.size());
+                coeff.value += basis * log(unbias_[j]) * weight/std::pow(2.0,cvs.size());
                 basis = 1.0;
             }
             coeffTemp[i] -= coeff.value;
-            _coeff_arr[i] = coeff.value;
+            coeff_arr_[i] = coeff.value;
             sum += coeffTemp[i]*coeffTemp[i];
         }
 
-        if(_world.rank() == 0)
+        if(world_.rank() == 0)
             // Write coeff at this step, but only one walker
             PrintBias(cvs,beta);
 
         // The convergence tolerance and whether the user wants to exit are incorporated here
-        if(sum < _tol)
+        if(sum < tol_)
         {
             std::cout<<"System has converged"<<std::endl;
-            if(_converge_exit)
+            if(converge_exit_)
             {
                 std::cout<<"User has elected to exit. System is now exiting"<<std::endl;
                 exit(EXIT_SUCCESS);
@@ -394,7 +394,7 @@ namespace SSAGES
      */
     void Basis::PrintBias(const CVList& cvs, const double beta)
     {
-        std::vector<double> bias(_hist.size(), 0);
+        std::vector<double> bias(hist_.size(), 0);
         std::vector<double> x(cvs.size(), 0);
         double temp = 1.0; 
         double pos = 0;
@@ -402,65 +402,65 @@ namespace SSAGES
         /* Since the coefficients are the only piece that needs to be
          *updated, the bias is only evaluated when printing
          */
-        for(size_t i = 0; i < _hist.size(); ++i)
+        for(size_t i = 0; i < hist_.size(); ++i)
         {
-            for(size_t j = 1; j < _coeff.size(); ++j)
+            for(size_t j = 1; j < coeff_.size(); ++j)
             {
                 for(size_t k = 0; k < cvs.size(); ++k)
                 {
                     
-                    temp *=  _LUT[k].values[_hist[i].map[k] + _coeff[j].map[k] * (_nbins[k])];
+                    temp *=  LUT_[k].values[hist_[i].map[k] + coeff_[j].map[k] * (nbins_[k])];
                 }
-                bias[i] += _coeff[j].value*temp;
+                bias[i] += coeff_[j].value*temp;
                 temp  = 1.0;
             }
         }
 
         // The filenames will have a standard name, with a user-defined suffix
-        std::string filename1 = "basis"+_bnme+".out";
-        std::string filename2 = "coeff"+_cnme+".out";
+        std::string filename1 = "basis"+bnme_+".out";
+        std::string filename2 = "coeff"+cnme_+".out";
     
-		_basisout.precision(5);
-        _coeffout.precision(5);
-        _basisout.open(filename1.c_str());
-        _coeffout.open(filename2.c_str());
+		basisout_.precision(5);
+        coeffout_.precision(5);
+        basisout_.open(filename1.c_str());
+        coeffout_.open(filename2.c_str());
 
         // The CV values, PMF projection, PMF, and biased histogram are output for the user
-        _coeffout << _iteration  <<std::endl;
-        _basisout << "CV Values" << std::setw(35*cvs.size()) << "Basis Set Bias" << std::setw(35) << "PMF Estimate" << std::setw(35) << "Biased Histogram" << std::endl;
+        coeffout_ << iteration_  <<std::endl;
+        basisout_ << "CV Values" << std::setw(35*cvs.size()) << "Basis Set Bias" << std::setw(35) << "PMF Estimate" << std::setw(35) << "Biased Histogram" << std::endl;
         
-        for(size_t j = 0; j < _unbias.size(); ++j)
+        for(size_t j = 0; j < unbias_.size(); ++j)
         {
             for(size_t k = 0; k < cvs.size(); ++k)
             {
                 // Evaluate the CV values for printing purposes
-                pos = (_hist[j].map[k]+0.5)*(_grid->GetUpper()[k] - _grid->GetLower()[k]) * 1.0 /(double)( _nbins[k]) + _grid->GetLower()[k];
-                _basisout << pos << std::setw(35);
+                pos = (hist_[j].map[k]+0.5)*(grid_->GetUpper()[k] - grid_->GetLower()[k]) * 1.0 /(double)( nbins_[k]) + grid_->GetLower()[k];
+                basisout_ << pos << std::setw(35);
             }
-            _basisout << -bias[j] << std::setw(35);
-            if(_unbias[j])
-                _basisout << -log(_unbias[j]) / beta << std::setw(35);
+            basisout_ << -bias[j] << std::setw(35);
+            if(unbias_[j])
+                basisout_ << -log(unbias_[j]) / beta << std::setw(35);
             else
-                _basisout << "0" << std::setw(35);
-            _basisout << _unbias[j];
-            _basisout << std::endl;
+                basisout_ << "0" << std::setw(35);
+            basisout_ << unbias_[j];
+            basisout_ << std::endl;
         }
 
-        for(size_t k = 0; k < _coeff.size(); ++k)
+        for(size_t k = 0; k < coeff_.size(); ++k)
         {
-            _coeffout <<_coeff[k].value << std::endl;
+            coeffout_ <<coeff_[k].value << std::endl;
         }
 
-		_basisout << std::endl;
-        _basisout.close();
-        _coeffout.close();
+		basisout_ << std::endl;
+        basisout_.close();
+        coeffout_.close();
 	}
 
     // The forces are calculated by chain rule, first  the derivatives of the basis set, then in the PostIntegration function, the derivative of the CV is evaluated
 	void Basis::CalcBiasForce(const CVList& cvs)
 	{	
 		// Reset derivatives
-        std::fill(_derivatives.begin(), _derivatives.end(), 0);
+        std::fill(derivatives_.begin(), derivatives_.end(), 0);
         std::vector<double> x(cvs.size(),0);
         std::vector<int> idx(cvs.size(),0);
 
@@ -471,57 +471,57 @@ namespace SSAGES
         for (size_t j = 0; j < cvs.size(); ++j)
         {
             x[j] = cvs[j]->GetValue();
-            double min = _grid->GetLower()[j];
-            double max = _grid->GetUpper()[j];
+            double min = grid_->GetLower()[j];
+            double max = grid_->GetUpper()[j];
 
-            if(!_grid->GetPeriodic()[j])
+            if(!grid_->GetPeriodic()[j])
             {
                 // In order to prevent the index for the histogram from going out of bounds a check is in place
-                if(x[j] > max && _bounds)
+                if(x[j] > max && bounds_)
                 {
                     std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
                     std::cout<<"WARNING: CV is above the maximum boundary."<<std::endl;
                     std::cout<<"Statistics will not be gathered during this interval"<<std::endl;
                     std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                    _bounds = false;
+                    bounds_ = false;
                 }
-                else if(x[j] < min && _bounds)
+                else if(x[j] < min && bounds_)
                 {
                     std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
                     std::cout<<"WARNING: CV is below the minimum boundary."<<std::endl;
                     std::cout<<"Statistics will not be gathered during this interval"<<std::endl;
                     std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                    _bounds = false;
+                    bounds_ = false;
                 }
-                else if(x[j] < max && x[j] > min && !_bounds)
+                else if(x[j] < max && x[j] > min && !bounds_)
                 {
                     std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
                     std::cout<<"CV has returned in between bounds. Run is resuming"<<std::endl;
                     std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                    _bounds = true;
+                    bounds_ = true;
                 }
             }
         }
 
         // Only apply soft wall potential in the event that it has left the boundaries
-        if(_bounds)
+        if(bounds_)
         {
-            idx = _grid->GetIndices(x);
+            idx = grid_->GetIndices(x);
 
             for(size_t i = 0; i < cvs.size(); ++i)
-                ii += (idx[i])*std::pow(_nbins[i],i);
+                ii += (idx[i])*std::pow(nbins_[i],i);
             
-            for (size_t i = 1; i < _coeff.size(); ++i)
+            for (size_t i = 1; i < coeff_.size(); ++i)
             {
                 for (size_t j = 0; j < cvs.size(); ++j)
                 {
                     temp = 1.0;
                     for (size_t k = 0; k < cvs.size(); ++k)
                     {
-                        temp *= j == k ?  _LUT[k].derivs[_hist[ii].map[k] + _coeff[i].map[k]*(_nbins[k])] * 2.0 / (_grid->GetUpper()[j] - _grid->GetLower()[j])
-                                       :  _LUT[k].values[_hist[ii].map[k] + _coeff[i].map[k]*(_nbins[k])];
+                        temp *= j == k ?  LUT_[k].derivs[hist_[ii].map[k] + coeff_[i].map[k]*(nbins_[k])] * 2.0 / (grid_->GetUpper()[j] - grid_->GetLower()[j])
+                                       :  LUT_[k].values[hist_[ii].map[k] + coeff_[i].map[k]*(nbins_[k])];
                     }
-                    _derivatives[j] -= _coeff[i].value * temp;
+                    derivatives_[j] -= coeff_[i].value * temp;
                 }
             }
         }
@@ -530,15 +530,15 @@ namespace SSAGES
         for(size_t j = 0; j < cvs.size(); ++j)
         {
             // Are these used?
-            // double min = _grid->GetLower()[j];
-            // double max = _grid->GetUpper()[j];
+            // double min = grid_->GetLower()[j];
+            // double max = grid_->GetUpper()[j];
 
-            if(!_grid->GetPeriodic()[j]) 
+            if(!grid_->GetPeriodic()[j]) 
             {
-                if(x[j] > _boundUp[j])
-                    _derivatives[j] -= _restraint[j] * (x[j] - _boundUp[j]);
-                else if(x[j] < _boundLow[j])
-                    _derivatives[j] -= _restraint[j] * (x[j] - _boundLow[j]);
+                if(x[j] > boundUp_[j])
+                    derivatives_[j] -= restraint_[j] * (x[j] - boundUp_[j]);
+                else if(x[j] < boundLow_[j])
+                    derivatives_[j] -= restraint_[j] * (x[j] - boundLow_[j]);
             }
         }
     }

@@ -28,13 +28,13 @@ namespace SSAGES
 	//! Sets the active snapshot.
 	void Hook::SetSnapshot(Snapshot* snapshot)
 	{
-		_snapshot = snapshot;
+		snapshot_ = snapshot;
 	}
 
 	//! Sets the active Driver
 	void Hook::SetMDDriver(Driver* MDDriver)
 	{
-		_MDDriver = MDDriver;
+		MDDriver_ = MDDriver;
 	}
 
 	//! Add a listener to the hook.
@@ -45,8 +45,8 @@ namespace SSAGES
 	 */
 	void Hook::AddListener(EventListener* listener)
 	{
-		if(std::find(_listeners.begin(), _listeners.end(), listener) == _listeners.end())
-			_listeners.push_back(listener);
+		if(std::find(listeners_.begin(), listeners_.end(), listener) == listeners_.end())
+			listeners_.push_back(listener);
 	}
 
 	//! Add a CollectiveVariable to the hook.
@@ -57,14 +57,14 @@ namespace SSAGES
 	 */
 	void Hook::AddCV(CollectiveVariable* cv)
 	{
-		if(std::find(_cvs.begin(), _cvs.end(), cv) == _cvs.end())
-			_cvs.push_back(cv);
+		if(std::find(cvs_.begin(), cvs_.end(), cv) == cvs_.end())
+			cvs_.push_back(cv);
 	}
 
 	void Hook::NotifyObservers()
 	{
-		auto& comm = _snapshot->GetCommunicator();
+		auto& comm = snapshot_->GetCommunicator();
 		if(comm.rank() == 0)
-			_MDDriver->NotifyObservers(SimEvent(_MDDriver, _snapshot->GetIteration()));
+			MDDriver_->NotifyObservers(SimEvent(MDDriver_, snapshot_->GetIteration()));
 	}
 }

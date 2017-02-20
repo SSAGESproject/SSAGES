@@ -65,15 +65,15 @@ namespace SSAGES
 
 	protected:
 
-		std::vector<double> _lower; //!< Lower edge of the grid.
-		std::vector<double> _upper; //!< Upper edge of the grid.
-		std::vector<bool> _periodic; //!< Is the grid periodic in the corresponding dimension?
-		std::vector<int> _num_points; //!< Number of grid points.
-		std::vector<double> _spacing; //!< Grid spacing.
-		int _NDim; //!< Grid dimension.
+		std::vector<double> lower_; //!< Lower edge of the grid.
+		std::vector<double> upper_; //!< Upper edge of the grid.
+		std::vector<bool> periodic_; //!< Is the grid periodic in the corresponding dimension?
+		std::vector<int> num_points_; //!< Number of grid points.
+		std::vector<double> spacing_; //!< Grid spacing.
+		int NDim_; //!< Grid dimension.
 
 		//! Array storing grid data.
-		std::vector<std::pair<std::vector<double>, std::vector<double>>> _flatvector;
+		std::vector<std::pair<std::vector<double>, std::vector<double>>> flatvector_;
 	
 	public:
 		//! Iterator for traversing the Grid.
@@ -99,22 +99,22 @@ namespace SSAGES
 			for(size_t i = 0; i < val.size(); i++)
 			{
 				int vertex = 0;
-				if(val[i]<_lower[i])
-					vertex = int((val[i] - _lower[i])/_spacing[i] - 0.5);
+				if(val[i]<lower_[i])
+					vertex = int((val[i] - lower_[i])/spacing_[i] - 0.5);
 				else
-					vertex = int((val[i] - _lower[i])/_spacing[i] + 0.5);
+					vertex = int((val[i] - lower_[i])/spacing_[i] + 0.5);
 
-				if(_periodic[i])
+				if(periodic_[i])
 				{
-					vertex = vertex % _num_points[i];
+					vertex = vertex % num_points_[i];
 					if(vertex<0)
-						vertex += _num_points[i];
+						vertex += num_points_[i];
 				}
 
 				if(vertex < 0) // out of bounds
 					vertex = 0;
-				else if(vertex >= _num_points[i]) // out of bounds
-					vertex = _num_points[i] - 1;
+				else if(vertex >= num_points_[i]) // out of bounds
+					vertex = num_points_[i] - 1;
 
 				vertices.push_back(vertex);
 			}
@@ -129,7 +129,7 @@ namespace SSAGES
 		 */
 		std::vector<double> GetLocation(const std::vector<int> &indices) const
 		{
-			return _flatvector[FlattenIndices(indices,_num_points)].second;
+			return flatvector_[FlattenIndices(indices,num_points_)].second;
 		}
 
 		//! Get the value at the current indices.
@@ -139,7 +139,7 @@ namespace SSAGES
 		 */
 		double GetValue(const std::vector<int>& indices) const
 		{
-			return _flatvector[FlattenIndices(indices,_num_points)].first[0];
+			return flatvector_[FlattenIndices(indices,num_points_)].first[0];
 		}
 
 		//! Set the value at the current incices.
@@ -149,7 +149,7 @@ namespace SSAGES
 		 */
 		void SetValue(const std::vector<int>& indices, double value)
 		{
-			_flatvector[FlattenIndices(indices,_num_points)].first[0] = value;
+			flatvector_[FlattenIndices(indices,num_points_)].first[0] = value;
 		}
 
 		//! Get the extra at the current indices.
@@ -159,7 +159,7 @@ namespace SSAGES
 		 */
 		std::vector<double> GetExtra(const std::vector<int>& indices) const
 		{
-			const std::vector<double>& temp = _flatvector[FlattenIndices(indices,_num_points)].first;
+			const std::vector<double>& temp = flatvector_[FlattenIndices(indices,num_points_)].first;
 			std::vector<double> temp2(&temp[1], &temp[temp.size()]);
 			return temp2;
 		}
@@ -171,11 +171,11 @@ namespace SSAGES
 		 */
 		void SetExtra(const std::vector<int>& indices, std::vector<double> value)
 		{
-			int flatten = FlattenIndices(indices, _num_points);
-			if(value.size() != _flatvector[flatten].first.size()-1)
+			int flatten = FlattenIndices(indices, num_points_);
+			if(value.size() != flatvector_[flatten].first.size()-1)
 				throw std::out_of_range("Vector field in grid is not the same size as value");
 			for(size_t i = 0; i < value.size(); i++)
-				_flatvector[flatten].first[i+1] = value[i];
+				flatvector_[flatten].first[i+1] = value[i];
 		}
 
 		//! Set the entire grid given two vectors of values and dimension.
@@ -184,13 +184,13 @@ namespace SSAGES
 		 */
 		void SetGrid(const std::vector<double>& first_values)
 		{
-			std::cout<<first_values.size()/(_NDim+1)<<" "<<_flatvector.size()<<std::endl;
-			if(first_values.size()/(_NDim+1) != _flatvector.size())
+			std::cout<<first_values.size()/(NDim_+1)<<" "<<flatvector_.size()<<std::endl;
+			if(first_values.size()/(NDim_+1) != flatvector_.size())
 				throw std::out_of_range("Attempting to set grid with more/less values than grid has.");
 
-			for(size_t i = 0; i < _flatvector.size(); i++)
-				for(int j = 0; j < _NDim + 1; j++)
-					_flatvector[i].first[j] = first_values[i*(_NDim+1) + j];
+			for(size_t i = 0; i < flatvector_.size(); i++)
+				for(int j = 0; j < NDim_ + 1; j++)
+					flatvector_[i].first[j] = first_values[i*(NDim_+1) + j];
 		}
 
 		//! Set the entire grid given two vectors of values and dimension.
@@ -199,11 +199,11 @@ namespace SSAGES
 		 */
 		void SetPeriodic(const std::vector<bool>& periodic_values)
 		{
-			if(periodic_values.size() != _periodic.size())
+			if(periodic_values.size() != periodic_.size())
 				throw std::out_of_range("Value dimension used to set periodic boundaries are not equal.");
 
 			for(size_t i = 0; i < periodic_values.size(); i++)
-				_periodic[i] = periodic_values[i];
+				periodic_[i] = periodic_values[i];
 		}
 
 		//! Write Grid to console
@@ -212,12 +212,12 @@ namespace SSAGES
 		 */
 		void PrintGrid() const
 		{
-			for(size_t i = 0; i<_flatvector.size(); i++)
+			for(size_t i = 0; i<flatvector_.size(); i++)
 			{
-				for(size_t j = 0; j<_flatvector[i].first.size(); j++)
-					std::cout << _flatvector[i].first[j]<<" ";
-				for(size_t j = 0; j<_flatvector[i].second.size(); j++)
-					std::cout<<_flatvector[i].second[j]<< " ";
+				for(size_t j = 0; j<flatvector_[i].first.size(); j++)
+					std::cout << flatvector_[i].first[j]<<" ";
+				for(size_t j = 0; j<flatvector_[i].second.size(); j++)
+					std::cout<<flatvector_[i].second[j]<< " ";
 				std::cout<<std::endl;
 			}
 		}
@@ -228,7 +228,7 @@ namespace SSAGES
 		 */
 		std::vector<double> GetLower()
 		{
-			return _lower;
+			return lower_;
 		}
 
 		//! Return upper edges of the Grid.
@@ -237,7 +237,7 @@ namespace SSAGES
 		 */
 		std::vector<double> GetUpper()
 		{
-			return _upper;
+			return upper_;
 		}
 
 		//! Get periodicity of the Grid.
@@ -249,7 +249,7 @@ namespace SSAGES
 		 */
 		std::vector<bool> GetPeriodic()
 		{
-			return _periodic;
+			return periodic_;
 		}
 
 		//! Get number of Grid points.
@@ -258,7 +258,7 @@ namespace SSAGES
 		 */
 		std::vector<int> GetNumPoints()
 		{
-			return _num_points;
+			return num_points_;
 		}
 
 		//! Get grid spacing.
@@ -267,7 +267,7 @@ namespace SSAGES
 		 */
 		std::vector<double> GetSpacing()
 		{
-			return _spacing;
+			return spacing_;
 		}
 
 		//! Get dimensionality of the Grid.
@@ -276,7 +276,7 @@ namespace SSAGES
 		 */
 		int GetDimension()
 		{
-			return _NDim;
+			return NDim_;
 		}
 
 		//! Set up the Grid.
@@ -346,19 +346,19 @@ namespace SSAGES
 		//! \copydoc Serializable::Serialize()
 		virtual void Serialize(Json::Value& json) const override
 		{
-			for(auto& p : _lower)
+			for(auto& p : lower_)
 				json["lower"].append(p);
 
-			for(auto& p : _upper)
+			for(auto& p : upper_)
 				json["upper"].append(p);
 
-			for(auto& p : _num_points)
+			for(auto& p : num_points_)
 				json["number_points"].append(p);
 
-			for(auto p : _periodic)
+			for(auto p : periodic_)
 				json["periodic"].append(p);
 
-			for(auto& point : _flatvector)
+			for(auto& point : flatvector_)
 				for(auto& p : point.first)
 					json["values"].append(p);
 
@@ -368,13 +368,13 @@ namespace SSAGES
 		/*!
 		 * \return Iterator to first element in the Grid.
 		 */
-		const_iterator begin() const { return _flatvector.begin();}
+		const_iterator begin() const { return flatvector_.begin();}
 
 		//! Get iterator one beyond last element of the Grid.
 		/*!
 		 * \return Iterator pointing to after the last element in the Grid.
 		 */
-		const_iterator end() const { return _flatvector.end(); }
+		const_iterator end() const { return flatvector_.end(); }
 	};
 	
 }

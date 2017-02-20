@@ -22,6 +22,42 @@ namespace LAMMPS_NS
 	FixSSAGES::FixSSAGES(LAMMPS *lmp, int narg, char **arg) : 
 	Fix(lmp, narg, arg), Hook()
 	{
+		int n = strlen(id) + 5;
+		tempid_ = new char[n];
+		strcpy(tempid_,id);
+		strcat(tempid_,"_temp");
+		char **newarg = new char*[3];
+
+		newarg[0] = tempid_;
+		newarg[1] = (char *) "all";
+		newarg[2] = (char *) "temp";
+		modify->add_compute(3,newarg);
+		delete [] newarg;
+
+		n = strlen(id) + 6;
+		pressid_ = new char[n];
+		strcpy(pressid_,id);
+		strcat(pressid_,"_press");
+
+		newarg = new char*[4];
+		newarg[0] = pressid_;
+		newarg[1] = (char *) "all";
+		newarg[2] = (char *) "pressure";
+		newarg[3] = tempid_;
+		modify->add_compute(4,newarg);
+		delete [] newarg;
+
+		n = strlen(id) + 3;
+		peid_= new char[n];
+		strcpy(peid_,id);
+		strcat(peid_,"_pe");
+
+		newarg = new char*[3];
+		newarg[0] = peid_;
+		newarg[1] = (char *) "all";
+		newarg[2] = (char *) "pe";
+		modify->add_compute(3,newarg);
+		delete [] newarg;
 	}
 
 	void FixSSAGES::setup(int)
@@ -31,22 +67,22 @@ namespace LAMMPS_NS
 		// resize later.
 		auto n = atom->nlocal;
 
-		auto& pos = _snapshot->GetPositions();
+		auto& pos = snapshot_->GetPositions();
 		pos.resize(n);
-		auto& vel = _snapshot->GetVelocities();
+		auto& vel = snapshot_->GetVelocities();
 		vel.resize(n);
-		auto& frc = _snapshot->GetForces();
+		auto& frc = snapshot_->GetForces();
 		frc.resize(n);
-		auto& masses = _snapshot->GetMasses();
+		auto& masses = snapshot_->GetMasses();
 		masses.resize(n);
-		auto& ids = _snapshot->GetAtomIDs();
+		auto& ids = snapshot_->GetAtomIDs();
 		ids.resize(n);
-		auto& types = _snapshot->GetAtomTypes();
+		auto& types = snapshot_->GetAtomTypes();
 		types.resize(n);
-		auto& charges = _snapshot->GetCharges();
+		auto& charges = snapshot_->GetCharges();
 		charges.resize(n);
 
-		auto& flags = _snapshot->GetImageFlags();
+		auto& flags = snapshot_->GetImageFlags();
 		flags.resize(n);
 
 		SyncToSnapshot();
@@ -88,64 +124,64 @@ namespace LAMMPS_NS
 		// Const Atom will ensure that atom variables are
 		// not being changed. Only snapshot side variables should
 		// change.
-		const auto* _atom = atom;
+		const auto* atom_ = atom;
 
 		auto n = atom->nlocal;
 
-		auto& pos = _snapshot->GetPositions();
+		auto& pos = snapshot_->GetPositions();
 		pos.resize(n);
-		auto& vel = _snapshot->GetVelocities();
+		auto& vel = snapshot_->GetVelocities();
 		vel.resize(n);
-		auto& frc = _snapshot->GetForces();
+		auto& frc = snapshot_->GetForces();
 		frc.resize(n);
-		auto& masses = _snapshot->GetMasses();
+		auto& masses = snapshot_->GetMasses();
 		masses.resize(n);
-		auto& flags = _snapshot->GetImageFlags();
+		auto& flags = snapshot_->GetImageFlags();
 		flags.resize(n);
 
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
-		auto& ids = _snapshot->GetAtomIDs();
+		auto& ids = snapshot_->GetAtomIDs();
 		ids.resize(n);
-		auto& types = _snapshot->GetAtomTypes();
+		auto& types = snapshot_->GetAtomTypes();
 		types.resize(n);
 
-		auto& charges = _snapshot->GetCharges();
+		auto& charges = snapshot_->GetCharges();
 		charges.resize(n);
 
 		// Thermo properties:
 		int icompute; 
 
 		//Temperature
-		const char* id_temp = "thermo_temp";
-		icompute = modify->find_compute(id_temp);
+		icompute = modify->find_compute(tempid_);
 		auto* temperature = modify->compute[icompute];
-		_snapshot->SetTemperature(temperature->compute_scalar());
+		snapshot_->SetTemperature(temperature->compute_scalar());
+		temperature->addstep(update->ntimestep + 1);
 		
 		//Energy
 		double etot = 0;
 
 		// Get potential energy.
-		const char* id_pe = "thermo_pe";
-		icompute = modify->find_compute(id_pe);
+		icompute = modify->find_compute(peid_);
 		auto* pe = modify->compute[icompute];
 		etot += pe->scalar;
+		pe->addstep(update->ntimestep + 1);
 
 		// Compute kinetic energy.
 		double ekin = 0.5 * temperature->scalar * temperature->dof  * force->boltz;
 		etot += ekin;
 
 		// Store in snapshot.
-		_snapshot->SetEnergy(etot/atom->natoms);
+		snapshot_->SetEnergy(etot/atom->natoms);
 		
 		// Get iteration.
-		_snapshot->SetIteration(update->ntimestep);
+		snapshot_->SetIteration(update->ntimestep);
 
-		_snapshot->SetDielectric(force->dielectric);
+		snapshot_->SetDielectric(force->dielectric);
 
-		_snapshot->Setqqrd2e(force->qqrd2e);
+		snapshot_->Setqqrd2e(force->qqrd2e);
 
-		_snapshot->SetNumAtoms(n);
+		snapshot_->SetNumAtoms(n);
 		
 		// Get H-matrix.
 		Matrix3 H;
@@ -153,8 +189,8 @@ namespace LAMMPS_NS
 		                0, domain->h[1], domain->h[3],
 		                0,            0, domain->h[2];
 
-		_snapshot->SetHMatrix(H);
-		_snapshot->SetKb(force->boltz);
+		snapshot_->SetHMatrix(H);
+		snapshot_->SetKb(force->boltz);
 
 		// Get box origin. 
 		Vector3 origin;
@@ -164,10 +200,10 @@ namespace LAMMPS_NS
 			domain->boxlo[2]
 		};
 	
-		_snapshot->SetOrigin(origin);
+		snapshot_->SetOrigin(origin);
 
 		// Set periodicity. 
-		_snapshot->SetPeriodicity({
+		snapshot_->SetPeriodicity({
 			domain->xperiodic, 
 			domain->yperiodic, 
 			domain->zperiodic
@@ -177,33 +213,33 @@ namespace LAMMPS_NS
 		// we gather data across all processors.
 		for (int i = 0; i < n; ++i)
 		{
-			pos[i][0] = _atom->x[i][0]; //x
-			pos[i][1] = _atom->x[i][1]; //y
-			pos[i][2] = _atom->x[i][2]; //z
+			pos[i][0] = atom_->x[i][0]; //x
+			pos[i][1] = atom_->x[i][1]; //y
+			pos[i][2] = atom_->x[i][2]; //z
 			
-			frc[i][0] = _atom->f[i][0]; //force->x
-			frc[i][1] = _atom->f[i][1]; //force->y
-			frc[i][2] = _atom->f[i][2]; //force->z
+			frc[i][0] = atom_->f[i][0]; //force->x
+			frc[i][1] = atom_->f[i][1]; //force->y
+			frc[i][2] = atom_->f[i][2]; //force->z
 
-			if(_atom->rmass_flag)
-				masses[i] = _atom->rmass[i];
+			if(atom_->rmass_flag)
+				masses[i] = atom_->rmass[i];
 			else
-				masses[i] = _atom->mass[_atom->type[i]];
+				masses[i] = atom_->mass[atom_->type[i]];
 			
-			vel[i][0] = _atom->v[i][0];
-			vel[i][1] = _atom->v[i][1];
-			vel[i][2] = _atom->v[i][2];
+			vel[i][0] = atom_->v[i][0];
+			vel[i][1] = atom_->v[i][1];
+			vel[i][2] = atom_->v[i][2];
 
 			// Image flags. 
-			flags[i][0] = (_atom->image[i] & IMGMASK) - IMGMAX;;
-			flags[i][1] = (_atom->image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-			flags[i][2] = (_atom->image[i] >> IMG2BITS) - IMGMAX;
+			flags[i][0] = (atom_->image[i] & IMGMASK) - IMGMAX;;
+			flags[i][1] = (atom_->image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+			flags[i][2] = (atom_->image[i] >> IMG2BITS) - IMGMAX;
 
-			ids[i] = _atom->tag[i];
-			types[i] = _atom->type[i];
+			ids[i] = atom_->tag[i];
+			types[i] = atom_->type[i];
 
-			if(_atom->q_flag)
-				charges[i] = _atom->q[i];
+			if(atom_->q_flag)
+				charges[i] = atom_->q[i];
 			else
 				charges[i] = 0;
 		}
@@ -212,19 +248,19 @@ namespace LAMMPS_NS
 	void FixSSAGES::SyncToEngine() //put Snapshot values -> LAMMPS
 	{
 		// Obtain local const reference to snapshot variables.
-		// Const will ensure that _snapshot variables are
+		// Const will ensure that snapshot_ variables are
 		// not being changed. Only engine side variables should
 		// change. 
-		const auto& pos = _snapshot->GetPositions();
-		const auto& vel = _snapshot->GetVelocities();
-		const auto& frc = _snapshot->GetForces();
-		const auto& masses = _snapshot->GetMasses();
-		const auto& charges = _snapshot->GetCharges();
+		const auto& pos = snapshot_->GetPositions();
+		const auto& vel = snapshot_->GetVelocities();
+		const auto& frc = snapshot_->GetForces();
+		const auto& masses = snapshot_->GetMasses();
+		const auto& charges = snapshot_->GetCharges();
 
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
-		const auto& ids = _snapshot->GetAtomIDs();
-		const auto& types = _snapshot->GetAtomTypes();
+		const auto& ids = snapshot_->GetAtomIDs();
+		const auto& types = snapshot_->GetAtomTypes();
 
 		for (int i = 0; i < atom->nlocal; ++i)
 		{
@@ -253,6 +289,16 @@ namespace LAMMPS_NS
 		// updated information. No need to sync thermo data
 		// from snapshot to engine.
 		// However, this will change in the future.
+	}
+
+	FixSSAGES::~FixSSAGES()
+	{
+		modify->delete_compute(tempid_);
+		modify->delete_compute(pressid_);
+		modify->delete_compute(peid_);
+		delete tempid_;
+		delete pressid_;
+		delete peid_;
 	}
 }
 

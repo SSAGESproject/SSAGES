@@ -34,7 +34,7 @@ namespace SSAGES
 	{
 	private:
 		//! Vector of 3 atom ID's of interest.
-		Label _atomids;
+		Label atomids_;
 
 	public:
 
@@ -49,9 +49,9 @@ namespace SSAGES
 		 * \todo Bounds needs to be an input and periodic boundary conditions
 		 */
 		AngleCV(int atomid1, int atomid2, int atomid3) :
-		_atomids({atomid1, atomid2, atomid3})
+		atomids_({atomid1, atomid2, atomid3})
 		{
-			_bounds = {{0,M_PI}};
+			bounds_ = {{0,M_PI}};
 		}
 
 		//! Initialize necessary variables.
@@ -63,7 +63,7 @@ namespace SSAGES
 			using std::to_string;
 			
 			std::vector<int> found;
-			snapshot.GetLocalIndices(_atomids, &found);
+			snapshot.GetLocalIndices(atomids_, &found);
 			int nfound = found.size();
 			MPI_Allreduce(MPI_IN_PLACE, &nfound, 1, MPI_INT, MPI_SUM, snapshot.GetCommunicator());
 			
@@ -88,14 +88,14 @@ namespace SSAGES
 			auto& comm = snapshot.GetCommunicator();
 
 			// Initialize gradient.
-			std::fill(_grad.begin(), _grad.end(), Vector3{0,0,0});
-			_grad.resize(n, Vector3{0,0,0});
+			std::fill(grad_.begin(), grad_.end(), Vector3{0,0,0});
+			grad_.resize(n, Vector3{0,0,0});
 
 			Vector3 xi{0, 0, 0}, xj{0, 0, 0}, xk{0, 0, 0};
 
-			auto iindex = snapshot.GetLocalIndex(_atomids[0]);
-			auto jindex = snapshot.GetLocalIndex(_atomids[1]);
-			auto kindex = snapshot.GetLocalIndex(_atomids[2]);
+			auto iindex = snapshot.GetLocalIndex(atomids_[0]);
+			auto jindex = snapshot.GetLocalIndex(atomids_[1]);
+			auto kindex = snapshot.GetLocalIndex(atomids_[2]);
 
 			if(iindex != -1) xi = pos[iindex];
 			if(jindex != -1) xj = pos[jindex];
@@ -115,7 +115,7 @@ namespace SSAGES
 			auto nrij = rij.norm();
 			auto nrkj = rkj.norm();
 
-			_val = acos(dotP/(nrij*nrkj));
+			val_ = acos(dotP/(nrij*nrkj));
 
 			// Calculate gradients
 			auto prefactor = -1.0/(sqrt(1. - dotP/(nrij*nrkj))*nrij*nrkj);
@@ -125,9 +125,9 @@ namespace SSAGES
 			if(kindex != -1) gradk = prefactor*(rij - dotP*rkj/(nrkj*nrkj));
 			MPI_Allreduce(MPI_IN_PLACE, gradi.data(), 3, MPI_DOUBLE, MPI_SUM, comm);
 			MPI_Allreduce(MPI_IN_PLACE, gradk.data(), 3, MPI_DOUBLE, MPI_SUM, comm);
-			if(iindex != -1) _grad[iindex] = gradi;	
-			if(kindex != -1) _grad[kindex] = gradk;
-			if(jindex != -1) _grad[jindex] = -gradi - gradk;
+			if(iindex != -1) grad_[iindex] = gradi;	
+			if(kindex != -1) grad_[kindex] = gradk;
+			if(jindex != -1) grad_[jindex] = -gradi - gradk;
 		}
 
 		//! Serialize this CV for restart purposes.
@@ -138,10 +138,10 @@ namespace SSAGES
 		{
 			json["type"] = "Angle";
 
-			for(auto& id : _atomids)
+			for(auto& id : atomids_)
 				json["atom_ids"].append(id);
 
-			for(auto& bound : _bounds)
+			for(auto& bound : bounds_)
 				json["bounds"].append(bound);
 		}
 

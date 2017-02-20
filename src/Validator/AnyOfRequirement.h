@@ -37,16 +37,16 @@ namespace Json
 	class AnyOfRequirement : public Requirement
 	{
 	private:
-		RequireList _reqs; //!< List of Requirements.
+		RequireList reqs_; //!< List of Requirements.
 
 	public:
 		//! Constructor.
-		AnyOfRequirement() : _reqs(0) {}
+		AnyOfRequirement() : reqs_(0) {}
 
 		//! Clear list of error messages for all Requirements.
 		virtual void ClearErrors() override
 		{
-			for(auto& r : _reqs)
+			for(auto& r : reqs_)
 				r->ClearErrors();
 
 			Requirement::ClearErrors();
@@ -55,7 +55,7 @@ namespace Json
 		//! Clear list of notices for all Requirements.
 		virtual void ClearNotices() override
 		{
-			for(auto& r : _reqs)
+			for(auto& r : reqs_)
 				r->ClearNotices();
 
 			Requirement::ClearNotices();
@@ -66,7 +66,7 @@ namespace Json
 		{
 			ClearErrors();
 			ClearNotices();
-			_reqs.clear();
+			reqs_.clear();
 		}
 
 		//! Parse JSON value and create list of Requirements.
@@ -88,8 +88,8 @@ namespace Json
 			for(auto& val : head)
 				if(auto req = loader.LoadRequirement(val))
 				{
-					_reqs.push_back(std::move(req));
-					_reqs.back()->Parse(val, path);
+					reqs_.push_back(std::move(req));
+					reqs_.back()->Parse(val, path);
 				}
 
 		}
@@ -101,7 +101,7 @@ namespace Json
 		 */
 		virtual void Validate(const Value& json, const std::string& path) override
 		{
-			for(auto& r : _reqs)
+			for(auto& r : reqs_)
 			{
 				r->Validate(json, path);
 				if(!r->HasErrors())
@@ -109,7 +109,7 @@ namespace Json
 			}
 
 			// Collect errors.
-			for(auto& r : _reqs)
+			for(auto& r : reqs_)
 			{
 				if(r->HasErrors())
 					for(const auto& error : r->GetErrors())

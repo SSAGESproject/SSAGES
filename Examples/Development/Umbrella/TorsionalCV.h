@@ -28,22 +28,22 @@ namespace SSAGES
 	{
 	private:
 		// IDs of atoms of interest.
-		int _atomid1;
-		int _atomid2; 
-		int _atomid3;
-		int _atomid4; 
+		int atomid1_;
+		int atomid2_; 
+		int atomid3_;
+		int atomid4_; 
 
 		// Current value of the CV.
-		double _val;
+		double val_;
 
 		// Use periodic boundary or not
-		bool _periodic;
+		bool periodic_;
 
 		// Gradients of the Dihedral CV, dtheta/dri, dtheta/drj, dtheta/drk, dtheta/drl.
-		std::vector<Vector3> _grad;
+		std::vector<Vector3> grad_;
 
 		// Bounds on CV.
-		std::array<double, 2> _bounds;
+		std::array<double, 2> bounds_;
 
 		// Helper function to compute the norm of a vector.
 		double norm(const Vector3& v)
@@ -71,8 +71,8 @@ namespace SSAGES
 		// the IDs of the atoms of interest
 		// TODO: bounds needs to be an input and periodic boundary conditions
 		TorsionalCV(int atomid1, int atomid2, int atomid3, int atomid4, bool periodic) : 
-		_atomid1(atomid1), _atomid2(atomid2), _atomid3(atomid3), _atomid4(atomid4),
-		_val(0), _periodic(periodic), _grad(0), _bounds{{0,0}}
+		atomid1_(atomid1), atomid2_(atomid2), atomid3_(atomid3), atomid4_(atomid4),
+		val_(0), periodic_(periodic), grad_(0), bounds_{{0,0}}
 		{
 		}
 
@@ -81,7 +81,7 @@ namespace SSAGES
 		{
 			// Initialize gradient. 
 			auto n = snapshot.GetPositions().size();		
-			_grad.resize(n);
+			grad_.resize(n);
 		}
 
 		// Evaluate the CV.
@@ -110,11 +110,11 @@ namespace SSAGES
 			// Loop through atom positions
 			for(size_t i = 0; i < pos.size(); ++i)
 			{
-				_grad[i][0] = 0;
-				_grad[i][1] = 0;
-				_grad[i][2] = 0;
+				grad_[i][0] = 0;
+				grad_[i][1] = 0;
+				grad_[i][2] = 0;
 				// If we are at the atom ID of interest, grab coordinates
-				if(ids[i] == _atomid1)
+				if(ids[i] == atomid1_)
 				{
 					//coordinates for atom i
 					ix = pos[i][0];
@@ -122,7 +122,7 @@ namespace SSAGES
 					iz = pos[i][2];
 					iindex = i;
 				}
-				if(ids[i] == _atomid2)
+				if(ids[i] == atomid2_)
 				{
 					//coordinates for atom j
 					jx = pos[i][0];
@@ -130,7 +130,7 @@ namespace SSAGES
 					jz = pos[i][2];
 					jindex = i;
 				}
-				if(ids[i] == _atomid3)
+				if(ids[i] == atomid3_)
 				{
 					//coordinates for atom k
 					kx = pos[i][0];
@@ -138,7 +138,7 @@ namespace SSAGES
 					kz = pos[i][2];
 					kindex = i;
 				}
-				if(ids[i] == _atomid4)
+				if(ids[i] == atomid4_)
 				{
 					//coordinates for atom l
 					lx = pos[i][0];
@@ -191,20 +191,20 @@ namespace SSAGES
 			auto y = DotProduct(rijrkjprod, rkjrklcross);
 			auto rijrkjcross = CrossProduct(rij, rkj);
 			auto x = DotProduct(rijrkjcross, rkjrklcross);
-			_val = atan2(y, x);
+			val_ = atan2(y, x);
 
 			Vector3 d0dri, d0drj, d0drk, d0drl;
 
 			for(size_t i = 0; i<3; i++)
 			{
-				d0dri[i] = (1.0/normrim)*(rln[i]/normrln-cos(_val)*rim[i]/normrim);
-				d0drl[i] = (1.0/normrln)*(rim[i]/normrim-cos(_val)*rln[i]/normrln);
+				d0dri[i] = (1.0/normrim)*(rln[i]/normrln-cos(val_)*rim[i]/normrim);
+				d0drl[i] = (1.0/normrln)*(rim[i]/normrim-cos(val_)*rln[i]/normrln);
 				d0drj[i] = (DotProduct(rij,rkj)/rkj2 - 1)*d0dri[i] - (DotProduct(rkl, rkj)/rkj2)*d0drl[i];
 				d0drk[i] = (DotProduct(rkl,rkj)/rkj2 - 1)*d0drl[i] - (DotProduct(rij, rkj)/rkj2)*d0dri[i];
-				_grad[iindex][i]= -d0dri[i]/sin(_val);
-				_grad[jindex][i]= -d0drj[i]/sin(_val);
-				_grad[kindex][i]= -d0drk[i]/sin(_val);
-				_grad[lindex][i]= -d0drl[i]/sin(_val);
+				grad_[iindex][i]= -d0dri[i]/sin(val_);
+				grad_[jindex][i]= -d0drj[i]/sin(val_);
+				grad_[kindex][i]= -d0drk[i]/sin(val_);
+				grad_[lindex][i]= -d0drl[i]/sin(val_);
 			}
 
 		}
@@ -212,12 +212,12 @@ namespace SSAGES
 		// Return the value of the CV.
 		double GetValue() const override 
 		{ 
-			return _val; 
+			return val_; 
 		}
 
 		double GetPeriodicValue(double Location) const override
 		{
-			if(!_periodic)
+			if(!periodic_)
 				return Location;
 
 			double pi = 3.14159;
@@ -236,21 +236,21 @@ namespace SSAGES
 		// Return the gradient of the CV.
 		const std::vector<Vector3>& GetGradient() const override
 		{
-			return _grad;
+			return grad_;
 		}
 
 		// Return the boundaries of the CV.
 		const std::array<double, 2>& GetBoundaries() const override
 		{
-			return _bounds;
+			return bounds_;
 		}
 
 		double GetDifference(const double Location) const override
 		{
 			double pi = 3.14159;
-			double PeriodicDiff = _val - Location;
+			double PeriodicDiff = val_ - Location;
 
-			if(!_periodic)
+			if(!periodic_)
 				return PeriodicDiff;
 
 			PeriodicDiff = GetPeriodicValue(PeriodicDiff);

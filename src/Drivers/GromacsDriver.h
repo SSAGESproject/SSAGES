@@ -36,8 +36,8 @@ namespace SSAGES
 		//! Number of walkers.
 		int nwalkers_;
 
-		//! Number of MD steps.
-		int MDSteps_;
+		//! Is the simulation a restart?
+		bool restart_;
 
 	public:
 
@@ -57,29 +57,40 @@ namespace SSAGES
 		//! Run simulation.
 		virtual void Run() override
 		{
-			int argc = (nwalkers_ > 1) ? 5 : 3; 
-			char **largs = new char*[argc];
+			int argc = 3; 
+			char **largs = new char*[64];
 			largs[0] = new char[128];
 			largs[1] = new char[128];
 			largs[2] = new char[128];
-			if(nwalkers_ > 1)
-			{
-				largs[3] = new char[128];
-				largs[4] = new char[128];
-			}
 
 			// Trim input file extension.
-			auto s = _inputfile.substr(0, _inputfile.find_last_of("."));
+			auto s = inputfile_.substr(0, inputfile_.find_last_of("."));
 
 			sprintf(largs[0], "ssages");
 			sprintf(largs[1], "-deffnm");
 			sprintf(largs[2], "%s", s.c_str());
+
 			if(nwalkers_ > 1)
 			{
-				sprintf(largs[3], "-multi");
-				sprintf(largs[4], "%i", nwalkers_);
+				largs[argc] = new char[128];
+				sprintf(largs[argc], "-multi");
+				++argc;
+				largs[argc] = new char[128];
+				sprintf(largs[argc], "%i", nwalkers_);
+				++argc;
+
 			}
-				
+
+			if(restart_)
+			{
+				largs[argc] = new char[128];
+				sprintf(largs[argc], "-cpi");
+				++argc;
+				largs[argc] = new char[128];
+				sprintf(largs[argc], "-noappend");
+				++argc;
+			}
+
 			// For prettyness.
 			std::cout << std::endl;
 			gmx::CommandLineModuleManager::runAsMainCMain(argc, largs, &gmx_mdrun);
@@ -92,7 +103,6 @@ namespace SSAGES
 		 */
 		virtual void ExecuteInputFile(std::string) override
 		{
-
 		}
 
 		//! Set up the driver.
@@ -102,13 +112,16 @@ namespace SSAGES
 		 */
 		virtual void BuildDriver(const Json::Value& json, const std::string& path) override
 		{
-			_inputfile = json.get("inputfile","none").asString();
-			MDSteps_ = json.get("MDSteps", 1).asInt();
+			inputfile_ = json.get("inputfile","none").asString();
+			iterations_ = json.get("MDSteps", 1).asInt();
 
 			// Set hook. 
 			auto& hook = GromacsHook::Instance();
-			hook.SetIterationTarget(MDSteps_);
-			_hook = dynamic_cast<Hook*>(&hook);
+			hook.SetIterationTarget(iterations_);
+			hook_ = dynamic_cast<Hook*>(&hook);
+
+			// Restart?
+			restart_ = json.get("restart", false).asBool();
 		}
 
 		//! \copydoc Serializable::Serialize()
@@ -117,7 +130,7 @@ namespace SSAGES
 			// Call parent first.
 			Driver::Serialize(json);
 
-			json["MDSteps"] = MDSteps_;
+			json["MDSteps"] = iterations_;
 			json["type"] = "Gromacs";
 		}
 	};

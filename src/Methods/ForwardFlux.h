@@ -37,66 +37,66 @@ namespace SSAGES
 	{
 	private:
 
-		std::random_device _rd; //!< Random number generator.
-		std::mt19937 _gen; //!< Alternative random number generator.
+		std::random_device rd_; //!< Random number generator.
+		std::mt19937 gen_; //!< Alternative random number generator.
 
 		//! Possible restart values.
 		enum Restart {NEW, LIBRARY, NEWCONFIG, NONE};
 
 		//! Restart value.
-		Restart _restart;
+		Restart restart_;
 
 		// Output index file for storing information on where everything is.
-		std::string _indexfilename; //!< File name for index file.
-		std::ofstream _indexfile; //!< File stream for index file.
-		std::string _indexcontents; //!< Contents of index file.
-		std::string _globalcontents; //!< Global contents.
-		std::string _totalcontents; //!< On going record of all paths.
+		std::string indexfilename_; //!< File name for index file.
+		std::ofstream indexfile_; //!< File stream for index file.
+		std::string indexcontents_; //!< Contents of index file.
+		std::string globalcontents_; //!< Global contents.
+		std::string totalcontents_; //!< On going record of all paths.
 
-		std::string _libraryfilename; //!< File name for index file.
-		std::ofstream _libraryfile; //!< File stream for index file.
-		std::string _librarycontents; //!< Library contents.
+		std::string libraryfilename_; //!< File name for index file.
+		std::ofstream libraryfile_; //!< File stream for index file.
+		std::string librarycontents_; //!< Library contents.
 		
-		std::string _currentconfig; //!< Current configuration.
+		std::string currentconfig_; //!< Current configuration.
 
 		// Results file for end of simulation.
-		std::string _resultsfilename; //!< File name for simulation results.
-		std::ofstream _resultsfile; //!< File stream for simulation results.
-		std::string _resultscontents; //!< Content of simulation results.
+		std::string resultsfilename_; //!< File name for simulation results.
+		std::ofstream resultsfile_; //!< File stream for simulation results.
+		std::string resultscontents_; //!< Content of simulation results.
 
 		//! Location of the nodes to be used in determining FF interfaces.
-		std::vector<double> _centers;
+		std::vector<double> centers_;
 
 		//! Number of successes at a given interface.
-		std::vector<int> _successes;
+		std::vector<int> successes_;
 
 		//! Number of local successes.
-		std::vector<int> _localsuccesses;
+		std::vector<int> localsuccesses_;
 
 		//! Current interface FF is shooting from.
-		unsigned int _currentnode;
+		unsigned int currentnode_;
 
 		//! The current starting configuration that we are on.
-		unsigned int _currentstartingpoint;
+		unsigned int currentstartingpoint_;
 
 		//! User defined number of starting configs needed per walker before starting FF.
-		unsigned int _requiredconfigs;
+		unsigned int requiredconfigs_;
 
 		//! Number that keeps track of configs this walker has generated.
-		int _currenthash;
+		int currenthash_;
 
 		//! Name of file of configuration where shooting from.
-		std::string _shootingconfigfile;
+		std::string shootingconfigfile_;
 
 		//! Number of shots each node takes per interface
-		int _numshots;
+		int numshots_;
 
 		//! Index of the current shot.
-		int _currentshot;
+		int currentshot_;
 
 		// Flux
-		int _fluxout; //!< Flux out.
-		int _fluxin; //!< Flux in.
+		int fluxout_; //!< Flux out.
+		int fluxin_; //!< Flux in.
 
 	public:
 		//! Constructor
@@ -122,21 +122,21 @@ namespace SSAGES
 				 unsigned int requiredconfigs,
 				 int numshots,
 				 unsigned int frequency) : 
-		Method(frequency, world, comm), _rd(), _gen(_rd()), _restart(NEW),
-		_indexfilename(indexfilename), _indexcontents(""), _globalcontents(""),
-		_totalcontents(""), _libraryfilename(libraryfilename), _librarycontents(""),
-		_resultsfilename(resultsfilename), _resultscontents(""), 
-		_centers(centers), _currentnode(0), _currentstartingpoint(0), 
-		_requiredconfigs(requiredconfigs), _currenthash(1000000*world.rank()), 
-		_shootingconfigfile(""), _numshots(numshots), _currentshot(0),
-		_fluxout(0), _fluxin(0)
+		Method(frequency, world, comm), rd_(), gen_(rd_()), restart_(NEW),
+		indexfilename_(indexfilename), indexcontents_(""), globalcontents_(""),
+		totalcontents_(""), libraryfilename_(libraryfilename), librarycontents_(""),
+		resultsfilename_(resultsfilename), resultscontents_(""), 
+		centers_(centers), currentnode_(0), currentstartingpoint_(0), 
+		requiredconfigs_(requiredconfigs), currenthash_(1000000*world.rank()), 
+		shootingconfigfile_(""), numshots_(numshots), currentshot_(0),
+		fluxout_(0), fluxin_(0)
 		{
-			_successes.resize(_centers.size());
-			_localsuccesses.resize(_centers.size());
-			for(size_t i = 0; i < _successes.size(); i++)
+			successes_.resize(centers_.size());
+			localsuccesses_.resize(centers_.size());
+			for(size_t i = 0; i < successes_.size(); i++)
 			{
-				_successes[i] = 0;
-				_localsuccesses[i] = 0;
+				successes_[i] = 0;
+				localsuccesses_[i] = 0;
 			}
 		}
 
@@ -179,11 +179,11 @@ namespace SSAGES
 		int AtInterface(const CVList& cvs)
 		{
 			std::vector<double> dists;
-			dists.resize(_centers.size());
+			dists.resize(centers_.size());
 
 			// Record the difference between all cvs and all nodes
-			for (size_t i = 0; i < _centers.size(); i++)
-				dists[i] = (cvs[0]->GetValue() - _centers[i])*(cvs[0]->GetValue() - _centers[i]);
+			for (size_t i = 0; i < centers_.size(); i++)
+				dists[i] = (cvs[0]->GetValue() - centers_[i])*(cvs[0]->GetValue() - centers_[i]);
 
 			return (std::min_element(dists.begin(), dists.end()) - dists.begin());
 		}
@@ -237,13 +237,13 @@ namespace SSAGES
 		void SetRestart(std::string restart)
 		{
 			if(restart == "new_library")
-				_restart = NEW;
+				restart_ = NEW;
 			else if (restart == "from_library")
-				_restart = LIBRARY;
+				restart_ = LIBRARY;
 			else if (restart == "from_interface")
-				_restart = NEWCONFIG;
+				restart_ = NEWCONFIG;
 			else if (restart == "none")
-				_restart = NONE;
+				restart_ = NONE;
 			else
 				throw BuildException({"Unknown restart type for Forward Flux Method!"});
 		}
@@ -252,25 +252,25 @@ namespace SSAGES
 		/*!
 		 * \param lpoint New starting point for the library.
 		 */
-		void SetLibraryPoint(unsigned int lpoint){_currentstartingpoint = lpoint;}
+		void SetLibraryPoint(unsigned int lpoint){currentstartingpoint_ = lpoint;}
 
 		//! Set hash value.
 		/*!
 		 * \param hash New hash value.
 		 */
-		void SetHash(int hash){_currenthash = hash;}
+		void SetHash(int hash){currenthash_ = hash;}
 
 		//! Set contents for the index.
 		/*!
 		 * \param contents New string for the index contents.
 		 */
-		void SetIndexContents(std::string contents){_indexcontents = contents;}
+		void SetIndexContents(std::string contents){indexcontents_ = contents;}
 
 		//! Set the value for the current shot.
 		/*!
 		 * \param atshot New value for the current shot.
 		 */
-		void SetAtShot(int atshot){_currentshot = atshot;}
+		void SetAtShot(int atshot){currentshot_ = atshot;}
 
 		//! Set the number of successes for the interfaces.
 		/*!
@@ -281,11 +281,11 @@ namespace SSAGES
 		 */
 		void SetSuccesses(std::vector<int> succ)
 		{
-			if(_localsuccesses.size() != succ.size())
+			if(localsuccesses_.size() != succ.size())
 				throw BuildException({"Number of interfaces does not match local successes."});
 
 			for(size_t i = 0; i<succ.size(); i++)
-				_localsuccesses[i] = succ[i];
+				localsuccesses_[i] = succ[i];
 		}
 
 		//! \copydoc Serializable::Serialize()
@@ -293,17 +293,17 @@ namespace SSAGES
 		{
 			//Needed to run
 			json["type"] = "ForwardFlux";
-			json["index_file"] = _indexfilename;
-			json["library_file"] = _libraryfilename;
-			json["results_file"] = _resultsfilename;
-			json["generate_configs"] = _requiredconfigs;
-			json["shots"] = _numshots;
-			for(auto& c : _centers)
+			json["index_file"] = indexfilename_;
+			json["library_file"] = libraryfilename_;
+			json["results_file"] = resultsfilename_;
+			json["generate_configs"] = requiredconfigs_;
+			json["shots"] = numshots_;
+			for(auto& c : centers_)
 				json["centers"].append(c);
 			
 			// Needed for Restart:
 			std::string restart;
-			switch(_restart)
+			switch(restart_)
 			{
 				case NEW: 
 				{
@@ -327,13 +327,13 @@ namespace SSAGES
 			}
 
 			json["restart_type"] = restart;
-			json["library_point"] = _currentstartingpoint;
-			json["current_hash"] = _currenthash;
-			json["index_contents"] = _indexcontents;
-			for(auto s : _localsuccesses)
+			json["library_point"] = currentstartingpoint_;
+			json["current_hash"] = currenthash_;
+			json["index_contents"] = indexcontents_;
+			for(auto s : localsuccesses_)
 				json["successes"].append(s);
 
-			json["current_shot"] = _currentshot;
+			json["current_shot"] = currentshot_;
 
 		}
 

@@ -40,6 +40,9 @@ namespace SSAGES
 	private:
 		Label group1_; //!< Atom ID's of group 1.
 		Label group2_; //!< Atom ID's of group 2.
+		
+		//! Each dimension determines if it is applied by the CV.
+		Bool3 dim_; 
 
 	public:
 		//! Constructor
@@ -52,7 +55,23 @@ namespace SSAGES
 		 * \todo bounds needs to be an input.
 		 */
 		ParticleSeparationCV(const Label& group1, const Label& group2) : 
-		group1_(group1), group2_(group2)
+		group1_(group1), group2_(group2), dim_{true, true, true}
+		{}
+
+		//! Constructor
+		/*!
+		 * \param group1 Vector of atom ID's of the first particle.
+		 * \param group2 Vector of atom ID's of the second particle.
+		 * \param fixx If \c False, include x dimension.
+		 * \param fixy If \c False, include y dimension.
+		 * \param fixz If \c False, include z dimension.
+		 *
+		 * Construct a paarticle separation CV.
+		 *
+		 * \todo bounds needs to be an input.
+		 */
+		ParticleSeparationCV(const Label& group1, const Label& group2, bool fixx, bool fixy, bool fixz) : 
+		group1_(group1), group2_(group2), dim_{fixx, fixy, fixz}
 		{}
 
 		//! Initialize necessary variables.
@@ -117,8 +136,8 @@ namespace SSAGES
 			const auto& masses = snapshot.GetMasses();
 
 			// Initialize gradient.
-			std::fill(_grad.begin(), _grad.end(), Vector3{0,0,0});
-			_grad.resize(n, Vector3{0,0,0});
+			std::fill(grad_.begin(), grad_.end(), Vector3{0,0,0});
+			grad_.resize(n, Vector3{0,0,0});
 
 			// Get centers of mass.
 			auto mtot1 = snapshot.TotalMass(idx1);		
@@ -127,16 +146,16 @@ namespace SSAGES
 			Vector3 com2 = snapshot.CenterOfMass(idx2, mtot2);
 
 			// Account for pbc. 
-			Vector3 rij = snapshot.ApplyMinimumImage(com1 - com2);
+			Vector3 rij = snapshot.ApplyMinimumImage(com1 - com2).cwiseProduct(dim_.cast<double>());
 
 			// Compute gradient.
-			_val = rij.norm();
+			val_ = rij.norm();
 
 			for(auto& id : idx1)
-				_grad[id] = rij/_val*masses[id]/mtot1;
+				grad_[id] = rij/val_*masses[id]/mtot1;
 			
 			for(auto& id : idx2)
-				_grad[id] = -rij/_val*masses[id]/mtot2;
+				grad_[id] = -rij/val_*masses[id]/mtot2;
 		}
 
 		//! Serialize this CV for restart purposes.
@@ -153,8 +172,12 @@ namespace SSAGES
 			for(auto& id : group2_)
 				json["group2"].append(id);
 
-			for(auto& bound : _bounds)
+			for(auto& bound : bounds_)
 				json["bounds"].append(bound);
+
+			json["dimension"][0] = dim_[0];
+			json["dimension"][1] = dim_[1];
+			json["dimension"][2] = dim_[2];
 		}
 	};
 }
