@@ -174,6 +174,36 @@ public:
         data_.resize(data_size);
     }
 
+    //! Get total number of grid points (including under- and overflow bins)
+    /*!
+     * This function returns the total number of grid points, which is identical
+     * to the size of the internal data vector.
+     */
+    size_t size() const
+    {
+        return data_.size();
+    }
+
+    //! Get pointer to the internal data storage vector
+    /*!
+     * It is discouraged to directly access the internal data storage. It might,
+     * however be necessary. For example when communicating the data over MPI.
+     */
+    T *data()
+    {
+        return data_.data();
+    }
+
+    //! Get pointer to const of the internal data storage vector
+    /*!
+     * It is discouraged to directly access the internal data storage. It might,
+     * however be necessary. For example when communicating data over MPI.
+     */
+    T const *data() const
+    {
+        return data_.data();
+    }
+
     //! Get the dimension.
     size_t GetDimension() const
     {
