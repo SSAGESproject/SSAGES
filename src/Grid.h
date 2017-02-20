@@ -390,8 +390,8 @@ public:
         // Check if an index is out of bounds
         for (size_t i=0; i<dimension_; ++i) {
             int index = indices.at(i);
-            if (isPeriodic_.at(i) && (index < 0 || index >= numPoints_.at(i)) ||
-                !isPeriodic_.at(i) && (index < -1 || index > numPoints_.at(i)))
+            if ( (isPeriodic_.at(i) && (index < 0 || index >= numPoints_.at(i))) ||
+                 (!isPeriodic_.at(i) && (index < -1 || index > numPoints_.at(i))) )
             {
                 throw std::out_of_range("Grid index out of range.");
             }
