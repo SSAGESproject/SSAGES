@@ -75,7 +75,7 @@ private:
     const size_t dimension_;
 
     //! Number of points in each dimension.
-    std::vector<size_t> numPoints_;
+    std::vector<int> numPoints_;
 
     //! Edges of the Grid in each dimension.
     std::pair< std::vector<double>,std::vector<double> > edges_;
@@ -141,7 +141,7 @@ public:
      * The dimension of the grid is determined by the size of the parameter
      * vectors.
      */
-    Grid(std::vector<size_t> numPoints,
+    Grid(std::vector<int> numPoints,
          std::vector<double> lower,
          std::vector<double> upper,
          std::vector<bool> isPeriodic)
@@ -181,7 +181,7 @@ public:
     }
 
     //! Get the number of points for all dimensions.
-    const std::vector<size_t>& GetNumPoints() const
+    const std::vector<int>& GetNumPoints() const
     {
         return numPoints_;
     }
@@ -192,7 +192,7 @@ public:
      *
      * \note The first dimension uses the index 0.
      */
-    size_t GetNumPoints(size_t dim) const
+    int GetNumPoints(size_t dim) const
     {
         if (dim >= GetDimension()) {
             std::cerr << "Warning! Grid size requested for a dimension larger "
@@ -587,9 +587,9 @@ public:
         }
 
         // Read in number of points.
-        std::vector<size_t> number_points;
+        std::vector<int> number_points;
         for (auto &np : json["number_points"]) {
-            number_points.push_back(np.asUInt());
+            number_points.push_back(np.asInt());
         }
 
         if (number_points.size() != dimension) {
@@ -620,7 +620,7 @@ public:
     /*!
      * \warning Serialization not yet implemented.
      */
-    void Serialize(Json::Value& json) const override
+    void Serialize(Json::Value& /*json*/) const override
     {
 
     }
