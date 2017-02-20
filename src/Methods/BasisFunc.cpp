@@ -38,7 +38,7 @@ namespace SSAGES
         // Make sure the iteration index is set correctly
         iteration_ = 0;
 
-        if(!grid_)
+        if(!histlocal_)
 		{
             std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
 			std::cerr<<"ERROR: Method expected a grid but no grid built."<<std::endl;
@@ -50,7 +50,7 @@ namespace SSAGES
         // There are a few error messages / checks that are in place with defining CVs and grids
         else
         {
-            if(grid_->GetDimension() != cvs.size())
+            if(histlocal_->GetDimension() != cvs.size())
             {
                 std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
                 std::cerr<<"ERROR: Grid dimensions doesn't match number of CVS."<<std::endl;
@@ -82,7 +82,7 @@ namespace SSAGES
         // Setting the number of bins here for simplicity
         nbins_.resize(cvs.size());
         for(size_t i = 0; i < cvs.size(); ++i)
-            nbins_[i] = grid_->GetNumPoints(i);
+            nbins_[i] = histlocal_->GetNumPoints(i);
 
         // This is to check for non-periodic bounds. It comes into play in the update bias function
         bounds_ = true;
@@ -94,8 +94,6 @@ namespace SSAGES
         }
 
 		derivatives_.resize(cvs.size());
-        histlocal_.resize(bin_size,0);
-        histglobal_.resize(bin_size,0);
         unbias_.resize(bin_size,0);
         coeff_arr_.resize(coeff_size,0);
 
@@ -168,7 +166,7 @@ namespace SSAGES
         if(bounds_)
         {
             // Convert the CV value to its discretized value through the grid tool
-            idx = grid_->GetIndices(x);
+            idx = histlocal_->GetIndices(x);
            
             // Map the grid index to the form of the hist and unbias mapping
             for(size_t i = 0; i < cvs.size(); ++i)
@@ -286,15 +284,20 @@ namespace SSAGES
         double basis = 1.0;
 
         // For multiple walkers, the struct is unpacked
-        for(size_t i = 0; i < hist_.size(); ++i)
-            histlocal_[i] = (int)hist_[i].value;
+        std::vector<int>::iterator it;
+        for(it = histlocal_->begin(); it != histlocal_->end(); ++it) {
+            size_t id1d = it - histlocal_->begin();
+            *it = (int)hist_[id1d].value;
+        }
 
         // Summed between all walkers
-        MPI_Allreduce(&histlocal_[0], &histglobal_[0], hist_.size(), MPI_INT, MPI_SUM, world_);
+        MPI_Allreduce(histlocal_->data(), histglobal_->data(), histlocal_->size(), MPI_INT, MPI_SUM, world_);
 
         // And then it is repacked into the struct
-        for(size_t i = 0; i < hist_.size(); ++i)
-            hist_[i].value = histglobal_[i];
+        for(it = histlocal_->begin(); it != histlocal_->end(); ++it) {
+            size_t id1d = it - histlocal_->begin();
+            hist_[id1d].value = *it;
+        }
 
         // Construct the biased histogram
         for(size_t i = 0; i < hist_.size(); ++i)
@@ -331,11 +334,12 @@ namespace SSAGES
             coeff_[i].value = 0.0;
         }
 
-        for(size_t i = 0; i < hist_.size(); ++i)
-        {
-            hist_[i].value = 0.0;
-            histlocal_[i] = 0;
-            histglobal_[i] = 0;
+        std::vector<int>::iterator hgit = histglobal_->begin();
+        for(it = histlocal_->begin(); it != histlocal_->end(); ++it, hgit++) {
+                size_t id1d = it - histlocal_->begin();
+                hist_[id1d].value = 0.0;
+                *it = 0;
+                *hgit = 0;
         }
 
         // The loop that evaluates the new coefficients by integrating the CV space
@@ -434,7 +438,7 @@ namespace SSAGES
             for(size_t k = 0; k < cvs.size(); ++k)
             {
                 // Evaluate the CV values for printing purposes
-                pos = (hist_[j].map[k]+0.5)*(grid_->GetUpper(k) - grid_->GetLower(k)) * 1.0 /(double)( nbins_[k]) + grid_->GetLower(k);
+                pos = (hist_[j].map[k]+0.5)*(histlocal_->GetUpper(k) - histlocal_->GetLower(k)) * 1.0 /(double)( nbins_[k]) + histlocal_->GetLower(k);
                 basisout_ << pos << std::setw(35);
             }
             basisout_ << -bias[j] << std::setw(35);
@@ -471,10 +475,10 @@ namespace SSAGES
         for (size_t j = 0; j < cvs.size(); ++j)
         {
             x[j] = cvs[j]->GetValue();
-            double min = grid_->GetLower(j);
-            double max = grid_->GetUpper(j);
+            double min = histlocal_->GetLower(j);
+            double max = histlocal_->GetUpper(j);
 
-            if(!grid_->GetPeriodic(j))
+            if(!histlocal_->GetPeriodic(j))
             {
                 // In order to prevent the index for the histogram from going out of bounds a check is in place
                 if(x[j] > max && bounds_)
@@ -506,7 +510,7 @@ namespace SSAGES
         // Only apply soft wall potential in the event that it has left the boundaries
         if(bounds_)
         {
-            idx = grid_->GetIndices(x);
+            idx = histlocal_->GetIndices(x);
 
             for(size_t i = 0; i < cvs.size(); ++i)
                 ii += (idx[i])*std::pow(nbins_[i],i);
@@ -518,7 +522,7 @@ namespace SSAGES
                     temp = 1.0;
                     for (size_t k = 0; k < cvs.size(); ++k)
                     {
-                        temp *= j == k ?  LUT_[k].derivs[hist_[ii].map[k] + coeff_[i].map[k]*(nbins_[k])] * 2.0 / (grid_->GetUpper(j) - grid_->GetLower(j))
+                        temp *= j == k ?  LUT_[k].derivs[hist_[ii].map[k] + coeff_[i].map[k]*(nbins_[k])] * 2.0 / (histlocal_->GetUpper(j) - histlocal_->GetLower(j))
                                        :  LUT_[k].values[hist_[ii].map[k] + coeff_[i].map[k]*(nbins_[k])];
                     }
                     derivatives_[j] -= coeff_[i].value * temp;
@@ -530,10 +534,10 @@ namespace SSAGES
         for(size_t j = 0; j < cvs.size(); ++j)
         {
             // Are these used?
-            // double min = grid_->GetLower(j);
-            // double max = grid_->GetUpper(j);
+            // double min = histlocal_->GetLower(j);
+            // double max = histlocal_->GetUpper(j);
 
-            if(!grid_->GetPeriodic(j)) 
+            if(!histlocal_->GetPeriodic(j)) 
             {
                 if(x[j] > boundUp_[j])
                     derivatives_[j] -= restraint_[j] * (x[j] - boundUp_[j]);

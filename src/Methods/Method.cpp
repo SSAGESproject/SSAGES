@@ -461,11 +461,12 @@ namespace SSAGES
             auto tol  = json.get("tolerance", 1e-6).asDouble();
             auto conv = json.get("convergence_exit", false).asBool();
  
-            Grid<int> *grid = Grid<int>::BuildGrid(json.get("grid", Json::Value()));
+            Grid<int> *histlocal = Grid<int>::BuildGrid(json.get("grid", Json::Value()));
+            Grid<int> *histglobal = Grid<int>::BuildGrid(json.get("grid", Json::Value()));
 
-            auto* m = new Basis(world, comm, coefsCV, restrCV, boundUp, boundLow,
+            auto* m = new Basis(world, comm, histlocal, histglobal, coefsCV, restrCV, boundUp, boundLow,
                                 cyclefreq, freq, bnme, cnme, temp, tol, wght,
-                                conv, grid);
+                                conv);
 
             method = static_cast<Method*>(m);
 			

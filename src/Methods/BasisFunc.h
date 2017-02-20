@@ -103,13 +103,13 @@ namespace SSAGES
         /*!
          * \note It does take up more memory.
          */
-        std::vector<int> histlocal_;
+        Grid<int> *histlocal_;
 
         //! Globally defined histogram array for easy mpi operations.
         /*!
          * \note Needs lots of memory.
          */
-        std::vector<int> histglobal_;
+        Grid<int> *histglobal_;
 
         //! Globally located coefficient values.
 		/*!
@@ -229,9 +229,6 @@ namespace SSAGES
         //! Coefficient filename
         std::string cnme_;
 
-        //! Grid pointer
-        Grid<int> *grid_;
-
 	public:
         //! Constructor
 		/*!
@@ -257,6 +254,8 @@ namespace SSAGES
          */
 		Basis(boost::mpi::communicator& world,
 			 boost::mpi::communicator& comm,
+             Grid<int> *histlocal,
+             Grid<int> *histglobal,
 			 const std::vector<unsigned int>& polyord,
              const std::vector<double>& restraint,
              const std::vector<double>& boundUp,
@@ -268,14 +267,13 @@ namespace SSAGES
              const double temperature,
              const double tol,
              const double weight,
-             bool converge,
-             Grid<int> *grid) :
-		Method(frequency, world, comm), hist_(), histlocal_(), histglobal_(),
+             bool converge) :
+		Method(frequency, world, comm), hist_(), histlocal_(histlocal), histglobal_(histglobal),
         coeff_(), unbias_(), coeff_arr_(), LUT_(), derivatives_(), polyords_(polyord),
         nbins_(), restraint_(restraint), boundUp_(boundUp), boundLow_(boundLow),
         cyclefreq_(cyclefreq), mpiid_(0), weight_(weight),
         temperature_(temperature), tol_(tol),
-        converge_exit_(converge), bnme_(bnme), cnme_(cnme), grid_(grid)
+        converge_exit_(converge), bnme_(bnme), cnme_(cnme)
 		{
 		}
 
@@ -366,14 +364,13 @@ namespace SSAGES
             json["weight"] = weight_;
 
             json["temperature"] = temperature_;
-
-            grid_->Serialize(json);
 		}
 
         //! Destructor.
         ~Basis()
         {
-            delete grid_;
+            delete histlocal_;
+            delete histglobal_;
         }
 	};
 }
