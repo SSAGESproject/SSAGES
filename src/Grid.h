@@ -654,6 +654,30 @@ public:
     {
 
     }
+
+    //! Return iterator at first element of internal storage
+    typename std::vector<T>::iterator begin()
+    {
+        return data_.begin();
+    }
+
+    //! Return iterator after last element of internal storage
+    typename std::vector<T>::iterator end()
+    {
+        return data_.end();
+    }
+
+    //! Return const iterator at first element of internal storage
+    typename std::vector<T>::const_iterator begin() const
+    {
+        return data_.begin();
+    }
+
+    //! Return const iterator after last element of internal storage
+    typename std::vector<T>::const_iterator end() const
+    {
+        return data_.end();
+    }
 };
 
 } // End namespace SSAGES
