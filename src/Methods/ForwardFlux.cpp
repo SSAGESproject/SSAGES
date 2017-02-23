@@ -121,7 +121,7 @@ namespace SSAGES
         }
 
         //for each traj that crossed to lambda0 in forward direction, we need to write it to disk (FFSConfigurationFile)
-        MPI_Allgather(&success_local,1,MPI::BOOL,successes,1,MPI::BOOL,_world);
+        MPI_Allgather(&success_local,1,MPI_C_BOOL,successes,1,MPI_C_BOOL,_world);
 
         int success_count = 0;
         for (int i = 0; i < _world.size(); i++){
@@ -387,7 +387,7 @@ namespace SSAGES
 
         bool *shouldpop = new bool(_world.size());
 
-        MPI_Allgather(&shouldpop_local,1,MPI::BOOL,shouldpop,1,MPI::BOOL,_world);
+        MPI_Allgather(&shouldpop_local,1,MPI_C_BOOL,shouldpop,1,MPI_C_BOOL,_world);
 
         // I dont pass the queue information between procs but I do syncronize 'shouldpop'
         //   as a reuslt all proc should have the same queue throughout the simulation

@@ -99,7 +99,7 @@ namespace SSAGES
             }
             else if (hascrossed == -1){
               //this should never happen if the interfaces are non-intersecting, it would be wise to throw an error here though
-              std::cout << "Trajectory l"<<myFFSConfigID.l<<"-n"<<myFFSConfigID.n<<"-a"<<myFFSConfigID.a<<" crossed backwards! This shouldnt happen!\n";
+              std::cerr << "Trajectory l"<<myFFSConfigID.l<<"-n"<<myFFSConfigID.n<<"-a"<<myFFSConfigID.a<<" crossed backwards! This shouldnt happen!" << std::endl;
               //_world.abort(EXIT_FAILURE);
             }
             else{
@@ -109,8 +109,8 @@ namespace SSAGES
 
         //for each traj that crossed to lambda+1 need to write it to disk (FFSConfigurationFile)
         //MPIAllgather success_local into successes
-        MPI_Allgather(&success_local,1,MPI::BOOL,successes,1,MPI::BOOL,_world);
-        MPI_Allgather(&fail_local,1,MPI::BOOL,failures,1,MPI::BOOL,_world);
+        MPI_Allgather(&success_local,1,MPI_C_BOOL,successes,1,MPI_C_BOOL,_world);
+        MPI_Allgather(&fail_local,1,MPI_C_BOOL,failures,1,MPI_C_BOOL,_world);
        
         int success_count = 0, fail_count = 0;
         // I dont pass the queue information between procs but I do syncronize 'successes' and 'failures'
@@ -214,7 +214,7 @@ namespace SSAGES
                  picks[i] = distribution(_generator);
               }
             }
-            MPI_Bcast(picks.data(),npicks,MPI::UNSIGNED,0,_world);
+            MPI_Bcast(picks.data(),npicks,MPI_UNSIGNED,0,_world);
 
             //each proc adds to the queue
 
@@ -288,7 +288,7 @@ namespace SSAGES
              picks[i] = distribution(_generator);
           }
         }
-        MPI_Bcast(picks.data(),npicks,MPI::UNSIGNED,0,_world);
+        MPI_Bcast(picks.data(),npicks,MPI_UNSIGNED,0,_world);
 
         //set correct attempt index if a given ID is picked twice
         std::vector<unsigned int> attempt_count;
