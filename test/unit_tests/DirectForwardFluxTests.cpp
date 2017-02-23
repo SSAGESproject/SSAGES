@@ -35,8 +35,8 @@ protected:
 		auto& vel1 = snapshot1->GetVelocities();
         vel1.resize(1);
         vel1[0] = {5,6,7};
-        snapshot1->_atomids.resize(1);
-        snapshot1->_atomids[0] = 1;
+        snapshot1->atomids_.resize(1);
+        snapshot1->atomids_[0] = 1;
 
 		// unsigned int mpiid1 = snapshot1 -> GetWalkerID();
 		// unsigned int mpiid2 = snapshot2 -> GetWalkerID();
