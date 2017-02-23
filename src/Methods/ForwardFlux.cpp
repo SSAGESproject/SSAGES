@@ -61,7 +61,7 @@ namespace SSAGES
           _cvvalue_previous = _cvvalue;
           double _firstInterfaceLocation = _interfaces[0];
           if ( _cvvalue > _firstInterfaceLocation) {
-            std::cout << "Please provide an initial configuration in State A. Exiting ...." << std::endl;
+            std::cerr << "Please provide an initial configuration in State A. Exiting ...." << std::endl;
             exit(1);
           }
         }
@@ -115,13 +115,17 @@ namespace SSAGES
         bool success_local = false;
         bool *successes = new bool[_world.size()];
 
-        // If we have crossed the first interface going forward, then write the information to disk
         if (hascrossed == 1){
               success_local = true;
         }
 
+<<<<<<< HEAD
         //for each traj that crossed to lambda0 in forward direction, we need to write it to disk (FFSConfigurationFile)
         MPI_Allgather(&success_local,1,MPI_C_BOOL,successes,1,MPI_C_BOOL,_world);
+=======
+        //for each traj that crossed the lambda0 in forward direction, we need to write it to disk (FFSConfigurationFile)
+        MPI_Allgather(&success_local,1,MPI::BOOL,successes,1,MPI::BOOL,_world);
+>>>>>>> ce88eb838b8778a4e9ccd26ff07e41592e97c872
 
         int success_count = 0;
         for (int i = 0; i < _world.size(); i++){
@@ -142,7 +146,6 @@ namespace SSAGES
               FFSConfigID newid = FFSConfigID(l,n,a,lprev,nprev,aprev);
               Lambda0ConfigLibrary.emplace_back(l,n,a,lprev,nprev,aprev);
               WriteFFSConfiguration(snapshot,newid,1);
-
             }
             success_count++;
           }    
@@ -206,8 +209,6 @@ namespace SSAGES
       file.close();
     }
 
-
-
 	void ForwardFlux::ComputeTransitionProbabilities(){
         double Ptotal = 1;
         for (unsigned int i = 0; i < _ninterfaces -1; i++){
@@ -222,11 +223,7 @@ namespace SSAGES
         if (!file) {std::cerr << "Error! Unable to write " << filename << "\n"; exit(1);}
         file << _rate << "\n";
         file.close();
-
-
-        
     }
-
 	
 	void ForwardFlux::WriteFFSConfiguration(Snapshot* snapshot, FFSConfigID& ffsconfig, bool wassuccess)
 	{
