@@ -282,8 +282,8 @@ trials
 computeInitialFlux
     + Type: boolean
     + Default: "true"
-    + Functionality:  Specifies whether a calculation of the initial flux should be performed or not. If this parameter is set to "true", SSAGES would also
-      generate the user-specified number of initial configurations (N0Target). To compute the initial flux, user must provide an initial configuration in state A, otherwise SSAGES would issue an error. If this parameter is set to "false", the user must provide the necessary number of the initial configurations in separate files. The files name and the files content should follow a specific format. The format of the files name should be "l0-n<n>.dat" where <n> is the configuration number (i.e. 1, 2, 3, ..., N0Target). The first line of the configuration files includes three numbers "<l> <n> <a>", where <l> is the interface number (set to zero here), <n> is the configuration number, and <a> is the attempt number (set to zero here). The rest of the lines include the atoms IDs and their corresponding values of positions and velocities as "<atom ID> <x> <y> <z> <vx> <vy> <vz>" where <atom ID> is the ID of an atom, <x>, <y>, <z> are the coordinates of that atom, and <vx>, <vy>, and <vz> are the components of the velocity in the x, y, and z directions. Please note that the stored configurations at other interfaces would follow a similar format.       
+    + Functionality:  Specifies whether a calculation of the initial flux should be performed. If this parameter is set to "true", SSAGES would also
+      generate the user-specified number of initial configurations (N0Target) at the first interface. To compute the initial flux, user must provide an initial configuration in state A, otherwise SSAGES would issue an error. If this parameter is set to "false", the user must provide the necessary number of the initial configurations in separate files. The files name and the files content should follow a specific format. The format of the files name should be "l0-n<n>.dat" where <n> is the configuration number (i.e. 1, 2, 3, ..., N0Target). The first line of the configuration files includes three numbers "<l> <n> <a>", where <l> is the interface number (set to zero here), <n> is the configuration number, and <a> is the attempt number (set to zero here). The rest of the lines include the atoms IDs and their corresponding values of positions and velocities, "<atom ID> <x> <y> <z> <vx> <vy> <vz>" where <atom ID> is the ID of an atoms, <x>, <y>, <z> are the coordinates of that atom and <vx>, <vy>, and <vz> are the components of the velocity in the x, y, and z directions. Please note that the stores configurations at other interfaces would follow a similar format.       
 
 saveTrajectories
     + Type: boolean
@@ -300,8 +300,8 @@ currentInterface
 outputDirectoryName
     + Type: string
     + Default: "FFSoutput"
-    + Functionality: Specifies the directory name that contains the output results of the FFS calculations including 
-      the initial flux, the successful and failed configurations, commitor probabilities, and the trajectories. The output data related to the computation of the initial flux is stored in the file "initial_flux_value.dat", and the data related to the transition probabilities is stored in the file "commitor_probabilities.dat". 
+    + Functionality: Specifies the directory name that contains the output of the FFS calculations including 
+      the initial flux, the successful and failed configurations, commitor probabilities, and the trajectories. The output data related to the computation of the initial flux is stored in the file "initial_flux_value.dat", and the data related to transition probabilities is stored in the file "commitor_probabilities.dat". 
 
 
 
