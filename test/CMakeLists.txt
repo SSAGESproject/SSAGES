@@ -11,7 +11,6 @@ set  (UNIT_TESTS "ParticlePositionCVTests"
                  "SnapshotTests"
                  "BasisFuncTest"
                  "ParticleSeparationCVTests"
-                 "RgCVTests"
                  "RMSD_Test"
                  "AngleCVTests"
                  "ReadFileTest"
@@ -20,9 +19,11 @@ set  (UNIT_TESTS "ParticlePositionCVTests"
                  "DirectForwardFluxTests"
 				 "SwarmTest"
 				 "FTSTest"
-                 "StringMethodTest")
+                 "StringMethodTest"
+                 "GyrationTensorCVTests")
 
-set (INTEGRATION_TESTS "Meta_Single_Atom_Test")
+set (INTEGRATION_TESTS "Meta_Single_Atom_Test"
+                       "Basis_ADP_Test")
 
 foreach (TEST ${UNIT_TESTS})
     add_executable (${TEST} unit_tests/${TEST}.cpp)

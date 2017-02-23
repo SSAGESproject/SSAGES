@@ -42,52 +42,52 @@ namespace SSAGES
 	protected:	
 		
 		//! CV starting location values.
-		std::vector<double> _centers;
+		std::vector<double> centers_;
 
 		//! CV starting location values.
-		std::vector<double> _newcenters;
+		std::vector<double> newcenters_;
 
 		//! The world's strings centers for each CV.
 		/*!
-		 * _worldstring[node#][cv#]
+		 * worldstring_[node#][cv#]
 		 */
-		std::vector<std::vector<double> > _worldstring;
+		std::vector<std::vector<double> > worldstring_;
 
 		//! The node this belongs to
-		int _mpiid;
+		int mpiid_;
 
 		//! Tolerance criteria for determining when to stop string (default 0 if no tolerance criteria)
-		std::vector<double> _tol;
+		std::vector<double> tol_;
 
 		//! Number of nodes on a string
-		int _numnodes;
+		int numnodes_;
 
 		//! Maximum cap on number of string method iterations performed
-		unsigned int _maxiterator;
+		unsigned int maxiterator_;
 
 		//! Vector of spring constants.
-		std::vector<double> _cvspring;
+		std::vector<double> cvspring_;
 
 		//! The local method iterator
-		unsigned int _iterator;
+		unsigned int iterator_;
 
 		//! Output stream for string data.
-		std::ofstream _stringout;
+		std::ofstream stringout_;
 
 		//! Neighbor to send info to.
-		int _sendneigh;
+		int sendneigh_;
 
 		//! Neighbor to gain info from.
-		int _recneigh;
+		int recneigh_;
 
 		//! Store positions for starting trajectories
-		std::vector<std::vector<double>> _prev_positions;
+		std::vector<std::vector<double>> prev_positions_;
 
 		//! Store velocities for starting trajectories
-		std::vector<std::vector<double>> _prev_velocities;
+		std::vector<std::vector<double>> prev_velocities_;
 
 		//! Store velocities for starting trajectories
-		std::vector<std::vector<int>> _prev_IDs;
+		std::vector<std::vector<int>> prev_IDs_;
 
 		//! Updates the position of the string.
 		virtual void StringUpdate() = 0;
@@ -110,16 +110,16 @@ namespace SSAGES
 		//! Prints the CV positions to file
 		void PrintString(const CVList& CV)
 		{
-			if(_comm.rank() == 0)
+			if(comm_.rank() == 0)
 			{
 		        //Write node, iteration, centers of the string and current CV value to output file
-		        _stringout.precision(8);
-		        _stringout << _mpiid << " " << _iteration << " ";
+		        stringout_.precision(8);
+		        stringout_ << mpiid_ << " " << iteration_ << " ";
 
-		        for(size_t i = 0; i < _centers.size(); i++)
-		            _stringout << _worldstring[_mpiid][i] << " " << CV[i]->GetValue() << " ";
+		        for(size_t i = 0; i < centers_.size(); i++)
+		            stringout_ << worldstring_[mpiid_][i] << " " << CV[i]->GetValue() << " ";
 
-		        _stringout << std::endl;
+		        stringout_ << std::endl;
 		    }
 		}
 
@@ -132,19 +132,19 @@ namespace SSAGES
 		{
 			MPI_Status status;
 
-			if(_comm.rank() == 0)
+			if(comm_.rank() == 0)
 			{
-				MPI_Sendrecv(&_centers[0], _centers.size(), MPI_DOUBLE, _sendneigh, 1234,
-					&(*lcv0)[0], _centers.size(), MPI_DOUBLE, _recneigh, 1234, 
-					_world, &status);
+				MPI_Sendrecv(&centers_[0], centers_.size(), MPI_DOUBLE, sendneigh_, 1234,
+					&(*lcv0)[0], centers_.size(), MPI_DOUBLE, recneigh_, 1234, 
+					world_, &status);
 
-				MPI_Sendrecv(&_centers[0], _centers.size(), MPI_DOUBLE, _recneigh, 4321,
-			       &(*ucv0)[0], _centers.size(), MPI_DOUBLE, _sendneigh, 4321, 
-			       _world, &status);
+				MPI_Sendrecv(&centers_[0], centers_.size(), MPI_DOUBLE, recneigh_, 4321,
+			       &(*ucv0)[0], centers_.size(), MPI_DOUBLE, sendneigh_, 4321, 
+			       world_, &status);
 			}
 
-			MPI_Bcast(&(*lcv0)[0],_centers.size(),MPI::DOUBLE,0,_comm);
-			MPI_Bcast(&(*ucv0)[0],_centers.size(),MPI::DOUBLE,0,_comm);
+			MPI_Bcast(&(*lcv0)[0],centers_.size(),MPI::DOUBLE,0,comm_);
+			MPI_Bcast(&(*ucv0)[0],centers_.size(),MPI::DOUBLE,0,comm_);
 		}
 
 		//! Reparameterize the string
@@ -153,35 +153,35 @@ namespace SSAGES
 		 */
 		void StringReparam(double alpha_star)
 		{
-			std::vector<double> alpha_star_vector(_numnodes,0.0);
+			std::vector<double> alpha_star_vector(numnodes_,0.0);
 
 			//Reparameterization
 			//Alpha star is the uneven mesh, approximated as linear distance between points
-			if(_comm.rank()==0)
-				alpha_star_vector[_mpiid] = _mpiid == 0 ? 0 : alpha_star;
+			if(comm_.rank()==0)
+				alpha_star_vector[mpiid_] = mpiid_ == 0 ? 0 : alpha_star;
 
 			//Gather each alpha_star into a vector 
-			MPI_Allreduce(MPI::IN_PLACE, &alpha_star_vector[0], _numnodes, MPI::DOUBLE, MPI::SUM, _world);
+			MPI_Allreduce(MPI::IN_PLACE, &alpha_star_vector[0], numnodes_, MPI::DOUBLE, MPI::SUM, world_);
 
 			for(size_t i = 1; i < alpha_star_vector.size(); i++)
 			    alpha_star_vector[i] += alpha_star_vector[i-1];
 			
 			for(size_t i = 1; i < alpha_star_vector.size(); i++)
-			    alpha_star_vector[i] /= alpha_star_vector[_numnodes - 1];
+			    alpha_star_vector[i] /= alpha_star_vector[numnodes_ - 1];
 
 			tk::spline spl; //Cubic spline interpolation
 
-			for(size_t i = 0; i < _centers.size(); i++)
+			for(size_t i = 0; i < centers_.size(); i++)
 			{
-				std::vector<double> cvs_new(_numnodes, 0.0);
+				std::vector<double> cvs_new(numnodes_, 0.0);
 
-				if(_comm.rank() == 0)
-					cvs_new[_mpiid] = _centers[i];
+				if(comm_.rank() == 0)
+					cvs_new[mpiid_] = centers_[i];
 
-				MPI_Allreduce(MPI::IN_PLACE, &cvs_new[0], _numnodes, MPI::DOUBLE, MPI::SUM, _world);
+				MPI_Allreduce(MPI::IN_PLACE, &cvs_new[0], numnodes_, MPI::DOUBLE, MPI::SUM, world_);
 
 			    spl.set_points(alpha_star_vector, cvs_new);
-			    _centers[i] = spl(_mpiid/(_numnodes - 1.0)); 
+			    centers_[i] = spl(mpiid_/(numnodes_ - 1.0)); 
 			}
 		}
 
@@ -191,23 +191,23 @@ namespace SSAGES
 		 */
 		void UpdateWorldString(const CVList& cvs)
 		{
-			for(size_t i = 0; i < _centers.size(); i++)
+			for(size_t i = 0; i < centers_.size(); i++)
 			{
-				std::vector<double> cvs_new(_numnodes, 0.0);
+				std::vector<double> cvs_new(numnodes_, 0.0);
 
-				if(_comm.rank() == 0)
+				if(comm_.rank() == 0)
                 {
-					cvs_new[_mpiid] = _centers[i];
+					cvs_new[mpiid_] = centers_[i];
                 }
 
 
-				MPI_Allreduce(MPI::IN_PLACE, &cvs_new[0], _numnodes, MPI::DOUBLE, MPI::SUM, _world);
+				MPI_Allreduce(MPI::IN_PLACE, &cvs_new[0], numnodes_, MPI::DOUBLE, MPI::SUM, world_);
 
-				for(int j = 0; j < _numnodes; j++)
+				for(int j = 0; j < numnodes_; j++)
                 {
-                    _worldstring[j][i] = cvs_new[j];
+                    worldstring_[j][i] = cvs_new[j];
                     //Represent worldstring in periodic space
-                    _worldstring[j][i] = cvs[i]->GetPeriodicValue(_worldstring[j][i]); 
+                    worldstring_[j][i] = cvs[i]->GetPeriodicValue(worldstring_[j][i]); 
                 }
 			}
 		}
@@ -215,12 +215,12 @@ namespace SSAGES
 		//! Check whether tolerance criteria has been met.
 		bool TolCheck() const
 		{
-			if(_tol.size() == 0)
+			if(tol_.size() == 0)
 				return false;
 
-			for(size_t i = 0; i < _centers.size(); i++)
+			for(size_t i = 0; i < centers_.size(); i++)
             {
-                if(fabs(_centers[i] - _worldstring[_mpiid][i]) > _tol[i])
+                if(fabs(centers_[i] - worldstring_[mpiid_][i]) > tol_[i])
                 {
 					return false;
                 }
@@ -239,23 +239,23 @@ namespace SSAGES
 		 */
 		bool CheckEnd(const CVList& CV) 
 		{
-			if(_maxiterator && _iteration > _maxiterator)
+			if(maxiterator_ && iteration_ > maxiterator_)
 			{
-				std::cout << "System has reached max string method iterations (" << _maxiterator << ") as specified in the input file(s)." << std::endl; 
+				std::cout << "System has reached max string method iterations (" << maxiterator_ << ") as specified in the input file(s)." << std::endl; 
 				std::cout << "Exiting now" << std::endl; 
                 PrintString(CV); //Ensure that the system prints out if it's about to exit
-				_world.abort(-1);
+				world_.abort(-1);
 			}
 
             bool local_tolvalue = TolCheck();
 
-			MPI_Allreduce(MPI::IN_PLACE, &local_tolvalue, 1, MPI::BOOL, MPI::LAND, _world);
+			MPI_Allreduce(MPI::IN_PLACE, &local_tolvalue, 1, MPI::BOOL, MPI::LAND, world_);
 
 			if(local_tolvalue)
 			{
 				std::cout << "System has converged within tolerance criteria. Exiting now" << std::endl;
                 PrintString(CV); //Ensure that the system prints out if it's about to exit
-				_world.abort(-1);
+				world_.abort(-1);
 			}
 
             return true;
@@ -277,27 +277,27 @@ namespace SSAGES
 					unsigned int maxiterations,
 					const std::vector<double> cvspring,
 			 		unsigned int frequency) : 
-						Method(frequency, world, comm), _centers(centers), 
-						_maxiterator(maxiterations), 
-						_cvspring(cvspring), _iterator(1) 
+						Method(frequency, world, comm), centers_(centers), 
+						maxiterator_(maxiterations), 
+						cvspring_(cvspring), iterator_(1) 
  
 		{
-			_newcenters.resize(_centers.size(), 0);
+			newcenters_.resize(centers_.size(), 0);
 		}
 
 		//! Pre-simulation hook.
 		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override
 		{
-			_mpiid = snapshot->GetWalkerID();
+			mpiid_ = snapshot->GetWalkerID();
 			char file[1024];
-			sprintf(file, "node-%04d.log",_mpiid);
-		 	_stringout.open(file);
+			sprintf(file, "node-%04d.log",mpiid_);
+		 	stringout_.open(file);
 
             SetSendRecvNeighbors();
 
-			_worldstring.resize(_numnodes);
-			for(auto& w : _worldstring)
-				w.resize(_centers.size());
+			worldstring_.resize(numnodes_);
+			for(auto& w : worldstring_)
+				w.resize(centers_.size());
 			UpdateWorldString(cvs);
 			PrintString(cvs);
 
@@ -309,7 +309,7 @@ namespace SSAGES
 		// Post-simulation hook.
 		void PostSimulation(Snapshot*, const CVList&) override
 		{
-			_stringout.close();
+			stringout_.close();
 		}
 
 		//! Set the tolerance for quitting method
@@ -322,51 +322,51 @@ namespace SSAGES
 		void SetTolerance(std::vector<double> tol)
 		{
 			for(auto& t : tol)
-				_tol.push_back(t);
+				tol_.push_back(t);
 		}
 
 		//! Communicate neighbor lists over MPI
         void SetSendRecvNeighbors()
         {
-		 	std::vector<int> wiids(_world.size(), 0);
+		 	std::vector<int> wiids(world_.size(), 0);
 
 			//Set the neighbors
-			_recneigh = -1;
-			_sendneigh = -1; 
+			recneigh_ = -1;
+			sendneigh_ = -1; 
 
-			MPI_Allgather(&_mpiid, 1, MPI_INT, &wiids[0], 1, MPI_INT, _world);
-			_numnodes = int(*std::max_element(wiids.begin(), wiids.end())) + 1;
+			MPI_Allgather(&mpiid_, 1, MPI_INT, &wiids[0], 1, MPI_INT, world_);
+			numnodes_ = int(*std::max_element(wiids.begin(), wiids.end())) + 1;
 
 			// Ugly for now...
 			for(size_t i = 0; i < wiids.size(); i++)
 			{
-				if(_mpiid == 0)
+				if(mpiid_ == 0)
 				{
-					_sendneigh = _comm.size();
-					if(wiids[i] == _numnodes - 1)
+					sendneigh_ = comm_.size();
+					if(wiids[i] == numnodes_ - 1)
 					{
-						_recneigh = i;
+						recneigh_ = i;
 						break;
 					}
 				}
-				else if (_mpiid == _numnodes - 1)
+				else if (mpiid_ == numnodes_ - 1)
 				{
-					_sendneigh = 0;
-					if(wiids[i] == _mpiid - 1)
+					sendneigh_ = 0;
+					if(wiids[i] == mpiid_ - 1)
 					{
-						_recneigh = i;
+						recneigh_ = i;
 						break;
 					}
 				} 
 				else
 				{
-					if(wiids[i] == _mpiid + 1)
+					if(wiids[i] == mpiid_ + 1)
 					{
-						_sendneigh = i;
+						sendneigh_ = i;
 						break;
 					}
-					if(wiids[i] == _mpiid - 1 && _recneigh == -1)
-						_recneigh = i;
+					if(wiids[i] == mpiid_ - 1 && recneigh_ == -1)
+						recneigh_ = i;
 				}
 			}
         }
@@ -376,18 +376,18 @@ namespace SSAGES
         {
             json["type"] = "String";
 
-            for(size_t i = 0; i < _centers.size(); i++)
-                json["centers"].append(_centers[i]);
+            for(size_t i = 0; i < centers_.size(); i++)
+                json["centers"].append(centers_[i]);
 
-            for(auto& t : _tol)
+            for(auto& t : tol_)
             	json["tolerance"].append(t);
 
-            json["max_iterations"] = _maxiterator;
+            json["max_iterations"] = maxiterator_;
 
-            for(auto& s : _cvspring)
+            for(auto& s : cvspring_)
             	json["ksprings"].append(s);
 
-           json["iteration"] = _iteration; 
+           json["iteration"] = iteration_; 
         }
 
 		//! Destructor

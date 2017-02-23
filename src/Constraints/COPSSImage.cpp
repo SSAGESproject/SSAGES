@@ -23,8 +23,8 @@
 #include <algorithm>
 #include <stdlib.h>
 #include <stdio.h>
-//#define _DEBUG_SNAPSHOT
-//#define _DEBUG_TMP
+//#define DEBUG_SNAPSHOT_
+//#define DEBUG_TMP_
 namespace SSAGES
 {	
 	
@@ -38,9 +38,9 @@ namespace SSAGES
 
 		// Gather information
   		auto& types = snapshot->GetAtomTypes();
-  	        size_t _nlocal = snapshot->GetNumAtoms();
+  	        size_t nlocal_ = snapshot->GetNumAtoms();
 
-		#ifdef _DEBUG_SNAPSHOT
+		#ifdef DEBUG_SNAPSHOT_
 		fprintf(stdout, "Image method start runnning ... \n");
 	        
 		auto& forces = snapshot->GetForces();
@@ -48,13 +48,13 @@ namespace SSAGES
 		auto& charges = snapshot->GetCharges();
 
 		fprintf(stdout, "check ids: ");
-		for (size_t i = 0; i < _nlocal; i++)
+		for (size_t i = 0; i < nlocal_; i++)
 		{
 			fprintf(stdout, "%d\n; ", ids[i]);
 		}
 
 		fprintf(stdout, "check positions: ");
-		for (size_t i=0; i< _nlocal; i++)
+		for (size_t i=0; i< nlocal_; i++)
 		{			
 			for (size_t j=0; j<3; j++)
 			{
@@ -63,7 +63,7 @@ namespace SSAGES
 		}
 
 		fprintf(stdout, "\ncheck forces: ");
-		for (size_t i=0; i< _nlocal; i++)
+		for (size_t i=0; i< nlocal_; i++)
 		{			
 			for (size_t j=0; j<3; j++)
 			{
@@ -72,38 +72,38 @@ namespace SSAGES
 		}
 		
 		fprintf(stdout, "\ncheck types: ");
-		for (size_t i=0; i< _nlocal; i++)
+		for (size_t i=0; i< nlocal_; i++)
 		{
 			fprintf(stdout, "%d; ", types[i]);
 		}
 
 		fprintf(stdout, "\ncheck charges: ");
-		for (size_t i=0; i< _nlocal; i++)
+		for (size_t i=0; i< nlocal_; i++)
 		{
 			fprintf(stdout, "%f; ", charges[i]);
 		}
 		
 		fprintf(stdout, "\ncheck radius: ");
-		for (size_t i=0; i< _nlocal; i++)
+		for (size_t i=0; i< nlocal_; i++)
 		{	
-				fprintf(stdout,"%f; ", _atomTypeRadius[types[i]-1]);
+				fprintf(stdout,"%f; ", atomTypeRadius_[types[i]-1]);
 		}
 
-		fprintf(stdout, "\ncheck nlocal: %d\n", _nlocal);
-		fprintf(stdout, "check eouter: %f\n", _eouter);
-		fprintf(stdout, "check qqrd2e: %f\n", _qqrd2e);
-		fprintf(stdout, "check einner: %f\n", _einner);
-		fprintf(stdout, "check ion-type-start: %d\n", _ion_type_start);
+		fprintf(stdout, "\ncheck nlocal: %d\n", nlocal_);
+		fprintf(stdout, "check eouter: %f\n", eouter_);
+		fprintf(stdout, "check qqrd2e: %f\n", qqrd2e_);
+		fprintf(stdout, "check einner: %f\n", einner_);
+		fprintf(stdout, "check ion-type-start: %d\n", ion_type_start_);
 		#endif
 
   		
 		//iterate over all permutations {i;j;k}, j has to be polarizable
 	
-		for (size_t j=0; j < _nlocal; j++) if( types[j] < _ion_type_start )
+		for (size_t j=0; j < nlocal_; j++) if( types[j] < ion_type_start_ )
 		{
-			for(size_t i=0; i < _nlocal; i++) if(i != j) 
+			for(size_t i=0; i < nlocal_; i++) if(i != j) 
     			{ 
-				 for(size_t k=0; k < _nlocal; k++) if (k != j)
+				 for(size_t k=0; k < nlocal_; k++) if (k != j)
       				 {  
 					//Interaction: [I] <---- [J] <-------[k]
 					//F[i] = f{i;j;k}
@@ -137,21 +137,21 @@ namespace SSAGES
 				    size_t kth)
 	{
 		//fprintf(stdout, "compute: (%d, %d, %d)\n", ith, jth, kth);
-                auto& _types  = snapshot->GetAtomTypes();
-                auto& _charges = snapshot->GetCharges();
-                auto& _positions = snapshot->GetPositions();
-                auto& _forces = snapshot->GetForces();
-		 _eouter = snapshot->GetDielectric();
-                _qqrd2e = snapshot->Getqqrd2e();	
-   	 	aa = _atomTypeRadius[_types[jth]-1];
+                auto& types_  = snapshot->GetAtomTypes();
+                auto& charges_ = snapshot->GetCharges();
+                auto& positions_ = snapshot->GetPositions();
+                auto& forces_ = snapshot->GetForces();
+		 eouter_ = snapshot->GetDielectric();
+                qqrd2e_ = snapshot->Getqqrd2e();	
+   	 	aa = atomTypeRadius_[types_[jth]-1];
 	 	// helper variables
-	 	_e = (1.0 - _einner / _eouter) / (1.0 + _einner / _eouter);
-         	_ginv = (1.0 + _einner / _eouter);	
+	 	e_ = (1.0 - einner_ / eouter_) / (1.0 + einner_ / eouter_);
+         	ginv_ = (1.0 + einner_ / eouter_);	
 	 	//==================kernel function starts========================
 	 	// Rxkj, Rykj, Rzkj: vector points from j-th to k-th, in x, y, z direction respectively.
-	 	Rxkj = _positions[kth][0] - _positions[jth][0];
-    	 	Rykj = _positions[kth][1] - _positions[jth][1];
-    	 	Rzkj = _positions[kth][2] - _positions[jth][2];
+	 	Rxkj = positions_[kth][0] - positions_[jth][0];
+    	 	Rykj = positions_[kth][1] - positions_[jth][1];
+    	 	Rzkj = positions_[kth][2] - positions_[jth][2];
          	// rkj: module of the vector between j-th and k-th
 		Rkj2 = Rxkj*Rxkj + Rykj*Rykj + Rzkj*Rzkj;
          	rkj = sqrt (Rkj2);
@@ -160,13 +160,13 @@ namespace SSAGES
    	 	vkj = Rykj / rkj;
    	 	wkj = Rzkj / rkj;
 	 	// Rxij, Ryij, Rzij: vector points from i-th to j-th, in x, y, z direction respectively
-	 	Rxij = _positions[ith][0] - _positions[jth][0];
-   	 	Ryij = _positions[ith][1] - _positions[jth][1];
-    	 	Rzij = _positions[ith][2] - _positions[jth][2];
+	 	Rxij = positions_[ith][0] - positions_[jth][0];
+   	 	Ryij = positions_[ith][1] - positions_[jth][1];
+    	 	Rzij = positions_[ith][2] - positions_[jth][2];
    	 	Rij2 = Rxij * Rxij + Ryij * Ryij + Rzij * Rzij;
     	        rij = sqrt(Rij2);
 	 	// Auxiliary variables
-   	 	aux1 = _e * aa / rkj;
+   	 	aux1 = e_ * aa / rkj;
 	 	aux2 = aa * aa / rkj;
 	 	// Tmp variable for return value
     	 	std::vector<double> force_pol(3);
@@ -182,32 +182,32 @@ namespace SSAGES
          	force_pol[1] = auxv_y_delta / aux3_delta;
          	force_pol[2] = auxv_z_delta / aux3_delta;
 		//===============integration term of equation.29 in method paper
-		std::vector<double> _xg(5);
+		std::vector<double> xg_(5);
 		xlo = 0.0;
 	 	xhi = 1.0;
    	 	for (int ig = 0; ig < ngauss; ++ig)
    		{
-     	   		_xg[ig] = 0.5 * (xhi - xlo) * _xg0[ig] + 0.5 * (xhi + xlo); 
-		      	auxv_x_integ = Rxij - ( pow(_xg[ig] , _ginv) * aux2 * ukj );
-      			auxv_y_integ = Ryij - ( pow(_xg[ig] , _ginv) * aux2 * vkj );
-      			auxv_z_integ = Rzij - ( pow(_xg[ig] , _ginv) * aux2 * wkj );
+     	   		xg_[ig] = 0.5 * (xhi - xlo) * xg0_[ig] + 0.5 * (xhi + xlo); 
+		      	auxv_x_integ = Rxij - ( pow(xg_[ig] , ginv_) * aux2 * ukj );
+      			auxv_y_integ = Ryij - ( pow(xg_[ig] , ginv_) * aux2 * vkj );
+      			auxv_z_integ = Rzij - ( pow(xg_[ig] , ginv_) * aux2 * wkj );
       			aux3Sqrt_integ = sqrt(auxv_x_integ * auxv_x_integ +
  					      auxv_y_integ * auxv_y_integ +
 				      	      auxv_z_integ * auxv_z_integ);
       			aux3_integ = aux3Sqrt_integ * aux3Sqrt_integ * aux3Sqrt_integ;
-			force_pol[0] += 0.5 * (xhi-xlo) * (- auxv_x_integ / aux3_integ * _wg0[ig]); 
-      			force_pol[1] += 0.5 * (xhi-xlo) * (- auxv_y_integ / aux3_integ * _wg0[ig]);
-      			force_pol[2] += 0.5 * (xhi-xlo) * (- auxv_z_integ / aux3_integ * _wg0[ig]);
+			force_pol[0] += 0.5 * (xhi-xlo) * (- auxv_x_integ / aux3_integ * wg0_[ig]); 
+      			force_pol[1] += 0.5 * (xhi-xlo) * (- auxv_y_integ / aux3_integ * wg0_[ig]);
+      			force_pol[2] += 0.5 * (xhi-xlo) * (- auxv_z_integ / aux3_integ * wg0_[ig]);
     	 	}
 		// multiple by prefactor in eq.29
-	 	force_pol[0] *= ( 0.5 * _qqrd2e * aux1 * _charges[ith] * _charges[kth] );
-   	 	force_pol[1] *= ( 0.5 * _qqrd2e * aux1 * _charges[ith] * _charges[kth] );
-   	 	force_pol[2] *= ( 0.5 * _qqrd2e * aux1 * _charges[ith] * _charges[kth] );
+	 	force_pol[0] *= ( 0.5 * qqrd2e_ * aux1 * charges_[ith] * charges_[kth] );
+   	 	force_pol[1] *= ( 0.5 * qqrd2e_ * aux1 * charges_[ith] * charges_[kth] );
+   	 	force_pol[2] *= ( 0.5 * qqrd2e_ * aux1 * charges_[ith] * charges_[kth] );
 		
 		for (size_t k = 0; k <3; ++k)
 		{
-			_forces[ith][k] += 2 * force_pol[k];
-			_forces[jth][k] -= 2 * force_pol[k];
+			forces_[ith][k] += 2 * force_pol[k];
+			forces_[jth][k] -= 2 * force_pol[k];
 		}
 	} // end force_pol function		
 }//end namespace

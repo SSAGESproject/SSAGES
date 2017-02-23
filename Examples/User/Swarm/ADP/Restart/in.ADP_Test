@@ -13,7 +13,6 @@ group			mobile union all
 timestep		1.0
 #RESTART
 kspace_style	none
-#special_bonds	lj/coul 0.0 0.0 0.5
 neighbor		20.0 bin
 neigh_modify	every 1 delay 0 check yes
 velocity all create 300 100

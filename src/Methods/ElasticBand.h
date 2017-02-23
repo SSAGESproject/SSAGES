@@ -38,23 +38,23 @@ namespace SSAGES
 
 		//! Number Equilibration steps, number of MD steps to
 		//! allow the system to reequilibrate before evolving.
-		unsigned int _equilibrate;
+		unsigned int equilibrate_;
 
 		//! Number evolution steps, number of MD steps before
 		//! collecting statistics for gradients.
-		unsigned int _evolution;
+		unsigned int evolution_;
 
 		//! Block iterations
-		unsigned int _nsamples;
+		unsigned int nsamples_;
 
 		//! Number samples actually sampled.
-		unsigned int _nsampled;
+		unsigned int nsampled_;
 
 		//! Time step of string change
-		double _tau;
+		double tau_;
 
 		//! String spring constant.
-		double _stringspring;
+		double stringspring_;
 
 		//! Updates the nudged elastic band string.
 		void StringUpdate();
@@ -88,9 +88,9 @@ namespace SSAGES
 					double stringspring,
 			 		unsigned int frequency) : 
 		StringMethod(world, comm, centers, maxiterations,
-		cvspring, frequency), _equilibrate(equilibrate),
-		_evolution(evolution), _nsamples(nsamples),
-		_nsampled(0), _tau(tau), _stringspring(stringspring)
+		cvspring, frequency), equilibrate_(equilibrate),
+		evolution_(evolution), nsamples_(nsamples),
+		nsampled_(0), tau_(tau), stringspring_(stringspring)
 		{
 		}
 

@@ -39,17 +39,17 @@ namespace SSAGES
 	{
 	private:
 		//! Vector of event listeners.
-		std::vector<EventListener*> _listeners;
+		std::vector<EventListener*> listeners_;
 
 		//! Vector of CVs.
-		CVList _cvs;
+		CVList cvs_;
 
 		//! Driver running this hook
-		Driver* _MDDriver;
+		Driver* MDDriver_;
 
 	protected:
 		//! Local snapshot.
-		Snapshot* _snapshot;
+		Snapshot* snapshot_;
 
 		//! Synchronization to the simulation engine
 		/*!
@@ -72,7 +72,7 @@ namespace SSAGES
 		 * corresponding walker ID.
 		 */
 		Hook() : 
-		_listeners(0), _MDDriver(nullptr), _snapshot(nullptr)
+		listeners_(0), MDDriver_(nullptr), snapshot_(nullptr)
 		{}
 
 		//! Sets the active snapshot.
@@ -106,24 +106,24 @@ namespace SSAGES
 		 */
 		void PreSimulationHook()
 		{
-			_snapshot->Changed(false);
+			snapshot_->Changed(false);
 		
 			// Initialize/evaluate CVs.
-			for(auto& cv : _cvs)
+			for(auto& cv : cvs_)
 			{
-				cv->Initialize(*_snapshot);
-				cv->Evaluate(*_snapshot);
+				cv->Initialize(*snapshot_);
+				cv->Evaluate(*snapshot_);
 			}
 
 			// Call presimulation method on listeners. 
-			for(auto& listener : _listeners)
-				listener->PreSimulation(_snapshot, _cvs);
+			for(auto& listener : listeners_)
+				listener->PreSimulation(snapshot_, cvs_);
 
 			// Sync snapshot to engine.
-			if(_snapshot->HasChanged())
+			if(snapshot_->HasChanged())
 				SyncToEngine();
 
-			_snapshot->Changed(false);
+			snapshot_->Changed(false);
 		}
 
 		//! Post-integration hook.
@@ -134,19 +134,19 @@ namespace SSAGES
 		 */
 		void PostIntegrationHook()
 		{
-			_snapshot->Changed(false);
+			snapshot_->Changed(false);
 
-			for(auto& cv : _cvs)
-				cv->Evaluate(*_snapshot);
+			for(auto& cv : cvs_)
+				cv->Evaluate(*snapshot_);
 
-			for(auto& listener : _listeners)
-				if(_snapshot->GetIteration() % listener->GetFrequency() == 0)
-					listener->PostIntegration(_snapshot, _cvs);
+			for(auto& listener : listeners_)
+				if(snapshot_->GetIteration() % listener->GetFrequency() == 0)
+					listener->PostIntegration(snapshot_, cvs_);
 
-			if(_snapshot->HasChanged())
+			if(snapshot_->HasChanged())
 				SyncToEngine();
 
-			_snapshot->Changed(false);
+			snapshot_->Changed(false);
 		}
 
 		//! Post-step hook.
@@ -167,18 +167,18 @@ namespace SSAGES
 		 */
 		void PostSimulationHook()
 		{
-			_snapshot->Changed(false);
+			snapshot_->Changed(false);
 
-			for(auto& cv : _cvs)
-				cv->Evaluate(*_snapshot);
+			for(auto& cv : cvs_)
+				cv->Evaluate(*snapshot_);
 			
-			for(auto& listener : _listeners)
-				listener->PostSimulation(_snapshot, _cvs);
+			for(auto& listener : listeners_)
+				listener->PostSimulation(snapshot_, cvs_);
 
-			if(_snapshot->HasChanged())
+			if(snapshot_->HasChanged())
 				SyncToEngine();
 
-			_snapshot->Changed(false);
+			snapshot_->Changed(false);
 		}
 
 		//! Destructor

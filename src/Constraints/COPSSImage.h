@@ -40,16 +40,16 @@ namespace SSAGES
 	{
 	private:
 		//! Dielectric constant of polarizable particles.
-		double _einner;
+		double einner_;
 
 		//! Where non polarizable particles start.
-		int _ion_type_start;
+		int ion_type_start_;
 		
 		//! Dielectric constant of outside continuum.
-		double _eouter;
+		double eouter_;
 
 		//! unit conversion constant.
-		double _qqrd2e;
+		double qqrd2e_;
 		
 		//! Lower value for x.
 		double xlo = 0.0;
@@ -61,13 +61,13 @@ namespace SSAGES
 		int ngauss = 5;
 
 		//! Magic numbers for x.
-		double _xg0[5] = {-0.9061798459386640,-0.5384693101056831,0.00000000000000000,0.5384693101056831,0.9061798459386640};
+		double xg0_[5] = {-0.9061798459386640,-0.5384693101056831,0.00000000000000000,0.5384693101056831,0.9061798459386640};
 
 		//! Magic numbers for the weight.
-   		double _wg0[5] = {0.2369268850561891,0.4786286704993665,0.5688888888888889,0.4786286704993665,0.2369268850561891};	
+   		double wg0_[5] = {0.2369268850561891,0.4786286704993665,0.5688888888888889,0.4786286704993665,0.2369268850561891};	
 		
 		//! List of radii for all atom types.
-		std::vector<double> _atomTypeRadius;
+		std::vector<double> atomTypeRadius_;
 	
 	public:
 		//! Constructor.
@@ -83,13 +83,13 @@ namespace SSAGES
 			   double einner, 
 			   int ion_type_start,
 			   std::vector<double> atomTypeRadius):
-		Constraint(frequency, comm), _einner(einner), _ion_type_start(ion_type_start), _eouter(0), _qqrd2e(1), _atomTypeRadius(atomTypeRadius){}
+		Constraint(frequency, comm), einner_(einner), ion_type_start_(ion_type_start), eouter_(0), qqrd2e_(1), atomTypeRadius_(atomTypeRadius){}
 		
 		//! Gauss integration auxiliary parameter e.
-		double _e;
+		double e_;
 
 		//! Gauss integration auxiliary parameter g inverse.
-		double _ginv;
+		double ginv_;
 
 		//! Auxiliary variable R_kj for image kernel functions (x component).
 		double Rxkj;

@@ -486,19 +486,18 @@ namespace SSAGES
             }
 
         }
-	else if(type == "GridTest")
-	{
-		auto* m = new GridTest(world, comm, 1);
-		method = static_cast<Method*>(m);
-	}
-	else
-	{
-		throw BuildException({path + ": Unknown method type specified."});
-	}
-	
-	
-	method->_grid = nullptr;
-	return method;
+		else if(type == "GridTest")
+		{
+			auto* m = new GridTest(world, comm, 1);
+			method = static_cast<Method*>(m);
+		}
+		else
+		{
+			throw BuildException({path + ": Unknown method type specified."});
+		}
+		
+		method->grid_ = nullptr;
+		return method;
 	}
 }
 

@@ -42,9 +42,7 @@ namespace SSAGES
 	{
 	protected:
 
-        //-----------------------------------------------------------------
-        // Private Variables
-        //-----------------------------------------------------------------
+
 
         //! Nested class to store different FFS Config IDs
         class FFSConfigID
@@ -56,6 +54,7 @@ namespace SSAGES
             unsigned int lprev;      //!< Previous Interface number (i.e. traj I came from)
             unsigned int nprev;      //!< Previous Configuration Number
             unsigned int aprev;      //!< Previous Attempt number
+
 
             //! Constructor
             FFSConfigID(const unsigned int l, 
@@ -242,6 +241,7 @@ namespace SSAGES
         //! Take the current config in snapshot and append it to the provided ofstream
         void OpenTrajectoryFile(std::ofstream&);
 
+
 	public:
 		//! Constructor
 		/*!
@@ -356,6 +356,7 @@ namespace SSAGES
           
           }
 
+
 		//! Pre-simulation hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
@@ -382,8 +383,8 @@ namespace SSAGES
 		{
 			//Needed to run
 			json["type"] = "ForwardFlux";
-
         }
+
 
 	};
 }

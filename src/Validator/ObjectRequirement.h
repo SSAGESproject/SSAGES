@@ -47,55 +47,55 @@ namespace Json
 	{
 	private:
 		//! Map of properties the object needs to have.
-		std::map<std::string, std::unique_ptr<Requirement>> _properties;
+		std::map<std::string, std::unique_ptr<Requirement>> properties_;
 
 		//! Map of patterns the object needs to match.
-		std::map<std::string, std::unique_ptr<Requirement>> _patternProps;
+		std::map<std::string, std::unique_ptr<Requirement>> patternProps_;
 
 		//! List of requirements.
-		RequireList _extended;
+		RequireList extended_;
 
 		//! Dependency requirement.
-		std::unique_ptr<DependencyRequirement> _dependency;
+		std::unique_ptr<DependencyRequirement> dependency_;
 
-		std::vector<std::string> _required; //!< List of requirements.
-		bool _moreProps; //!< If \c True, more properties need to be set.
-		bool _setMin; //!< If \c True lower bound is active.
-		bool _setMax; //!< If \c True upper bound is active.
-		unsigned int _min; //!< Lower bound.
-		unsigned int _max; //!< Upper bound.
+		std::vector<std::string> required_; //!< List of requirements.
+		bool moreProps_; //!< If \c True, more properties need to be set.
+		bool setMin_; //!< If \c True lower bound is active.
+		bool setMax_; //!< If \c True upper bound is active.
+		unsigned int min_; //!< Lower bound.
+		unsigned int max_; //!< Upper bound.
 
 	public:
 		//! Constructor.
 		ObjectRequirement() : 
-		_properties(), _patternProps(), _extended(0), _dependency(nullptr), _required(),
-		_moreProps(true), _setMin(false), _setMax(false), _min(0), _max(0)
+		properties_(), patternProps_(), extended_(0), dependency_(nullptr), required_(),
+		moreProps_(true), setMin_(false), setMax_(false), min_(0), max_(0)
 		{}
 
 		//! Destructor.
 		~ObjectRequirement()
 		{
-			_properties.clear();
+			properties_.clear();
 
-			_patternProps.clear();
+			patternProps_.clear();
 
-			_extended.clear();
+			extended_.clear();
 		}
 
 		//! Clear errors on all Requirements.
 		virtual void ClearErrors() override
 		{
-			for(auto& c : _properties)
+			for(auto& c : properties_)
 				c.second->ClearErrors();
 
-			for(auto& c : _patternProps)
+			for(auto& c : patternProps_)
 				c.second->ClearErrors();
 
-			for(auto& c : _extended)
+			for(auto& c : extended_)
 				c->ClearErrors();
 
-			if(_dependency != nullptr)
-				_dependency->ClearErrors();
+			if(dependency_ != nullptr)
+				dependency_->ClearErrors();
 
 			Requirement::ClearErrors();
 		}
@@ -103,17 +103,17 @@ namespace Json
 		//! Clear notices on all Requirements.
 		virtual void ClearNotices() override
 		{
-			for(auto& c : _properties)
+			for(auto& c : properties_)
 				c.second->ClearNotices();
 
-			for(auto& c : _patternProps)
+			for(auto& c : patternProps_)
 				c.second->ClearNotices();
 
-			for(auto& c : _extended)
+			for(auto& c : extended_)
 				c->ClearNotices();
 
-			if(_dependency != nullptr)
-				_dependency->ClearNotices();
+			if(dependency_ != nullptr)
+				dependency_->ClearNotices();
 
 			Requirement::ClearNotices();
 		} 
@@ -124,14 +124,14 @@ namespace Json
 			ClearErrors();
 			ClearNotices();
 
-			_properties.clear();
-			_patternProps.clear();
+			properties_.clear();
+			patternProps_.clear();
 
-			_moreProps = true;
-			_setMin = _setMax = false;
-			_min = _max = 0;
-			_required.clear();
-			_dependency.reset();
+			moreProps_ = true;
+			setMin_ = setMax_ = false;
+			min_ = max_ = 0;
+			required_.clear();
+			dependency_.reset();
 		}
 
 		//! Parse JSON value to generate Requirement(s).
@@ -148,7 +148,7 @@ namespace Json
 			if(json.isMember("additionalProperties"))
 			{
 				if(json["additionalProperties"].isBool())
-					_moreProps = json["additionalProperties"].asBool();
+					moreProps_ = json["additionalProperties"].asBool();
 				else if(json["additionalProperties"].isObject())
 					json["properties"]["additionalProperties"] = json["additionalProperties"];
 			}
@@ -163,8 +163,8 @@ namespace Json
 				{
 					if(auto property = loader.LoadRequirement(prop))
 					{
-						_properties[names[i]] = std::move(property);
-						_properties[names[i]]->Parse(prop, path + "/" + names[i]);
+						properties_[names[i]] = std::move(property);
+						properties_[names[i]]->Parse(prop, path + "/" + names[i]);
 					}
 
 					++i;
@@ -183,8 +183,8 @@ namespace Json
 					{
 						if(auto property = loader.LoadRequirement(prop))
 						{
-							_patternProps[names[i]] = std::move(property);
-							_patternProps[names[i]]->Parse(prop, path + "/" + names[i]);
+							patternProps_[names[i]] = std::move(property);
+							patternProps_[names[i]]->Parse(prop, path + "/" + names[i]);
 						}
 					}
 
@@ -196,28 +196,28 @@ namespace Json
 			if(json.isMember("required") && json["required"].isArray())
 			{
 				for(auto& requirement : json["required"])
-					_required.push_back(requirement.asString());
+					required_.push_back(requirement.asString());
 			}
 
 			// Min property count.
 			if(json.isMember("minProperties") && json["minProperties"].isUInt())
 			{
-				_setMin = true;
-				_min = json["minProperties"].asInt();
+				setMin_ = true;
+				min_ = json["minProperties"].asInt();
 			}
 
 			// Max property count.
 			if(json.isMember("maxProperties") && json["maxProperties"].isUInt())
 			{
-				_setMax = true;
-				_max = json["maxProperties"].asInt();
+				setMax_ = true;
+				max_ = json["maxProperties"].asInt();
 			}
 
 			// Dependencies
 			if(json.isMember("dependencies") && json["dependencies"].isObject())
 			{
-				_dependency = std::move(std::unique_ptr<DependencyRequirement>(new DependencyRequirement()));
-				_dependency->Parse(json["dependencies"], path);
+				dependency_ = std::move(std::unique_ptr<DependencyRequirement>(new DependencyRequirement()));
+				dependency_->Parse(json["dependencies"], path);
 			}
 
 			// Extended properties. 
@@ -225,8 +225,8 @@ namespace Json
 			{
 				if(auto req  = loader.LoadExtended(prop))
 				{
-					_extended.push_back(std::move(req));
-					_extended.back()->Parse(prop, path);
+					extended_.push_back(std::move(req));
+					extended_.back()->Parse(prop, path);
 				}
 			}
 		}
@@ -244,39 +244,39 @@ namespace Json
 				return;
 			}
 
-			if(_setMin && json.size() < _min)
-				PushError(path + ": Object must contain at least " + std::to_string(_min) + " properties");
+			if(setMin_ && json.size() < min_)
+				PushError(path + ": Object must contain at least " + std::to_string(min_) + " properties");
 
-			if(_setMax && json.size() > _max)
-				PushError(path + ": Object must contain at most " + std::to_string(_max) + " properties");
+			if(setMax_ && json.size() > max_)
+				PushError(path + ": Object must contain at most " + std::to_string(max_) + " properties");
 
 
 			// Check dependencies. 
-			if(_dependency != nullptr)
+			if(dependency_ != nullptr)
 			{
-				_dependency->Validate(json, path);
-				if(_dependency->HasErrors())
-					for(const auto& error : _dependency->GetErrors())
+				dependency_->Validate(json, path);
+				if(dependency_->HasErrors())
+					for(const auto& error : dependency_->GetErrors())
 						PushError(error);
-				if(_dependency->HasNotices())
-					for(const auto& notice : _dependency->GetNotices())
+				if(dependency_->HasNotices())
+					for(const auto& notice : dependency_->GetNotices())
 						PushNotice(notice);
 			}
 
 			// Copy so we can pop items off the list.
-			auto rprops = _required;
+			auto rprops = required_;
 
 			auto names = json.getMemberNames();
 			int i = 0;
 			for(auto& prop : json)
 			{
 				Requirement* requirement = nullptr; 
-				auto it = _properties.find(names[i]);
-				if(it != _properties.end())
+				auto it = properties_.find(names[i]);
+				if(it != properties_.end())
 					requirement = it->second.get();					
-				else if(_patternProps.size() != 0)
+				else if(patternProps_.size() != 0)
 				{
-					for(auto& pattern : _patternProps)
+					for(auto& pattern : patternProps_)
 					{
 						auto regex = std::regex(pattern.first, std::regex::ECMAScript);
 						if(std::regex_search(names[i], regex))
@@ -284,8 +284,8 @@ namespace Json
 					}
 				}
 				
-				if(!requirement && _properties.find("additionalProperties") != _properties.end())
-					requirement = _properties["additionalProperties"].get();
+				if(!requirement && properties_.find("additionalProperties") != properties_.end())
+					requirement = properties_["additionalProperties"].get();
 				
 				if(requirement)
 				{
@@ -297,14 +297,14 @@ namespace Json
 						for(const auto& notice : requirement->GetNotices())
 							PushNotice(notice);
 				}
-				else if(!_moreProps)
+				else if(!moreProps_)
 					PushError(path + ": Invalid property \"" + names[i] + "\" specified");
 
 				rprops.erase(std::remove(rprops.begin(), rprops.end(),names[i]),rprops.end());
 				++i;
 			}
 
-			if(_required.size() && rprops.size() != 0)
+			if(required_.size() && rprops.size() != 0)
 			{
 				std::string msg = std::accumulate(rprops.begin(), rprops.end(), std::string(), 
     				[](const std::string& a, const std::string& b) -> std::string { 
@@ -314,7 +314,7 @@ namespace Json
 			}
 
 			// Validate extended.
-			for(auto& requirement : _extended)
+			for(auto& requirement : extended_)
 			{
 				requirement->Validate(json, path);
 				if(requirement->HasErrors())

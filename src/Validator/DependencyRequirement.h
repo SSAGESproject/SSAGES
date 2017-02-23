@@ -37,11 +37,11 @@ namespace Json
 	{
 	private:
 		//! Set of dependencies.
-		std::map<std::string, std::vector<std::string>> _deps;
+		std::map<std::string, std::vector<std::string>> deps_;
 
 	public:
 		//! Constructor
-		DependencyRequirement() : _deps() {}
+		DependencyRequirement() : deps_() {}
 
 		//! Reset Requirement.
 		/*!
@@ -49,7 +49,7 @@ namespace Json
 		 */
 		virtual void Reset() override
 		{
-			_deps.clear();
+			deps_.clear();
 			ClearErrors();
 			ClearNotices();
 		}
@@ -68,10 +68,10 @@ namespace Json
 			{
 				if(value.isArray())
 				{
-					_deps[names[i]] = {};
+					deps_[names[i]] = {};
 					for(auto& dep : value)
 					{
-						_deps[names[i]].push_back(dep.asString());
+						deps_[names[i]].push_back(dep.asString());
 					}
 				}
 				++i;
@@ -91,7 +91,7 @@ namespace Json
 				return;
 			}
 
-			for(auto& dep : _deps)
+			for(auto& dep : deps_)
 			{
 				auto& name = dep.first;
 				if(json.isMember(name))

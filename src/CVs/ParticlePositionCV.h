@@ -38,13 +38,13 @@ namespace SSAGES
 	{
 	private:
 		//! Vector of atom ids of interest.
-		Label _atomids; 
+		Label atomids_; 
 
 		//! Target point in space.
-		Vector3 _point;
+		Vector3 point_;
 
 		//! Each dimension determines if a constraint is applied by the CV.
-		Bool3 _fix; 
+		Bool3 fix_; 
 	
 	public:
 		//! Constructor
@@ -63,7 +63,7 @@ namespace SSAGES
 		 * \todo Bounds needs to be an input.
 		 */
 		ParticlePositionCV(const Label& atomids, const Vector3& position, bool fixx, bool fixy, bool fixz) : 
-		_atomids(atomids), _point(position), _fix{fixx, fixy, fixz}
+		atomids_(atomids), point_(position), fix_{fixx, fixy, fixz}
 		{
 		}
 
@@ -75,13 +75,13 @@ namespace SSAGES
 		{
 			using std::to_string;
 
-			auto n = _atomids.size();
+			auto n = atomids_.size();
 
 			// Make sure atom ID's are on at least one processor. 
 			std::vector<int> found(n, 0);
 			for(size_t i = 0; i < n; ++i)
 			{
-				if(snapshot.GetLocalIndex(_atomids[i]) != -1)
+				if(snapshot.GetLocalIndex(atomids_[i]) != -1)
 					found[i] = 1;
 			}
 
@@ -104,15 +104,15 @@ namespace SSAGES
 		{
 			// Get local atom indices and compute COM. 
 			std::vector<int> idx;
-			snapshot.GetLocalIndices(_atomids, &idx);
+			snapshot.GetLocalIndices(atomids_, &idx);
 
 			// Get data from snapshot. 
 			auto n = snapshot.GetNumAtoms();
 			const auto& masses = snapshot.GetMasses();
 
 			// Initialize gradient.
-			std::fill(_grad.begin(), _grad.end(), Vector3{0,0,0});
-			_grad.resize(n, Vector3{0,0,0});
+			std::fill(grad_.begin(), grad_.end(), Vector3{0,0,0});
+			grad_.resize(n, Vector3{0,0,0});
 
 			// Compute total and center of mass.
 			auto masstot = snapshot.TotalMass(idx);
@@ -120,15 +120,15 @@ namespace SSAGES
 
 			// Compute difference between point and account for requested 
 			// dimensions only.
-			Vector3 dx = snapshot.ApplyMinimumImage(com - _point).cwiseProduct(_fix.cast<double>());
-			_val = dx.norm();
+			Vector3 dx = snapshot.ApplyMinimumImage(com - point_).cwiseProduct(fix_.cast<double>());
+			val_ = dx.norm();
 
 			// If distance is zero, we have nothing to do.
-			if(_val == 0)
+			if(val_ == 0)
 				return;
 
 			for(auto& id : idx)
-				_grad[id] = dx/_val*masses[id]/masstot;
+				grad_[id] = dx/val_*masses[id]/masstot;
 		}
 	
 		//! Serialize this CV for restart purposes.
@@ -138,14 +138,14 @@ namespace SSAGES
 		void Serialize(Json::Value& json) const override
 		{
 			json["type"] = "ParticlePosition";
-			json["fix"][0] = _fix[0];
-			json["fix"][1] = _fix[1];
-			json["fix"][2] = _fix[2];
+			json["fix"][0] = fix_[0];
+			json["fix"][1] = fix_[1];
+			json["fix"][2] = fix_[2];
 			
-			for(auto& id : _atomids)
+			for(auto& id : atomids_)
 				json["atom_ids"].append(id);
 
-			for(auto& bound : _bounds)
+			for(auto& bound : bounds_)
 				json["bounds"].append(bound);			
 		}
 	};

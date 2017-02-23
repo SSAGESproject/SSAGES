@@ -54,13 +54,13 @@ namespace SSAGES
 			switch(pbc)
 			{
 				case 0:
-					_snapshot->SetPeriodicity({true, true, true});
+					snapshot_->SetPeriodicity({true, true, true});
 					break;
 				case 1:
-					_snapshot->SetPeriodicity({false, false, false});
+					snapshot_->SetPeriodicity({false, false, false});
 					break;
 				case 2:
-					_snapshot->SetPeriodicity({true, true, false});
+					snapshot_->SetPeriodicity({true, true, false});
 					break;
 				default:
 					std::cerr << "Unsupported PBC specified in Gromacs." << std::endl;

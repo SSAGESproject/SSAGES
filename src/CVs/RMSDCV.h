@@ -39,18 +39,18 @@ namespace SSAGES
 	{
 	private:
 
-		std::vector<int> _atomids; //!< IDs of the atoms used for Rg calculation
+		std::vector<int> atomids_; //!< IDs of the atoms used for Rg calculation
 
-		std::vector<int> _pertatoms; //!< Array to store indicies of atoms of interest
+		std::vector<int> pertatoms_; //!< Array to store indicies of atoms of interest
 
 		//! Name of model structure.
-		std::string _molecule; 
+		std::string molecule_; 
 
 		//! Store reference structure coordinates.
-		std::vector<Vector3> _refcoord;
+		std::vector<Vector3> refcoord_;
 
 		//! Center of mass of reference.
-		Vector3 _COMref;
+		Vector3 COMref_;
 
 	public:
 		//! Constructor.
@@ -64,7 +64,7 @@ namespace SSAGES
 		 * \todo Bounds needs to be an input and periodic boundary conditions
 		 */
 		RMSDCV(std::vector<int> atomids, std::string molxyz, bool use_range = false) :
-		_atomids(atomids), _molecule(molxyz)
+		atomids_(atomids), molecule_(molxyz)
 		{
 			if(use_range)
 			{
@@ -73,14 +73,14 @@ namespace SSAGES
 					exit(0);
 				}
 
-				_atomids.clear();
+				atomids_.clear();
 
 				if(atomids[0] >= atomids[1])
 				{	std::cout<<"RMSDCV: Please reverse atom range or check that atom range is not equal!"<<std::endl;
 					exit(0);
 				}					
 				for(int i = atomids[0]; i <= atomids[1];i++)
-					_atomids.push_back(i);
+					atomids_.push_back(i);
 			}
 		}
 
@@ -93,19 +93,19 @@ namespace SSAGES
 
 			// Initialize gradient
 			auto n = snapshot.GetPositions().size();
-			_grad.resize(n);
-			_refcoord.resize(_atomids.size());
+			grad_.resize(n);
+			refcoord_.resize(atomids_.size());
 
-			std::vector<std::array<double,4>> xyzinfo = ReadFile::ReadXYZ(_molecule);
+			std::vector<std::array<double,4>> xyzinfo = ReadFile::ReadXYZ(molecule_);
 
-			if(_refcoord.size() != xyzinfo.size())
+			if(refcoord_.size() != xyzinfo.size())
 				throw std::runtime_error("Reference structure and input structure atom size do not match!");
 
 			for(size_t i = 0; i < xyzinfo.size(); i++)
 			{
-				_refcoord[i][0] = xyzinfo[i][1];
-				_refcoord[i][1] = xyzinfo[i][2];
-				_refcoord[i][2] = xyzinfo[i][3];
+				refcoord_[i][0] = xyzinfo[i][1];
+				refcoord_[i][1] = xyzinfo[i][2];
+				refcoord_[i][2] = xyzinfo[i][3];
 			}
 
 			Vector3 mass_pos_prod_ref;
@@ -116,18 +116,18 @@ namespace SSAGES
 			for( size_t i = 0; i < mass.size(); ++i)
 			{
 				// Loop through pertinent atoms
-				for(size_t j = 0; j < _atomids.size(); j++)
+				for(size_t j = 0; j < atomids_.size(); j++)
 				{
-					if(ids[i] == _atomids[j])
+					if(ids[i] == atomids_[j])
 					{
-						mass_pos_prod_ref += mass[i]*_refcoord[j];
+						mass_pos_prod_ref += mass[i]*refcoord_[j];
 						total_mass += mass[i];
 						break;
 					}
 				}
 			}
 
-			_COMref = mass_pos_prod_ref/total_mass;
+			COMref_ = mass_pos_prod_ref/total_mass;
 		}
 
 		// Evaluate the CV
@@ -143,13 +143,13 @@ namespace SSAGES
 			// Loop through atom positions
 			for( size_t i = 0; i < pos.size(); ++i)
 			{
-				_grad[i].setZero();
+				grad_[i].setZero();
 				// Loop through pertinent atoms
-				for(size_t j = 0; j < _atomids.size(); j++)
+				for(size_t j = 0; j < atomids_.size(); j++)
 				{
-					if(ids[i] == _atomids[j])
+					if(ids[i] == atomids_[j])
 					{
-						_pertatoms[j] = i;
+						pertatoms_[j] = i;
 						auto u_coord = snapshot.UnwrapVector(pos[i], image_flags[i]);
 
 						mass_pos_prod += mass[i]*u_coord;
@@ -164,13 +164,13 @@ namespace SSAGES
 			//Vector3 mass_pos_prod;
 			//mass_pos_prod.setZero();
 			total_mass = 0;
-			Vector3 _COM;
+			Vector3 COM_;
 
 			// Need to unwrap coordinates for appropriate COM calculation. 
 
-			//for( size_t j = 0; j < _pertatoms.size(); ++j)
+			//for( size_t j = 0; j < pertatoms_.size(); ++j)
 			//{
-			//	i = _pertatoms[j];
+			//	i = pertatoms_[j];
 			//	auto u_coord = UnwrapCoordinates(snapshot.GetLatticeConstants(), image_flags[i], pos[i]);
 
 			//	mass_pos_prod[0] += mass[i]*u_coord[0];
@@ -179,7 +179,7 @@ namespace SSAGES
 			//	total_mass += mass[i];
 			//}
 
-			_COM = mass_pos_prod/total_mass;
+			COM_ = mass_pos_prod/total_mass;
 
 			// Build correlation matrix
 			Matrix3 R;
@@ -188,13 +188,13 @@ namespace SSAGES
 			Vector3 diff_ref;
 			double part_RMSD = 0;
 
-			for( size_t j = 0; j < _pertatoms.size(); ++j)
+			for( size_t j = 0; j < pertatoms_.size(); ++j)
 			{
-				i = _pertatoms[j];
+				i = pertatoms_[j];
 				auto u_coord = snapshot.UnwrapVector(pos[i], image_flags[i]);
 
-				diff = u_coord -_COM;
-				diff_ref = _refcoord[j] - _COMref;
+				diff = u_coord -COM_;
+				diff_ref = refcoord_[j] - COMref_;
 
 				R(0,0) += diff[0]*diff_ref[0];
 				R(0,1) += diff[0]*diff_ref[1];
@@ -252,9 +252,9 @@ namespace SSAGES
 			// Calculate RMSD
 
 
-			auto RMSD = sqrt((part_RMSD - (2*max_lambda))/(_atomids.size()));
+			auto RMSD = sqrt((part_RMSD - (2*max_lambda))/(atomids_.size()));
 
-			_val = RMSD;
+			val_ = RMSD;
 
 			// Calculate gradient
 
@@ -279,16 +279,16 @@ namespace SSAGES
 			RotMatrix(2,2) = q0*q0-q1*q1-q2*q2+q3*q3;
 
 			//double trans[3];
-			for(size_t j=0; j<_pertatoms.size();++j)
+			for(size_t j=0; j<pertatoms_.size();++j)
 			{
-				auto trans = RotMatrix.transpose()*_refcoord[j];
+				auto trans = RotMatrix.transpose()*refcoord_[j];
 
-				i = _pertatoms[j];
+				i = pertatoms_[j];
 				auto u_coord = pos[i]; //UnwrapCoordinates(snapshot.GetLatticeConstants(), image_flags[i], pos[i]);
 
-				_grad[i][0] = (u_coord[0] - trans[0])/((_atomids.size())*_val);
-				_grad[i][1] = (u_coord[1] - trans[1])/((_atomids.size())*_val);
-				_grad[i][2] = (u_coord[2] - trans[2])/((_atomids.size())*_val);
+				grad_[i][0] = (u_coord[0] - trans[0])/((atomids_.size())*val_);
+				grad_[i][1] = (u_coord[1] - trans[1])/((atomids_.size())*val_);
+				grad_[i][2] = (u_coord[2] - trans[2])/((atomids_.size())*val_);
 			}
 		}
 
@@ -299,11 +299,11 @@ namespace SSAGES
 		virtual void Serialize(Json::Value& json) const override
 		{
 			json["type"] = "RMSD";
-			json["reference"] = _molecule;
-			for(size_t i=0; i < _atomids.size(); ++i)
-				json["atom ids"].append(_atomids[i]);
-			for(size_t i = 0; i < _bounds.size(); ++i)
-				json["bounds"].append(_bounds[i]);
+			json["reference"] = molecule_;
+			for(size_t i=0; i < atomids_.size(); ++i)
+				json["atom ids"].append(atomids_[i]);
+			for(size_t i = 0; i < bounds_.size(); ++i)
+				json["bounds"].append(bounds_[i]);
 		}
 	};
 }

@@ -39,32 +39,32 @@ namespace Json
 	class NumberRequirement : public Requirement
 	{
 	private:
-		std::string _path; //!< JSON path.
-		double _multipleOf; //!< Base value for "multiple of" requirement.
-		double _min; //!< Lower bound for range requirement.
-		double _max; //!< Upper bound for range requirement.
-		bool _multSet; //!< If \c True, "Multiple of" requirement is active.
-		bool _minSet; //!< If \c True, Lower bound for range requirement is active.
-		bool _maxSet; //!< If \c True, Upper bound for range requirement is active.
-		bool _exclMin; //!< If \c True, lower bound is exclusive.
-		bool _exclMax; //!< If \c True, upper bound is exclusive.
+		std::string path_; //!< JSON path.
+		double multipleOf_; //!< Base value for "multiple of" requirement.
+		double min_; //!< Lower bound for range requirement.
+		double max_; //!< Upper bound for range requirement.
+		bool multSet_; //!< If \c True, "Multiple of" requirement is active.
+		bool minSet_; //!< If \c True, Lower bound for range requirement is active.
+		bool maxSet_; //!< If \c True, Upper bound for range requirement is active.
+		bool exclMin_; //!< If \c True, lower bound is exclusive.
+		bool exclMax_; //!< If \c True, upper bound is exclusive.
 
 
 	public:
 		//! Constructor.
 		NumberRequirement() : 
-		_path(), _multipleOf(0), _min(0), _max(0), _multSet(false), 
-		_minSet(false), _maxSet(false), _exclMin(false), _exclMax(false)
+		path_(), multipleOf_(0), min_(0), max_(0), multSet_(false), 
+		minSet_(false), maxSet_(false), exclMin_(false), exclMax_(false)
 		{}
 
 		//! Reset Requirement.
 		virtual void Reset() override
 		{
-			_multipleOf = 0;
-			_minSet = _maxSet = false;
-			_exclMin = _exclMax = false; 
-			_min = _max = 0;
-			_multSet = false;
+			multipleOf_ = 0;
+			minSet_ = maxSet_ = false;
+			exclMin_ = exclMax_ = false; 
+			min_ = max_ = 0;
+			multSet_ = false;
 			ClearErrors();
 			ClearNotices();
 		}
@@ -78,33 +78,33 @@ namespace Json
 		{
 			Reset();
 			
-			_path = path;
+			path_ = path;
 			if(json.isMember("multipleOf") && json["multipleOf"].isNumeric())
 			{
-				_multSet = true;
-				_multipleOf = json["multipleOf"].asDouble();
+				multSet_ = true;
+				multipleOf_ = json["multipleOf"].asDouble();
 			}
 
 			if(json.isMember("minimum") && json["minimum"].isNumeric())
 			{
-				_minSet = true;
-				_min = json["minimum"].asDouble();
+				minSet_ = true;
+				min_ = json["minimum"].asDouble();
 			}
 
 			if(json.isMember("maximum") && json["maximum"].isNumeric())
 			{
-				_maxSet = true;
-				_max = json["maximum"].asDouble();
+				maxSet_ = true;
+				max_ = json["maximum"].asDouble();
 			}
 
 			if(json.isMember("exclusiveMinimum") && json["exclusiveMinimum"].isBool())
 			{
-				_exclMin = json["exclusiveMinimum"].asBool();
+				exclMin_ = json["exclusiveMinimum"].asBool();
 			}
 
 			if(json.isMember("exclusiveMaximum") && json["exclusiveMaximum"].isBool())
 			{
-				_exclMax = json["exclusiveMaximum"].asBool();
+				exclMax_ = json["exclusiveMaximum"].asBool();
 			}
 		}
 
@@ -125,23 +125,23 @@ namespace Json
 				return;
 			}
 
-			if(_multSet && fmod(json.asDouble(), _multipleOf) != 0)
-				PushError(path + ": Value must be a multiple of " + std::to_string(_multipleOf));
+			if(multSet_ && fmod(json.asDouble(), multipleOf_) != 0)
+				PushError(path + ": Value must be a multiple of " + std::to_string(multipleOf_));
 
-			if(_minSet)
+			if(minSet_)
 			{
-				if(_exclMin && json.asDouble() <= _min)
-					PushError(path + ": Value must be greater than " + std::to_string(_min));
-				else if(json.asDouble() < _min)
-					PushError(path + ": Value cannot be less than " + std::to_string(_min));
+				if(exclMin_ && json.asDouble() <= min_)
+					PushError(path + ": Value must be greater than " + std::to_string(min_));
+				else if(json.asDouble() < min_)
+					PushError(path + ": Value cannot be less than " + std::to_string(min_));
 			}
 
-			if(_maxSet)
+			if(maxSet_)
 			{
-				if(_exclMax && json.asDouble() >= _max)
-					PushError(path + ": Value must be less than " + std::to_string(_max));
-				else if(json.asDouble() > _max)
-					PushError(path + ": Value cannot be greater than " + std::to_string(_max));
+				if(exclMax_ && json.asDouble() >= max_)
+					PushError(path + ": Value must be less than " + std::to_string(max_));
+				else if(json.asDouble() > max_)
+					PushError(path + ": Value cannot be greater than " + std::to_string(max_));
 			}
 		}
 	};

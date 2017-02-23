@@ -173,8 +173,8 @@ TEST_F(ABFTest,Initialization)
 	Method->ABF::PreSimulation(snapshot1, cvlist);
 
 	// Test dimensionality is correct.
-	EXPECT_TRUE(Method->_ncv == 3);
-	int dim = Method->_ncv;
+	EXPECT_TRUE(Method->ncv_ == 3);
+	int dim = Method->ncv_;
 
 	// Check for correct initialization.
 	EXPECT_TRUE(Method->_N.size() == 8);
@@ -212,7 +212,7 @@ TEST_F(ABFTest,CV_outofboundscheck)
 
 	// Initialize Method.
 	Method->ABF::PreSimulation(snapshot1, cvlist);
-	int dim = Method->_ncv;
+	int dim = Method->ncv_;
 	
 	// Take one MD step.
 	Method->ABF::PostIntegration(snapshot1, cvlist);
@@ -230,8 +230,8 @@ TEST_F(ABFTest,CV_outofboundscheck)
 	// The only bias force should be from CV restraints.
 	double bias = (CV3->GetValue()+1.5)*10;
 
-	for(size_t i = 0; i < Method->_biases[0].size() ; ++i)
-		EXPECT_NEAR(-Method->_biases[0][i], bias*CV3->GetGradient()[0][i], eps);
+	for(size_t i = 0; i < Method->biases_[0].size() ; ++i)
+		EXPECT_NEAR(-Method->biases_[0][i], bias*CV3->GetGradient()[0][i], eps);
 }
 TEST_F(ABFTest,MD_steps_inboundscheck)
 {
@@ -242,13 +242,13 @@ TEST_F(ABFTest,MD_steps_inboundscheck)
 
 	// Initialize Method.
 	Method->ABF::PreSimulation(snapshot1, cvlist);
-	int dim = Method->_ncv;	
+	int dim = Method->ncv_;	
 	
 	// Take an MD step (Out of bounds).
 	Method->ABF::PostIntegration(snapshot1, cvlist);
 
 	// Put CVs in bound.
-	CV3->_val = -1;
+	CV3->val_ = -1;
 
 	// Take two more MD steps (in bounds).
 	Method->ABF::PostIntegration(snapshot2, cvlist);
@@ -262,9 +262,9 @@ TEST_F(ABFTest,MD_steps_inboundscheck)
 	EXPECT_TRUE(Method->_F[2*dim+2] == -32.8);
 
 	// Check that the biases are accurate
-	EXPECT_NEAR(Method->_biases[0][0], 1.6, eps);
-	EXPECT_NEAR(Method->_biases[0][1], 4.08, eps);
-	EXPECT_NEAR(Method->_biases[0][2], 6.56, eps);
+	EXPECT_NEAR(Method->biases_[0][0], 1.6, eps);
+	EXPECT_NEAR(Method->biases_[0][1], 4.08, eps);
+	EXPECT_NEAR(Method->biases_[0][2], 6.56, eps);
 
 	// Check that the biases added to forces correctly
 	EXPECT_NEAR(snapshot3->GetForces()[0][0], 1.6, eps);

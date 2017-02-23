@@ -70,22 +70,19 @@ namespace SSAGES
 	{
 	private:	
 		//! Hills.
-		std::vector<Hill> _hills;
+		std::vector<Hill> hills_;
 
 		//! Hill height.
-		double _height;
+		double height_;
 
 		//! Hill widths.
-		std::vector<double> _widths;
+		std::vector<double> widths_;
 
-		//! Derivatives.
-		std::vector<double> _derivatives;
-
-		//! Bias magnitude.
-		double _bias;
+		//! Derivatives and temporary storage vectors.
+		std::vector<double> derivatives_, tder_, dx_;
 
 		//! Frequency of new hills
-		unsigned int _hillfreq;
+		unsigned int hillfreq_;
 
 		//! Adds a new hill.
 		/*!
@@ -106,7 +103,7 @@ namespace SSAGES
 		void PrintHill(const Hill& hill);
 
 		//! Output stream for hill data.
-		std::ofstream _hillsout;
+		std::ofstream hillsout_;
 
 	public:
 		//! Constructor
@@ -128,8 +125,8 @@ namespace SSAGES
 			 const std::vector<double>& widths, 
 			 unsigned int hillfreq,
 			 unsigned int frequency) : 
-		Method(frequency, world, comm), _hills(), _height(height), _widths(widths), 
-		  _derivatives(0), _bias(0), _hillfreq(hillfreq)
+		Method(frequency, world, comm), hills_(), height_(height), widths_(widths), 
+		derivatives_(0), tder_(0), dx_(0), hillfreq_(hillfreq)
 		{
 		}
 
@@ -161,10 +158,10 @@ namespace SSAGES
 		void Serialize(Json::Value& json) const override
 		{
 			json["type"] = "Metadynamics"; 
-			for(auto& w : _widths)
+			for(auto& w : widths_)
 				json["widths"].append(w);
-			json["height"] = _height;
-			json["hill_frequency"] = _hillfreq;
+			json["height"] = height_;
+			json["hill_frequency"] = hillfreq_;
 		}
 
 		//! Destructor.

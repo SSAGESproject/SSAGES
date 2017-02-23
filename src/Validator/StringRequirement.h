@@ -37,35 +37,35 @@ namespace Json
 	class StringRequirement : public Requirement 
 	{
 	private: 
-		bool _minSet; //!< If \c True, minimum length requirement is active.
-		bool _maxSet; //!< If \c True, maximum length requirement is active.
-		bool _rgxSet; //!< If \c True, string has to match regular expression.
-		size_t _minLength; //!< Minimum string length;
-		size_t _maxLength; //!< Maximum string length;
-		std::regex _regex; //!< Regular expression to match string to.
-		std::string _expr; //!< Expression.
-		std::string _path; //!< Path for JSON path specification.
-		std::vector<std::string> _enum; //!< Enum values.
+		bool minSet_; //!< If \c True, minimum length requirement is active.
+		bool maxSet_; //!< If \c True, maximum length requirement is active.
+		bool rgxSet_; //!< If \c True, string has to match regular expression.
+		size_t minLength_; //!< Minimum string length;
+		size_t maxLength_; //!< Maximum string length;
+		std::regex regex_; //!< Regular expression to match string to.
+		std::string expr_; //!< Expression.
+		std::string path_; //!< Path for JSON path specification.
+		std::vector<std::string> enum_; //!< Enum values.
 
 	public:
 		//! Constructor.
 		StringRequirement() : 
-		_minSet(false), _maxSet(false), _rgxSet(false),
-		_minLength(0), _maxLength(0), _regex(), _expr(), _path(), _enum(0)
+		minSet_(false), maxSet_(false), rgxSet_(false),
+		minLength_(0), maxLength_(0), regex_(), expr_(), path_(), enum_(0)
 		{}
 		
 		//! Reset Requirement.
 		virtual void Reset() override
 		{
-			_minSet = false;
-			_maxSet = false;
-			_rgxSet = false;
-			_minLength = 0;
-			_maxLength = 0;
-			_regex = "";
-			_expr = "";
-			_path  = "";
-			_enum.clear();
+			minSet_ = false;
+			maxSet_ = false;
+			rgxSet_ = false;
+			minLength_ = 0;
+			maxLength_ = 0;
+			regex_ = "";
+			expr_ = "";
+			path_  = "";
+			enum_.clear();
 			ClearErrors();
 			ClearNotices();
 		}
@@ -79,31 +79,31 @@ namespace Json
 		{
 			Reset();
 			
-			_path = path;
+			path_ = path;
 			if(json.isMember("minLength") && json["minLength"].isUInt())
 			{
-				_minSet = true;
-				_minLength = json["minLength"].asUInt();
+				minSet_ = true;
+				minLength_ = json["minLength"].asUInt();
 			}
 			
 			if(json.isMember("maxLength") && json["maxLength"].isUInt())
 			{
-				_maxSet = true;
-				_maxLength = json["maxLength"].asUInt();
+				maxSet_ = true;
+				maxLength_ = json["maxLength"].asUInt();
 			
 			}
 
 			if(json.isMember("pattern") && json["pattern"].isString())
 			{
-				_rgxSet = true;
-				_expr = json["pattern"].asString();
-				_regex = std::regex(_expr, std::regex::ECMAScript);
+				rgxSet_ = true;
+				expr_ = json["pattern"].asString();
+				regex_ = std::regex(expr_, std::regex::ECMAScript);
 			}
 
 			if(json.isMember("enum") && json["enum"].isArray())
 			{
 				for(const auto& val : json["enum"])
-					_enum.push_back(val.asString());
+					enum_.push_back(val.asString());
 			}
 		}
 
@@ -125,16 +125,16 @@ namespace Json
 				return;
 			}
 			
-			if(_minSet && json.asString().length() < _minLength)
-				PushError(path + ": Length must be greater than " + std::to_string(_minLength));
+			if(minSet_ && json.asString().length() < minLength_)
+				PushError(path + ": Length must be greater than " + std::to_string(minLength_));
 			
-			if(_maxSet && json.asString().length() > _maxLength)
-				PushError(path + ": Length must be less than " + std::to_string(_minLength));
+			if(maxSet_ && json.asString().length() > maxLength_)
+				PushError(path + ": Length must be less than " + std::to_string(minLength_));
 
-			if(_rgxSet && !std::regex_match(json.asString(), _regex))
-				PushError(path + ": String must match regular expression \"" + _expr + "\"");
+			if(rgxSet_ && !std::regex_match(json.asString(), regex_))
+				PushError(path + ": String must match regular expression \"" + expr_ + "\"");
 
-			if(_enum.size() && std::find(_enum.begin(),_enum.end(), json.asString()) == _enum.end())
+			if(enum_.size() && std::find(enum_.begin(),enum_.end(), json.asString()) == enum_.end())
 				PushError(path + ": String is not a valid entry");
 		}
 	};

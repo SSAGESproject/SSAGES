@@ -39,8 +39,8 @@ namespace Json
 	class Requirement
 	{
 	private:
-		std::vector<std::string> _errors; //!< List of error messages.
-		std::vector<std::string> _notices; //!< List of messages.
+		std::vector<std::string> errors_; //!< List of error messages.
+		std::vector<std::string> notices_; //!< List of messages.
 
 	protected:
 		//! Add error to list of error messages.
@@ -50,7 +50,7 @@ namespace Json
 		 * This function adds an error message to the list of error messages.
 		 * The list of error messages can be retrieved by Requirement::GetErrors()
 		 */
-		void PushError(const std::string& error) { _errors.push_back(error); }
+		void PushError(const std::string& error) { errors_.push_back(error); }
 
 		//! Add message to list of notices.
 		/*!
@@ -59,7 +59,7 @@ namespace Json
 		 * This function adds a new message to the list of messages. The list
 		 * can be retrieved using Requirement::GetNotices().
 		 */
-		void PushNotice(const std::string& notice) { _notices.push_back(notice); }
+		void PushNotice(const std::string& notice) { notices_.push_back(notice); }
 	
 	public:
 		//! Parse JSON value.
@@ -83,31 +83,31 @@ namespace Json
 		/*!
 		 * \returns \c True if the list of errors is not empty.
 		 */
-		bool HasErrors() { return _errors.size() != 0; };
+		bool HasErrors() { return errors_.size() != 0; };
 
 		//! Get list of error messages.
 		/*!
 		 * \return List of error messages.
 		 */
-		std::vector<std::string> GetErrors() { return _errors; };
+		std::vector<std::string> GetErrors() { return errors_; };
 
 		//! Clear list of error messages.
-		virtual void ClearErrors() { _errors.clear(); }
+		virtual void ClearErrors() { errors_.clear(); }
 
 		//! Check if notices have been queued.
 		/*!
 		 * \return \c True if list of notices is not empty.
 		 */
-		virtual bool HasNotices() {return _notices.size() != 0; };
+		virtual bool HasNotices() {return notices_.size() != 0; };
 
 		//! Get list of notices.
 		/*!
 		 * \return List of notice messages.
 		 */
-		std::vector<std::string> GetNotices() {return _notices; };
+		std::vector<std::string> GetNotices() {return notices_; };
 
 		//! Clear list of notice messages.
-		virtual void ClearNotices() { _notices.clear(); }
+		virtual void ClearNotices() { notices_.clear(); }
 
 		//! Destructor
 		virtual ~Requirement() {}

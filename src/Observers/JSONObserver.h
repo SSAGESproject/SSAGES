@@ -44,10 +44,10 @@ namespace SSAGES
 	class JSONObserver : public SimObserver
 	{
 	private:
-		std::unique_ptr<std::ofstream> _jsonfs; //!< Output file pointer.
-		std::string _prefix; //!< Prefix for output file.
-		Json::Value _root; //!< JSON root value.
-		bool _writetoother; //!< Indicate which json to write to.
+		std::unique_ptr<std::ofstream> jsonfs_; //!< Output file pointer.
+		std::string prefix_; //!< Prefix for output file.
+		Json::Value root_; //!< JSON root value.
+		bool writetoother_; //!< Indicate which json to write to.
 
 	public:
 		//! Constructor
@@ -76,7 +76,7 @@ namespace SSAGES
 		/*!
 		 * \return Filename prefix.
 		 */
-		std::string GetPrefix() const {return _prefix;}
+		std::string GetPrefix() const {return prefix_;}
 
 		//! Visit driver
 		/*!
@@ -96,8 +96,8 @@ namespace SSAGES
 		//! Destructor.
 		~JSONObserver()
 		{
-			if(_jsonfs)
-				_jsonfs->close();
+			if(jsonfs_)
+				jsonfs_->close();
 		}
 	};
 }

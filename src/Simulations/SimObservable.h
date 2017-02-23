@@ -36,7 +36,7 @@ namespace SSAGES
 	{
 	private:
 		//! List of observers observing this object.
-		std::vector<SimObserver*> _observers;
+		std::vector<SimObserver*> observers_;
 
 	protected:
 		//! Serialize observers
@@ -45,8 +45,8 @@ namespace SSAGES
 		 */
 		void SerializeObservers(Json::Value& json) const
 		{
-			for(int i = 0; i < (int)_observers.size(); ++i)
-				_observers[i]->Serialize(json[i]);
+			for(int i = 0; i < (int)observers_.size(); ++i)
+				observers_[i]->Serialize(json[i]);
 		}
 
 	public:

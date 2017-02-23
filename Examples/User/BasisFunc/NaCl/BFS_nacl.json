@@ -2,12 +2,9 @@
     "inputfile" : "in.BFS_NaCl",
     "CVs" : [
         {
-            "type" : "AtomSeparation",
-            "atom id 1" : 4498,
-            "atom id 2" : 4499,
-            "box size x" : 36.0,
-            "box size y" : 36.0,
-            "box size z" : 36.0 
+            "type" : "ParticleSeparation",
+            "group1" : [ 4498 ],
+            "group2" : [ 4499 ]
         }
     ],
     "method" : {

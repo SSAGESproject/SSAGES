@@ -34,6 +34,7 @@ namespace SSAGES
 			throw BuildException({"Forwardflux currently only works with one cv."});
 
 
+
         std::cout << "\nWARNING! MAKE SURE LAMMPS GIVES A DIFFERENT RANDOM SEED TO EACH PROCESSOR, OTHERWISE EACH FFS TRAJ WILL BE IDENTICAL!\n"; 
        
     }
@@ -49,6 +50,7 @@ namespace SSAGES
           ReconstructTrajectories(snapshot);	
         }
         _world.abort(EXIT_FAILURE); //more elegant solution?
+
 	}
 
   void ForwardFlux::CheckInitialStructure(const CVList& cvs){
@@ -119,13 +121,10 @@ namespace SSAGES
               success_local = true;
         }
 
-<<<<<<< HEAD
+
         //for each traj that crossed to lambda0 in forward direction, we need to write it to disk (FFSConfigurationFile)
         MPI_Allgather(&success_local,1,MPI_C_BOOL,successes,1,MPI_C_BOOL,_world);
-=======
-        //for each traj that crossed the lambda0 in forward direction, we need to write it to disk (FFSConfigurationFile)
-        MPI_Allgather(&success_local,1,MPI::BOOL,successes,1,MPI::BOOL,_world);
->>>>>>> ce88eb838b8778a4e9ccd26ff07e41592e97c872
+
 
         int success_count = 0;
         for (int i = 0; i < _world.size(); i++){
@@ -258,9 +257,11 @@ namespace SSAGES
  			file<<velocities[i][0]<<" "<<velocities[i][1]<<" "<<velocities[i][2]<<std::endl;
 		}
 
+
     }
 
     void ForwardFlux::OpenTrajectoryFile(std::ofstream& file){
+
 
         FFSConfigID ffsconfig = myFFSConfigID;
 
@@ -304,6 +305,7 @@ namespace SSAGES
         else{
           filename =  _output_directory + "/fail-l"+ std::to_string(ffsconfig.l) +"-n"+ std::to_string(ffsconfig.n) + ".dat";
 
+
         }
         std::string line;
 
@@ -321,6 +323,7 @@ namespace SSAGES
 			std::vector<std::string> tokens; // Create vector to hold our words
 			while (ss >> buf)
 			    tokens.push_back(buf);
+
            
             // first line contains the previous ffsconfig information
             if ((line_count == 0) && (tokens.size() == 3)){
@@ -601,5 +604,8 @@ namespace SSAGES
     }
     
 	
+
+
+			
 }
 
