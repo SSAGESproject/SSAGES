@@ -33,10 +33,10 @@ namespace SSAGES
 	{
         //check if we want to check FFS interfaces this timestep
         //for now, do it every time step
-        if (iteration_ % 1 != 0) return;
+        if (_iteration % 1 != 0) return;
 
         // check the structure at the beginning of the simulation
-        if (iteration_ == 0) {
+        if (_iteration == 0) {
           CheckInitialStructure(cvs);
         }
 
@@ -68,8 +68,8 @@ namespace SSAGES
     {
         //This is the main FFS method. The magic happens here!
 
-        //QUESTION: Whats the difference between world_ and _comm?
-        //For now I'll use world_ for everything. But if each driver uses multiple procs then I suspect that this will be wrong.
+        //QUESTION: Whats the difference between _world and _comm?
+        //For now I'll use _world for everything. But if each driver uses multiple procs then I suspect that this will be wrong.
 
         _cvvalue = cvs[0]->GetValue();
         
@@ -86,8 +86,8 @@ namespace SSAGES
         int hascrossed = HasCrossedInterface(_cvvalue, _cvvalue_previous, _current_interface + 1);
         bool fail_local=false,success_local=false;
         //std::vector<bool> in MPI were strange, ended up using arrays
-        bool *successes = new bool [world_.size()];
-        bool *failures = new bool [world_.size()];
+        bool *successes = new bool [_world.size()];
+        bool *failures = new bool [_world.size()];
 
         if (!_pop_tried_but_empty_queue){ 
             // make sure this isnt a zombie trajectory that previously failed or succeeded and is just waiting for the queue to get more jobs
@@ -100,7 +100,7 @@ namespace SSAGES
             else if (hascrossed == -1){
               //this should never happen if the interfaces are non-intersecting, it would be wise to throw an error here though
               std::cerr << "Trajectory l"<<myFFSConfigID.l<<"-n"<<myFFSConfigID.n<<"-a"<<myFFSConfigID.a<<" crossed backwards! This shouldnt happen!" << std::endl;
-              //world_.abort(EXIT_FAILURE);
+              //_world.abort(EXIT_FAILURE);
             }
             else{
               //not sure if anything should needs to be done here        
@@ -109,13 +109,13 @@ namespace SSAGES
 
         //for each traj that crossed to lambda+1 need to write it to disk (FFSConfigurationFile)
         //MPIAllgather success_local into successes
-        MPI_Allgather(&success_local,1,MPI_C_BOOL,successes,1,MPI_C_BOOL,world_);
-        MPI_Allgather(&fail_local,1,MPI_C_BOOL,failures,1,MPI_C_BOOL,world_);
+        MPI_Allgather(&success_local,1,MPI_C_BOOL,successes,1,MPI_C_BOOL,_world);
+        MPI_Allgather(&fail_local,1,MPI_C_BOOL,failures,1,MPI_C_BOOL,_world);
        
         int success_count = 0, fail_count = 0;
         // I dont pass the queue information between procs but I do syncronize 'successes' and 'failures'
         //   as a reuslt all proc should have the same queue throughout the simulation
-        for (int i=0;i<world_.size();i++){
+        for (int i=0;i<_world.size();i++){
           int l,n,a,lprev,nprev,aprev;
           // write config to lambda+1
           lprev = myFFSConfigID.l;
@@ -123,7 +123,7 @@ namespace SSAGES
           aprev = myFFSConfigID.a;
 
           if (successes[i] == true){ 
-            if (i == world_.rank()){
+            if (i == _world.rank()){
               //update ffsconfigid's l,n,a
               l = _current_interface + 1;
               n = _S[_current_interface] + success_count;
@@ -134,7 +134,7 @@ namespace SSAGES
             success_count++;
           }
           if (failures[i] == true){ 
-            if (i == world_.rank()){
+            if (i == _world.rank()){
               //update ffsconfigid's l,n,a
               l = 0; //only fail at lambda 0, 
               n = _nfailure_total + fail_count;
@@ -166,7 +166,7 @@ namespace SSAGES
         //------------------------------
         //print info
         if ((success_local) || (fail_local)){
-          std::cout << "Iteration: "<< iteration_ << ", proc " << world_.rank() << "\n";
+          std::cout << "Iteration: "<< _iteration << ", proc " << _world.rank() << "\n";
           if (success_local){
             std::cout << "Successful attempt from interface " << _current_interface 
                       << " l"<<myFFSConfigID.l<<"-n"<<myFFSConfigID.n<<"-a"<<myFFSConfigID.a
@@ -200,7 +200,7 @@ namespace SSAGES
 
             if (_N[_current_interface] == 0){
                std::cerr << "Error! No successes from interface " << _current_interface-1 << " to " << _current_interface <<"! Try turning up M["<<_current_interface-1<<"] or spacing interfaces closer together.\n";
-              world_.abort(EXIT_FAILURE); 
+              _world.abort(EXIT_FAILURE); 
             }
 
             //for DFFS
@@ -208,13 +208,13 @@ namespace SSAGES
             std::vector<unsigned int> picks;
             picks.resize(npicks);
 
-            if (world_.rank() == 0){
+            if (_world.rank() == 0){
               std::uniform_int_distribution<int> distribution(0,_N[_current_interface]-1);
               for (unsigned int i=0; i < npicks ; i++){
                  picks[i] = distribution(_generator);
               }
             }
-            MPI_Bcast(picks.data(),npicks,MPI_UNSIGNED,0,world_);
+            MPI_Bcast(picks.data(),npicks,MPI_UNSIGNED,0,_world);
 
             //each proc adds to the queue
 
@@ -248,9 +248,9 @@ namespace SSAGES
 
         // Need to account for zombie jobs that are waiting for a new config
         bool shouldpop_local = false;        
-        bool *shouldpop = new bool[world_.size()];
+        bool *shouldpop = new bool[_world.size()];
         //std::vector<bool> shouldpop;
-        //shouldpop.resize(world_.size());
+        //shouldpop.resize(_world.size());
         if (success_local || fail_local || _pop_tried_but_empty_queue){
           shouldpop_local = true;
         }
@@ -265,7 +265,7 @@ namespace SSAGES
         
         //clean up
         _cvvalue_previous = _cvvalue;
-        iteration_++;
+        _iteration++;
 
         delete[] successes;
         delete[] failures;
@@ -282,13 +282,13 @@ namespace SSAGES
         std::vector<unsigned int> picks;
         picks.resize(npicks);
 
-        if (world_.rank() == 0){
+        if (_world.rank() == 0){
           std::uniform_int_distribution<int> distribution(0,_N[0]-1);
           for (int i=0; i < npicks ; i++){
              picks[i] = distribution(_generator);
           }
         }
-        MPI_Bcast(picks.data(),npicks,MPI_UNSIGNED,0,world_);
+        MPI_Bcast(picks.data(),npicks,MPI_UNSIGNED,0,_world);
 
         //set correct attempt index if a given ID is picked twice
         std::vector<unsigned int> attempt_count;
