@@ -49,7 +49,7 @@ namespace SSAGES
         if (_saveTrajectories){
           ReconstructTrajectories(snapshot);	
         }
-        _world.abort(EXIT_FAILURE); //more elegant solution?
+        world_.abort(EXIT_FAILURE); //more elegant solution?
 
 	}
 
@@ -115,7 +115,7 @@ namespace SSAGES
         //check if we've crossed the first interface (lambda 0)
         int hascrossed = HasCrossedInterface(_cvvalue, _cvvalue_previous, 0);
         bool success_local = false;
-        bool *successes = new bool[_world.size()];
+        bool *successes = new bool[world_.size()];
 
         if (hascrossed == 1){
               success_local = true;
@@ -123,15 +123,15 @@ namespace SSAGES
 
 
         //for each traj that crossed to lambda0 in forward direction, we need to write it to disk (FFSConfigurationFile)
-        MPI_Allgather(&success_local,1,MPI_C_BOOL,successes,1,MPI_C_BOOL,_world);
+        MPI_Allgather(&success_local,1,MPI::BOOL,successes,1,MPI::BOOL,world_);
 
 
         int success_count = 0;
-        for (int i = 0; i < _world.size(); i++){
+        for (int i = 0; i < world_.size(); i++){
           // Since we are in State A, the values of lprev, nprev, aprev are all zero.
 
           if (successes[i] == true){ 
-            if (i == _world.rank()){
+            if (i == world_.rank()){
               int l,n,a,lprev,nprev,aprev;
               //update ffsconfigid's l,n,a
               //note lprev == l for initial interface
@@ -163,13 +163,13 @@ namespace SSAGES
         }
 
         // Allreduce then increment total
-        MPI_Allreduce(&N0SimTime_local, &N0SimTime, 1, MPI_DOUBLE, MPI_SUM,_world);
+        MPI_Allreduce(&N0SimTime_local, &N0SimTime, 1, MPI_DOUBLE, MPI_SUM,world_);
         _N0TotalSimTime += N0SimTime;
 
 
         //print some info
         if (success_local){
-            std::cout << "Iteration: "<< _iteration << ", proc " << _world.rank() << std::endl;
+            std::cout << "Iteration: "<< iteration_ << ", proc " << world_.rank() << std::endl;
             std::cout << "Successful attempt. (cvvalue_previous: " << _cvvalue_previous << " cvvalue " << _cvvalue << " )" << std::endl;
             std::cout << "# of successes:               " << _N[0] << std::endl;
             std::cout << "required # of configurations: " << _N0Target << std::endl;
@@ -185,7 +185,7 @@ namespace SSAGES
         } 
 
         _cvvalue_previous = _cvvalue;
-        _iteration++;
+        iteration_++;
 
         //clean up
         delete[] successes;
@@ -201,8 +201,8 @@ namespace SSAGES
         exit(1);
       }
       _fluxA0 = (double) (_N[0] / _N0TotalSimTime);
-      file << "number of processors: " << _world.size() << std::endl;
-      file << "number of iterations: " << _iteration << std::endl;
+      file << "number of processors: " << world_.size() << std::endl;
+      file << "number of iterations: " << iteration_ << std::endl;
       file << "Total simulation time: " << _N0TotalSimTime << std::endl;
       file << "Initial flux: " << _fluxA0 << std::endl;
       file.close();
@@ -346,7 +346,7 @@ namespace SSAGES
                 if(atomindex < 0)
                 {
                     std::cout<<"error, could not locate atomID "<<tokens[0]<<" from dumpfile"<<std::endl;
-                    _world.abort(-1);
+                    world_.abort(-1);
                 }
 
                 positions[atomindex][0] = std::stod(tokens[1]);
@@ -364,7 +364,7 @@ namespace SSAGES
             else{
 				std::cout<<"ERROR: incorrect line format in "<< filename <<" on line" << line_count << ":\n";
 				std::cout<<line<<std::endl;
-				_world.abort(-1);	
+				world_.abort(-1);	
             }
             line_count++;
         }
@@ -385,15 +385,15 @@ namespace SSAGES
 
     void ForwardFlux::PopQueueMPI(Snapshot* snapshot, const CVList& cvs, bool shouldpop_local){
 
-        bool *shouldpop = new bool(_world.size());
+        bool *shouldpop = new bool(world_.size());
 
-        MPI_Allgather(&shouldpop_local,1,MPI_C_BOOL,shouldpop,1,MPI_C_BOOL,_world);
+        MPI_Allgather(&shouldpop_local,1,MPI::BOOL,shouldpop,1,MPI::BOOL,world_);
 
         // I dont pass the queue information between procs but I do syncronize 'shouldpop'
         //   as a reuslt all proc should have the same queue throughout the simulation
-        for (int i=0;i<_world.size();i++){
+        for (int i=0;i<world_.size();i++){
           if (shouldpop[i] == true){ 
-            if (i == _world.rank()){ //if rank matches read and pop
+            if (i == world_.rank()){ //if rank matches read and pop
               if (!FFSConfigIDQueue.empty()){ //if queue has tasks
 
                    myFFSConfigID = FFSConfigIDQueue.front();

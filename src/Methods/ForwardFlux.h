@@ -318,7 +318,7 @@ namespace SSAGES
                   std::cerr << "Error! The interfaces are poorly defined. They must be monotonically increasing or decreasing and cannot equal one another! Please fix this.\n";
                   for (auto interface : _interfaces){ std::cerr << interface << " ";}
                   std::cerr << "\n";
-                  _world.abort(EXIT_FAILURE);
+                  world_.abort(EXIT_FAILURE);
               }
 
 
