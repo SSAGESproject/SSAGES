@@ -35,12 +35,15 @@ namespace SSAGES
 		// Compute the forces on the atoms from the CV's using the chain 
 		// rule.
 		auto& forces = snapshot->GetForces();
+		auto& virial = snapshot->GetVirial();
+		auto& H = snapshot->GetHMatrix();
+
 		for(size_t i = 0; i < cvs.size(); ++i)
 		{
 			// Get current CV and gradient.
 			auto& cv = cvs[i];
 			auto& grad = cv->GetGradient();
-
+			auto& boxgrad = cv->GetBoxGradient();
 			// Compute dV/dCV.
 			auto center = GetCurrentCenter(snapshot->GetIteration(), i);
 			auto D = kspring_[i]*(cv->GetDifference(center));
@@ -48,6 +51,9 @@ namespace SSAGES
 			// Update forces.
 			for(size_t j = 0; j < forces.size(); ++j)
 				forces[j] -= D*grad[j];
+			
+			// Update virial. 
+			virial += H*D*boxgrad;
 		}
 
 		iteration_++;

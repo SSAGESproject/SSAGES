@@ -134,6 +134,12 @@ namespace SSAGES
 		 */
 		const Matrix3& GetVirial() const { return virial_; }
 
+		//! Get box virial
+		/*!
+		 * \retun Virial tensor of the simulation box. 
+		 */
+		Matrix3& GetVirial() { return virial_; }
+
 		//! Get origin of the system.
 		/*! 
 		 * \return Vector containing coordinates of box origin.
