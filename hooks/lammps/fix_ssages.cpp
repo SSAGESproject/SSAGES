@@ -31,6 +31,9 @@ namespace LAMMPS_NS
 		int ipe = modify->find_compute(idpe);
 		peid_ = modify->compute[ipe];
 		peid_->addstep(update->ntimestep + 1);
+
+		// Turn on virial flag. 
+		virial_flag = 1;
 	}
 
 	void FixSSAGES::setup(int)
@@ -139,14 +142,9 @@ namespace LAMMPS_NS
 
 		// Store in snapshot.
 		snapshot_->SetEnergy(etot/atom->natoms);
-		
-		// Get iteration.
 		snapshot_->SetIteration(update->ntimestep);
-
 		snapshot_->SetDielectric(force->dielectric);
-
 		snapshot_->Setqqrd2e(force->qqrd2e);
-
 		snapshot_->SetNumAtoms(n);
 		
 		// Get H-matrix.
@@ -174,6 +172,9 @@ namespace LAMMPS_NS
 			domain->yperiodic, 
 			domain->zperiodic
 		});
+
+		// Zero the virial - we are only interested in accumulation.
+		snapshot_->SetVirial(Matrix3::Zero());
 
 		// First we sync local data, then gather.
 		// we gather data across all processors.
@@ -251,10 +252,14 @@ namespace LAMMPS_NS
 				atom->rmass[i] = masses[i];			
 		}
 
-		// LAMMPS computes will reset thermo data based on
-		// updated information. No need to sync thermo data
-		// from snapshot to engine.
-		// However, this will change in the future.
+		// Update the virial (negative contribution to box). 
+		const auto& vir = snapshot_->GetVirial();
+		virial[0] = -vir(0,0);
+		virial[1] = -vir(1,1);
+		virial[2] = -vir(2,2);
+		virial[3] = -vir(0,1);
+		virial[4] = -vir(0,2);
+		virial[5] = -vir(1,2);
 	}
 
 	FixSSAGES::~FixSSAGES()
