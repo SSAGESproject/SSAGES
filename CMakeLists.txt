@@ -408,6 +408,7 @@ set(SOURCE
 	src/Methods/FiniteTempString.cpp
     src/Methods/Swarm.cpp
 	src/Methods/ForwardFlux.cpp
+	src/Methods/DirectForwardFlux.cpp
 	src/Methods/ABF.cpp
     src/Methods/BasisFunc.cpp
 	src/Validator/RequirementLoader.cpp
