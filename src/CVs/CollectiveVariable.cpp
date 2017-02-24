@@ -35,6 +35,7 @@
 #include "RMSDCV.h"
 #include "RouseModeCV.h"
 #include "CoordinationNumberCV.h"
+#include "BoxVolumeCV.h"
 
 using namespace Json;
 
@@ -287,7 +288,19 @@ namespace SSAGES
 				group2.push_back(s.asInt());
 			
 			auto* c = new CoordinationNumberCV(group1, group2, SwitchingFunction::Build(json["switching"]));
-			
+			cv = static_cast<CollectiveVariable*>(c);
+		}
+		else if(type == "BoxVolume")
+		{
+			reader.parse(JsonSchema::BoxVolumeCV, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+
+			auto* c = new BoxVolumeCV();
 			cv = static_cast<CollectiveVariable*>(c);
 		}
 		else
