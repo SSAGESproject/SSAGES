@@ -53,8 +53,10 @@ namespace SSAGES
 
 		std::string ID_; //!< ID string
 
-		Matrix3 _H; //!< Parrinello-Rahman box H-matrix.
+		Matrix3 H_; //!< Parrinello-Rahman box H-matrix.
 		Matrix3 Hinv_; //!< Parinello-Rahman box inverse.
+
+		Matrix3 virial_; //! < Virial tensor.
 
 		Vector3 origin_; //!< Box origin.
 
@@ -90,10 +92,10 @@ namespace SSAGES
 		 * correpsonding walker ID.
 		 */
 		Snapshot(boost::mpi::communicator& comm, unsigned wid) :
-		comm_(comm), wid_(wid), _H(), Hinv_(), origin_({0,0,0}), 
-		isperiodic_({true, true, true}), positions_(0), images_(0), 
-		velocities_(0), forces_(0), masses_(0), atomids_(0), types_(0), 
-		iteration_(0), temperature_(0), energy_(0), kb_(0)
+		comm_(comm), wid_(wid), H_(), Hinv_(), virial_(Matrix3::Zero()), 
+		origin_({0,0,0}), isperiodic_({true, true, true}), positions_(0), 
+		images_(0), velocities_(0), forces_(0), masses_(0), atomids_(0), 
+		types_(0), iteration_(0), temperature_(0), energy_(0), kb_(0)
 		{}
 
 		//! Get the current iteration
@@ -124,7 +126,13 @@ namespace SSAGES
 		/*! 
 		 * \return Parrinello-Rahman H-matrix of simulation box
 		 */
-		const Matrix3& GetHMatrix() const { return _H; }
+		const Matrix3& GetHMatrix() const { return H_; }
+
+		//! Get box virial
+		/*!
+		 * \retun Virial tensor of the simulation box. 
+		 */
+		const Matrix3& GetVirial() const { return virial_; }
 
 		//! Get origin of the system.
 		/*! 
@@ -142,7 +150,7 @@ namespace SSAGES
 		/*!
 		 * \return Volume of the current simulation box
 		 */
-		double GetVolume() const { return _H.determinant(); }
+		double GetVolume() const { return H_.determinant(); }
 
 		//! Get system Kb
 		/*!
@@ -233,8 +241,18 @@ namespace SSAGES
 		*/
 		void SetHMatrix(const Matrix3& hmat)
 		{
-			_H = hmat;
+			H_ = hmat;
 			Hinv_ = hmat.inverse();
+			changed_ = true;
+		}
+
+		//! Change the box virial. 
+		/*!
+		 * \param virial New virial tensor for the system. 
+		 */
+		void SetVirial(const Matrix3& virial)
+		{
+			virial_ = virial; 
 			changed_ = true;
 		}
 
@@ -386,7 +404,7 @@ namespace SSAGES
 		 */
 		Vector3 UnwrapVector(const Vector3& v, const Integer3& image) const
 		{
-			return _H*image.cast<double>()+v;
+			return H_*image.cast<double>()+v;
 		}
 
 		//! Apply minimum image to a vector.
@@ -400,7 +418,7 @@ namespace SSAGES
 			for(int i = 0; i < 3; ++i)
 				scaled[i] -= isperiodic_[i]*roundf(scaled[i]);
 
-			*v = _H*scaled;
+			*v = H_*scaled;
 		}
 		
 		//! Apply minimum image to a vector.
@@ -415,7 +433,7 @@ namespace SSAGES
 			for(int i = 0; i < 3; ++i)
 				scaled[i] -= isperiodic_[i]*roundf(scaled[i]);
 
-			return _H*scaled;	
+			return H_*scaled;	
 		}
 
 		//! Compute the total mass of a group of particles based on index. 
@@ -740,7 +758,7 @@ namespace SSAGES
 
 			for(int i = 0; i < 3; ++i)
 				for(int j = 0; j < 3; ++j)
-					json["hmat"][i][j] = _H(i,j);
+					json["hmat"][i][j] = H_(i,j);
 		}
 		
 		//! Destructor
