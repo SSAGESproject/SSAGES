@@ -1,0 +1,79 @@
+# lammps input file for polymer simulation with dilute ions
+
+# VARIABLES
+variable        data_name      index 	sys.data
+variable        nlang          index    100000	  # number of data steps
+variable        avg_freq       index    1000
+variable        coords_freq    index    1000
+variable        thermo_freq    index    1000
+variable        dump4avg       index    1000
+variable        T0	       index     323.15
+variable        Tf	       index     323.15
+variable        vseed          index     123
+
+#===========================================================
+# GENERAL PROCEDURES
+#===========================================================
+units		real	# g/mol, angstroms, fs, kcal/mol, K, atm, charge*angstrom
+dimension	3	# 3 dimensional simulation
+newton		off	# use Newton's 3rd law
+boundary	s s s	# periodic boundary conditions 
+atom_style	full    # molecular + charge
+
+#===========================================================
+# FORCE FIELD DEFINITION
+#===========================================================
+pair_style     lj/charmm/coul/charmm 10.0 12.0 # inner outer_LJ outer_Coul (cutoff values, see LAMMPS Doc)
+bond_style     harmonic             # parameters needed: k_bond, r0
+angle_style    charmm             # parameters needed: k_theta, theta0
+dihedral_style charmm            # parameters needed: V1, V2, V3, V4
+kspace_style   none          # long-range electrostatics sum method
+improper_style none                 # no impropers
+pair_modify     shift yes mix arithmetic
+
+#===========================================================
+# SETUP SIMULATIONS
+#===========================================================
+# READ IN COEFFICIENTS/COORDINATES/TOPOLOGY
+read_data ${data_name} 
+
+# SET RUN PARAMETERS
+timestep	1.0		# fs
+run_style	verlet 		# Velocity-Verlet integrator
+
+# SET OUTPUTS
+thermo_style    custom step temp vol density etotal pe ebond eangle edihed ecoul elong evdwl enthalpy press
+thermo_modify   format float %14.6f
+thermo ${thermo_freq}
+
+# DECLARE RELEVANT OUTPUT VARIABLES
+variable        my_step equal   step
+variable        my_temp equal   temp
+variable        my_rho  equal   density
+variable        my_pe   equal   pe
+variable        my_ebon equal   ebond
+variable        my_eang equal   eangle
+variable        my_edih equal   edihed
+variable        my_evdw equal   evdwl
+variable        my_eel  equal   (ecoul+elong)
+variable        my_ent  equal   enthalpy
+variable        my_P    equal   press
+variable        my_vol  equal   vol
+
+fix  averages all ave/time ${dump4avg} $(v_avg_freq/v_dump4avg) ${avg_freq} v_my_temp v_my_rho v_my_vol v_my_pe v_my_edih v_my_evdw v_my_eel v_my_ent v_my_P file thermo.avg
+
+#===========================================================
+# REMOVE ANY BAD OVERLAPS WITH INITIAL CONSTRAINED MINIMIZATION STEP
+#===========================================================
+# CREATE COORDINATE DUMPS 
+dump            coords  all atom ${coords_freq} coords.lammpstrj
+dump_modify	coords  scale no
+dump_modify	coords  sort  id
+
+#===========================================================
+# RUN LANGEVIN DYNAMICS TO ANNEAL AT HIGH TEMPERATURE
+#===========================================================
+
+fix dynamics    all nve
+fix lang all langevin ${T0} ${Tf} 100 ${vseed} 
+fix ssages all ssages

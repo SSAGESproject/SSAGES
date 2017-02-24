@@ -1,0 +1,55 @@
+# VARIABLES
+variable        data_name      index 	sys.data
+variable        nstep          index    100000	  # number of data steps
+variable        avg_freq       index    10
+variable        coords_freq    index    10
+variable        thermo_freq    index    10
+variable        dump4avg       index    10
+variable        T0	       index    0.50
+variable        Tf	       index    0.50
+variable	vseed	       index    10
+
+#===========================================================
+# GENERAL PROCEDURES
+#===========================================================
+units		lj	# 
+dimension	3	# 3 dimensional simulation
+newton		off	# use Newton's 3rd law
+boundary	p p p	# periodic boundary conditions 
+atom_style	full    # molecular + charge
+
+#===========================================================
+# FORCE FIELD DEFINITION
+#===========================================================
+pair_style     zero 5.0 nocoeff
+bond_style     harmonic             # parameters needed: k_bond, r0
+kspace_style   none
+improper_style none                 # no impropers
+
+#===========================================================
+# SETUP SIMULATIONS
+#===========================================================
+# READ IN COEFFICIENTS/COORDINATES/TOPOLOGY
+read_data ${data_name} 
+
+# SET RUN PARAMETERS
+timestep	0.005		# fs
+run_style	verlet 		# Velocity-Verlet integrator
+
+# SET OUTPUTS
+thermo_style    custom step temp vol etotal pe ebond
+thermo_modify   format float %14.6f
+thermo ${thermo_freq}
+
+# CREATE COORDINATE DUMPS 
+dump            coords  all atom ${coords_freq} coords.lammpstrj
+dump_modify	coords  scale no
+dump_modify	coords  sort  id
+
+#===========================================================
+# RUN LANGEVIN DYNAMICS
+#===========================================================
+velocity        all create ${T0} ${vseed} mom yes rot yes     # DRAW VELOCITIES
+fix dynamics    all nve
+fix lang all langevin ${T0} ${Tf} 0.5 15
+fix ssages all ssages
