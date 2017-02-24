@@ -21,7 +21,8 @@
 		"mode" : {
 			"type"     : "integer",
 			"minItems" : 1,
-			"maxItems" : 1
+			"maxItems" : 1,
+			"minimum" : 0
 		}
 	},
 	"required": ["type", "groups", "mode"],

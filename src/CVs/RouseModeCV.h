@@ -78,6 +78,14 @@ namespace SSAGES
 		{
 			using std::to_string;
 
+			// Check for valid p_
+			if (p_ > groups_.size())
+				throw std::invalid_argument(
+					"RouseModeCV: Expected to find p to be less than " + 
+					to_string(groups_.size()) +" but found p = " + 
+					to_string(p_) 
+				);			
+			// Check for valid groups
 			for (size_t j = 0; j < groups_.size(); ++j) {
 				auto nj = groups_[j].size();
 				// Make sure atom IDs in the group are somewhere
@@ -87,16 +95,16 @@ namespace SSAGES
 						found[i] = 1;
 				}
 
-			MPI_Allreduce(MPI_IN_PLACE, found.data(), nj, MPI_INT, MPI_SUM, snapshot.GetCommunicator());
-			unsigned njtot = std::accumulate(found.begin(), found.end(), 0, std::plus<int>());
-			
-			if(njtot != nj)
-				throw std::invalid_argument(
-					"RouseModeCV: Expected to find " + 
-					to_string(nj) + 
-					" atoms in group " + to_string(j) +", but only found " + 
-					to_string(njtot) + "."
-				);			
+				MPI_Allreduce(MPI_IN_PLACE, found.data(), nj, MPI_INT, MPI_SUM, snapshot.GetCommunicator());
+				unsigned njtot = std::accumulate(found.begin(), found.end(), 0, std::plus<int>());
+				
+				if(njtot != nj)
+					throw std::invalid_argument(
+						"RouseModeCV: Expected to find " + 
+						to_string(nj) + 
+						" atoms in group " + to_string(j) +", but only found " + 
+						to_string(njtot) + "."
+					);			
 
 			}
 			// Set the masses of each particle group in massg_
