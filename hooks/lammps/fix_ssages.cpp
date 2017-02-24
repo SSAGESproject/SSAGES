@@ -22,42 +22,15 @@ namespace LAMMPS_NS
 	FixSSAGES::FixSSAGES(LAMMPS *lmp, int narg, char **arg) : 
 	Fix(lmp, narg, arg), Hook()
 	{
-		int n = strlen(id) + 5;
-		tempid_ = new char[n];
-		strcpy(tempid_,id);
-		strcat(tempid_,"_temp");
-		char **newarg = new char*[3];
+		const char* idtemp = "thermo_temp";
+		int itemp = modify->find_compute(idtemp);
+		tempid_ = modify->compute[itemp];
+		tempid_->addstep(update->ntimestep + 1);
 
-		newarg[0] = tempid_;
-		newarg[1] = (char *) "all";
-		newarg[2] = (char *) "temp";
-		modify->add_compute(3,newarg);
-		delete [] newarg;
-
-		n = strlen(id) + 6;
-		pressid_ = new char[n];
-		strcpy(pressid_,id);
-		strcat(pressid_,"_press");
-
-		newarg = new char*[4];
-		newarg[0] = pressid_;
-		newarg[1] = (char *) "all";
-		newarg[2] = (char *) "pressure";
-		newarg[3] = tempid_;
-		modify->add_compute(4,newarg);
-		delete [] newarg;
-
-		n = strlen(id) + 3;
-		peid_= new char[n];
-		strcpy(peid_,id);
-		strcat(peid_,"_pe");
-
-		newarg = new char*[3];
-		newarg[0] = peid_;
-		newarg[1] = (char *) "all";
-		newarg[2] = (char *) "pe";
-		modify->add_compute(3,newarg);
-		delete [] newarg;
+		const char* idpe = "thermo_pe";
+		int ipe = modify->find_compute(idpe);
+		peid_ = modify->compute[ipe];
+		peid_->addstep(update->ntimestep + 1);
 	}
 
 	void FixSSAGES::setup(int)
@@ -150,25 +123,18 @@ namespace LAMMPS_NS
 		charges.resize(n);
 
 		// Thermo properties:
-		int icompute; 
-
-		//Temperature
-		icompute = modify->find_compute(tempid_);
-		auto* temperature = modify->compute[icompute];
-		snapshot_->SetTemperature(temperature->compute_scalar());
-		temperature->addstep(update->ntimestep + 1);
+		snapshot_->SetTemperature(tempid_->compute_scalar());
+		tempid_->addstep(update->ntimestep + 1);
 		
 		//Energy
 		double etot = 0;
 
 		// Get potential energy.
-		icompute = modify->find_compute(peid_);
-		auto* pe = modify->compute[icompute];
-		etot += pe->scalar;
-		pe->addstep(update->ntimestep + 1);
+		etot += peid_->compute_scalar();
+		peid_->addstep(update->ntimestep + 1);
 
 		// Compute kinetic energy.
-		double ekin = 0.5 * temperature->scalar * temperature->dof  * force->boltz;
+		double ekin = 0.5 * tempid_->scalar * tempid_->dof  * force->boltz;
 		etot += ekin;
 
 		// Store in snapshot.
@@ -293,12 +259,6 @@ namespace LAMMPS_NS
 
 	FixSSAGES::~FixSSAGES()
 	{
-		modify->delete_compute(tempid_);
-		modify->delete_compute(pressid_);
-		modify->delete_compute(peid_);
-		delete tempid_;
-		delete pressid_;
-		delete peid_;
 	}
 }
 

@@ -20,7 +20,7 @@ namespace LAMMPS_NS
 	{
 	private:
 		// Compute IDs.
-		char *tempid_, *pressid_, *peid_;
+		class Compute *tempid_, *peid_;
 
 	protected:
 		// Implementation of the SyncToEngine interface.
