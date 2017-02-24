@@ -220,7 +220,7 @@ namespace SSAGES
         void PrintQueue();
 
         //! Pop the queue, do MPI so that all procs maintain the same queue
-        void PopQueueMPI(Snapshot*, const CVList&, bool);
+        void PopQueueMPI(Snapshot*, const CVList&, unsigned);
         
         //! Compute the flux via brute force
         /*! Eventually this should be a new class that inherits from ForwardFlux, but for the time being I'll just hard code it

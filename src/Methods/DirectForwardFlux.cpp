@@ -84,10 +84,10 @@ namespace SSAGES
         //check if I've crossed the next interface
         bool hasreturned = HasReturnedToA(_cvvalue);
         int hascrossed = HasCrossedInterface(_cvvalue, _cvvalue_previous, _current_interface + 1);
-        bool fail_local=false,success_local=false;
-        //std::vector<bool> in MPI were strange, ended up using arrays
-        bool *successes = new bool [world_.size()];
-        bool *failures = new bool [world_.size()];
+        unsigned int fail_local=false,success_local=false;
+        //std::vector<bool> in MPI were strange, ended up using std::vector<unsigned int>
+        std::vector<unsigned int> successes (world_.size());
+        std::vector<unsigned int> failures (world_.size());
 
         if (!_pop_tried_but_empty_queue){ 
             // make sure this isnt a zombie trajectory that previously failed or succeeded and is just waiting for the queue to get more jobs
@@ -109,8 +109,8 @@ namespace SSAGES
 
         //for each traj that crossed to lambda+1 need to write it to disk (FFSConfigurationFile)
         //MPIAllgather success_local into successes
-        MPI_Allgather(&success_local,1,MPI_C_BOOL,successes,1,MPI_C_BOOL,world_);
-        MPI_Allgather(&fail_local,1,MPI_C_BOOL,failures,1,MPI_C_BOOL,world_);
+        MPI_Allgather(&success_local,1,MPI_UNSIGNED,successes.data(),1,MPI_UNSIGNED,world_);
+        MPI_Allgather(&fail_local,1,MPI_UNSIGNED,failures.data(),1,MPI_UNSIGNED,world_);
        
         int success_count = 0, fail_count = 0;
         // I dont pass the queue information between procs but I do syncronize 'successes' and 'failures'
@@ -247,10 +247,9 @@ namespace SSAGES
         // if succeeded or failed (or zombie job), get a new config from the queue...but need to be careful that no two procs get the same config
 
         // Need to account for zombie jobs that are waiting for a new config
-        bool shouldpop_local = false;        
-        bool *shouldpop = new bool[world_.size()];
-        //std::vector<bool> shouldpop;
-        //shouldpop.resize(world_.size());
+        unsigned int shouldpop_local = false;        
+        std::vector<unsigned int> shouldpop(world_.size(),0);
+
         if (success_local || fail_local || _pop_tried_but_empty_queue){
           shouldpop_local = true;
         }
@@ -260,16 +259,12 @@ namespace SSAGES
         PopQueueMPI(snapshot,cvs, shouldpop_local);
                 
         //Anything else to update across mpi?
-
         
         
         //clean up
         _cvvalue_previous = _cvvalue;
         iteration_++;
 
-        delete[] successes;
-        delete[] failures;
-        delete[] shouldpop;
     }
 
 
@@ -316,7 +311,7 @@ namespace SSAGES
         // now that queue is populated initialize tasks for all processors
         // ==============================
 
-        bool shouldpop_local = true;
+        unsigned int shouldpop_local = true;
         
         PopQueueMPI(snapshot,cvs,shouldpop_local);
 

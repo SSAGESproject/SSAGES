@@ -332,7 +332,7 @@ TEST_F(ForwardFluxTest,PopQueueMPI)
     MethodA->FFSConfigIDQueue.emplace_back(0,11,0,0,1,0);
     MethodA->FFSConfigIDQueue.emplace_back(0,12,0,0,2,0);
 
-    bool shouldpop_local = false; 
+    unsigned int shouldpop_local = false; 
     //pop rank 1 and 3
     if (mpirank == 0) shouldpop_local = true;
     else if (mpirank == 1){
@@ -366,7 +366,7 @@ TEST_F(ForwardFluxTest,PopQueueMPI)
       EXPECT_TRUE(MethodA->_trajectory_file.is_open());
 
     //make sure cvprev == cv
-    EXPECT_TRUE(MethodA->_cvvalue_previous == MethodA->_cvvalue);
+    EXPECT_NEAR(MethodA->_cvvalue_previous, MethodA->_cvvalue,eps);
 
     //now empty queue completely, make sure that _pop_tried_but_empty_queue is set correclty
     if (world.size() == 3){

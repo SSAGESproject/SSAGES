@@ -114,16 +114,15 @@ namespace SSAGES
 
         //check if we've crossed the first interface (lambda 0)
         int hascrossed = HasCrossedInterface(_cvvalue, _cvvalue_previous, 0);
-        bool success_local = false;
-        bool *successes = new bool[world_.size()];
+        unsigned int success_local = false;
+        std::vector<unsigned int> successes (world_.size(),0);
 
         if (hascrossed == 1){
               success_local = true;
         }
 
-
         //for each traj that crossed to lambda0 in forward direction, we need to write it to disk (FFSConfigurationFile)
-        MPI_Allgather(&success_local,1,MPI::BOOL,successes,1,MPI::BOOL,world_);
+        MPI_Allgather(&success_local,1,MPI_UNSIGNED,successes.data(),1,MPI_UNSIGNED,world_);
 
 
         int success_count = 0;
@@ -186,9 +185,6 @@ namespace SSAGES
 
         _cvvalue_previous = _cvvalue;
         iteration_++;
-
-        //clean up
-        delete[] successes;
     }
 
   void ForwardFlux::WriteInitialFlux(){
@@ -383,11 +379,11 @@ namespace SSAGES
         }
     }
 
-    void ForwardFlux::PopQueueMPI(Snapshot* snapshot, const CVList& cvs, bool shouldpop_local){
+    void ForwardFlux::PopQueueMPI(Snapshot* snapshot, const CVList& cvs, unsigned int shouldpop_local){
 
-        bool *shouldpop = new bool(world_.size());
+        std::vector<unsigned int> shouldpop (world_.size(),0);
 
-        MPI_Allgather(&shouldpop_local,1,MPI::BOOL,shouldpop,1,MPI::BOOL,world_);
+        MPI_Allgather(&shouldpop_local,1,MPI_UNSIGNED,shouldpop.data(),1,MPI_UNSIGNED,world_);
 
         // I dont pass the queue information between procs but I do syncronize 'shouldpop'
         //   as a reuslt all proc should have the same queue throughout the simulation
@@ -425,8 +421,6 @@ namespace SSAGES
           }
         }
 
-        delete[] shouldpop;
-        // done copy (perhaps I should make this a method)
         // ==============================
 
 
