@@ -5,14 +5,17 @@ SSAGES
 It is designed to be easy to use, extendable and extremely versatile. It is currently pre-beta, meaning that there are many rough edges, but we are working rapidly 
 to expand its features and fix any bugs. Keep an eye on this page for future updates and see below on how to contribute!
 
-## What's New (v0.4.3)
-- Added time dependent umbrella centers (steered MD)
-- Fixed biases resizing bug in ABF method
-
+## What's New (v0.5.0)
+- Gromacs restart support
+- New gyration tensor CVs
+- Updated examples and documentation
+- Metadynamics optimizations
+- Better engine error handling
+- More! (See commit log)
 
 <a id="features"></a>
 ## Features
-**SSAGES** currently works with LAMMPS and Gromacs molecular dynamics engine. It contains a variety of collective variables (CVs) and advanced sampling methods. 
+**SSAGES** currently works with LAMMPS and Gromacs molecular dynamics engines. It contains a variety of collective variables (CVs) and advanced sampling methods. 
 
 ###Highlights 
 - Engine agnostic framework 
@@ -27,7 +30,7 @@ to expand its features and fix any bugs. Keep an eye on this page for future upd
 - Particle separation 
 - Bend angle
 - Torsional angle
-- Radius of gyration 
+- Components of gyration tensor
 
 ### Methods 
 - Metadynamics 
@@ -128,6 +131,9 @@ or
 ```bash
 $ firefox doc/Manual/index.html
 ```
+## What's Old (v0.4.3)
+- Added time dependent umbrella centers (steered MD)
+- Fixed biases resizing bug in ABF method
 
 ## What's Old (v0.4.2)
 - String method fix for compiling
@@ -137,8 +143,6 @@ $ firefox doc/Manual/index.html
 
 ## Known issues 
 **SSAGES** is currently in pre-beta. That means there may be known issues that are not yet resolved. Major issues are listed here. 
-
-- Restart capabilities are currently unimplemented in Gromacs 
 
 ## Contributing 
 Feel free to fork this project on GitHub. Any pull-requests, feature requests or other form of contributions are welcome.

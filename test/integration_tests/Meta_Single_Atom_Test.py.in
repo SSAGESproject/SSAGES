@@ -30,7 +30,7 @@ returnvalue = subprocess.call([ssages_executable, json_inputfile])
 if returnvalue is not 0:
     print("SSAGES exited with non-zero exit code {}".format(returnvalue));
     # Clean up working directory
-    subprocess.call(['rm -f *', shell=True])
+    subprocess.call(['rm -f *'], shell=True)
     sys.exit(returnvalue)
 
 # Confirm that output file has been created

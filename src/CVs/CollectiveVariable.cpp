@@ -33,6 +33,7 @@
 #include "AngleCV.h"
 #include "GyrationTensorCV.h"
 #include "RMSDCV.h"
+#include "RouseModeCV.h"
 
 using namespace Json;
 
@@ -240,6 +241,29 @@ namespace SSAGES
 			auto reference = json.get("reference"," ").asString(); 
 
 			auto* c = new RMSDCV(atomids, reference, json.get("use_range", false).asBool());
+			
+			cv = static_cast<CollectiveVariable*>(c);
+		}
+		else if(type == "RouseMode")
+		{
+			reader.parse(JsonSchema::RouseModeCV, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+			
+			std::vector<Label> groups;
+			for (auto& group : json["groups"]) {
+				groups.push_back({});
+				for (auto& id : group) {
+					groups.back().push_back(id.asInt());
+				}
+			}
+			auto mode      = json.get("mode",0).asInt();
+
+			auto* c = new RouseModeCV( groups, mode);
 			
 			cv = static_cast<CollectiveVariable*>(c);
 		}

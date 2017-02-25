@@ -1,11 +1,11 @@
 echo screen
 dimension 2
 boundary f f p
-units lj
-atom_style atomic
+units real
+atom_style full
 
 #specify the box for the simulation.
-region box block -1.5 2.0 -1.5 2.0 -1 1 units box
+region box block -2.0 2.0 -2.0 2.0 -1 1 units box
 create_box        1 box
 
 #Set mass of all particles
@@ -16,12 +16,12 @@ pair_style lj/cut 3.0
 pair_coeff * * 1.0 1.0 3.0
 
 #Put an atom in the box
-create_atoms 1 single -1.0 -1.0 0 units box
+create_atoms 1 single 0 0 0 units box
 group solid type 1
 
 #Set up fixes
 fix 1 all nve
-fix 2 all langevin 1.0 1.0 1.0 165876
+fix 2 all langevin 300 300 100 165876
 
 #Put up barriers so atom can't 'escape'
 fix 3 all wall/reflect xlo EDGE xhi EDGE ylo EDGE yhi EDGE 
@@ -82,10 +82,20 @@ compute xxa all property/atom x
 compute xx all reduce sum c_xxa
 compute yya all property/atom y
 compute yy all reduce sum c_yya
+compute vxa all property/atom vx
+compute vx all reduce sum c_vxa
+compute vya all property/atom vy
+compute vy all reduce sum c_vya
+compute fxa all property/atom fx
+compute fx all reduce sum c_fxa
+compute fya all property/atom fy
+compute fy all reduce sum c_fya
 
-timestep 0.001
-thermo_style custom step temp ke pe etotal c_xx c_yy c_ffx c_ffy c_ee press
+
+timestep 1
+thermo_style custom step c_xx c_yy c_vx c_vy c_fx c_fy c_ffx c_ffy press
+
 
 #For the sync to engine to work correctly need to set thermo 1 for now
-thermo 1000
+thermo 1
 

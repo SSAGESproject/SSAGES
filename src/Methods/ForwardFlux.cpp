@@ -4,6 +4,8 @@
  *
  * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
  *                Hythem Sidky <hsidky@nd.edu>
+ *                Joshua Lequieu <lequieu@uchicago.edu>
+ *                Hadi Ramezani-Dakhel <ramezani@uchicago.edu>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,9 +24,7 @@
 #include <iostream>
 #include "../FileContents.h"
 #include <random>
-
-// This method involves a lot of bookkeeping. Typically the world node
-// will hold gather all needed information and pass it along as it occurs.
+#include <queue>
 
 namespace SSAGES
 {
@@ -33,346 +33,575 @@ namespace SSAGES
 		if(cvs.size() > 1)
 			throw BuildException({"Forwardflux currently only works with one cv."});
 
-		switch(restart_)
-		{
-			case NEW:
-			{
-				indexfile_.open(indexfilename_.c_str(),std::ofstream::out | std::ofstream::trunc);
-				resultsfile_.open(resultsfilename_.c_str(),std::ofstream::out | std::ofstream::trunc);
-				libraryfile_.open(libraryfilename_.c_str(),std::ofstream::out | std::ofstream::trunc);
-				break;
-			}
-			default:
-			{
-				indexfile_.open(indexfilename_.c_str(),std::ofstream::out | std::ofstream::app);
-				resultsfile_.open(resultsfilename_.c_str(),std::ofstream::out | std::ofstream::app);
-				libraryfile_.open(libraryfilename_.c_str(),std::ofstream::out | std::ofstream::app);
-				break;
-			}
-		}
 
-		currentnode_ = AtInterface(cvs);
 
-		iteration_ = 0;
+        std::cout << "\nWARNING! MAKE SURE LAMMPS GIVES A DIFFERENT RANDOM SEED TO EACH PROCESSOR, OTHERWISE EACH FFS TRAJ WILL BE IDENTICAL!\n"; 
+       
+    }
+
+	void ForwardFlux::PostSimulation(Snapshot* snapshot, const CVList& cvs){
+        std::cout << "Post simulation\n";
+
+        ComputeCommittorProbability(snapshot);
+
+        ComputeTransitionProbabilities();
+
+        if (_saveTrajectories){
+          ReconstructTrajectories(snapshot);	
+        }
+        world_.abort(EXIT_FAILURE); //more elegant solution?
+
 	}
 
-	void ForwardFlux::PostIntegration(Snapshot* snapshot, const CVList& cvs)
-	{
-		switch(restart_)
-		{
-			case NEW:
-			{
-				SetUpNewLibrary(snapshot, cvs);
-				return;
-			}
-			case LIBRARY:
-			{
-				if(world_.rank() == 0 && currentstartingpoint_ != 0)
-				{
-					for(auto& value : successes_)
-						resultsfile_<<value<<" ";
-					resultsfile_<<"\n";
-				}
+  void ForwardFlux::CheckInitialStructure(const CVList& cvs){
 
-				mpi::all_reduce(world_, totalcontents_, globalcontents_, std::plus<std::string>());
-				//Close local and global files
-				if(world_.rank() == 0)
-				{
-					indexfile_<<globalcontents_<<std::endl;
-				}
-				totalcontents_ += indexcontents_;
-				indexcontents_ = "";
+        if (_initialFluxFlag){
+          std::cout << "Running initial Flux calculations" << std::endl;
 
-				currentshot_ = 0;
+          // Check if we are in State A
+          _cvvalue = cvs[0]->GetValue();
+          _cvvalue_previous = _cvvalue;
+          double _firstInterfaceLocation = _interfaces[0];
+          if ( _cvvalue > _firstInterfaceLocation) {
+            std::cerr << "Please provide an initial configuration in State A. Exiting ...." << std::endl;
+            exit(1);
+          }
+        }
+  }
+    
+    int ForwardFlux::HasCrossedInterface(double current, double prev, unsigned int i){
+        double interface_location = _interfaces[i];
+        if (_interfaces_increase){
+          if ((prev <= interface_location) && (current >= interface_location)){
+              return 1;
+          }
+          else if ((prev >= interface_location) && (current <= interface_location)){
+              return -1;
+          }
+          else{
+              return 0;
+          }
+        }
+        else{
+          if ((prev >= interface_location) && (current <= interface_location)){
+              return 1;
+          }
+          else if ((prev <= interface_location) && (current >= interface_location)){
+              return -1;
+          }
+          else{
+              return 0;
+          }
 
-				std::fill(localsuccesses_.begin(),localsuccesses_.end(),0);
-				std::fill(successes_.begin(),successes_.end(),0);
+        }
+    }
 
-				currentnode_ = 1;
+    bool ForwardFlux::HasReturnedToA(double current){
+        double interface_location = _interfaces[0];
+        if (_interfaces_increase){
+          if (current < interface_location) return true;
+          else return false;
+        }
+        else{
+          if (current > interface_location) return true;
+          else return false;
+        }
+    }
 
-				std::vector<std::vector<std::string> > tmp;
-				if(!(ExtractInterfaceIndices(0, librarycontents_, tmp)))
-				{
-					std::cout<< "Could not locate any files";
-					std::cout<< " at first interface!"<<std::endl;
-					std::cout<< librarycontents_<<std::endl;
-					PostSimulation(snapshot, cvs);
-					world_.abort(0);
-				}
+	void ForwardFlux::ComputeInitialFlux(Snapshot* snapshot, const CVList& cvs){
 
-				if(currentstartingpoint_ >= tmp.size())
-				{
-					if(world_.rank()==0)
-						std::cout<<"Ending Simulation..."<<std::endl;
-					PostSimulation(snapshot, cvs);
-					world_.abort(0);
-				}
+        _cvvalue = cvs[0]->GetValue();
 
-				shootingconfigfile_ = tmp[currentstartingpoint_][1];
-				if(world_.rank() == 0)
-					currentconfig_ = GetFileContents(shootingconfigfile_.c_str());
-				mpi::broadcast(world_, currentconfig_, 0);
+        //check if we've crossed the first interface (lambda 0)
+        int hascrossed = HasCrossedInterface(_cvvalue, _cvvalue_previous, 0);
+        unsigned int success_local = false;
+        std::vector<unsigned int> successes (world_.size(),0);
 
-				ReadConfiguration(snapshot, currentconfig_);
-				restart_ = NONE;
-				currentstartingpoint_++;
-				return;
-			}
-			case NEWCONFIG:
-			{
-				currentshot_ = 0;
-				mpi::all_reduce(world_, indexcontents_, globalcontents_, std::plus<std::string>());
+        if (hascrossed == 1){
+              success_local = true;
+        }
 
-				shootingconfigfile_ = PickConfiguration(currentnode_, globalcontents_);
+        //for each traj that crossed to lambda0 in forward direction, we need to write it to disk (FFSConfigurationFile)
+        MPI_Allgather(&success_local,1,MPI_UNSIGNED,successes.data(),1,MPI_UNSIGNED,world_);
 
-				if(world_.rank() == 0)
-					currentconfig_ = GetFileContents(shootingconfigfile_.c_str());
-				
-				mpi::broadcast(world_, currentconfig_, 0);
-				ReadConfiguration(snapshot, currentconfig_);
-				restart_ = NONE;
 
-				return;
-			}
-			default:
-			{
-				break;
-			}
-		}
+        int success_count = 0;
+        for (int i = 0; i < world_.size(); i++){
+          // Since we are in State A, the values of lprev, nprev, aprev are all zero.
 
-		// Locate the interface you are at and check if:
-		// Returned to origin or at next interface
-		unsigned int atinter = AtInterface(cvs);
-		if(atinter == currentnode_ + 1 || atinter == 0)
-		{
-			currentnode_++;			
-			// Check if you made it to the next one!
-			if(atinter == currentnode_)
-			{
-				auto& ID = snapshot->GetSnapshotID();
-				ID = "dump_"+std::to_string(currentnode_)+"_"+std::to_string(currenthash_)+".dump";
-				currenthash_++;
-				if(comm_.rank()==0)
-				{
-					WriteConfiguration(snapshot);
-					localsuccesses_[currentnode_]++;
-				}
-			}
+          if (successes[i] == true){ 
+            if (i == world_.rank()){
+              int l,n,a,lprev,nprev,aprev;
+              //update ffsconfigid's l,n,a
+              //note lprev == l for initial interface
+              l = 0;
+              n = _N[0] + success_count;
+              a = 0;
+              lprev = l;
+              nprev = n;
+              aprev = a;
 
-			if(currentshot_ < numshots_)
-			{
-				currentshot_++;
-				ReadConfiguration(snapshot, currentconfig_);
-				currentnode_--;
-				iteration_++;
-				return;
-			}
+              FFSConfigID newid = FFSConfigID(l,n,a,lprev,nprev,aprev);
+              Lambda0ConfigLibrary.emplace_back(l,n,a,lprev,nprev,aprev);
+              WriteFFSConfiguration(snapshot,newid,1);
+            }
+            success_count++;
+          }    
+        }  
 
-			mpi::all_reduce(world_, localsuccesses_[currentnode_], successes_[currentnode_], std::plus<int>());
-			if(successes_[currentnode_] > 0)
-			{
-				restart_ = NEWCONFIG;
+        // all procs update correctly
+        _N[0] += success_count;
 
-				// If you have reached the final interface you are "done" with that path
-				if(currentnode_ >= centers_.size()-1)
-				{
-					std::cout<< "Found finishing configuration! "<<std::endl;
-					restart_ = LIBRARY;
-				}
-			}
-			else
-				restart_ = LIBRARY;
+        // If not in B, increment the time
+        double N0SimTime_local = 0;
+        double N0SimTime;
+        int reachedB = HasCrossedInterface(_cvvalue, _cvvalue_previous, _ninterfaces-1);
+        // Question: This condition says that if we cross the last interface-> stop counting. We need to stop counting as long as we are in state B.
+        if (!(reachedB == 1) && (_cvvalue < _interfaces.back())){
+           N0SimTime_local++;  //or += frequency if FFS isn't called on every step!
+        }
 
-			iteration_++;
-		}
-	}
+        // Allreduce then increment total
+        MPI_Allreduce(&N0SimTime_local, &N0SimTime, 1, MPI_DOUBLE, MPI_SUM,world_);
+        _N0TotalSimTime += N0SimTime;
 
-	void ForwardFlux::PostSimulation(Snapshot*, const CVList&)
-	{
-		//Close local and global files
-		if(world_.rank() == 0)
-		{
-			resultsfile_<<"flux in: "<<fluxin_<<std::endl;
-			resultsfile_<<"flux out: "<<fluxout_<<std::endl;
 
-			indexfile_.close();
-			resultsfile_.close();
-			libraryfile_.close();
-		}
-	}
+        //print some info
+        if (success_local){
+            std::cout << "Iteration: "<< iteration_ << ", proc " << world_.rank() << std::endl;
+            std::cout << "Successful attempt. (cvvalue_previous: " << _cvvalue_previous << " cvvalue " << _cvvalue << " )" << std::endl;
+            std::cout << "# of successes:               " << _N[0] << std::endl;
+            std::cout << "required # of configurations: " << _N0Target << std::endl;
+        }
 
-	// Setting up new run, so setup new starting configurations at the first interface
-	void ForwardFlux::SetUpNewLibrary(Snapshot* snapshot, const CVList& cvs)
-	{
-		// Get CV values check if at next interface, if so store configuration
-		int interface = AtInterface(cvs);
-		shootingconfigfile_ = "Origin";
+        // Check if the required number of initial configurations are created, if so print a message, and compute the initial flux.
+        if (_N[0] >= _N0Target){
+            std::cout << "Initial flux calculation was successfully completed" << std::endl;
+            // Call a function to compute the actual flux and output the data
+            WriteInitialFlux();
+            //responsible for setting _initialFluxFlag = false when finished
+            _initialFluxFlag = false;
+        } 
 
-		// Flux out of A
-		if(interface == 1 && currentnode_ == 0)
-		{
-			auto& ID = snapshot->GetSnapshotID();
-			ID = "dump_"+std::to_string(interface)+"_"+std::to_string(currenthash_)+".dump";
-			currenthash_++;
-			if(comm_.rank()==0)
-			{
-				WriteConfiguration(snapshot);
-				localsuccesses_[currentnode_]++;
-			}
+        _cvvalue_previous = _cvvalue;
+        iteration_++;
+    }
 
-			fluxout_++;
-		}
-		// Flux back in towards A
-		else if(interface == 0 && currentnode_ == 1)
-			fluxin_++;
+  void ForwardFlux::WriteInitialFlux(){
 
-		currentnode_ = interface;
+      std::ofstream file;
+      std::string filename = _output_directory + "/initial_flux_value.dat";
+      file.open(filename.c_str());
+      if (!file){
+        std::cerr << "Error! Unable to write " << filename << std::endl;
+        exit(1);
+      }
+      _fluxA0 = (double) (_N[0] / _N0TotalSimTime);
+      file << "number of processors: " << world_.size() << std::endl;
+      file << "number of iterations: " << iteration_ << std::endl;
+      file << "Total simulation time: " << _N0TotalSimTime << std::endl;
+      file << "Initial flux: " << _fluxA0 << std::endl;
+      file.close();
+    }
 
-		std::vector<std::vector<std::string> > TempLibrary;
-		ExtractInterfaceIndices(0, indexcontents_, TempLibrary);
-
-		if(TempLibrary.size() >= requiredconfigs_ && currentnode_ == 0)
-		{
-			restart_ = LIBRARY;
-			mpi::all_reduce(world_, indexcontents_, librarycontents_, std::plus<std::string>());
-			currentstartingpoint_ = 0;
-			if(world_.rank()==0)
-				libraryfile_<<librarycontents_<<std::endl;
-		}
-	}
-
-	void ForwardFlux::WriteConfiguration(Snapshot* snapshot)
+	void ForwardFlux::ComputeTransitionProbabilities(){
+        double Ptotal = 1;
+        for (unsigned int i = 0; i < _ninterfaces -1; i++){
+            Ptotal *= _P[i];
+        }
+        _rate = Ptotal*_fluxA0;
+        
+        //write file
+        std::ofstream file;
+        std::string filename = _output_directory + "/rate.dat";
+ 		file.open(filename.c_str());
+        if (!file) {std::cerr << "Error! Unable to write " << filename << "\n"; exit(1);}
+        file << _rate << "\n";
+        file.close();
+    }
+	
+	void ForwardFlux::WriteFFSConfiguration(Snapshot* snapshot, FFSConfigID& ffsconfig, bool wassuccess)
 	{
 		const auto& positions = snapshot->GetPositions();
 		const auto& velocities = snapshot->GetVelocities();
 		const auto& atomID = snapshot->GetAtomIDs();
-		const auto& dumpfilename = snapshot->GetSnapshotID();
+        //unsigned natoms = snapshot->GetNumAtoms();
+		//const auto& dumpfilename = snapshot->GetSnapshotID();
 
-		// Write the dump file out
-		std::ofstream dumpfile;
- 		dumpfile.open(dumpfilename.c_str());
+        // Write the dump file out
+		std::ofstream file;
+        std::string filename;
+        if (wassuccess){
+          filename = _output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
+        }
+        else{
+          filename = _output_directory + "/fail-l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
 
+        }
+ 		file.open(filename.c_str());
+        if (!file) {std::cerr << "Error! Unable to write " << filename << "\n"; exit(1);}
+
+        //first line gives ID of where it came from
+        file << ffsconfig.lprev << " " << ffsconfig.nprev << " " << ffsconfig.aprev << "\n";
+
+        // Then write positions and velocities
+ 		for(size_t i = 0; i< atomID.size(); i++)
+ 		//for(size_t i = 0; i< natoms; i++)
+ 		{
+ 			file<<atomID[i]<<" ";
+ 			file<<positions[i][0]<<" "<<positions[i][1]<<" "<<positions[i][2]<<" ";
+ 			file<<velocities[i][0]<<" "<<velocities[i][1]<<" "<<velocities[i][2]<<std::endl;
+		}
+
+
+    }
+
+    void ForwardFlux::OpenTrajectoryFile(std::ofstream& file){
+
+
+        FFSConfigID ffsconfig = myFFSConfigID;
+
+        std::string filename = _output_directory + "/traj-l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + "-a" + std::to_string(ffsconfig.a) + ".xyz";
+ 		file.open(filename.c_str());
+        if (!file) {std::cerr << "Error! Unable to write " << filename << "\n"; exit(1);}
+    
+    }
+
+    void ForwardFlux::AppendTrajectoryFile(Snapshot* snapshot, std::ofstream& file){
+
+		const auto& positions = snapshot->GetPositions();
+		const auto& velocities = snapshot->GetVelocities();
+		const auto& atomID = snapshot->GetAtomIDs();
+
+        //first line gives number of atoms
+        file << atomID.size() << "\n\n";
+
+        // Then write positions and velocities
  		for(size_t i = 0; i< atomID.size(); i++)
  		{
- 			dumpfile<<atomID[i]<<" ";
- 			dumpfile<<positions[i][0]<<" "<<positions[i][1]<<" "<<positions[i][2]<<" ";
- 			dumpfile<<velocities[i][0]<<" "<<velocities[i][1]<<" "<<velocities[i][2]<<std::endl;
+ 			file<<atomID[i]<<" ";
+ 			file<<positions[i][0]<<" "<<positions[i][1]<<" "<<positions[i][2]<<" ";
+ 			file<<velocities[i][0]<<" "<<velocities[i][1]<<" "<<velocities[i][2]<<std::endl;
 		}
+    }
 
-		std::vector<std::string> tmpstr;
-		tmpstr.push_back(std::to_string(currentnode_));
-		tmpstr.push_back(dumpfilename);
- 		tmpstr.push_back(shootingconfigfile_);
-
- 		// Update index file of new configuration
- 		indexcontents_ += tmpstr[0]+" "+tmpstr[1]+" "+tmpstr[2]+"\n";
- 		dumpfile.close();
-	}
-
-	// Extract all indices for a given interface and contetns. 
-	// Return false if couldnt locate anything at a given interface
-	bool ForwardFlux::ExtractInterfaceIndices(unsigned int interface, const std::string& contents,
-											 std::vector<std::vector<std::string> >& InterfaceIndices)
-	{
-		//Extract configuration indices for a given interface int
-		std::istringstream f(contents);
-		std::string line;
-		while (std::getline(f, line))
-		{
-			std::string buf; // Have a buffer string
-			std::stringstream ss(line); // Insert the string into a stream
-			std::vector<std::string> tokens; // Create vector to hold our words
-
-			while (ss >> buf)
-			    tokens.push_back(buf);
-
-			if(std::stoul(tokens[0]) == interface)
-				InterfaceIndices.push_back(tokens);
-		}
-
-		if(InterfaceIndices.size() == 0)
-			return false;
-
-		return true;
-	}
-
-	void ForwardFlux::ReadConfiguration(Snapshot* snapshot, const std::string& FileContents)
+	void ForwardFlux::ReadFFSConfiguration(Snapshot* snapshot, FFSConfigID& ffsconfig, bool wassuccess)
 	{
 		auto& positions = snapshot->GetPositions();
 		auto& velocities = snapshot->GetVelocities();
 		auto& atomID = snapshot->GetAtomIDs();
 		auto& forces = snapshot->GetForces();
-		auto& ID = snapshot->GetSnapshotID();
+		//auto& ID = snapshot->GetSnapshotID();
 
-		ID = shootingconfigfile_;
+        std::ifstream file; 
+        std::string filename;
+        if (wassuccess){
+          filename =  _output_directory + "/l"+ std::to_string(ffsconfig.l) +"-n"+ std::to_string(ffsconfig.n) + ".dat";
+        }
+        else{
+          filename =  _output_directory + "/fail-l"+ std::to_string(ffsconfig.l) +"-n"+ std::to_string(ffsconfig.n) + ".dat";
 
-		//Extract currentconfig information
-		std::istringstream f(FileContents);
-		std::string line;
-		while (std::getline(f, line))
-		{
-			int atomindex = -1;
+
+        }
+        std::string line;
+
+        file.open(filename);
+        if (!file) {std::cerr << "Error! Unable to read " << filename << "\n"; exit(1);}
+
+        unsigned int line_count = 0; 
+        while(!std::getline(file,line).eof()){
+
+            int atomindex = -1;
+            
+            //parse line into tokens
 			std::string buf; // Have a buffer string
 			std::stringstream ss(line); // Insert the string into a stream
 			std::vector<std::string> tokens; // Create vector to hold our words
-
 			while (ss >> buf)
 			    tokens.push_back(buf);
 
-			if(tokens.size() != 7)
-			{
-				std::cout<<"error, incorrect line format in "<<shootingconfigfile_<<" on line: "<<std::endl;
+           
+            // first line contains the previous ffsconfig information
+            if ((line_count == 0) && (tokens.size() == 3)){
+                ffsconfig.lprev = std::stoi(tokens[0]);
+                ffsconfig.nprev = std::stoi(tokens[1]);
+                ffsconfig.aprev = std::stoi(tokens[2]);
+            }
+            // all other lines contain config information
+            else if ((line_count != 0) && (tokens.size() == 7)){
+            
+                //FIXME: try using snapshot->GetLocalIndex()
+
+                //copied from Ben's previous implementation
+                for(size_t i=0; i < atomID.size(); i++)
+                {
+                    if(atomID[i] == std::stoi(tokens[0]))
+                        atomindex = i;
+                }
+
+                if(atomindex < 0)
+                {
+                    std::cout<<"error, could not locate atomID "<<tokens[0]<<" from dumpfile"<<std::endl;
+                    world_.abort(-1);
+                }
+
+                positions[atomindex][0] = std::stod(tokens[1]);
+                positions[atomindex][1] = std::stod(tokens[2]);
+                positions[atomindex][2] = std::stod(tokens[3]);
+                velocities[atomindex][0] = std::stod(tokens[4]);
+                velocities[atomindex][1] = std::stod(tokens[5]);
+                velocities[atomindex][2] = std::stod(tokens[6]);
+
+                for(auto& force : forces)
+                    force.setZero();
+
+            }
+            // else throw error
+            else{
+				std::cout<<"ERROR: incorrect line format in "<< filename <<" on line" << line_count << ":\n";
 				std::cout<<line<<std::endl;
 				world_.abort(-1);	
-			}
-
-			for(size_t i=0; i < atomID.size(); i++)
-			{
-				if(atomID[i] == std::stoi(tokens[0]))
-					atomindex = i;
-			}
-
-			if(atomindex < 0)
-			{
-				std::cout<<"error, could not locate atomID "<<tokens[0]<<" from dumpfile"<<std::endl;
-				world_.abort(-1);
-			}
-
-			positions[atomindex][0] = std::stod(tokens[1]);
-			positions[atomindex][1] = std::stod(tokens[2]);
-			positions[atomindex][2] = std::stod(tokens[3]);
-			velocities[atomindex][0] = std::stod(tokens[4]);
-			velocities[atomindex][1] = std::stod(tokens[5]);
-			velocities[atomindex][2] = std::stod(tokens[6]);
-
-			for(auto& force : forces)
-				force.setZero();
-		}
+            }
+            line_count++;
+        }
+        file.close();
 	}
 
-	// Pick a random configuration
-	std::string ForwardFlux::PickConfiguration(unsigned int interface, const std::string& contents)
-	{
-		std::string configfilename;
-		if(world_.rank() == 0)
-		{
-			std::vector<std::vector<std::string> > files; 
-			if(!(ExtractInterfaceIndices(interface, contents, files)))
-			{
-				std::cout<< "Could not locate any files at interface ";
-				std::cout<< interface<<" in PickCOnfiguration!"<<std::endl;
-				std::cout<< contents<<std::endl;
-				world_.abort(-1);
-			}
+    void ForwardFlux::PrintQueue(){
+        for (unsigned int i =0 ;i < FFSConfigIDQueue.size(); i++){
+            std::cout << i <<" "
+                      <<FFSConfigIDQueue[i].l <<" "
+                      <<FFSConfigIDQueue[i].n <<" "
+                      <<FFSConfigIDQueue[i].a <<" "
+                      <<FFSConfigIDQueue[i].lprev <<" "
+                      <<FFSConfigIDQueue[i].nprev <<" "
+                      <<FFSConfigIDQueue[i].aprev <<"\n";
+        }
+    }
 
-			std::uniform_int_distribution<> dis(0, files.size()-1);
-			int configfile = dis(gen_);
-			configfilename = files[configfile][1];
-		}
+    void ForwardFlux::PopQueueMPI(Snapshot* snapshot, const CVList& cvs, unsigned int shouldpop_local){
 
-		mpi::broadcast(world_, configfilename, 0);
+        std::vector<unsigned int> shouldpop (world_.size(),0);
 
-		return configfilename;
-	}
+        MPI_Allgather(&shouldpop_local,1,MPI_UNSIGNED,shouldpop.data(),1,MPI_UNSIGNED,world_);
+
+        // I dont pass the queue information between procs but I do syncronize 'shouldpop'
+        //   as a reuslt all proc should have the same queue throughout the simulation
+        for (int i=0;i<world_.size();i++){
+          if (shouldpop[i] == true){ 
+            if (i == world_.rank()){ //if rank matches read and pop
+              if (!FFSConfigIDQueue.empty()){ //if queue has tasks
+
+                   myFFSConfigID = FFSConfigIDQueue.front();
+                   ReadFFSConfiguration (snapshot, myFFSConfigID,true);
+                   
+                   //open new trajectory file, write first frame
+                   if (_saveTrajectories){ 
+                     OpenTrajectoryFile(_trajectory_file);
+                     AppendTrajectoryFile(snapshot,_trajectory_file);
+                   }
+
+                   //Trigger a rebuild of the CVs since we reset the positions
+                   cvs[0]->Evaluate(*snapshot);
+                   _cvvalue = cvs[0]->GetValue();
+                   _cvvalue_previous = _cvvalue;
+
+                  _pop_tried_but_empty_queue = false;
+                  FFSConfigIDQueue.pop_front();
+              }
+              else{ //queue is empty, need to wait for new tasks to come in
+                 _pop_tried_but_empty_queue = true;
+              }
+            }
+            else{ //else if rank doesnt match, just pop 
+              if (!FFSConfigIDQueue.empty()){
+                  FFSConfigIDQueue.pop_front();
+              }
+            }
+          }
+        }
+
+        // ==============================
+
+
+
+    }
+
+    void ForwardFlux::ComputeCommittorProbability(Snapshot *snapshot){
+
+        // two dim vectors, first dim is lambda, second is N
+        // this counts the number of atempts from this config eventually reached A (for nA) or B (for nB)
+        // used to compute _pB via:  _pB = nB / (nA + nB)
+        std::vector<std::vector<unsigned int>> nA;
+        std::vector<std::vector<unsigned int>> nB;
+        nA.resize(_ninterfaces);
+        nB.resize(_ninterfaces);
+        for (unsigned int i=0; i<_ninterfaces;i++){
+            nA[i].resize(_N[i],0);
+            nB[i].resize(_N[i],0);
+        }
+
+
+        //Snapshot* snapshot_empty;
+        FFSConfigID ffsconfig;
+        
+        //populate nB
+        unsigned int nsuccess = _N[_ninterfaces-1]; //note -1
+        for(unsigned int i = 0; i < nsuccess ; i++){
+          ffsconfig.l = _ninterfaces-1;
+          ffsconfig.n = i;
+          ffsconfig.a = 0;
+          bool flag = true;
+          //recursively trace successful path and update all the configs it came from
+          while (flag){
+             if (ffsconfig.l == 0){ flag = false;}
+
+             //this is just to populate ffsconfig.{lprev,nprev,aprev}
+             ReadFFSConfiguration(snapshot,ffsconfig,true);
+
+             //update nB 
+             nB[ffsconfig.l][ffsconfig.n]++;
+
+             ffsconfig.l = ffsconfig.lprev;
+             ffsconfig.n = ffsconfig.nprev;
+             ffsconfig.a = ffsconfig.aprev;
+          }
+        }
+
+        //now populate nA (very similar to nB)
+        unsigned int nfail = _nfailure_total; 
+        for(unsigned int i = 0; i < nfail ; i++){
+          ffsconfig.l = 0; //only fail at lambda0 in absence of pruning
+          ffsconfig.n = i;
+          ffsconfig.a = 0;
+          bool flag = true;
+          //this is just to populate ffsconfig.{lprev,nprev,aprev}
+          ReadFFSConfiguration(snapshot,ffsconfig,false);
+
+          //recursively trace successful path and update all the configs it came from
+          while (flag){
+             if ((ffsconfig.l == 0) && (ffsconfig.lprev==0)){ flag = false;}
+
+             //update nA 
+             nA[ffsconfig.l][ffsconfig.n]++;
+
+             ReadFFSConfiguration(snapshot,ffsconfig,true);
+
+             ffsconfig.l = ffsconfig.lprev;
+             ffsconfig.n = ffsconfig.nprev;
+             ffsconfig.a = ffsconfig.aprev;
+          }
+        }
+
+        //Compute _pB
+        _pB.resize(_ninterfaces);
+        unsigned int Nmax = 0;
+        for(unsigned int i = 0; i<_ninterfaces ; i++){
+          _pB[i].resize(_N[i],0);
+          for(unsigned int j = 0; j<_N[i] ; j++){
+            int denom = nA[i][j] + nB[i][j];
+            if (denom != 0){
+              _pB[i][j] = (double)nB[i][j] / denom;
+            }
+          }
+          if (_N[i] > Nmax){ Nmax = _N[i];}
+        }
+
+        //print pB
+        //rows are lambda, cols are n. Thats why its looks complicated
+        std::ofstream file;
+        std::string filename;
+        filename = _output_directory +"/commitor_probabilities.dat";
+        file.open(filename.c_str());
+        if (!file) {std::cerr << "Error! Unable to write " << filename << "\n"; exit(1);}
+
+        for(unsigned int i = 0; i<Nmax ; i++){
+          for(unsigned int j = 0; j<_ninterfaces ; j++){
+            if (i < _N[j]){
+              file << _pB[j][i] << " ";
+            }
+            else{
+              file << "none ";
+            }
+          }
+          file << "\n";
+        }
+
+
+
+    }
+    
+    void ForwardFlux::ReconstructTrajectories(Snapshot *snapshot){
+
+        //this only reconstructs successful trajectories 
+        //its pretty straightforward to reconstruct failed trajectories, but I dont do it here
+
+        int nsuccess = _S[_ninterfaces-2]; //note -2, no attempts from _ninterfaces-1
+        
+        //Snapshot* snapshot_empty;
+        FFSConfigID ffsconfig;
+
+        for(int i = 0; i < nsuccess ; i++){
+          std::deque<FFSConfigID> path;
+
+          ffsconfig.l = _ninterfaces-1;
+          ffsconfig.n = i;
+          ffsconfig.a = 0;
+          bool flag = true;
+
+          while (flag){
+             if (ffsconfig.l == 0){ flag = false;}
+
+             //this is just to populate ffsconfig.{lprev,nprev,aprev}
+             //ReadFFSConfiguration(snapshot_empty,ffsconfig);
+             ReadFFSConfiguration(snapshot,ffsconfig,true);
+             
+             //path.emplace_front(ffsconfig); //not sure if new constructor will work
+             path.emplace_front(ffsconfig.l,ffsconfig.n, ffsconfig.a, ffsconfig.lprev, ffsconfig.nprev, ffsconfig.aprev); 
+
+             ffsconfig.l = ffsconfig.lprev;
+             ffsconfig.n = ffsconfig.nprev;
+             ffsconfig.a = ffsconfig.aprev;
+          }
+          //the last element is the last lambda, which doesn't have a trajectory, so delete it
+          path.pop_back();
+
+          //now path should contain all of the FFSConfigID's from B back to A
+          //reverse pop it and splice all traj- files into a new traj-full- file
+
+          //output file
+          std::ofstream ofile;
+          std::string ofilename;
+          ofilename = _output_directory +"/traj-full-" + std::to_string(i) + ".xyz";
+          ofile.open(ofilename.c_str());
+          if (!ofile) {std::cerr << "Error! Unable to write " << ofilename << "\n"; exit(1);}
+
+          while(!path.empty()){
+            ffsconfig = path.front();
+            path.pop_front();
+
+            //input file
+            std::ifstream ifile;
+            std::string ifilename;
+
+            ifilename = _output_directory + "/traj-l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + "-a" + std::to_string(ffsconfig.a) + ".xyz";
+
+            ifile.open(ifilename.c_str());
+            if (!ifile) {std::cerr << "Error! Unable to read " << ifilename << "\n"; exit(1);}
+            //write entire ifile to ofile
+            std::string line;
+            while(!std::getline(ifile,line).eof()){
+                ofile << line << "\n";
+
+            }
+          }
+          ofile.close();
+        }
+    }
+    
+	
+
+
+			
 }
 

@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 2.8.5)
 
 # SAPHRON version number.
 set(SSAGES_VERSION_MAJOR "0")
-set(SSAGES_VERSION_MINOR "4")
-set(SSAGES_VERSION_TINY "3") 
+set(SSAGES_VERSION_MINOR "5")
+set(SSAGES_VERSION_TINY "0") 
 
 # Default type is release
 if (NOT CMAKE_BUILD_TYPE)
@@ -408,6 +408,7 @@ set(SOURCE
 	src/Methods/FiniteTempString.cpp
     src/Methods/Swarm.cpp
 	src/Methods/ForwardFlux.cpp
+	src/Methods/DirectForwardFlux.cpp
 	src/Methods/ABF.cpp
     src/Methods/BasisFunc.cpp
 	src/Validator/RequirementLoader.cpp

@@ -32,7 +32,7 @@
 #include "StringMethod.h"
 #include "Meta.h"
 #include "Umbrella.h"
-#include "ForwardFlux.h"
+#include "DirectForwardFlux.h"
 #include "ABF.h"
 #include "BasisFunc.h"
 #include "Swarm.h"
@@ -261,46 +261,43 @@ namespace SSAGES
 			validator.Validate(json, path);
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
+            
 
-			auto indexfile = json.get("index_file", "none").asString();
-			auto libraryfile = json.get("library_file", "none").asString();
-			auto resultsfile = json.get("results_file", "none").asString();
-			std::vector<double> centers;
-			for(auto& s : json["centers"])
-				centers.push_back(s.asDouble());
+            double ninterfaces = json.get("nInterfaces", 2).asDouble();
+            
+            std::vector<double> interfaces;
+            for(auto& s : json["interfaces"])
+            	interfaces.push_back(s.asDouble());
 
-			auto genconfig = json.get("generate_configs",1).asInt();
-			auto shots = json.get("shots",1).asInt();
-			auto freq = json.get("frequency", 1).asInt();
+            std::vector<unsigned int> M;
+            for(auto& s : json["trials"])
+            	M.push_back(s.asInt());
+           
+           	if ((ninterfaces != interfaces.size()) || (ninterfaces != M.size())){
+           		throw BuildException({"The size of \"interfaces\" and \"trials\" must be equal to \"nInterfaces\". See documentation for more information"});
+           	}
 
-			auto* m = new ForwardFlux(world, comm, 
-				indexfile, libraryfile, resultsfile, 
-				centers, genconfig, shots, freq);
+            unsigned int N0Target = json.get("N0Target", 1).asInt();
 
-			if(json.isMember("restart_type"))
-				m->SetRestart(json["restart_type"].asString());
+            bool initialFluxFlag = json.get("computeInitialFlux", true).asBool();
+           
+            bool saveTrajectories = json.get("saveTrajectories", true).asBool();
 
-			if(json.isMember("library_point"))
-				m->SetLibraryPoint(json["library_point"].asInt());
+            unsigned int currentInterface = json.get("currentInterface", 0).asInt();
 
-			if(json.isMember("current_hash"))
-				m->SetHash(json["current_hash"].asInt());
+            unsigned int freq = json.get("frequency", 1).asInt();
 
-			if(json.isMember("index_contents"))
-				m->SetIndexContents(json["index_contents"].asString());
+            std::string flavor = json.get("flavor", "none").asString();
 
-			if(json.isMember("successes"))
-			{
-				std::vector<int> success;
-				for(auto s : json["successes"])
-					success.push_back(s.asInt());
-				m->SetSuccesses(success);
-			}
+            std::string output_directory = json.get("outputDirectoryName", "FFSoutput").asString();
 
-			if(json.isMember("current_shot"))
-				m->SetAtShot(json["current_shot"].asInt());
+            if(flavor == "DirectForwardFlux"){
+            	auto *m = new DirectForwardFlux(world, comm, ninterfaces, interfaces, N0Target, M, initialFluxFlag, saveTrajectories, currentInterface, output_directory, freq);            	
+            	method = static_cast<Method*>(m);
+            } else {
+            	throw BuildException({"Unknow flavor of forward flux. The options are \"DirectForwardFlux\""});
+            }
 
-			method = static_cast<Method*>(m);
 		}
 		else if(type == "String")
 		{

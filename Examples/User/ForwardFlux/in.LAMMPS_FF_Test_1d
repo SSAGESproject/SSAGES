@@ -1,0 +1,63 @@
+echo screen
+dimension 2
+boundary f f p
+units lj
+atom_style atomic
+
+#specify the box for the simulation.
+region box block -2.0 2.0 -2.0 2.0 -1 1 units box
+create_box        1 box
+
+#Put an atom in the box
+create_atoms 1 single -1.01 0 0 units box
+group solid type 1
+
+#RESTART
+
+#Set mass of all particles
+mass * 1.0
+
+#Set pair potentials
+pair_style lj/cut 3.0
+pair_coeff * * 1.0 1.0 3.0
+
+#Set up fixes
+fix 1 all nve
+fix 2 all langevin 1.0 1.0 1.0 12345
+
+#Put up barriers so atom can't 'escape'
+fix 3 all wall/reflect xlo EDGE xhi EDGE ylo EDGE yhi EDGE 
+
+#Lets create some force potentials for our system using gaussians
+#Potential inputs: 
+#Height, sigma, center (x and y are the same)
+
+#simple substrate force with two minima at +/- 1 and barrier eps
+variable eps equal 1.0
+#Sum the three forces in the x and y direction
+variable substrate_xforce atom "4*v_eps*x*(1-x^2)"
+variable substrate_yforce atom "0.0"
+
+#Calculate total energy
+variable substrate_energy atom "v_eps*(1-x^2)^2"
+
+#Add forces and energy
+fix  4 all addforce v_substrate_xforce v_substrate_yforce 0 energy v_substrate_energy
+
+#Call ssages to run the metadynamics
+fix  ssages all ssages
+
+compute ffx all reduce sum v_substrate_xforce
+compute ffy all reduce sum v_substrate_yforce
+compute ee all reduce sum v_substrate_energy
+compute xxa all property/atom x
+compute xx all reduce sum c_xxa
+compute yya all property/atom y
+compute yy all reduce sum c_yya
+
+timestep 0.01
+thermo_style custom step temp ke pe etotal c_xx c_yy c_ffx c_ffy c_ee press
+
+#For the sync to engine to work correctly need to set thermo 1 for now
+thermo 1
+
