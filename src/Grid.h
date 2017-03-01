@@ -408,6 +408,34 @@ public:
         return const_cast<T&>(static_cast<const Grid<T>* >(this)->at(indices));
     }
 
+    //! Const access of Grid element via initializer list
+    /*!
+     * \tparam R Datatype in the initializer list
+     * \param x initializer list
+     *
+     * This function avoids abiguity if at() is called with a brace-enclosed
+     * initializer list.
+     */
+    template<typename R>
+    const T& at(std::initializer_list<R>&& x) const
+    {
+        return at(static_cast<std::vector<R> >(x));
+    }
+
+    //! Access Grid element via initializer list
+    /*!
+     * \tparam R Datatype in the initializer list
+     * \param x initializer list
+     *
+     * This function avoids abiguity if at() is called with a brace-enclosed
+     * initializer list.
+     */
+    template<typename R>
+    T& at(std::initializer_list<R>&& x)
+    {
+        return at(static_cast<std::vector<R> >(x));
+    }
+
     //! Access 1d Grid by index, read-only
     /*!
      * \param index Index specifying the grid point.
@@ -496,6 +524,34 @@ public:
     T& operator[](const std::vector<int> &indices)
     {
         return at(indices);
+    }
+
+    //! Const access of Grid element via initializer list
+    /*!
+     * \tparam R Datatype in the initializer list
+     * \param x initializer list
+     *
+     * This function avoids abiguity if operator[] is called with a brace-enclosed
+     * initializer list.
+     */
+    template<typename R>
+    const T& operator[](std::initializer_list<R>&& x) const
+    {
+        return at(static_cast<std::vector<R> >(x));
+    }
+
+    //! Access Grid element via initializer list
+    /*!
+     * \tparam R Datatype in the initializer list
+     * \param x initializer list
+     *
+     * This function avoids abiguity if operator[] is called with a brace-enclosed
+     * initializer list.
+     */
+    template<typename R>
+    T& operator[](std::initializer_list<R>&& x)
+    {
+        return at(static_cast<std::vector<R> >(x));
     }
 
     //! Access 1d-Grid per [] operator, read-only
