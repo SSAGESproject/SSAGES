@@ -208,16 +208,19 @@ namespace SSAGES
 
 		// Take each CV and add its biased forces to the atoms using the chain rule
 		auto& forces = snapshot->GetForces();
+        auto& virial = snapshot->GetVirial();
 		for(size_t i = 0; i < cvs.size(); ++i)
 		{
 			auto& grad = cvs[i]->GetGradient();
+            auto& boxgrad = cvs[i]->GetBoxGradient();
 
 			/* Update the forces in snapshot by adding in the force bias from each
 			 *CV to each atom based on the gradient of the CV.
              */
 			for (size_t j = 0; j < forces.size(); ++j) 
-				for(size_t k = 0; k < 3; ++k) 
-					forces[j][k] += derivatives_[i]*grad[j][k];
+				forces[j] += derivatives_[i]*grad[j];
+            
+            virial += derivatives_[i]*boxgrad;
 		}
 	}
 
