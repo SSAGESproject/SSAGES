@@ -326,7 +326,7 @@ public:
         }
 
         std::vector<int> indices(dimension_);
-        for (size_t i; i<dimension_; ++i) {
+        for (size_t i = 0; i < dimension_; ++i) {
             double xpos = x.at(i);
             if (!GetPeriodic(i)) {
                 if (xpos < GetLower(i)) {
@@ -342,7 +342,9 @@ public:
             double round = 0.5;
             if (xpos < 0) { round = -0.5; }
 
-            indices.at(i) = (xpos - GetLower(i)) / (GetUpper(i) - GetLower(i)) + round;
+            double spacing = (GetUpper(i) - GetLower(i)) / GetNumPoints(i);
+
+            indices.at(i) = (xpos - GetLower(i)) / spacing + round;
         }
 
         return wrapIndices(indices);
