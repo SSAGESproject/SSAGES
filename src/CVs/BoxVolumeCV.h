@@ -49,12 +49,11 @@ namespace SSAGES
         {
             // Fill empty gradient. 
 			auto n = snapshot.GetNumAtoms();
-            auto& H = snapshot.GetHMatrix();
 			std::fill(grad_.begin(), grad_.end(), Vector3{0,0,0});
 			grad_.resize(n, Vector3{0,0,0});
 
             val_ = snapshot.GetVolume();
-            boxgrad_ = Vector3{H(1,1)*H(2,2), H(0,0)*H(2,2), H(0,0)*H(1,1)}.asDiagonal();
+            boxgrad_ = val_*Matrix3::Identity();
         }
         
         //! Serialize this CV for restart purposes.

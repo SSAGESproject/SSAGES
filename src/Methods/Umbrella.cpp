@@ -53,7 +53,7 @@ namespace SSAGES
 				forces[j] -= D*grad[j];
 			
 			// Update virial. 
-			virial += H*D*boxgrad;
+			virial += D*boxgrad;
 		}
 
 		iteration_++;
