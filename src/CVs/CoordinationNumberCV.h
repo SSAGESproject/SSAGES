@@ -59,14 +59,14 @@
 		 * 
 		 * \return Pointer to new SwitchingFunction.
 		 */
-		static SwitchingFunction* Build(Json::Value& json)
+		static SwitchingFunction Build(const Json::Value& json)
 		{
-			return new SwitchingFunction(
-			                json["d0"].asDouble(), 
-							json["r0"].asDouble(), 
-							json["n"].asInt(), 
-							json["m"].asInt()
-						);
+			return SwitchingFunction(
+			            json["d0"].asDouble(), 
+			            json["r0"].asDouble(), 
+						json["n"].asInt(), 
+						json["m"].asInt()
+					);
 		}
 
 		//! Serialize this CV for restart purposes.
