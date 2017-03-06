@@ -1,11 +1,10 @@
 {
-	"type": "object",
-	"varname" : "grid",
+    "type" : "object",
+    "varname" : "grid",
 	"properties" : {
 		"lower" : {
 			"type" : "array",
 			"minItems" : 1,
-			"maxItems" : 3,
 			"items" : {
 				"type" : "number"
 			}
@@ -13,7 +12,6 @@
 		"upper" : {
 			"type" : "array",
 			"minItems" : 1,
-			"maxItems" : 3,
 			"items" : {
 				"type" : "number"
 			}
@@ -21,7 +19,6 @@
 		"number_points" : {
 			"type" : "array",
 			"minItems" : 1,
-			"maxItems" : 3,
 			"items" : {
 				"type" : "number"
 			}
@@ -29,15 +26,8 @@
 		"periodic" : {
 			"type" : "array",
 			"minItems" : 1,
-			"maxItems" : 3,
 			"items" : {
 				"type" : "boolean"
-			}
-		},
-		"values" : {
-			"type" : "array",
-			"items" : {
-				"type" : "number"
 			}
 		}
 	},

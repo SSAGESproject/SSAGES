@@ -8,9 +8,6 @@
 		"inputfile" : {
 			"type" : "string"
 		},
-		"grid" : {
-			"type" : "object"
-		},
 		"CVs" : {
 			"type" : "array",
 			"minItems" : 1

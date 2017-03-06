@@ -29,9 +29,6 @@
 		"observers" : {
 			"type" : "array"
 		},
-		"grid" : {
-			"type" : "object"
-		},
 		"restart file" : {
 			"type" : "string"
 		},

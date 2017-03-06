@@ -33,7 +33,6 @@
 #include "Meta.h"
 #include "Umbrella.h"
 #include "DirectForwardFlux.h"
-#include "GridTest.h"
 #include "ABF.h"
 #include "BasisFunc.h"
 #include "Swarm.h"
@@ -53,11 +52,6 @@ namespace SSAGES
 
 		Method* method = nullptr;
 
-		// Random device for seed generation. 
-		// std::random_device rd;
-		// auto maxi = std::numeric_limits<int>::max();
-		// auto seed = json.get("seed", rd() % maxi).asUInt();
-		
 		// Get method type. 
 		std::string type = json.get("type", "none").asString();
 
@@ -464,7 +458,12 @@ namespace SSAGES
             auto tol  = json.get("tolerance", 1e-6).asDouble();
             auto conv = json.get("convergence_exit", false).asBool();
  
-            auto* m = new Basis(world, comm, coefsCV, restrCV, boundUp, boundLow, cyclefreq, freq, bnme, cnme, temp, tol, wght, conv);
+            Grid<int> *histlocal = Grid<int>::BuildGrid(json.get("grid", Json::Value()));
+            Grid<int> *histglobal = Grid<int>::BuildGrid(json.get("grid", Json::Value()));
+
+            auto* m = new Basis(world, comm, histlocal, histglobal, coefsCV, restrCV, boundUp, boundLow,
+                                cyclefreq, freq, bnme, cnme, temp, tol, wght,
+                                conv);
 
             method = static_cast<Method*>(m);
 			
@@ -486,17 +485,11 @@ namespace SSAGES
             }
 
         }
-		else if(type == "GridTest")
-		{
-			auto* m = new GridTest(world, comm, 1);
-			method = static_cast<Method*>(m);
-		}
 		else
 		{
 			throw BuildException({path + ": Unknown method type specified."});
 		}
 		
-		method->grid_ = nullptr;
 		return method;
 	}
 }
