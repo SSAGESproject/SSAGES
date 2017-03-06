@@ -69,4 +69,4 @@ variable za2 equal z[4499]
 dump production all xyz 100 production.xyz
 
 thermo_style    custom step temp press v_dist_sq v_xa1 v_ya1 v_za1 v_xa2 v_ya2 v_za2
-thermo		1
+thermo		1000
