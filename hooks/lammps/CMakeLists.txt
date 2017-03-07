@@ -158,7 +158,7 @@ ExternalProject_Add_Step(
 
 add_custom_command(
     TARGET lammps PRE_BUILD
-    COMMAND ln -sf ${PROJECT_SOURCE_DIR}/hooks/lammps/fix_ssages.h ${LAMMPS_SRC}/fix_ssages.h
+    COMMAND ln -sf ${CMAKE_CURRENT_SOURCE_DIR}/fix_ssages.h ${LAMMPS_SRC}/fix_ssages.h
     COMMAND touch ${LAMMPS_SRC}/modify.cpp
 )
 

@@ -9,7 +9,7 @@ if (GROMACS_SRC)
     if (IS_ABSOLUTE ${GROMACS_SRC})
         get_filename_component(GROMACS_SRC ${GROMACS_SRC} ABSOLUTE)
     else (IS_ABSOLUTE ${GROMACS_SRC})
-        get_filename_component(GROMACS_SRC ${CMAKE_CURRENT_BINARY_DIR}/${GROMACS_SRC}
+        get_filename_component(GROMACS_SRC ${PROJECT_BINARY_DIR}/${GROMACS_SRC}
                                 ABSOLUTE)
     endif (IS_ABSOLUTE ${GROMACS_SRC})
 
@@ -56,23 +56,23 @@ if (GROMACS_SRC)
                         OUTPUT_VARIABLE GROMACS_FILES_TO_BE_PATCHED
                         OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-    foreach (PATCH_FILE ${GROMACS_FILES_TO_BE_PATCHED})
+    foreach(PATCH_FILE ${GROMACS_FILES_TO_BE_PATCHED})
         if (NOT EXISTS ${GROMACS_SRC}/${PATCH_FILE})
             message (FATAL_ERROR "\nERROR: File ${PATCH_FILE} does not exist.\n"
                                     "This error is probably caused by an unsupported "
                                     "version of Gromacs.")
         endif (NOT EXISTS ${GROMACS_SRC}/${PATCH_FILE})
-    endforeach (PATCH_FILE IN LISTS ${GROMACS_FILES_TO_BE_PATCHED})
+    endforeach()
 else ()
     set (GROMACS_SRC ${CMAKE_CURRENT_BINARY_DIR}/gromacs-download-prefix/src/gromacs-download)
 endif ()
 
-set(GRO_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${PROJECT_SOURCE_DIR}/hooks/gromacs")
+set(GRO_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Configure patch.
 configure_file (
-    "${PROJECT_SOURCE_DIR}/hooks/gromacs/apply_patch.sh.in"
-    "${PROJECT_BINARY_DIR}/apply_patch.sh"
+    "${CMAKE_CURRENT_SOURCE_DIR}/apply_patch.sh.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/apply_patch.sh"
 )
 
 if (GROMACS)
@@ -95,7 +95,7 @@ ExternalProject_Add(
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gromacs
     DOWNLOAD_COMMAND ""
     SOURCE_DIR ${GROMACS_SRC}
-    PATCH_COMMAND sh ${CMAKE_BINARY_DIR}/apply_patch.sh ${GMX_PATCH}
+    PATCH_COMMAND sh ${CMAKE_CURRENT_BINARY_DIR}/apply_patch.sh ${GMX_PATCH}
     CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
     -DGMX_MPI=ON
@@ -105,10 +105,10 @@ ExternalProject_Add(
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DGMX_BUILD_OWN_FFTW=${GMX_BUILD_OWN_FFTW}
     -DCUDA_PROPAGATE_HOST_FLAGS=OFF
-    -DCUDA_NVCC_FLAGS="-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${PROJECT_SOURCE_DIR}/hooks/gromacs"
+    -DCUDA_NVCC_FLAGS="-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}"
     BUILD_COMMAND $(MAKE)
     BUILD_IN_SOURCE false
-    INSTALL_DIR ${CMAKE_BINARY_DIR}/gromacs
+    INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/gromacs
 )
 
 # Always build gromacs
@@ -126,7 +126,7 @@ set(HOOKSRC
 )
 
 include_directories(${GROMACS_SRC}/src)
-set(MD_ENGINE "Gromacs")
+set(MD_ENGINE "Gromacs" PARENT_SCOPE)
 
 # Function to do post library configuration.
 function(CONFIGURE_ENGINE)
@@ -144,8 +144,8 @@ function(CONFIGURE_ENGINE)
 	include(GNUInstallDirs)
 	target_link_libraries(ssages 
 		ssagesgmx 
-		${CMAKE_BINARY_DIR}/gromacs/${CMAKE_INSTALL_LIBDIR}/libgromacs_mpi.so
-		${CMAKE_BINARY_DIR}/gromacs/${CMAKE_INSTALL_LIBDIR}/libmdrun.a
+		${CMAKE_BINARY_DIR}/hooks/gromacs/gromacs/${CMAKE_INSTALL_LIBDIR}/libgromacs_mpi.so
+		${CMAKE_BINARY_DIR}/hooks/gromacs/gromacs/${CMAKE_INSTALL_LIBDIR}/libmdrun.a
 		)
 	add_dependencies(ssages gromacs)
 endfunction()
