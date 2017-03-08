@@ -126,6 +126,7 @@ set(HOOKSRC
 )
 
 include_directories(${GROMACS_SRC}/src)
+set(ENABLE_GROMACS true PARENT_SCOPE)
 set(MD_ENGINE "Gromacs" PARENT_SCOPE)
 
 # Function to do post library configuration.

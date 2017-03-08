@@ -64,12 +64,6 @@ set(SOURCE
 	src/Constraints/COPSSImage.cpp
 )
 
-# Configure header.
-configure_file (
-	"${PROJECT_SOURCE_DIR}/src/config.h.in"
-	"${PROJECT_BINARY_DIR}/config.h"
-)
-
 ####################### MD ENGINES #########################
 
 # The MD Engine variable will be set if an engine has been initialized successfully. 
@@ -89,6 +83,12 @@ elseif(GROMACS OR GROMACS_SRC)
 endif()
 
 ################### END MD ENGINES ######################
+
+# Configure header.
+configure_file (
+	"${PROJECT_SOURCE_DIR}/src/config.h.in"
+	"${PROJECT_BINARY_DIR}/config.h"
+)
 
 # SSAGES library.
 add_library(libssages ${HOOKSRC} ${SOURCE})
