@@ -53,7 +53,8 @@ namespace SSAGES
 			grad_.resize(n, Vector3{0,0,0});
 
             val_ = snapshot.GetVolume();
-            boxgrad_ = val_*Matrix3::Identity();
+            if(snapshot.GetCommunicator().rank() == 0)
+                boxgrad_ = val_*Matrix3::Identity();
         }
         
         //! Serialize this CV for restart purposes.
