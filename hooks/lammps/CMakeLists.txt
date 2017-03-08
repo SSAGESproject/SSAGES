@@ -169,6 +169,7 @@ set(HOOKSRC
 )
 
 set(MD_ENGINE "LAMMPS" PARENT_SCOPE)
+set(ENABLE_LAMMPS true PARENT_SCOPE)
 SET(LAMMPS_SRC ${LAMMPS_SRC} PARENT_SCOPE)
 
 # Function to do post library configuration.
