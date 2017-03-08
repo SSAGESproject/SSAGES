@@ -220,7 +220,7 @@ namespace SSAGES
 			for (size_t j = 0; j < forces.size(); ++j) 
 				forces[j] += derivatives_[i]*grad[j];
             
-            virial += derivatives_[i]*boxgrad;
+            virial -= derivatives_[i]*boxgrad;
 		}
 	}
 
