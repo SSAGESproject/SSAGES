@@ -9,7 +9,7 @@ if (LAMMPS_SRC)
     if (IS_ABSOLUTE ${LAMMPS_SRC})
         get_filename_component(LAMMPS_SRC ${LAMMPS_SRC} ABSOLUTE)
     else ()
-        get_filename_component(LAMMPS_SRC ${CMAKE_CURRENT_BINARY_DIR}/${LAMMPS_SRC}
+        get_filename_component(LAMMPS_SRC ${PROJECT_BINARY_DIR}/${LAMMPS_SRC}
                                 ABSOLUTE)
     endif ()
 
