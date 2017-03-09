@@ -96,7 +96,8 @@ namespace SSAGES
  			T masses[],
  			T positions[][3], 
  			T velocities[][3],
- 			T forces[][3]);
+ 			T forces[][3],
+			T virial[3][3]);
 
 		~GromacsHook(){}
 	};
