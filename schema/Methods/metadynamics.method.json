@@ -53,15 +53,16 @@
 			"items" : {
 				"type" : "number"
 			}
+		},
+		"grid" : {
+			"type" : "object"
 		}
 	},
 	"required": [
 		"type", 
 		"widths", 
-		"height", 
-		"lower_bounds", 
-		"upper_bounds", 
-		"lower_bound_restraints", 
+		"height",
+		"lower_bound_restraints",
 		"upper_bound_restraints"
 	],
 	"additionalProperties": false

@@ -23,6 +23,7 @@
 #include <math.h>
 #include <iostream>
 #include "Drivers/DriverException.h"
+#include "Grid.h"
 
 namespace SSAGES
 {
@@ -70,6 +71,9 @@ namespace SSAGES
 				
 			hillsout_.close();
 		}
+
+		// Create a grid for each CV. 
+
 
 		auto n = snapshot->GetTargetIterations();
 		n = n ? n : 1e5; // Pre-allocate at least something.

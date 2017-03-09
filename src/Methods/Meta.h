@@ -84,8 +84,8 @@ namespace SSAGES
 		//! Frequency of new hills
 		unsigned int hillfreq_;
 
-		//! Vector of grids. 
-		std::vector<Grid<double>> grids_;
+		//! CV Grid. 
+		Grid<double>* grid_;
 
 		//! Bounds 
 		std::vector<double> upperb_, lowerb_; 
@@ -138,10 +138,11 @@ namespace SSAGES
 			 const std::vector<double>& upperb,
 			 const std::vector<double>& lowerk,
 			 const std::vector<double>& upperk,
+			 Grid<double>* grid,
 			 unsigned int hillfreq,
 			 unsigned int frequency) : 
 		Method(frequency, world, comm), hills_(), height_(height), widths_(widths), 
-		derivatives_(0), tder_(0), dx_(0), hillfreq_(hillfreq), grids_(),
+		derivatives_(0), tder_(0), dx_(0), hillfreq_(hillfreq), grid_(grid),
 		upperb_(upperb), lowerb_(lowerb), upperk_(upperk), lowerk_(lowerk)
 		{
 		}
