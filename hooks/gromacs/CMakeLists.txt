@@ -125,7 +125,6 @@ set(HOOKSRC
     PARENT_SCOPE
 )
 
-include_directories(${GROMACS_SRC}/src)
 set(ENABLE_GROMACS true PARENT_SCOPE)
 set(MD_ENGINE "Gromacs" PARENT_SCOPE)
 
@@ -134,6 +133,7 @@ function(CONFIGURE_ENGINE)
     # Build custom shared library for dependencies. 
 	add_library(ssagesgmx SHARED ${HOOKSRC} ${SOURCE})
 	target_link_libraries(ssagesgmx ${MPI_CXX_LIBRARIES} ${Boost_LIBRARIES})
+    include_directories(${GROMACS_SRC}/src)
 
 	add_dependencies(gromacs ssagesgmx)
 
