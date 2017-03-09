@@ -23,9 +23,9 @@
 
 #include "Method.h"
 #include "../CVs/CollectiveVariable.h"
+#include "Grid.h"
 #include <fstream>
 #include <vector>
-
 
 namespace SSAGES
 {
@@ -84,11 +84,15 @@ namespace SSAGES
 		//! Frequency of new hills
 		unsigned int hillfreq_;
 
+		//! Vector of grids. 
+		std::vector<Grid<double>> grids_;
+
 		//! Adds a new hill.
 		/*!
 		 * \param cvs List of CVs.
+		 * \param iteration Current iteration.
 		 */
-		void AddHill(const CVList& cvs);
+		void AddHill(const CVList& cvs, int iteration);
 
 		//! Computes the bias force.
 		/*!
@@ -99,8 +103,9 @@ namespace SSAGES
 		//! Prints the new hill to file
 		/*!
 		 * \param hill Hill to be printed.
+		 * \param iteration Current iteration.
 		 */
-		void PrintHill(const Hill& hill);
+		void PrintHill(const Hill& hill, int interation);
 
 		//! Output stream for hill data.
 		std::ofstream hillsout_;
@@ -126,7 +131,7 @@ namespace SSAGES
 			 unsigned int hillfreq,
 			 unsigned int frequency) : 
 		Method(frequency, world, comm), hills_(), height_(height), widths_(widths), 
-		derivatives_(0), tder_(0), dx_(0), hillfreq_(hillfreq)
+		derivatives_(0), tder_(0), dx_(0), hillfreq_(hillfreq), grids_()
 		{
 		}
 

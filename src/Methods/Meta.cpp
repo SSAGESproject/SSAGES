@@ -54,9 +54,22 @@ namespace SSAGES
 	// Pre-simulation hook.
 	void Meta::PreSimulation(Snapshot* snapshot, const CVList& cvs)
 	{
-		// Open file for writing and allocate derivatives vector.
+		// Write ouput file header.
 		if(world_.rank() == 0)
+		{
 			hillsout_.open("hills.out");
+			hillsout_ << "#Iteration "; 
+
+			for(size_t i = 0; i < cvs.size(); ++i)
+				hillsout_ << "center." << i << " ";
+	
+			for(size_t i = 0; i < cvs.size(); ++i)
+				hillsout_ << "sigma." << i << " ";
+			
+			hillsout_ << "height" << std::endl;
+				
+			hillsout_.close();
+		}
 
 		auto n = snapshot->GetTargetIterations();
 		n = n ? n : 1e5; // Pre-allocate at least something.
@@ -73,7 +86,7 @@ namespace SSAGES
 	{
 		// Add hills when needed.
 		if(snapshot->GetIteration() % hillfreq_ == 0)
-			AddHill(cvs);
+			AddHill(cvs, snapshot->GetIteration());
 
 		// Always calculate the current bias.
 		CalcBiasForce(cvs);
@@ -103,12 +116,10 @@ namespace SSAGES
 	// Post-simulation hook.
 	void Meta::PostSimulation(Snapshot*, const CVList&)
 	{
-		if(world_.rank() == 0)
-			hillsout_.close();	
 	}
 
 	// Drop a new hill.
-	void Meta::AddHill(const CVList& cvs)
+	void Meta::AddHill(const CVList& cvs, int iteration)
 	{
 		int n = cvs.size();
 
@@ -135,14 +146,19 @@ namespace SSAGES
 			
 			// Write hill to file.
 			if(world_.rank() == 0)
-				PrintHill(hills_.back());
+				PrintHill(hills_.back(), iteration);
 		}
 	}
 
-	//Ruthless pragmatism
-	void Meta::PrintHill(const Hill& hill)
+	// Writes hill to output file. This should only be called by the 
+	// world master node. 
+	void Meta::PrintHill(const Hill& hill, int iteration)
 	{
+		hillsout_.open("hills.out", std::fstream::app);
+		
+		hillsout_ << iteration << " ";
 		hillsout_.precision(8);
+		
 		for(auto& cv : hill.center)
 			hillsout_ << cv << " ";
 		
@@ -150,6 +166,7 @@ namespace SSAGES
 			hillsout_ << w << " ";
 
 		hillsout_ << height_ << std::endl;
+		hillsout_.close();
 	}
 
 	void Meta::CalcBiasForce(const CVList& cvs)

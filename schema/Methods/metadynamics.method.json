@@ -27,6 +27,6 @@
 			"minimum" : 1
 		}
 	},
-	"required": ["type", "widths", "height", "frequency"],
+	"required": ["type", "widths", "height"],
 	"additionalProperties": false
 }
