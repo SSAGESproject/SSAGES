@@ -204,5 +204,17 @@ namespace SSAGES
 			for(size_t i = 0; i < n; ++i)
 				derivatives_[i] += height_*tder_[i];
 		}
+
+		// Restraints.
+		for(size_t i = 0; i < n; ++i)
+		{
+			auto cval = cvs[i]->GetValue();
+			if(cval < lowerb_[i])
+				for(auto& d : derivatives_)
+					d += lowerk_[i]*(cval - lowerb_[i]);
+			else if(cval > upperb_[i])
+				for(auto& d : derivatives_)
+					d += upperk_[i]*(cval - upperb_[i]);
+		}
 	}
 }

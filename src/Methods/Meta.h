@@ -87,6 +87,12 @@ namespace SSAGES
 		//! Vector of grids. 
 		std::vector<Grid<double>> grids_;
 
+		//! Bounds 
+		std::vector<double> upperb_, lowerb_; 
+
+		//! Bound restraints. 
+		std::vector<double> upperk_, lowerk_;
+
 		//! Adds a new hill.
 		/*!
 		 * \param cvs List of CVs.
@@ -128,10 +134,15 @@ namespace SSAGES
 			 boost::mpi::communicator& comm,
 			 double height, 
 			 const std::vector<double>& widths, 
+			 const std::vector<double>& lowerb,
+			 const std::vector<double>& upperb,
+			 const std::vector<double>& lowerk,
+			 const std::vector<double>& upperk,
 			 unsigned int hillfreq,
 			 unsigned int frequency) : 
 		Method(frequency, world, comm), hills_(), height_(height), widths_(widths), 
-		derivatives_(0), tder_(0), dx_(0), hillfreq_(hillfreq), grids_()
+		derivatives_(0), tder_(0), dx_(0), hillfreq_(hillfreq), grids_(),
+		upperb_(upperb), lowerb_(lowerb), upperk_(upperk), lowerk_(lowerk)
 		{
 		}
 

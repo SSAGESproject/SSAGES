@@ -25,8 +25,44 @@
 		"hill_frequency" : {
 			"type" : "integer",
 			"minimum" : 1
+		},
+		"lower_bounds" : {
+			"type" : "array", 
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+		"upper_bounds" : {
+			"type" : "array", 
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+		"lower_bound_restraints" : {
+			"type" : "array", 
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+		"upper_bound_restraints" : {
+			"type" : "array", 
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
 		}
 	},
-	"required": ["type", "widths", "height"],
+	"required": [
+		"type", 
+		"widths", 
+		"height", 
+		"lower_bounds", 
+		"upper_bounds", 
+		"lower_bound_restraints", 
+		"upper_bound_restraints"
+	],
 	"additionalProperties": false
 }

@@ -122,11 +122,25 @@ namespace SSAGES
 			for(auto& s : json["widths"])
 				widths.push_back(s.asDouble());
 
+			std::vector<double> lowerb, upperb, lowerk, upperk;
+			// Assume all vectors are the same size. 
+			for(int i = 0; i < json["lower_bounds"].size(); ++i)
+			{
+				lowerb.push_back(json["lower_bounds"][i].asDouble());
+				upperb.push_back(json["upper_bounds"][i].asDouble());
+				lowerk.push_back(json["lower_bound_restraints"][i].asDouble());
+				upperk.push_back(json["upper_bound_restraints"][i].asDouble());
+			}
+			
 			auto height = json.get("height", 1.0).asDouble();
 			auto hillfreq = json.get("hill_frequency", 1).asInt();
 			auto freq = json.get("frequency", 1).asInt();
 
-			auto* m = new Meta(world, comm, height, widths, hillfreq, freq);
+			auto* m = new Meta(
+			    world, comm, height, widths, 
+				lowerb, upperb, lowerk,	upperk,
+				hillfreq, freq
+			);
 
 			method = static_cast<Method*>(m);
 		}
