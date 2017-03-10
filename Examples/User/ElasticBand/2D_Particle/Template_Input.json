@@ -9,14 +9,14 @@
 			"CVs" : [
 				{
 					"type" : "ParticleCoordinate",
-					"atom_id" : [
+					"atom_ids" : [
 						1
 					],
 					"dimension" : "x" 
 				},
 				{
 					"type": "ParticleCoordinate",
-					"atom_id" : [
+					"atom_ids" : [
 						1
 					],
 					"dimension" : "y"

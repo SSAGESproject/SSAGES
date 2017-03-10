@@ -5,14 +5,14 @@
             "number processors": 1,
             "CVs": [
                 {
-                    "atom_id": [
+                    "atom_ids": [
                         1
                     ],
                     "type": "ParticleCoordinate",
                     "dimension": "x"
                 },
                 {
-                    "atom_id": [
+                    "atom_ids": [
                         1
                     ],
                     "type": "ParticleCoordinate",
@@ -50,17 +50,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "x"
                 },
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "y"
                 }
             ],
@@ -95,17 +95,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "x"
                 },
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "y"
                 }
             ],
@@ -140,17 +140,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "x"
                 },
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "y"
                 }
             ],
@@ -185,17 +185,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "x"
                 },
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "y"
                 }
             ],
@@ -230,17 +230,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "x"
                 },
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "y"
                 }
             ],
@@ -275,17 +275,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "x"
                 },
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "y"
                 }
             ],
@@ -320,17 +320,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "x"
                 },
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "y"
                 }
             ],
@@ -365,17 +365,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "x"
                 },
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "y"
                 }
             ],
@@ -410,17 +410,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "x"
                 },
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "y"
                 }
             ],
@@ -455,17 +455,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "x"
                 },
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "y"
                 }
             ],
@@ -500,17 +500,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "x"
                 },
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "y"
                 }
             ],
@@ -545,17 +545,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "x"
                 },
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "y"
                 }
             ],
@@ -590,17 +590,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "x"
                 },
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "y"
                 }
             ],
@@ -635,17 +635,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "x"
                 },
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "y"
                 }
             ],
@@ -680,17 +680,17 @@
             "MDSteps": 10000000,
             "CVs": [
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "x"
                 },
                 {
-                    "atom_id": [
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
                         1
                     ],
-                    "type": "ParticleCoordinate",
                     "dimension": "y"
                 }
             ],
