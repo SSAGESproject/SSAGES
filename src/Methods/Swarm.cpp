@@ -125,9 +125,9 @@ namespace SSAGES
                         positions[localindex][1] = prev_positions_[index_][i*3 + 1];
                         positions[localindex][2] = prev_positions_[index_][i*3 + 2];
 
-                        velocities[localindex][0] = prev_positions_[index_][i*3];
-                        velocities[localindex][1] = prev_positions_[index_][i*3 + 1];
-                        velocities[localindex][2] = prev_positions_[index_][i*3 + 2];
+                        velocities[localindex][0] = prev_velocities_[index_][i*3];
+                        velocities[localindex][1] = prev_velocities_[index_][i*3 + 1];
+                        velocities[localindex][2] = prev_velocities_[index_][i*3 + 2];
 
                     }
                 }
@@ -141,7 +141,7 @@ namespace SSAGES
             }
             if(iterator_ <= initialize_steps_ + restrained_steps_)
             {
-                //Do restrained sampling, and do not harvest trajectories
+                //Do restrained sampling, and do harvest trajectories
                 for(size_t i = 0; i < cvs.size(); i++)
                 {
                     if(iterator_ == 0)
@@ -191,9 +191,9 @@ namespace SSAGES
                             positions[localindex][1] = prev_positions_[index_][i*3 + 1];
                             positions[localindex][2] = prev_positions_[index_][i*3 + 2];
 
-                            velocities[localindex][0] = prev_positions_[index_][i*3];
-                            velocities[localindex][1] = prev_positions_[index_][i*3 + 1];
-                            velocities[localindex][2] = prev_positions_[index_][i*3 + 2];
+                            velocities[localindex][0] = prev_velocities_[index_][i*3];
+                            velocities[localindex][1] = prev_velocities_[index_][i*3 + 1];
+                            velocities[localindex][2] = prev_velocities_[index_][i*3 + 2];
 
                         }
                     }
@@ -227,9 +227,9 @@ namespace SSAGES
                                 positions[localindex][1] = prev_positions_[index_][i*3 + 1];
                                 positions[localindex][2] = prev_positions_[index_][i*3 + 2];
 
-                                velocities[localindex][0] = prev_positions_[index_][i*3];
-                                velocities[localindex][1] = prev_positions_[index_][i*3 + 1];
-                                velocities[localindex][2] = prev_positions_[index_][i*3 + 2];
+                                velocities[localindex][0] = prev_velocities_[index_][i*3];
+                                velocities[localindex][1] = prev_velocities_[index_][i*3 + 1];
+                                velocities[localindex][2] = prev_velocities_[index_][i*3 + 2];
 
                             }
                         }
