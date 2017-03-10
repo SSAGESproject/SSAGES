@@ -18,7 +18,7 @@
                 "kstring": 0.1,
                 "frequency": 1,
                 "equilibration_steps": 1000,
-                "time_step": 0.1,
+                "time_step": 1.0,
                 "block_iterations": 20,
                 "type": "String",
                 "centers": [
@@ -47,7 +47,7 @@
                 ],
                 "frequency": 1,
                 "equilibration_steps": 1000,
-                "time_step": 0.1,
+                "time_step": 1.0,
                 "flavor": "ElasticBand",
                 "tolerance": [
                     0.0001,
@@ -76,7 +76,7 @@
                 ],
                 "frequency": 1,
                 "equilibration_steps": 1000,
-                "time_step": 0.1,
+                "time_step": 1.0,
                 "flavor": "ElasticBand",
                 "tolerance": [
                     0.0001,
@@ -105,7 +105,7 @@
                 ],
                 "frequency": 1,
                 "equilibration_steps": 1000,
-                "time_step": 0.1,
+                "time_step": 1.0,
                 "flavor": "ElasticBand",
                 "tolerance": [
                     0.0001,
@@ -134,7 +134,7 @@
                 ],
                 "frequency": 1,
                 "equilibration_steps": 1000,
-                "time_step": 0.1,
+                "time_step": 1.0,
                 "flavor": "ElasticBand",
                 "tolerance": [
                     0.0001,
@@ -163,7 +163,7 @@
                 ],
                 "frequency": 1,
                 "equilibration_steps": 1000,
-                "time_step": 0.1,
+                "time_step": 1.0,
                 "flavor": "ElasticBand",
                 "tolerance": [
                     0.0001,
@@ -192,7 +192,7 @@
                 ],
                 "frequency": 1,
                 "equilibration_steps": 1000,
-                "time_step": 0.1,
+                "time_step": 1.0,
                 "flavor": "ElasticBand",
                 "tolerance": [
                     0.0001,
@@ -221,7 +221,7 @@
                 ],
                 "frequency": 1,
                 "equilibration_steps": 1000,
-                "time_step": 0.1,
+                "time_step": 1.0,
                 "flavor": "ElasticBand",
                 "tolerance": [
                     0.0001,
@@ -250,7 +250,7 @@
                 ],
                 "frequency": 1,
                 "equilibration_steps": 1000,
-                "time_step": 0.1,
+                "time_step": 1.0,
                 "flavor": "ElasticBand",
                 "tolerance": [
                     0.0001,
@@ -279,7 +279,7 @@
                 ],
                 "frequency": 1,
                 "equilibration_steps": 1000,
-                "time_step": 0.1,
+                "time_step": 1.0,
                 "flavor": "ElasticBand",
                 "tolerance": [
                     0.0001,
@@ -308,7 +308,7 @@
                 ],
                 "frequency": 1,
                 "equilibration_steps": 1000,
-                "time_step": 0.1,
+                "time_step": 1.0,
                 "flavor": "ElasticBand",
                 "tolerance": [
                     0.0001,
@@ -337,7 +337,7 @@
                 ],
                 "frequency": 1,
                 "equilibration_steps": 1000,
-                "time_step": 0.1,
+                "time_step": 1.0,
                 "flavor": "ElasticBand",
                 "tolerance": [
                     0.0001,
@@ -366,7 +366,7 @@
                 ],
                 "frequency": 1,
                 "equilibration_steps": 1000,
-                "time_step": 0.1,
+                "time_step": 1.0,
                 "flavor": "ElasticBand",
                 "tolerance": [
                     0.0001,
@@ -395,7 +395,7 @@
                 ],
                 "frequency": 1,
                 "equilibration_steps": 1000,
-                "time_step": 0.1,
+                "time_step": 1.0,
                 "flavor": "ElasticBand",
                 "tolerance": [
                     0.0001,
@@ -424,7 +424,7 @@
                 ],
                 "frequency": 1,
                 "equilibration_steps": 1000,
-                "time_step": 0.1,
+                "time_step": 1.0,
                 "flavor": "ElasticBand",
                 "tolerance": [
                     0.0001,
@@ -453,7 +453,7 @@
                 ],
                 "frequency": 1,
                 "equilibration_steps": 1000,
-                "time_step": 0.1,
+                "time_step": 1.0,
                 "flavor": "ElasticBand",
                 "tolerance": [
                     0.0001,

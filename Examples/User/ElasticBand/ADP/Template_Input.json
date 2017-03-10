@@ -33,7 +33,7 @@
 				"centers" : [-1.39, 1.31],
 				"block_iterations": 20,
 				"max_iterations" : 100000,
-				"time_step" : 0.1,
+				"time_step" : 1.0,
 				"frequency" : 1,
 				"ksprings" : [100,100],
 				"tolerance" : [0.0001, 0.0001],
