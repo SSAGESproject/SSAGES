@@ -248,7 +248,7 @@ namespace SSAGES
              */
 			for (int i = 0; i < nbins_[k]; ++i)
 			{
-                x[i] = 2.0*(i + 0.5)/(double)(nbins_[k]) - 1.0;
+                x[i] = (2.0*i + 1.0)/nbins_[k] - 1.0;
 				vals[i] = 1.0;
 				dervs[i] = 0.0;
 			}
@@ -264,12 +264,12 @@ namespace SSAGES
 				for (int i = 0; i < nbins_[k]; i++)
 				{
                     //Evaluate the values of the Legendre polynomial at each bin
-					vals[i+j*nbins_[k]] = ((double) ( 2*j - 1 ) * x[i] * vals[i+(j-1)*nbins_[k]]
-					- (double) (j - 1) * vals[i+(j-2)*nbins_[k]]) / (double) (j);
+					vals[i+j*nbins_[k]] = ( ( 2.0*j - 1.0 ) * x[i] * vals[i+(j-1)*nbins_[k]]
+					- (j - 1.0) * vals[i+(j-2)*nbins_[k]] ) / j;
 
                     //Evaluate the derivatives of the Legendre polynomial at each bin
-                    dervs[i+j*nbins_[k]] = ((double) ( 2*j - 1 ) * ( vals[i+(j-1)*nbins_[k]] + x[i] * dervs[i+(j-1)*nbins_[k]] )
-                    - (double) (j - 1) * dervs[i+(j-2)*nbins_[k]]) / (double) (j);
+                    dervs[i+j*nbins_[k]] = ( ( 2.0*j - 1.0 ) * ( vals[i+(j-1)*nbins_[k]] + x[i] * dervs[i+(j-1)*nbins_[k]] )
+                    - (j - 1.0) * dervs[i+(j-2)*nbins_[k]] ) / j;
 				}
 			}
             BasisLUT TempLUT(vals,dervs);
@@ -369,8 +369,8 @@ namespace SSAGES
                  */
                 for(size_t l = 0; l < cvs.size(); l++)
                 {
-                    basis *= LUT_[l].values[hist.map[l] + coeff.map[l]*(nbins_[l])];
-                    basis *=  1.0 / (nbins_[l])*(2 * coeff.map[l] + 1.0);
+                    basis *= LUT_[l].values[hist.map[l] + coeff.map[l]*(nbins_[l])] / nbins_[l];
+                    basis *= 2.0 * coeff.map[l] + 1.0;
                 }
                 coeff.value += basis * log(unbias_[j]) * weight/std::pow(2.0,cvs.size());
                 basis = 1.0;

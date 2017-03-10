@@ -99,11 +99,12 @@ PMFexpected = []
 histexpected = []
 with open(resource_dir + "expected_basis.dat") as expectedFile:
     for line in expectedFile:
-        x, y, bias, PMF, hist = [float(item) for item in line.split()]
-        xyexpected.append([x,y])
-        biasexpected.append(bias)
-        PMFexpected.append(PMF)
-        histexpected.append(hist)
+        if len(line.split()) == 5:
+            x, y, bias, PMF, hist = [float(item) for item in line.split()]
+            xyexpected.append([x,y])
+            biasexpected.append(bias)
+            PMFexpected.append(PMF)
+            histexpected.append(hist)
 
 # Compare x, y values
 if (len(xydata) != len(xyexpected)):
@@ -151,7 +152,7 @@ mse = 0.0
 for [hist, expected] in zip(histdata, histexpected):
     mse += (hist - expected)**2/len(histdata)
 
-if mse > 2.0:
+if mse > 5.0:
     print("Error! Histogram deviates too strongly from expected histogram!")
     print("Mean square error: {}".format(mse))
 
@@ -198,4 +199,6 @@ if mse > 2.0:
 ####
 
 subprocess.call(['rm -f *'], shell=True)
+
+print("Integration Test passed successfully!")
 sys.exit(0)
