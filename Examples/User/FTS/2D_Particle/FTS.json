@@ -35,7 +35,7 @@
                 "type": "String",
                 "centers": [
                     -0.98,
-                    -0.98
+                    -0.68
                 ],
                 "max_iterations": 1000
             }
@@ -70,7 +70,7 @@
                 ],
                 "centers": [
                     -0.849,
-                    -0.849
+                    -0.549
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -110,7 +110,7 @@
                 ],
                 "centers": [
                     -0.719,
-                    -0.719
+                    -0.419
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -150,7 +150,7 @@
                 ],
                 "centers": [
                     -0.588,
-                    -0.588
+                    -0.288
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -190,7 +190,7 @@
                 ],
                 "centers": [
                     -0.457,
-                    -0.457
+                    -0.157
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -230,7 +230,7 @@
                 ],
                 "centers": [
                     -0.327,
-                    -0.327
+                    -0.027
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -270,7 +270,7 @@
                 ],
                 "centers": [
                     -0.196,
-                    -0.196
+                    0.104
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -310,7 +310,7 @@
                 ],
                 "centers": [
                     -0.065,
-                    -0.065
+                    0.235
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -350,7 +350,7 @@
                 ],
                 "centers": [
                     0.065,
-                    0.065
+                    0.365
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -390,7 +390,7 @@
                 ],
                 "centers": [
                     0.196,
-                    0.196
+                    0.496
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -430,7 +430,7 @@
                 ],
                 "centers": [
                     0.327,
-                    0.327
+                    0.627
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -470,7 +470,7 @@
                 ],
                 "centers": [
                     0.457,
-                    0.457
+                    0.757
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -510,7 +510,7 @@
                 ],
                 "centers": [
                     0.588,
-                    0.588
+                    0.888
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -550,7 +550,7 @@
                 ],
                 "centers": [
                     0.719,
-                    0.719
+                    1.019
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -590,7 +590,7 @@
                 ],
                 "centers": [
                     0.849,
-                    0.849
+                    1.149
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -630,7 +630,7 @@
                 ],
                 "centers": [
                     0.98,
-                    0.98
+                    1.28
                 ],
                 "frequency": 1,
                 "time_step": 0.1,

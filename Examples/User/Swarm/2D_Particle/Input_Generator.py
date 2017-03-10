@@ -13,7 +13,7 @@ with open('Template_Input.json') as f:
 	root = json.load(f)
 
 #Number of processors/string nodes (make sure this matches everywhere)
-num = 22
+num = 16
 
 #Start and end location of CVs 1, 2, etc...
 centers_1 = np.linspace(-0.98, 0.98, num)

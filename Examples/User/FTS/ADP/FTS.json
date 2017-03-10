@@ -32,8 +32,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -77,8 +77,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     -1.282,
@@ -123,8 +123,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     -1.175,
@@ -169,8 +169,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     -1.067,
@@ -215,8 +215,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     -0.96,
@@ -261,8 +261,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     -0.852,
@@ -307,8 +307,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     -0.744,
@@ -353,8 +353,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     -0.637,
@@ -399,8 +399,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     -0.529,
@@ -445,8 +445,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     -0.421,
@@ -491,8 +491,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     -0.314,
@@ -537,8 +537,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     -0.206,
@@ -583,8 +583,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     -0.099,
@@ -629,8 +629,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     0.009,
@@ -675,8 +675,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     0.117,
@@ -721,8 +721,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     0.224,
@@ -767,8 +767,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     0.332,
@@ -813,8 +813,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     0.44,
@@ -859,8 +859,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     0.547,
@@ -905,8 +905,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     0.655,
@@ -951,8 +951,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     0.762,
@@ -997,8 +997,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     0.87,

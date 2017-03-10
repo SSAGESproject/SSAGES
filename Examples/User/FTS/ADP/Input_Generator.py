@@ -1,4 +1,4 @@
-#0! /usr/bin/env python
+#! /usr/bin/env python
 
 # Script for generating JSON input file for SSAGES FTS method from a template
 # input JSON file with multiple walkers (one per node on string)
