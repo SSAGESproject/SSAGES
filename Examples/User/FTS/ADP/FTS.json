@@ -32,8 +32,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -77,12 +77,12 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
-                    -1.282,
-                    1.165
+                    -1.239,
+                    1.107
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -123,12 +123,12 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
-                    -1.175,
-                    1.02
+                    -1.089,
+                    0.903
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -169,12 +169,12 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
-                    -1.067,
-                    0.874
+                    -0.938,
+                    0.7
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -215,12 +215,12 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
-                    -0.96,
-                    0.729
+                    -0.787,
+                    0.497
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -261,100 +261,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
-                ],
-                "centers": [
-                    -0.852,
-                    0.584
-                ],
-                "frequency": 1,
-                "time_step": 0.1,
-                "flavor": "FTS",
-                "type": "String",
-                "block_iterations": 1000,
-                "max_iterations": 100000
-            }
-        },
-        {
-            "number processors": 1,
-            "MDSteps": 100000000,
-            "CVs": [
-                {
-                    "type": "Torsional",
-                    "periodic": true,
-                    "atom_ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
-                },
-                {
-                    "type": "Torsional",
-                    "periodic": true,
-                    "atom_ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
-                }
-            ],
-            "logfile": "none",
-            "type": "LAMMPS",
-            "method": {
-                "kappa": 0.1,
-                "umbrella_iterations": 2000,
-                "ksprings": [
-                    1000,
-                    1000
-                ],
-                "centers": [
-                    -0.744,
-                    0.439
-                ],
-                "frequency": 1,
-                "time_step": 0.1,
-                "flavor": "FTS",
-                "type": "String",
-                "block_iterations": 1000,
-                "max_iterations": 100000
-            }
-        },
-        {
-            "number processors": 1,
-            "MDSteps": 100000000,
-            "CVs": [
-                {
-                    "type": "Torsional",
-                    "periodic": true,
-                    "atom_ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
-                },
-                {
-                    "type": "Torsional",
-                    "periodic": true,
-                    "atom_ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
-                }
-            ],
-            "logfile": "none",
-            "type": "LAMMPS",
-            "method": {
-                "kappa": 0.1,
-                "umbrella_iterations": 2000,
-                "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     -0.637,
@@ -399,12 +307,12 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
-                    -0.529,
-                    0.148
+                    -0.486,
+                    0.09
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -445,12 +353,12 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
-                    -0.421,
-                    0.003
+                    -0.335,
+                    -0.113
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -491,12 +399,12 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
-                    -0.314,
-                    -0.142
+                    -0.185,
+                    -0.317
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -537,12 +445,12 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
-                    -0.206,
-                    -0.288
+                    -0.034,
+                    -0.52
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -583,100 +491,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
-                ],
-                "centers": [
-                    -0.099,
-                    -0.433
-                ],
-                "frequency": 1,
-                "time_step": 0.1,
-                "flavor": "FTS",
-                "type": "String",
-                "block_iterations": 1000,
-                "max_iterations": 100000
-            }
-        },
-        {
-            "number processors": 1,
-            "MDSteps": 100000000,
-            "CVs": [
-                {
-                    "type": "Torsional",
-                    "periodic": true,
-                    "atom_ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
-                },
-                {
-                    "type": "Torsional",
-                    "periodic": true,
-                    "atom_ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
-                }
-            ],
-            "logfile": "none",
-            "type": "LAMMPS",
-            "method": {
-                "kappa": 0.1,
-                "umbrella_iterations": 2000,
-                "ksprings": [
-                    1000,
-                    1000
-                ],
-                "centers": [
-                    0.009,
-                    -0.578
-                ],
-                "frequency": 1,
-                "time_step": 0.1,
-                "flavor": "FTS",
-                "type": "String",
-                "block_iterations": 1000,
-                "max_iterations": 100000
-            }
-        },
-        {
-            "number processors": 1,
-            "MDSteps": 100000000,
-            "CVs": [
-                {
-                    "type": "Torsional",
-                    "periodic": true,
-                    "atom_ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
-                },
-                {
-                    "type": "Torsional",
-                    "periodic": true,
-                    "atom_ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
-                }
-            ],
-            "logfile": "none",
-            "type": "LAMMPS",
-            "method": {
-                "kappa": 0.1,
-                "umbrella_iterations": 2000,
-                "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     0.117,
@@ -721,12 +537,12 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
-                    0.224,
-                    -0.869
+                    0.267,
+                    -0.927
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -767,12 +583,12 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
-                    0.332,
-                    -1.014
+                    0.418,
+                    -1.13
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -813,12 +629,12 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
-                    0.44,
-                    -1.159
+                    0.569,
+                    -1.333
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -859,12 +675,12 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
-                    0.547,
-                    -1.304
+                    0.719,
+                    -1.537
                 ],
                 "frequency": 1,
                 "time_step": 0.1,
@@ -905,100 +721,8 @@
                 "kappa": 0.1,
                 "umbrella_iterations": 2000,
                 "ksprings": [
-                    1000,
-                    1000
-                ],
-                "centers": [
-                    0.655,
-                    -1.45
-                ],
-                "frequency": 1,
-                "time_step": 0.1,
-                "flavor": "FTS",
-                "type": "String",
-                "block_iterations": 1000,
-                "max_iterations": 100000
-            }
-        },
-        {
-            "number processors": 1,
-            "MDSteps": 100000000,
-            "CVs": [
-                {
-                    "type": "Torsional",
-                    "periodic": true,
-                    "atom_ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
-                },
-                {
-                    "type": "Torsional",
-                    "periodic": true,
-                    "atom_ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
-                }
-            ],
-            "logfile": "none",
-            "type": "LAMMPS",
-            "method": {
-                "kappa": 0.1,
-                "umbrella_iterations": 2000,
-                "ksprings": [
-                    1000,
-                    1000
-                ],
-                "centers": [
-                    0.762,
-                    -1.595
-                ],
-                "frequency": 1,
-                "time_step": 0.1,
-                "flavor": "FTS",
-                "type": "String",
-                "block_iterations": 1000,
-                "max_iterations": 100000
-            }
-        },
-        {
-            "number processors": 1,
-            "MDSteps": 100000000,
-            "CVs": [
-                {
-                    "type": "Torsional",
-                    "periodic": true,
-                    "atom_ids": [
-                        5,
-                        7,
-                        9,
-                        15
-                    ]
-                },
-                {
-                    "type": "Torsional",
-                    "periodic": true,
-                    "atom_ids": [
-                        7,
-                        9,
-                        15,
-                        17
-                    ]
-                }
-            ],
-            "logfile": "none",
-            "type": "LAMMPS",
-            "method": {
-                "kappa": 0.1,
-                "umbrella_iterations": 2000,
-                "ksprings": [
-                    1000,
-                    1000
+                    150,
+                    150
                 ],
                 "centers": [
                     0.87,

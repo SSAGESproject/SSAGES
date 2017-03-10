@@ -1,4 +1,4 @@
-#0! /usr/bin/env python
+#! /usr/bin/env python
 
 # Script for generating JSON input file for SSAGES FTS method from a template
 # input JSON file with multiple walkers (one per node on string)
@@ -13,7 +13,7 @@ with open('Template_Input.json') as f:
 	root = json.load(f)
 
 #Number of processors/string nodes (make sure this matches everywhere)
-num = 22
+num = 16
 
 #Start and end location of CVs 1, 2, etc...
 centers_1 = np.linspace(-1.39, 0.87, num)
