@@ -16,7 +16,7 @@ group			mobile union all
 velocity all create 300 100
 thermo_style	custom etotal ke pe ebond eangle edihed eimp evdwl ecoul elong temp press vol
 thermo_modify	line multi
-thermo			1
+thermo			1000
 thermo_modify	flush yes
 timestep		1
 fix 1 all nvt temp 300 300 100
