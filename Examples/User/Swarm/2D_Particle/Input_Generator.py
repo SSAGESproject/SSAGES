@@ -12,10 +12,12 @@ root = {}
 with open('Template_Input.json') as f:
 	root = json.load(f)
 
-num = 16
+#Number of processors/string nodes (make sure this matches everywhere)
+num = 22
 
-centers_1 = np.linspace(-0.7, 0.7, num)
-centers_2 = np.linspace(-0.5, 1.0, num)
+#Start and end location of CVs 1, 2, etc...
+centers_1 = np.linspace(-0.98, 0.98, num)
+centers_2 = np.linspace(-0.98, 0.98, num)
 
 # Add on the requested number of objects -1 because we are appending
 for i in range(0,num - 1):
@@ -30,5 +32,5 @@ for i in range(num):
         root['driver'][i]['method']['centers'][1] = round(centers_2[i], 3)
 
 # Convert python dictionary into JSON file
-with open('Elastic.json', 'w') as f:
+with open('Swarm.json', 'w') as f:
 		json.dump(root, f, indent=4, separators=(',', ': '))

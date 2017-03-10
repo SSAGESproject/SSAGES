@@ -1,31 +1,25 @@
 {
-	"inputfile" : "in.ADP_Test",
+	"inputfile" : "in.LAMMPS_2DParticle",
 	"driver" : [
 		{
 			"number processors" : 1,
 			"type" : "LAMMPS",
-			"MDSteps" : 100000000,
-			"logfile" : "none",
+			"MDSteps" : 10000000,
+			"logfile" : "log",
 			"CVs" : [
 				{
-					"type" : "Torsional",
+					"type" : "ParticleCoordinate",
 					"atom_ids" : [
-						5,
-						7,
-						9,
-						15
+						1
 					],
-					"periodic" : true 
+					"dimension" : "x"
 				},
 				{
-					"type": "Torsional",
+					"type": "ParticleCoordinate",
 					"atom_ids" : [
-						7,
-						9,
-						15,
-						17
+						1
 					],
-					"periodic" : true
+                    "dimension" : "y"
 				}
 			],
 			"method" : {
@@ -34,13 +28,13 @@
 						-1.39,
                         1.31
 				],
-				"block_iterations": 1000,
-				"max_iterations" : 100000,
+				"block_iterations": 50,
+				"max_iterations" : 1000,
 				"time_step" : 0.1,
 				"frequency" : 1,
-				"ksprings" : [150,150],
-				"flavor" : "FTS",
+				"ksprings" : [750,750],
 				"umbrella_iterations" : 2000,
+				"flavor" : "FTS",
 				"kappa" : 0.1
 			}
 		}

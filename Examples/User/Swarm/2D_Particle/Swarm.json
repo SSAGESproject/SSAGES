@@ -969,5 +969,5 @@
             }
         }
     ],
-    "inputfile": "in.LAMMPS_Meta_Test"
+    "inputfile": "in.LAMMPS_2DParticle"
 }

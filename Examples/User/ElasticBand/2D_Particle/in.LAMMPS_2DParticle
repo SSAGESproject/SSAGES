@@ -72,7 +72,7 @@ variable substrate_energy atom "(v_e_01+v_e_02+v_e_03)"
 #Add forces and energy
 fix  4 all addforce v_substrate_xforce v_substrate_yforce 0 energy v_substrate_energy
 
-#Call ssages to run the metadynamics
+#Call ssages to run the advanced sampling method
 fix  ssages all ssages
 
 compute ffx all reduce sum v_substrate_xforce
@@ -91,11 +91,7 @@ compute fx all reduce sum c_fxa
 compute fya all property/atom fy
 compute fy all reduce sum c_fya
 
-
 timestep 1
 thermo_style custom step c_xx c_yy c_vx c_vy c_fx c_fy c_ffx c_ffy press
-
-
-#For the sync to engine to work correctly need to set thermo 1 for now
-thermo 1
+thermo 1000
 

@@ -1,7 +1,7 @@
 {
     "driver": [
         {
-            "logfile": "log_0",
+            "logfile": "none",
             "MDSteps": 10000000,
             "type": "LAMMPS",
             "method": {
@@ -31,7 +31,7 @@
         },
         {
             "number processors": 1,
-            "logfile": "log_1",
+            "logfile": "none",
             "type": "LAMMPS",
             "method": {
                 "evolution_steps": 200,
@@ -60,7 +60,7 @@
         },
         {
             "number processors": 1,
-            "logfile": "log_2",
+            "logfile": "none",
             "type": "LAMMPS",
             "method": {
                 "evolution_steps": 200,
@@ -89,7 +89,7 @@
         },
         {
             "number processors": 1,
-            "logfile": "log_3",
+            "logfile": "none",
             "type": "LAMMPS",
             "method": {
                 "evolution_steps": 200,
@@ -118,7 +118,7 @@
         },
         {
             "number processors": 1,
-            "logfile": "log_4",
+            "logfile": "none",
             "type": "LAMMPS",
             "method": {
                 "evolution_steps": 200,
@@ -147,7 +147,7 @@
         },
         {
             "number processors": 1,
-            "logfile": "log_5",
+            "logfile": "none",
             "type": "LAMMPS",
             "method": {
                 "evolution_steps": 200,
@@ -176,7 +176,7 @@
         },
         {
             "number processors": 1,
-            "logfile": "log_6",
+            "logfile": "none",
             "type": "LAMMPS",
             "method": {
                 "evolution_steps": 200,
@@ -205,7 +205,7 @@
         },
         {
             "number processors": 1,
-            "logfile": "log_7",
+            "logfile": "none",
             "type": "LAMMPS",
             "method": {
                 "evolution_steps": 200,
@@ -234,7 +234,7 @@
         },
         {
             "number processors": 1,
-            "logfile": "log_8",
+            "logfile": "none",
             "type": "LAMMPS",
             "method": {
                 "evolution_steps": 200,
@@ -263,7 +263,7 @@
         },
         {
             "number processors": 1,
-            "logfile": "log_9",
+            "logfile": "none",
             "type": "LAMMPS",
             "method": {
                 "evolution_steps": 200,
@@ -292,7 +292,7 @@
         },
         {
             "number processors": 1,
-            "logfile": "log_10",
+            "logfile": "none",
             "type": "LAMMPS",
             "method": {
                 "evolution_steps": 200,
@@ -321,7 +321,7 @@
         },
         {
             "number processors": 1,
-            "logfile": "log_11",
+            "logfile": "none",
             "type": "LAMMPS",
             "method": {
                 "evolution_steps": 200,
@@ -350,7 +350,7 @@
         },
         {
             "number processors": 1,
-            "logfile": "log_12",
+            "logfile": "none",
             "type": "LAMMPS",
             "method": {
                 "evolution_steps": 200,
@@ -379,7 +379,7 @@
         },
         {
             "number processors": 1,
-            "logfile": "log_13",
+            "logfile": "none",
             "type": "LAMMPS",
             "method": {
                 "evolution_steps": 200,
@@ -408,7 +408,7 @@
         },
         {
             "number processors": 1,
-            "logfile": "log_14",
+            "logfile": "none",
             "type": "LAMMPS",
             "method": {
                 "evolution_steps": 200,
@@ -437,7 +437,7 @@
         },
         {
             "number processors": 1,
-            "logfile": "log_15",
+            "logfile": "none",
             "type": "LAMMPS",
             "method": {
                 "evolution_steps": 200,
@@ -467,24 +467,24 @@
     ],
     "CVs": [
         {
-            "periodic": true,
-            "type": "Torsional",
-            "atom ids": [
+            "atom_ids": [
                 5,
                 7,
                 9,
                 15
-            ]
+            ],
+            "periodic": true,
+            "type": "Torsional"
         },
         {
-            "periodic": true,
-            "type": "Torsional",
-            "atom ids": [
+            "atom_ids": [
                 7,
                 9,
                 15,
                 17
-            ]
+            ],
+            "periodic": true,
+            "type": "Torsional"
         }
     ],
     "inputfile": "in.ADP_Test"

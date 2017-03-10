@@ -3,7 +3,7 @@
 	"CVs" : [
 		{
 			"type" : "Torsional",
-			"atom ids" : [
+			"atom_ids" : [
 				5,
 				7,
 				9,
@@ -13,7 +13,7 @@
 		},
 		{
 			"type": "Torsional",
-			"atom ids" : [
+			"atom_ids" : [
 				7,
 				9,
 				15,
