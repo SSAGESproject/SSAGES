@@ -16,7 +16,7 @@ num = 16
 
 #Start and end location of CVs 1, 2, etc...
 centers_1 = np.linspace(-0.98, 0.98, num)
-centers_2 = np.linspace(-0.98, 0.98, num)
+centers_2 = np.linspace(-0.68, 1.28, num)
 
 # Add on the requested number of objects -1 because we are appending
 for i in range(0,num - 1):

@@ -94,8 +94,8 @@
                 "flavor": "SWARM",
                 "type": "String",
                 "centers": [
-                    -1.239,
-                    1.107
+                    -1.282,
+                    1.165
                 ],
                 "max_iterations": 100000
             }
@@ -144,8 +144,8 @@
                 "flavor": "SWARM",
                 "type": "String",
                 "centers": [
-                    -1.089,
-                    0.903
+                    -1.175,
+                    1.02
                 ],
                 "max_iterations": 100000
             }
@@ -194,8 +194,8 @@
                 "flavor": "SWARM",
                 "type": "String",
                 "centers": [
-                    -0.938,
-                    0.7
+                    -1.067,
+                    0.874
                 ],
                 "max_iterations": 100000
             }
@@ -244,8 +244,108 @@
                 "flavor": "SWARM",
                 "type": "String",
                 "centers": [
-                    -0.787,
-                    0.497
+                    -0.96,
+                    0.729
+                ],
+                "max_iterations": 100000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 100000000,
+            "CVs": [
+                {
+                    "type": "Torsional",
+                    "periodic": true,
+                    "atom_ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "type": "Torsional",
+                    "periodic": true,
+                    "atom_ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 10000,
+                "tolerance": [
+                    0.001,
+                    0.001
+                ],
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 100,
+                "swarm_length": 20,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    -0.852,
+                    0.584
+                ],
+                "max_iterations": 100000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 100000000,
+            "CVs": [
+                {
+                    "type": "Torsional",
+                    "periodic": true,
+                    "atom_ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "type": "Torsional",
+                    "periodic": true,
+                    "atom_ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 10000,
+                "tolerance": [
+                    0.001,
+                    0.001
+                ],
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 100,
+                "swarm_length": 20,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    -0.744,
+                    0.439
                 ],
                 "max_iterations": 100000
             }
@@ -344,8 +444,8 @@
                 "flavor": "SWARM",
                 "type": "String",
                 "centers": [
-                    -0.486,
-                    0.09
+                    -0.529,
+                    0.148
                 ],
                 "max_iterations": 100000
             }
@@ -394,8 +494,8 @@
                 "flavor": "SWARM",
                 "type": "String",
                 "centers": [
-                    -0.335,
-                    -0.113
+                    -0.421,
+                    0.003
                 ],
                 "max_iterations": 100000
             }
@@ -444,8 +544,8 @@
                 "flavor": "SWARM",
                 "type": "String",
                 "centers": [
-                    -0.185,
-                    -0.317
+                    -0.314,
+                    -0.142
                 ],
                 "max_iterations": 100000
             }
@@ -494,8 +594,108 @@
                 "flavor": "SWARM",
                 "type": "String",
                 "centers": [
-                    -0.034,
-                    -0.52
+                    -0.206,
+                    -0.288
+                ],
+                "max_iterations": 100000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 100000000,
+            "CVs": [
+                {
+                    "type": "Torsional",
+                    "periodic": true,
+                    "atom_ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "type": "Torsional",
+                    "periodic": true,
+                    "atom_ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 10000,
+                "tolerance": [
+                    0.001,
+                    0.001
+                ],
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 100,
+                "swarm_length": 20,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    -0.099,
+                    -0.433
+                ],
+                "max_iterations": 100000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 100000000,
+            "CVs": [
+                {
+                    "type": "Torsional",
+                    "periodic": true,
+                    "atom_ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "type": "Torsional",
+                    "periodic": true,
+                    "atom_ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 10000,
+                "tolerance": [
+                    0.001,
+                    0.001
+                ],
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 100,
+                "swarm_length": 20,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    0.009,
+                    -0.578
                 ],
                 "max_iterations": 100000
             }
@@ -594,8 +794,8 @@
                 "flavor": "SWARM",
                 "type": "String",
                 "centers": [
-                    0.267,
-                    -0.927
+                    0.224,
+                    -0.869
                 ],
                 "max_iterations": 100000
             }
@@ -644,8 +844,8 @@
                 "flavor": "SWARM",
                 "type": "String",
                 "centers": [
-                    0.418,
-                    -1.13
+                    0.332,
+                    -1.014
                 ],
                 "max_iterations": 100000
             }
@@ -694,8 +894,8 @@
                 "flavor": "SWARM",
                 "type": "String",
                 "centers": [
-                    0.569,
-                    -1.333
+                    0.44,
+                    -1.159
                 ],
                 "max_iterations": 100000
             }
@@ -744,8 +944,108 @@
                 "flavor": "SWARM",
                 "type": "String",
                 "centers": [
-                    0.719,
-                    -1.537
+                    0.547,
+                    -1.304
+                ],
+                "max_iterations": 100000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 100000000,
+            "CVs": [
+                {
+                    "type": "Torsional",
+                    "periodic": true,
+                    "atom_ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "type": "Torsional",
+                    "periodic": true,
+                    "atom_ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 10000,
+                "tolerance": [
+                    0.001,
+                    0.001
+                ],
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 100,
+                "swarm_length": 20,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    0.655,
+                    -1.45
+                ],
+                "max_iterations": 100000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 100000000,
+            "CVs": [
+                {
+                    "type": "Torsional",
+                    "periodic": true,
+                    "atom_ids": [
+                        5,
+                        7,
+                        9,
+                        15
+                    ]
+                },
+                {
+                    "type": "Torsional",
+                    "periodic": true,
+                    "atom_ids": [
+                        7,
+                        9,
+                        15,
+                        17
+                    ]
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 10000,
+                "tolerance": [
+                    0.001,
+                    0.001
+                ],
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 100,
+                "swarm_length": 20,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    0.762,
+                    -1.595
                 ],
                 "max_iterations": 100000
             }
