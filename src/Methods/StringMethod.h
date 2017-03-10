@@ -86,7 +86,7 @@ namespace SSAGES
 		//! Store velocities for starting trajectories
 		std::vector<std::vector<double>> prev_velocities_;
 
-		//! Store velocities for starting trajectories
+		//! Store atom IDs for starting trajectories
 		std::vector<std::vector<int>> prev_IDs_;
 
 		//! Updates the position of the string.

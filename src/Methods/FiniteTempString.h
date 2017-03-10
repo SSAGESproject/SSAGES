@@ -58,9 +58,6 @@ namespace SSAGES
 		//! Stores the last positions of the CVs
 		std::vector<double> prev_CVs_;
 
-        //! Stores the last step's atom IDs
-        Label prev_ids_;
-
 		//! Checks if CV is in voronoi cell
 		bool InCell(const CVList& cvs) const;
 
@@ -107,7 +104,7 @@ namespace SSAGES
 			//! Store velocities for starting trajectories
 			prev_velocities_.resize(1);
 
-			prev_ids_.resize(1);
+			prev_IDs_.resize(1);
 
 		}
 

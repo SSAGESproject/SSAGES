@@ -78,7 +78,8 @@ namespace SSAGES
         }
         insidecell = InCell(cvs); 
 
-        MPI_Allreduce(MPI::IN_PLACE, &run_umbrella_, 1, MPI::BOOL, MPI::LOR, world_); 
+        MPI_Allreduce(MPI::IN_PLACE, &run_umbrella_, 1, MPI::BOOL, MPI::LOR, world_);
+
 		if(run_umbrella_)
 		{ 
 			if(umbrella_iter_ == min_num_umbrella_steps_)
