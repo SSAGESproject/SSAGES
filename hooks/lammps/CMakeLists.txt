@@ -160,6 +160,7 @@ add_custom_command(
     TARGET lammps PRE_BUILD
     COMMAND ln -sf ${CMAKE_CURRENT_SOURCE_DIR}/fix_ssages.h ${LAMMPS_SRC}/fix_ssages.h
     COMMAND touch ${LAMMPS_SRC}/modify.cpp
+    COMMAND sh ${LAMMPS_SRC}/Make.sh style
 )
 
 # Add source for appropriate package hook.
