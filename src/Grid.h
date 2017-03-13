@@ -339,12 +339,12 @@ public:
             }
 
             // To make sure, the value is rounded in the correct direction.
-            double round = 0.5;
-            if (xpos < 0) { round = -0.5; }
-
             double spacing = (GetUpper(i) - GetLower(i)) / GetNumPoints(i);
+            double dx = (xpos - GetLower(i)) / spacing;
 
-            indices.at(i) = (xpos - GetLower(i)) / spacing + round;
+            if (dx < 0) { dx -= 1.0; }
+
+            indices.at(i) = (int)dx;
         }
 
         return wrapIndices(indices);
