@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include <cmath>
 #include <exception>
 #include <vector>
 
@@ -340,11 +341,7 @@ public:
 
             // To make sure, the value is rounded in the correct direction.
             double spacing = (GetUpper(i) - GetLower(i)) / GetNumPoints(i);
-            double dx = (xpos - GetLower(i)) / spacing;
-
-            if (dx < 0) { dx -= 1.0; }
-
-            indices.at(i) = (int)dx;
+            indices.at(i) = std::floor( (xpos - GetLower(i)) / spacing );
         }
 
         return wrapIndices(indices);
