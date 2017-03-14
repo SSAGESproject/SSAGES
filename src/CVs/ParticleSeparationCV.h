@@ -138,6 +138,7 @@ namespace SSAGES
 			// Initialize gradient.
 			std::fill(grad_.begin(), grad_.end(), Vector3{0,0,0});
 			grad_.resize(n, Vector3{0,0,0});
+			boxgrad_ = Matrix3::Zero();
 
 			// Get centers of mass.
 			auto mtot1 = snapshot.TotalMass(idx1);		
@@ -152,7 +153,10 @@ namespace SSAGES
 			val_ = rij.norm();
 
 			for(auto& id : idx1)
+			{
 				grad_[id] = rij/val_*masses[id]/mtot1;
+				boxgrad_ += grad_[id]*rij.transpose();
+			}
 			
 			for(auto& id : idx2)
 				grad_[id] = -rij/val_*masses[id]/mtot2;
