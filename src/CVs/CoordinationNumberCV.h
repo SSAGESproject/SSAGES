@@ -176,6 +176,7 @@
 			// Initialize gradient.
 			std::fill(grad_.begin(), grad_.end(), Vector3{0,0,0});
 			grad_.resize(n, Vector3{0,0,0});
+			boxgrad_ = Matrix3::Zero();
 
 			// The nastiness begins. We essentially need to compute 
 			// pairwise distances between the atoms. For now, let's 
@@ -228,6 +229,7 @@
 					val_ +=  sf_.Evaluate(r, df);
 
 					grad_[i] += df*rij/r;
+					boxgrad_ += df*rij/r*rij.transpose();
 
 					auto lidx = snapshot.GetLocalIndex(gids[j]);
 					if(lidx != -1)
