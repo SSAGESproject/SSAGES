@@ -338,6 +338,45 @@ public:
         return GetIndices({x}).at(0);
     }
 
+    //! Return coordinates of the grid center points
+    /*!
+     * \param indices Grid indices specifying a grid point.
+     * \return Vector of double specifying the position of the grid point.
+     *
+     * The grid is a discretization of real or cv space. Thus, each grid point
+     * is associated with an interval of the underlying space. This function
+     * returns the center point of this interval.
+     */
+    std::vector<double> GetCoordinates(const std::vector<int> &indices)
+    {
+        if (indices.size() != dimension_) {
+            throw std::invalid_argument(
+                    "Grid indices specified for GetCoordinates() do not have "
+                    "the same dimensionality as the grid.");
+        }
+
+        std::vector<double> v(dimension_);
+
+        for (size_t i = 0; i < dimension_; ++i) {
+            double spacing = (GetUpper(i) - GetLower(i)) / GetNumPoints(i);
+            v.at(i) = GetLower(i) + (i + 0.5)*spacing;
+        }
+
+        return v;
+    }
+
+    //! Return center point of 1d-grid
+    /*!
+     * \param index Index of the 1d grid.
+     * \return Coordinate in real/CV space.
+     *
+     * \note This function is only available for 1d grids.
+     */
+    double GetCoordinate(int index)
+    {
+        return GetCoordinates({index}).at(0);
+    }
+
     //! Access Grid element read-only
     /*!
      * \param indices Vector of integers specifying the grid point.
