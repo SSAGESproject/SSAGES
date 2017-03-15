@@ -55,7 +55,7 @@ protected:
     //! Wrap the index around periodic boundaries
     std::vector<int> wrapIndices(const std::vector<int> &indices) const
     {
-        std::vector<int> newIndices(dimension_);
+        std::vector<int> newIndices(indices);
         for (size_t i=0; i<dimension_; ++i) {
             if (!GetPeriodic(i)) {
                 continue;
@@ -444,7 +444,7 @@ public:
      */
     const T& at(const std::vector<double> &x) const
     {
-        return data_.at(GetIndices(x));
+        return at(GetIndices(x));
     }
 
     //! Access Grid element pertaining to a specific point -- read/write
@@ -457,7 +457,7 @@ public:
      */
     T& at(const std::vector<double> &x)
     {
-        return data_.at(GetIndices(x));
+        return at(GetIndices(x));
     }
 
     //! Access 1d-Grid by point - read-only
