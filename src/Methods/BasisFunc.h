@@ -21,7 +21,7 @@
 
 #include "Method.h"
 #include "../CVs/CollectiveVariable.h"
-#include "../Grids/Grid.h"
+#include "../Grids/Histogram.h"
 #include <fstream>
 #include <vector>
 
@@ -103,13 +103,13 @@ namespace SSAGES
         /*!
          * \note It does take up more memory.
          */
-        Grid<int> *histlocal_;
+        Histogram<int> *histlocal_;
 
         //! Globally defined histogram array for easy mpi operations.
         /*!
          * \note Needs lots of memory.
          */
-        Grid<int> *histglobal_;
+        Histogram<int> *histglobal_;
 
         //! Globally located coefficient values.
 		/*!
@@ -254,8 +254,8 @@ namespace SSAGES
          */
 		Basis(boost::mpi::communicator& world,
 			 boost::mpi::communicator& comm,
-             Grid<int> *histlocal,
-             Grid<int> *histglobal,
+             Histogram<int> *histlocal,
+             Histogram<int> *histglobal,
 			 const std::vector<unsigned int>& polyord,
              const std::vector<double>& restraint,
              const std::vector<double>& boundUp,

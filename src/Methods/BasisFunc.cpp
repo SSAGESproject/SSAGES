@@ -41,7 +41,7 @@ namespace SSAGES
         if(!histlocal_)
 		{
             std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-			std::cerr<<"ERROR: Method expected a grid but no grid built."<<std::endl;
+            std::cerr<<"ERROR: Method expected a histogram but none built."<<std::endl;
             std::cerr<<"Exiting on node ["<<mpiid_<<"]"<<std::endl;
             std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
 			world_.abort(EXIT_FAILURE);
@@ -53,7 +53,7 @@ namespace SSAGES
             if(histlocal_->GetDimension() != cvs.size())
             {
                 std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                std::cerr<<"ERROR: Grid dimensions doesn't match number of CVS."<<std::endl;
+                std::cerr<<"ERROR: Histogram dimensions doesn't match number of CVS."<<std::endl;
                 std::cerr<<"Exiting on node ["<<mpiid_<<"]"<<std::endl;
                 std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
                 world_.abort(EXIT_FAILURE);

@@ -35,29 +35,28 @@ namespace Json {
 namespace SSAGES
 {
 
-//! Generic Grid.
+//! Basic Histogram.
 /*!
- * \tparam T type of data to be stored in the Grid.
+ * \tparam T type of data to be stored in the histogram.
  *
- * A Grid is a general method to store data in SSAGES. It is used to discretize
+ * A Histogram is a method to store data in SSAGES. It is used to discretize
  * a continuous number, typically a collective variable, into \c number_points
- * grid points. For each grid point an arbitrary type of data can be stored,
- * specified via the template parameter \c T.
+ * bins. For each bin, an arbitrary type of data can be stored, specified via
+ * the template parameter \c T.
  *
- * The Grid can be of arbitrary dimension. For each dimension, the lower bound,
- * the upper bound and the number of grid points need to be specified.
- * Furthermore, the grid can be defined as periodic or non-periodic in the
- * respective dimension. By default, the grid is non-periodic. The grid points
+ * The histogram can be of arbitrary dimension. For each dimension, the lower
+ * bound, the upper bound and the number of grid points need to be specified.
+ * Furthermore, the histogram can be defined as periodic or non-periodic in the
+ * respective dimension. By default, the histogram is non-periodic. The bins
  * are indexed from 0 to number_points-1 following the standard C/C++
- * convention. The indices -1 and and \c number_points can be used to access
- * the underflow and overflow intervals (see below).
+ * convention. In contrast to the Grid, a Histogram additionally includes
+ * an under- and an overflow bin in each non-periodic dimension. These can be
+ * accessed via the indices -1 an \c number_points (see below).
  *
- * The grid spacing \c Delta is given by (upper - lower)/number_points. Thus,
- * grid point \c n corresponds to the interval
- * [lower + n*Delta, lower + (n+1)*Delta) and the position of the grid point is
- * at the center of this interval, at lower + (n+0.5)*Delta. Note that n
- * follows the C/C++ convention, i.e. n = 0 for the first interval. The grid
- * indices pertaining to a given point can be obtained via Grid::GetIndices().
+ * The bin width \c Delta is given by (upper - lower)/number_points. Thus, bin
+ * \c n corresponds to the interval [lower + n*Delta, lower + (n+1)*Delta).
+ * Note that n follows the C/C++ convention, i.e. n = 0 for the first interval.
+ * The bin indices pertaining to a given point can be obtained via GetIndices().
  *
  * In non-periodic dimensions, an overflow and an underflow interval exist. The
  * underflow interval corresponds to the interval (-infinity, lower), i.e. all
@@ -68,17 +67,17 @@ namespace SSAGES
  * \ingroup Core
  */
 template<typename T>
-class Grid : public GridBase<T>
+class Histogram : public GridBase<T>
 {
 private:
     //! Map d-dimensional indices to 1-d data vector
     /*!
+     * \param indices Vector specifying the grid point.
+     * \return Index of 1d data vector.
+     *
      * Map a set of indices to the index of the 1d data vector. Keep in mind,
      * that the data includes underflow (index -1) and overflow (index
      * numPoints) bins in periodic dimension.
-     *
-     * This function does not check if the indices are in bounds. This is done
-     * in the function(s) calling mapTo1d().
      */
     size_t mapTo1d(const std::vector<int> &indices) const override
     {
@@ -90,7 +89,7 @@ private:
             if ( (periodic && (index < 0 || index >= numpoints)) ||
                  (periodic && (index < -1 || index > numpoints)) )
             {
-                throw std::out_of_range("Grid index out of range.");
+                throw std::out_of_range("Bin index out of range.");
             }
         }
 
@@ -120,10 +119,10 @@ public:
      * The dimension of the grid is determined by the size of the parameter
      * vectors.
      */
-    Grid(std::vector<int> numPoints,
-         std::vector<double> lower,
-         std::vector<double> upper,
-         std::vector<bool> isPeriodic)
+    Histogram(std::vector<int> numPoints,
+              std::vector<double> lower,
+              std::vector<double> upper,
+              std::vector<bool> isPeriodic)
       : GridBase<T>(numPoints, lower, upper, isPeriodic)
     {
         size_t data_size = 1;
@@ -136,29 +135,29 @@ public:
         GridBase<T>::data_.resize(data_size);
     }
 
-    //! Set up the grid
+    //! Set up the histogram
     /*!
      * \param json JSON value containing all input information.
      *
-     * This function builds a grid from a JSON node. It will return a nullptr
+     * This function builds a histogram from a JSON node. It will return a nullptr
      * if an unknown error occured, but generally, it will throw a
      * BuildException of failure.
      */
-    static Grid<T>* BuildGrid(const Json::Value& json)
+    static Histogram<T>* BuildHistogram(const Json::Value& json)
     {
-        return BuildGrid(json, "#/Grid");
+        return BuildHistogram(json, "#/Histogram");
     }
 
-    //! Set up the grid
+    //! Set up the histogram
     /*!
      * \param json JSON Value containing all input information.
      * \param path Path for JSON path specification.
      *
-     * This function builds a grid from a JSON node. It will return a nullptr
+     * This function builds a histogram from a JSON node. It will return a nullptr
      * if an unknown error occured, but generally, it will throw a
      * BuildException on failure.
      */
-    static Grid<T>* BuildGrid(const Json::Value& json, const std::string& path)
+    static Histogram<T>* BuildHistogram(const Json::Value& json, const std::string& path)
     {
         Json::ObjectRequirement validator;
         Json::Value schema;
@@ -217,9 +216,9 @@ public:
         }
 
         // Construct the grid.
-        Grid<T>* grid = new Grid(number_points, lower, upper, isPeriodic);
+        Histogram<T>* hist = new Histogram(number_points, lower, upper, isPeriodic);
 
-        return grid;
+        return hist;
     }
 
     //! \copydoc Serializable::Serialize()
@@ -232,24 +231,36 @@ public:
     }
 
     //! Return iterator at first element of internal storage
+    /*!
+     * \return Iterator at start of the internal storage vector.
+     */
     typename std::vector<T>::iterator begin()
     {
         return GridBase<T>::data_.begin();
     }
 
     //! Return iterator after last element of internal storage
+    /*!
+     * \return Iterator at end of the internal storage vector.
+     */
     typename std::vector<T>::iterator end()
     {
         return GridBase<T>::data_.end();
     }
 
     //! Return const iterator at first element of internal storage
+    /*!
+     * \return Const interator at the start of the internal storage vector.
+     */
     typename std::vector<T>::const_iterator begin() const
     {
         return GridBase<T>::data_.begin();
     }
 
     //! Return const iterator after last element of internal storage
+    /*!
+     * \return Const iterator at the end of the internal storage vector.
+     */
     typename std::vector<T>::const_iterator end() const
     {
         return GridBase<T>::data_.end();
