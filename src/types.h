@@ -26,6 +26,9 @@ namespace SSAGES
 	// Forward declare necessary types..
 	class CollectiveVariable;
 
+	//! Arbitrary length vector. 
+	using Vector = Eigen::VectorXd;
+
 	//! Three-dimensional vector.
 	using Vector3 = Eigen::Vector3d;
 
