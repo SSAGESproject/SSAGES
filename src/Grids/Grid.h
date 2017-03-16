@@ -216,40 +216,366 @@ public:
 
     }
 
-    //! Return iterator at first element of internal storage
+    //! Custom Iterator
     /*!
-     * \return Iterator at start of the internal storage vector.
+     * This iterator is designed of travesing through a grid. The starting point
+     * is at grid index 0 for each dimension. The last valid grid point has the
+     * num_points in each dimension, where num_points is the number of grid
+     * points in the respective dimension.
+     *
+     * The iterator can be used as a standard iterator with operator* accessing
+     * the grid point at which the iterator currently is.
+     *
+     * Additionally, the functions GridIterator::indices() and
+     * GridIterator::coordinates() are provided. These functions return the
+     * indices of the current grid point and the center of the grid point
+     * interval in real space, respectively.
+     *
+     * The iterator can be moved to an arbitrary position. As indices() returns
+     * a reference (and not a const reference), it can be used to move the
+     * iterator. For example:
+     *
+     * \code{.cpp}
+     * HistIterator it = hist->begin();
+     * it.indices() = {1,1,1};
+     * \endcode
+     *
+     * moves the iterator to the grid point [1, 1, 1].
+     *
+     * The iterator can be traversed in a standard fashion with the increment
+     * and decrement operators operator++ and operator--. When the increment
+     * operator is invoked, the bin index for the lowest dimension is increased
+     * by 1. If it moves beyond the valid range in this dimension, the index is
+     * reset to 0 and the index of the next higher dimension is increased by 1.
+     * The decrement operator traveses the grid in the same fashion but opposite
+     * direction.
+     *
+     * Additionaly, the iterator can be shifted by adding or subtracting a vector
+     * of ints. The vector needs to have the same dimension as the histogram.
      */
-    typename std::vector<T>::iterator begin()
+    template<typename R>
+    class GridIterator {
+    public:
+        //! Type name of the iterator.
+        typedef GridIterator self_type;
+
+        //! Difference type is an int.
+        typedef int difference_type;
+
+        //! Either T or const T for iterator and const_iterator, respectively.
+        typedef R value_type;
+
+        //! Either T* or T const* for iterator and const_iterator, respectively.
+        typedef R* pointer;
+
+        //! Either T& or T const& for iterator and const_iterator, respectively.
+        typedef R& reference;
+
+        //! HistIterator is a bidirectional iterator.
+        typedef std::bidirectional_iterator_tag iterator_category;
+
+        //! Use default constructor.
+        GridIterator() = default;
+
+        //! Constructor
+        /*!
+         * \param indices Bin indices specifying the current position of the
+         *                iterator.
+         * \param hist Pointer to the grid to iterate over.
+         */
+        GridIterator(const std::vector<int> &indices, Grid<T> *grid)
+            : indices_(indices), grid_(grid)
+        {
+        }
+
+        //! Copy constructor
+        /*!
+         * \param other GridIterator to be copied.
+         */
+        GridIterator(const GridIterator &other)
+            : indices_(other.indices_), grid_(other.grid_)
+        {
+        }
+
+        //! Dereference operator.
+        /*!
+         * \return Reference to the value at the current grid position.
+         */
+        reference operator*() { return grid_->at(indices_); }
+
+        //! Pre-increment operator.
+        /*!
+         * \return Reference to iterator.
+         *
+         * Increments the bin index of lowest dimension. If an index moves
+         * beyond the maximum value (num_points-1), it is reset to 0 and the
+         * index of the next higher dimension is increased by 1.
+         */
+        self_type &operator++()
+        {
+            indices_.at(0) += 1;
+            for (size_t i = 0; i < grid_->GetDimension() - 1; ++i) {
+                if (indices_.at(i) >= grid_->GetNumPoints(i)) {
+                    indices_.at(i) = 0;
+                    indices_.at(i+1) += 1;
+                }
+            }
+
+            return *this;
+        }
+
+        //! Post-increment operator.
+        /*!
+         * \return Copy of iterator before incrementing.
+         */
+        self_type operator++(int)
+        {
+            GridIterator it(*this);
+            ++(*this);
+            return it;
+        }
+
+        //! Addition assignment operator
+        /*
+         * \param shift Vector of shifts in each dimension.
+         * \return Reference to itself.
+         *
+         * This operator shifts the current position of the iterator by the
+         * given amount in each dimension.
+         *
+         * Example:
+         *
+         * \code{.cpp}
+         * if += {1,1,1};
+         * \endcode
+         *
+         * In this example the current position of the iterator is shifted
+         * diagonally.
+         */
+        self_type &operator+=(std::vector<int> shift)
+        {
+            if (shift.size() != grid_->GetDimension()) {
+                throw std::invalid_argument("Vector to shift iterator does not "
+                                            "match grid dimension.");
+            }
+
+            for (size_t i = 0; i < grid->GetDimension(); ++i) {
+                indices_.at(i) += shift.at(i);
+            }
+
+            return *this;
+        }
+
+        //! Addition operator.
+        /*!
+         * \param shift Amount of shift in each dimension.
+         * \return Copy of iterator after shift.
+         *
+         * Shift the iterator by a given vector.
+         */
+        const self_type operator+(std::vector<int> shift)
+        {
+            return GridIterator(*this) += shift;
+        }
+
+        //! Pre-decrement operator.
+        /*!
+         * \return Reference to iterator after decrementing.
+         *
+         * Traveses the histogram in the opposite direction to the increment
+         * operator.
+         */
+        self_type &operator--()
+        {
+            indices_.at(0) -= 1;
+            for (size_t i = 0; i < grid_->GetDimension() - 1; ++i) {
+                if (indices_.at(i) < 0) {
+                    indices_.at(i) = grid_->GetNumPoints(i)-1;
+                    indices_.at(i+1) -= 1;
+                }
+            }
+
+            return *this;
+        }
+
+        //! Post-decrement operator.
+        /*!
+         * \return Copy of iterator before decrementing.
+         */
+        self_type operator--(int)
+        {
+            GridIterator it(*this);
+            --(*this);
+            return it;
+        }
+
+        //! Subtraction assignment operator.
+        /*!
+         * \param shift Vector to be subtracted from the current grid indices.
+         * \return Reference to iterator.
+         */
+        self_type &operator-=(std::vector<int> shift)
+        {
+            if (shift.size() != grid_->GetDimension()) {
+                throw std::invalid_argument("Vector to shift iterator does not "
+                                            "match histogram dimension.");
+            }
+
+            for (size_t i = 0; i < grid_->GetDimension(); ++i) {
+                indices_.at(i) -= shift.at(i);
+            }
+
+            return *this;
+        }
+
+        //! Subtraction iterator
+        /*!
+         * \param shift Vector to be subtracted from the current grid indices.
+         * \return Copy of iterator after shift.
+         */
+        const self_type operator-(std::vector<int> shift)
+        {
+            return GridIterator(*this) -= shift;
+        }
+
+        //! Equality operator
+        /*!
+         * \param rhs Iterator to which this iterator is compared.
+         * \return \c True if both iterators access the same grid point on the
+         *         same grid. Else return \c False.
+         */
+        bool operator==(const self_type &rhs) const
+        {
+            return indices_ == rhs.indices_ && grid_ == rhs.grid_;
+        }
+
+        //! Non-equality operator.
+        /*!
+         * \param rhs Iterator to which this iterator is compared.
+         * \return \c False if both iterators access the same grid point on the
+         *         same grid. Else return \c True.
+         */
+        bool operator!=(const self_type &rhs) const
+        {
+            return !( (*this) == rhs );
+        }
+
+        //! Access indices.
+        /*!
+         * \return Indices of current bin.
+         *
+         * \note This function returns a reference and can be used to move the
+         *       current bin.
+         */
+        std::vector<int> &indices()
+        {
+            return indices_;
+        }
+
+        //! Access coordinates.
+        /*!
+         * \return Center point of the current bin.
+         */
+        std::vector<double> coordinates() const
+        {
+            return grid_->GetCoordinates(indices_);
+        }
+    private:
+        //! Indices of current bin.
+        std::vector<int> indices_;
+
+        //! Pointer to histogram to iterate over.
+        Grid<T> *grid_;
+    };
+
+    //! Custom iterator over a histogram.
+    typedef GridIterator<T> iterator;
+
+    //! Custom constant iterator over a histogram.
+    typedef GridIterator<const T> const_iterator;
+
+    //! Return iterator at first grid point.
+    /*!
+     * \return Iterator at first grid point.
+     *
+     * The first grid point is defined as the grid point with index 0 in all
+     * dimensions.
+     */
+    iterator begin()
     {
-        return GridBase<T>::data_.begin();
+        std::vector<int> indices(GridBase<T>::GetDimension());
+        for (size_t i = 0; i < indices.size(); ++i) {
+            if(GridBase<T>::GetPeriodic(i)) {
+                indices.at(i) = 0;
+            } else {
+                indices.at(i) = -1;
+            }
+        }
+
+        return iterator(indices, this);
     }
 
-    //! Return iterator after last element of internal storage
+    //! Return iterator after last valid grid point.
     /*!
-     * \return Iterator at end of the internal storage vector.
+     * \return Iterator after last valid grid point.
+     *
+     * The last valid grid point has index num_points - 1 in all dimensions.
      */
-    typename std::vector<T>::iterator end()
+    iterator end()
     {
-        return GridBase<T>::data_.end();
+        std::vector<int> indices(GridBase<T>::GetDimension());
+        for (size_t i = 0; i < indices.size(); ++i) {
+            if (GridBase<T>::GetPeriodic(i)) {
+                indices.at(i) = GridBase<T>::GetNumPoints(i) - 1;
+            } else {
+                indices.at(i) = GridBase<T>::GetNumPoints(i);
+            }
+        }
+
+        iterator it(indices, this);
+        return ++it;
     }
 
-    //! Return const iterator at first element of internal storage
+    //! Return const iterator at first grid point.
     /*!
-     * \return Const interator at the start of the internal storage vector.
+     * \return Const iterator at first grid point.
+     *
+     * The first grid point is defined as the grid point with index 0 in all
+     * dimensions.
      */
     typename std::vector<T>::const_iterator begin() const
     {
-        return GridBase<T>::data_.begin();
+        std::vector<int> indices(GridBase<T>::GetDimension());
+        for (size_t i = 0; i < indices.size(); ++i) {
+            if(GridBase<T>::GetPeriodic(i)) {
+                indices.at(i) = 0;
+            } else {
+                indices.at(i) = -1;
+            }
+        }
+
+        return iterator(indices, this);
     }
 
-    //! Return const iterator after last element of internal storage
+    //! Return const iterator after last valid grid point.
     /*!
-     * \return Const iterator at the end of the internal storage vector.
+     * \return Const iterator after last valid grid point.
+     *
+     * The last valid grid point has index num_points - 1 in all dimensions.
      */
     typename std::vector<T>::const_iterator end() const
     {
-        return GridBase<T>::data_.end();
+        std::vector<int> indices(GridBase<T>::GetDimension());
+        for (size_t i = 0; i < indices.size(); ++i) {
+            if (GridBase<T>::GetPeriodic(i)) {
+                indices.at(i) = GridBase<T>::GetNumPoints(i) - 1;
+            } else {
+                indices.at(i) = GridBase<T>::GetNumPoints(i);
+            }
+        }
+
+        iterator it(indices, this);
+        return ++it;
     }
 };
 

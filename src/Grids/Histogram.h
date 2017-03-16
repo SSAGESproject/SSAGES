@@ -257,10 +257,10 @@ public:
      *
      * The iterator can be traversed in a standard fashion with the increment
      * and decrement operators operator++ and operator--. When the increment
-     * operator is invoked, the bin index for the highest dimension is increased
+     * operator is invoked, the bin index for the lowest dimension is increased
      * by 1. If it is beyond the histogram size in this dimension, the index is
      * reset to its smallest value (0 for periodic, -1 for non-periodic
-     * dimensions) and the index of the next lower dimension is increased by 1.
+     * dimensions) and the index of the next higher dimension is increased by 1.
      * The decrement operator traveses the grid in the same fashion but opposite
      * direction.
      *
@@ -321,11 +321,11 @@ public:
         /*!
          * \return Reference to iterator.
          *
-         * Increments the bin index of the highest dimension. If an index moves
+         * Increments the bin index of the lowest dimension. If an index moves
          * beyond the maximum value (num_points-1 for periodic and num_points
          * for non-periodic dimensions), it is reset to its smallest value (0
          * for periodic, -1 for non-periodic dimensions) and the index of the
-         * next lower dimension is increased by 1.
+         * next higher dimension is increased by 1.
          */
         self_type &operator++()
         {
@@ -481,7 +481,7 @@ public:
          */
         bool operator!=(const self_type &rhs) const
         {
-            return indices_ != rhs.indices_ || hist_ != rhs.hist_;
+            return !( (*this) == rhs );
         }
 
         //! Access indices.
