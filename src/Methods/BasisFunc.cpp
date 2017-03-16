@@ -41,7 +41,7 @@ namespace SSAGES
         if(!histlocal_)
 		{
             std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-			std::cerr<<"ERROR: Method expected a grid but no grid built."<<std::endl;
+            std::cerr<<"ERROR: Method expected a histogram but none built."<<std::endl;
             std::cerr<<"Exiting on node ["<<mpiid_<<"]"<<std::endl;
             std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
 			world_.abort(EXIT_FAILURE);
@@ -53,7 +53,7 @@ namespace SSAGES
             if(histlocal_->GetDimension() != cvs.size())
             {
                 std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                std::cerr<<"ERROR: Grid dimensions doesn't match number of CVS."<<std::endl;
+                std::cerr<<"ERROR: Histogram dimensions doesn't match number of CVS."<<std::endl;
                 std::cerr<<"Exiting on node ["<<mpiid_<<"]"<<std::endl;
                 std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
                 world_.abort(EXIT_FAILURE);
@@ -287,9 +287,9 @@ namespace SSAGES
         double basis = 1.0;
 
         // For multiple walkers, the struct is unpacked
-        std::vector<int>::iterator it;
-        for(it = histlocal_->begin(); it != histlocal_->end(); ++it) {
-            size_t id1d = it - histlocal_->begin();
+        Histogram<int>::iterator it;
+        size_t id1d = 0;
+        for(it = histlocal_->begin(); it != histlocal_->end(); ++it, ++id1d) {
             *it = (int)hist_[id1d].value;
         }
 
@@ -297,8 +297,8 @@ namespace SSAGES
         MPI_Allreduce(histlocal_->data(), histglobal_->data(), histlocal_->size(), MPI_INT, MPI_SUM, world_);
 
         // And then it is repacked into the struct
-        for(it = histlocal_->begin(); it != histlocal_->end(); ++it) {
-            size_t id1d = it - histlocal_->begin();
+        id1d = 0;
+        for(it = histlocal_->begin(); it != histlocal_->end(); ++it, ++id1d) {
             hist_[id1d].value = *it;
         }
 
@@ -337,12 +337,13 @@ namespace SSAGES
             coeff_[i].value = 0.0;
         }
 
-        std::vector<int>::iterator hgit = histglobal_->begin();
+        Histogram<int>::iterator hgit = histglobal_->begin();
+        id1d = 0;
         for(it = histlocal_->begin(); it != histlocal_->end(); ++it, hgit++) {
-                size_t id1d = it - histlocal_->begin();
                 hist_[id1d].value = 0.0;
                 *it = 0;
                 *hgit = 0;
+                ++id1d;
         }
 
         // The loop that evaluates the new coefficients by integrating the CV space

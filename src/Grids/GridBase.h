@@ -2,7 +2,7 @@
  * This file is part of
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
- * Copyright 2016 Julian Helfferich <julian.helfferich@gmail.com>
+ * Copyright 2017 Julian Helfferich <julian.helfferich@gmail.com>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,55 +23,24 @@
 #include <exception>
 #include <vector>
 
-#include "Drivers/DriverException.h"
-#include "JSON/Serializable.h"
-#include "schema.h"
-#include "Validator/ObjectRequirement.h"
-
-// Forward declare.
-namespace Json {
-    class Value;
-}
-
 namespace SSAGES
 {
 
-//! Generic Grid.
+//! Base class for Grids
 /*!
- * \tparam T type of data to be stored in the Grid.
+ * \tparam Type of data stored on the grid
  *
- * A Grid is a general method to store data in SSAGES. It is used to discretize
- * a continuous number, typically a collective variable, into \c number_points
- * grid points. For each grid point an arbitrary type of data can be stored,
- * specified via the template parameter \c T.
- *
- * The Grid can be of arbitrary dimension. For each dimension, the lower bound,
- * the upper bound and the number of grid points need to be specified.
- * Furthermore, the grid can be defined as periodic or non-periodic in the
- * respective dimension. By default, the grid is non-periodic. The grid points
- * are indexed from 0 to number_points-1 following the standard C/C++
- * convention. The indices -1 and and \c number_points can be used to access
- * the underflow and overflow intervals (see below).
- *
- * The grid spacing \c Delta is given by (upper - lower)/number_points. Thus,
- * grid point \c n corresponds to the interval
- * [lower + n*Delta, lower + (n+1)*Delta) and the position of the grid point is
- * at the center of this interval, at lower + (n+0.5)*Delta. Note that n
- * follows the C/C++ convention, i.e. n = 0 for the first interval. The grid
- * indices pertaining to a given point can be obtained via Grid::GetIndices().
- *
- * In non-periodic dimensions, an overflow and an underflow interval exist. The
- * underflow interval corresponds to the interval (-infinity, lower), i.e. all
- * points below \c lower. Similarly, the overflow interval corresponds to the
- * interval [upper, infinity). The underflow grid point can be accessed via the
- * index -1, the overflow grid point via the index \c number_points.
+ * Base class for all grids. Currently, these are 'Grid' and 'Histogram'.
  *
  * \ingroup Core
  */
 template<typename T>
-class Grid : public Serializable
+class GridBase : public Serializable
 {
-private:
+protected:
+    //! Internal storage of the data
+    std::vector<T> data_;
+
     //! Dimension of the grid
     const size_t dimension_;
 
@@ -83,9 +52,6 @@ private:
 
     //! Periodicity of the Grid.
     std::vector<bool> isPeriodic_;
-
-    //! Internal storage of the data
-    std::vector<T> data_;
 
     //! Wrap the index around periodic boundaries
     std::vector<int> wrapIndices(const std::vector<int> &indices) const
@@ -105,32 +71,18 @@ private:
         return newIndices;
     }
 
-    //! Map d-dimensional indices to 1-d data vector
+    //! This function needs to be implemented by child classes.
     /*!
-     * Map a set of indices to the index of the 1d data vector. Keep in mind,
-     * that the data includes underflow (index -1) and overflow (index
-     * numPoints) bins in periodic dimension.
+     * \param indices The indices specifying the grid point.
+     * \return Index of the grid point in the 1d storage vector.
      *
-     * This function does not check if the indices are in bounds. This is done
-     * in the function(s) calling mapTo1d().
+     * mapTo1d maps the indices onto a single index to access the data stored
+     * in the data_ vector. This mapping will be different for different grid
+     * implementations.
      */
-    size_t mapTo1d(const std::vector<int> &indices) const
-    {
-        size_t idx = 0;
-        size_t fac = 1;
-        for (size_t i=0; i<dimension_; ++i) {
-            if (GetPeriodic(i)) {
-                idx += indices.at(i) * fac;
-                fac *= GetNumPoints(i);
-            } else {
-                idx += (indices.at(i) + 1) * fac;
-                fac *= GetNumPoints(i) + 2;
-            }
-        }
-        return idx;
-    }
+    virtual size_t mapTo1d(const std::vector<int> &indices) const = 0;
 
-public:
+protected:
     //! Constructor
     /*!
      * \param numPoints Number of grid points in each dimension.
@@ -139,17 +91,17 @@ public:
      * \param isPeriodic Bools specifying the periodicity in the respective
      *                   dimension.
      *
-     * The dimension of the grid is determined by the size of the parameter
-     * vectors.
+     * The constructor is protected by design. This makes sure that only child
+     * classes of GridBase are constructed.
      */
-    Grid(std::vector<int> numPoints,
-         std::vector<double> lower,
-         std::vector<double> upper,
-         std::vector<bool> isPeriodic)
-      : dimension_(numPoints.size()),
-        numPoints_(numPoints),
-        edges_(std::pair< std::vector<double>, std::vector<double> >(lower, upper)),
-        isPeriodic_(isPeriodic)
+    GridBase(std::vector<int> numPoints,
+             std::vector<double> lower,
+             std::vector<double> upper,
+             std::vector<bool> isPeriodic)
+        : dimension_(numPoints.size()),
+          numPoints_(numPoints),
+          edges_(std::pair< std::vector<double>, std::vector<double> >(lower, upper)),
+          isPeriodic_(isPeriodic)
     {
         // Check that vector sizes are correct
         if (edges_.first.size() != dimension_ ||
@@ -165,53 +117,23 @@ public:
             throw std::invalid_argument("Size of vector isPeriodic does not "
                     "match size of vector containing number of grid points.");
         }
-        size_t data_size = 1;
-        for (size_t d = 0; d < GetDimension(); ++d) {
-            size_t storage_size = GetNumPoints(d);
-            if (!GetPeriodic(d)) { storage_size += 2; }
-            data_size *= storage_size;
-        }
-
-        data_.resize(data_size);
     }
 
-    //! Get total number of grid points (including under- and overflow bins)
-    /*!
-     * This function returns the total number of grid points, which is identical
-     * to the size of the internal data vector.
-     */
-    size_t size() const
-    {
-        return data_.size();
-    }
-
-    //! Get pointer to the internal data storage vector
-    /*!
-     * It is discouraged to directly access the internal data storage. It might,
-     * however be necessary. For example when communicating the data over MPI.
-     */
-    T *data()
-    {
-        return data_.data();
-    }
-
-    //! Get pointer to const of the internal data storage vector
-    /*!
-     * It is discouraged to directly access the internal data storage. It might,
-     * however be necessary. For example when communicating data over MPI.
-     */
-    T const *data() const
-    {
-        return data_.data();
-    }
-
+public:
     //! Get the dimension.
+    /*!
+     * \return Dimensionality of the grid.
+     */
     size_t GetDimension() const
     {
         return dimension_;
     }
 
     //! Get the number of points for all dimensions.
+    /*!
+     * \return Vector of ints containing the number of grid points for each
+     *         dimension.
+     */
     const std::vector<int>& GetNumPoints() const
     {
         return numPoints_;
@@ -220,6 +142,7 @@ public:
     //! Get the number of points for a specific dimension.
     /*!
      * \param dim Index of the dimension.
+     * \return Number of grid points in the requested dimension.
      *
      * \note The first dimension uses the index 0.
      */
@@ -235,6 +158,9 @@ public:
     }
 
     //! Return the lower edges of the Grid.
+    /*!
+     * \return Vector containing the lower edges of the grid.
+     */
     const std::vector<double>& GetLower() const
     {
         return edges_.first;
@@ -243,6 +169,7 @@ public:
     //! Get the lower edge for a specific dimension.
     /*!
      * \param dim Index of the dimension.
+     * \return Value of the lower edge in the requested dimension.
      *
      * \note The first dimension has the index 0.
      */
@@ -257,6 +184,9 @@ public:
     }
 
     //! Return the upper edges of the Grid.
+    /*!
+     * \return Vector containing the upper edges of the grid.
+     */
     const std::vector<double>& GetUpper() const
     {
         return edges_.second;
@@ -266,6 +196,7 @@ public:
     //! Get the upper edge for a specific dimension.
     /*!
      * \param dim Index of the dimension.
+     * \return Value of the upper edge in the given dimension.
      *
      * \note The dimensions are indexed starting with 0.
      */
@@ -280,6 +211,10 @@ public:
     }
 
     //! Return the periodicity of the Grid.
+    /*!
+     * \return Vector of bools. The values are \c True (\c False ) if the grid
+     *         is periodic (non-periodic) in the given dimension.
+     */
     const std::vector<bool>& GetPeriodic() const
     {
         return isPeriodic_;
@@ -288,6 +223,8 @@ public:
     //! Get the periodicity in a specific dimension.
     /*!
      * \param dim Index of the dimension.
+     * \return \c True (\c False ) if the grid is periodic (non-periodic) in
+     *         the specified dimension.
      *
      * \note The dimensions are indexed starting with 0.
      */
@@ -299,6 +236,43 @@ public:
             return false;
         }
         return GetPeriodic().at(dim);
+    }
+
+    //! Get the size of the internal storage vector
+    /*!
+     * \return Size of the internal storage vector.
+     *
+     * This function returns the size of the internal storage vector. This is
+     * also the total number of grid points including the over/underflow bins
+     * in case of a histogram.
+     */
+    size_t size() const
+    {
+        return data_.size();
+    }
+
+    //! Get pointer to the internal data storage vector
+    /*!
+     * \return Pointer to data in the internal storage vector.
+     *
+     * It is discouraged to directly access the internal data storage. It might,
+     * however be necessary. For example when communicating the data over MPI.
+     */
+    T *data()
+    {
+        return data_.data();
+    }
+
+    //! Get pointer to const of the internal data storage vector
+    /*!
+     * \return Const pointer to data in the internal storage vector.
+     *
+     * It is discouraged to directly access the internal data storage. It might,
+     * however be necessary. For example when communicating data over MPI.
+     */
+    T const *data() const
+    {
+        return data_.data();
     }
 
     //! Return the Grid indices for a given point.
@@ -341,7 +315,7 @@ public:
 
             // To make sure, the value is rounded in the correct direction.
             double spacing = (GetUpper(i) - GetLower(i)) / GetNumPoints(i);
-            indices.at(i) = std::floor( (xpos - GetLower(i)) / spacing );
+            indices.at(i) = std::floor( (xpos - GetLower(i)) / spacing);
         }
 
         return wrapIndices(indices);
@@ -365,6 +339,45 @@ public:
         return GetIndices({x}).at(0);
     }
 
+    //! Return coordinates of the grid center points
+    /*!
+     * \param indices Grid indices specifying a grid point.
+     * \return Vector of double specifying the position of the grid point.
+     *
+     * The grid is a discretization of real or cv space. Thus, each grid point
+     * is associated with an interval of the underlying space. This function
+     * returns the center point of this interval.
+     */
+    std::vector<double> GetCoordinates(const std::vector<int> &indices)
+    {
+        if (indices.size() != dimension_) {
+            throw std::invalid_argument(
+                    "Grid indices specified for GetCoordinates() do not have "
+                    "the same dimensionality as the grid.");
+        }
+
+        std::vector<double> v(dimension_);
+
+        for (size_t i = 0; i < dimension_; ++i) {
+            double spacing = (GetUpper(i) - GetLower(i)) / GetNumPoints(i);
+            v.at(i) = GetLower(i) + (i + 0.5)*spacing;
+        }
+
+        return v;
+    }
+
+    //! Return center point of 1d-grid
+    /*!
+     * \param index Index of the 1d grid.
+     * \return Coordinate in real/CV space.
+     *
+     * \note This function is only available for 1d grids.
+     */
+    double GetCoordinate(int index)
+    {
+        return GetCoordinates({index}).at(0);
+    }
+
     //! Access Grid element read-only
     /*!
      * \param indices Vector of integers specifying the grid point.
@@ -381,39 +394,34 @@ public:
     const T& at(const std::vector<int> &indices) const
     {
         // Check that indices are in bound.
-        if (indices.size() != dimension_) {
+        if (indices.size() != GetDimension()) {
             throw std::invalid_argument("Dimension of indices does not match "
                     "dimension of the grid.");
         }
 
-        // Check if an index is out of bounds
-        for (size_t i=0; i<dimension_; ++i) {
-            int index = indices.at(i);
-            if ( (isPeriodic_.at(i) && (index < 0 || index >= numPoints_.at(i))) ||
-                 (!isPeriodic_.at(i) && (index < -1 || index > numPoints_.at(i))) )
-            {
-                throw std::out_of_range("Grid index out of range.");
-            }
-        }
         return data_.at(mapTo1d(indices));
     }
 
     //! Access Grid element read/write
     /*!
      * \param indices Vector of integers specifying the grid point.
+     * \return Reference to value at the specified grid point.
      */
     T& at(const std::vector<int> &indices)
     {
-        return const_cast<T&>(static_cast<const Grid<T>* >(this)->at(indices));
+        return const_cast<T&>(static_cast<const GridBase<T>* >(this)->at(indices));
     }
 
     //! Const access of Grid element via initializer list
     /*!
      * \tparam R Datatype in the initializer list
      * \param x initializer list
+     * \return Const reference to value at the specified point.
      *
      * This function avoids abiguity if at() is called with a brace-enclosed
-     * initializer list.
+     * initializer list. The template parameter makes sure that this function
+     * can be called with either ints, specifying a grid point, or doubles,
+     * specifying coordinates in space, inside the initializer list.
      */
     template<typename R>
     const T& at(std::initializer_list<R>&& x) const
@@ -425,9 +433,12 @@ public:
     /*!
      * \tparam R Datatype in the initializer list
      * \param x initializer list
+     * \return Reference to value at the specified point.
      *
      * This function avoids abiguity if at() is called with a brace-enclosed
-     * initializer list.
+     * initializer list. The template parameter makes sure that this function
+     * can be called with either ints, specifying a grid point, or doubles,
+     * specifying coordinates in space, inside the initializer list.
      */
     template<typename R>
     T& at(std::initializer_list<R>&& x)
@@ -438,6 +449,9 @@ public:
     //! Access 1d Grid by index, read-only
     /*!
      * \param index Index specifying the grid point.
+     * \return Const reference of value at the given index.
+     *
+     * \note This function can only be used for 1d-Grids.
      */
     const T& at(int index) const
     {
@@ -451,18 +465,22 @@ public:
     //! Access 1d Grid by index, read-write
     /*!
      * \param index Index specifying the grid point.
+     * \return Reference of value at the given grid point.
+     *
+     * \note This function can only be used for 1d-Grids.
      */
     T& at(int index)
     {
-        return const_cast<T&>(static_cast<const Grid<T>* >(this)->at(index));
+        return const_cast<T&>(static_cast<const GridBase<T>* >(this)->at(index));
     }
 
     //! Access Grid element pertaining to a specific point -- read-only
     /*!
      * \param x Vector of doubles specifying a point.
+     * \return Const reference of the value at the given coordinates.
      *
      * This function is provided for convenience. It is identical to
-     * Grid::at(Grid::GetIndices(x)).
+     * GridBase::at(GridBase::GetIndices(x)).
      */
     const T& at(const std::vector<double> &x) const
     {
@@ -472,9 +490,10 @@ public:
     //! Access Grid element pertaining to a specific point -- read/write
     /*!
      * \param x Vector of doubles specifying a point.
+     * \return Reference to the value at the given coordinates.
      *
      * This function is provided for convenience. It is identical to
-     * Grid::at(Grid::GetIndices(x)).
+     * GridBase::at(GridBase::GetIndices(x)).
      */
     T& at(const std::vector<double> &x)
     {
@@ -484,6 +503,10 @@ public:
     //! Access 1d-Grid by point - read-only
     /*!
      * \param x Access grid point pertaining to this value.
+     * \return Const reference to the value pertaining to the specified
+     *         coordinate.
+     *
+     * \note This function can only be used for 1d-Grids.
      */
     const T& at(double x) const
     {
@@ -497,17 +520,19 @@ public:
     //! Access 1d-Grid by point - read-write
     /*!
      * \param x Access grid point pertaining to this value.
+     * \return Reference to the value pertaining to the specified coordinate.
+     *
+     * \note This function can only be used for 1d Grids.
      */
     T& at(double x)
     {
-        return const_cast<T&>(static_cast<const Grid<T>* >(this)->at(x));
+        return const_cast<T&>(static_cast<const GridBase<T>* >(this)->at(x));
     }
 
     //! Access Grid element per [] read-only
     /*!
      * \param indices Vector of integers specifying the grid point.
-     *
-     * Example: grid[{0,1}]
+     * \return Const reference to value to the given grid point.
      */
     const T& operator[](const std::vector<int> &indices) const
     {
@@ -517,8 +542,7 @@ public:
     //! Access Grid element per [] read-write
     /*!
      * \param indices Vector of integers specifying the grid point.
-     *
-     * Example: grid[{0,1}]
+     * \return Reference to value at the specified grid point.
      */
     T& operator[](const std::vector<int> &indices)
     {
@@ -529,9 +553,12 @@ public:
     /*!
      * \tparam R Datatype in the initializer list
      * \param x initializer list
+     * \return Const reference to the value at the specified point.
      *
      * This function avoids abiguity if operator[] is called with a brace-enclosed
      * initializer list.
+     *
+     * Example: grid[{0,1}] or grid[{-1.23, 4.2, 0.0}]
      */
     template<typename R>
     const T& operator[](std::initializer_list<R>&& x) const
@@ -543,9 +570,12 @@ public:
     /*!
      * \tparam R Datatype in the initializer list
      * \param x initializer list
+     * \return Reference to the value at the specified point.
      *
      * This function avoids abiguity if operator[] is called with a brace-enclosed
      * initializer list.
+     *
+     * Example: grid[{0,1}]
      */
     template<typename R>
     T& operator[](std::initializer_list<R>&& x)
@@ -556,6 +586,9 @@ public:
     //! Access 1d-Grid per [] operator, read-only
     /*!
      * \param index Index of the grid point.
+     * \return Const reference to the value at the given grid point.
+     *
+     * \note This function can only be used for 1d grids.
      */
     const T& operator[](int index) const
     {
@@ -565,6 +598,9 @@ public:
     //! Access 1d-Grid per [] operator, read-write
     /*!
      * \param index Index of the grid point.
+     * \return Reference to the value at the given grid point.
+     *
+     * \note This function can only be used for 1d grids.
      */
     T& operator[](int index)
     {
@@ -573,11 +609,8 @@ public:
 
     //! Access Grid element pertaining to a specific point per [] read-only
     /*!
-     * \param indices Vector of integers specifying the grid point.
-     *
-     * Example: grid[{0.2,-1.43}]. Note, that you must not pass integers, as
-     * integers will be interpreted as grid indices. Thus, call grid[{1.0, 2.0}]
-     * and not grid[{1,2}].
+     * \param x Vector of doubles specifying the point in space.
+     * \return Const reference to the value pertaining to the given coordinates.
      */
     const T& operator[](const std::vector<double> &x) const
     {
@@ -586,11 +619,8 @@ public:
 
     //! Access Grid element pertaining to a specific point per [] read-write
     /*!
-     * \param indices Vector of integers specifying the grid point.
-     *
-     * Example: grid[{0.2,-1.43}]. Note, that you must not pass integers, as
-     * integers will be interpreted as grid indices. Thus, call grid[{1.0, 2.0}]
-     * and not grid[{1,2}].
+     * \param x Vector of doubles specifying the point in space.
+     * \return Reference to the value pertaining to the given coordinates.
      */
     T& operator[](const std::vector<double> &x)
     {
@@ -600,6 +630,9 @@ public:
     //! Access 1d-Grid via specific point, read-only
     /*!
      * \param x Point specifying the desired Grid point.
+     * \return Const reference to the value at the specified coordinate.
+     *
+     * \note This function can only be used for 1d grids.
      */
     const T& operator[](double x) const
     {
@@ -609,130 +642,24 @@ public:
     //! Access 1d-Grid via specific point, read-write
     /*!
      * \param x Point specifying the desired Grid point.
+     * \return Reference to value at the specified coordinate.
+     *
+     * \note This function can only be used for 1d grids.
      */
     T& operator[](double x)
     {
         return at(x);
     }
 
-    //! Set up the grid
-    /*!
-     * \param json JSON value containing all input information.
-     *
-     * This function builds a grid from a JSON node. It will return a nullptr
-     * if an unknown error occured, but generally, it will throw a
-     * BuildException of failure.
-     */
-    static Grid<T>* BuildGrid(const Json::Value& json)
-    {
-        return BuildGrid(json, "#/Grid");
-    }
-
-    //! Set up the grid
-    /*!
-     * \param json JSON Value containing all input information.
-     * \param path Path for JSON path specification.
-     *
-     * This function builds a grid from a JSON node. It will return a nullptr
-     * if an unknown error occured, but generally, it will throw a
-     * BuildException on failure.
-     */
-    static Grid<T>* BuildGrid(const Json::Value& json, const std::string& path)
-    {
-        Json::ObjectRequirement validator;
-        Json::Value schema;
-        Json::Reader reader;
-
-        reader.parse(JsonSchema::grid, schema);
-        validator.Parse(schema, path);
-
-        // Validate inputs.
-        validator.Validate(json, path);
-        if (validator.HasErrors()) {
-            throw BuildException(validator.GetErrors());
-        }
-
-        // Read in Lower Grid edges.
-        std::vector<double> lower;
-        for (auto &lv : json["lower"]) {
-           lower.push_back(lv.asDouble());
-        }
-
-        size_t dimension = lower.size();
-
-        // Read in upper grid edges.
-        std::vector<double> upper;
-        for (auto &uv : json["upper"]) {
-            upper.push_back(uv.asDouble());
-        }
-
-        if (upper.size() != dimension) {
-            throw BuildException({"Number of upper values does not match "
-                                  "number of lower values!"});
-        }
-
-        // Read in number of points.
-        std::vector<int> number_points;
-        for (auto &np : json["number_points"]) {
-            number_points.push_back(np.asInt());
-        }
-
-        if (number_points.size() != dimension) {
-            throw BuildException({"Arrays \"lower\" and \"number_points\" do "
-                                  "not have the same size!"});
-        }
-
-        // Read in periodicity.
-        std::vector<bool> isPeriodic;
-        for (auto &periodic : json["periodic"]) {
-            isPeriodic.push_back(periodic.asBool());
-        }
-
-        if (isPeriodic.size() == 0) {
-            isPeriodic = std::vector<bool>(dimension, false);
-        } else if (isPeriodic.size() != dimension) {
-            throw BuildException({"Arrays \"lower\" and \"periodic\" do not "
-                                  "have the same size!"});
-        }
-
-        // Construct the grid.
-        Grid<T>* grid = new Grid(number_points, lower, upper, isPeriodic);
-
-        return grid;
-    }
-
     //! \copydoc Serializable::Serialize()
     /*!
      * \warning Serialization not yet implemented.
      */
-    void Serialize(Json::Value& /*json*/) const override
+    virtual void Serialize(Json::Value& json) const override
     {
 
     }
 
-    //! Return iterator at first element of internal storage
-    typename std::vector<T>::iterator begin()
-    {
-        return data_.begin();
-    }
-
-    //! Return iterator after last element of internal storage
-    typename std::vector<T>::iterator end()
-    {
-        return data_.end();
-    }
-
-    //! Return const iterator at first element of internal storage
-    typename std::vector<T>::const_iterator begin() const
-    {
-        return data_.begin();
-    }
-
-    //! Return const iterator after last element of internal storage
-    typename std::vector<T>::const_iterator end() const
-    {
-        return data_.end();
-    }
 };
 
 } // End namespace SSAGES
