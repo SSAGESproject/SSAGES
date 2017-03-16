@@ -503,14 +503,7 @@ public:
      */
     iterator begin()
     {
-        std::vector<int> indices(GridBase<T>::GetDimension());
-        for (size_t i = 0; i < indices.size(); ++i) {
-            if(GridBase<T>::GetPeriodic(i)) {
-                indices.at(i) = 0;
-            } else {
-                indices.at(i) = -1;
-            }
-        }
+        std::vector<int> indices(GridBase<T>::GetDimension(), 0);
 
         return iterator(indices, this);
     }
@@ -525,11 +518,7 @@ public:
     {
         std::vector<int> indices(GridBase<T>::GetDimension());
         for (size_t i = 0; i < indices.size(); ++i) {
-            if (GridBase<T>::GetPeriodic(i)) {
-                indices.at(i) = GridBase<T>::GetNumPoints(i) - 1;
-            } else {
-                indices.at(i) = GridBase<T>::GetNumPoints(i);
-            }
+            indices.at(i) = GridBase<T>::GetNumPoints(i) - 1;
         }
 
         iterator it(indices, this);
@@ -545,14 +534,7 @@ public:
      */
     typename std::vector<T>::const_iterator begin() const
     {
-        std::vector<int> indices(GridBase<T>::GetDimension());
-        for (size_t i = 0; i < indices.size(); ++i) {
-            if(GridBase<T>::GetPeriodic(i)) {
-                indices.at(i) = 0;
-            } else {
-                indices.at(i) = -1;
-            }
-        }
+        std::vector<int> indices(GridBase<T>::GetDimension(), 0);
 
         return iterator(indices, this);
     }
@@ -567,11 +549,7 @@ public:
     {
         std::vector<int> indices(GridBase<T>::GetDimension());
         for (size_t i = 0; i < indices.size(); ++i) {
-            if (GridBase<T>::GetPeriodic(i)) {
-                indices.at(i) = GridBase<T>::GetNumPoints(i) - 1;
-            } else {
-                indices.at(i) = GridBase<T>::GetNumPoints(i);
-            }
+            indices.at(i) = GridBase<T>::GetNumPoints(i) - 1;
         }
 
         iterator it(indices, this);
