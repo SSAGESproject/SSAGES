@@ -359,7 +359,7 @@ public:
                                             "match grid dimension.");
             }
 
-            for (size_t i = 0; i < grid->GetDimension(); ++i) {
+            for (size_t i = 0; i < grid_->GetDimension(); ++i) {
                 indices_.at(i) += shift.at(i);
             }
 
