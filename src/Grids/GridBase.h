@@ -360,7 +360,7 @@ public:
 
         for (size_t i = 0; i < dimension_; ++i) {
             double spacing = (GetUpper(i) - GetLower(i)) / GetNumPoints(i);
-            v.at(i) = GetLower(i) + (i + 0.5)*spacing;
+            v.at(i) = GetLower(i) + (indices[i] + 0.5)*spacing;
         }
 
         return v;
