@@ -608,7 +608,7 @@ public:
 
     //! Access Grid element pertaining to a specific point per [] read-only
     /*!
-     * \param indices Vector of integers specifying the grid point.
+     * \param x Vector of doubles specifying the point in space.
      * \return Const reference to the value pertaining to the given coordinates.
      */
     const T& operator[](const std::vector<double> &x) const
@@ -618,7 +618,7 @@ public:
 
     //! Access Grid element pertaining to a specific point per [] read-write
     /*!
-     * \param indices Vector of integers specifying the grid point.
+     * \param x Vector of doubles specifying the point in space.
      * \return Reference to the value pertaining to the given coordinates.
      */
     T& operator[](const std::vector<double> &x)
@@ -654,7 +654,7 @@ public:
     /*!
      * \warning Serialization not yet implemented.
      */
-    void Serialize(Json::Value& /*json*/) const override
+    virtual void Serialize(Json::Value& json) const override
     {
 
     }

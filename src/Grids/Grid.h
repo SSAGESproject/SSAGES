@@ -122,6 +122,7 @@ public:
     //! Set up the grid
     /*!
      * \param json JSON value containing all input information.
+     * \return Pointer to the newly built grid.
      *
      * This function builds a grid from a JSON node. It will return a nullptr
      * if an unknown error occured, but generally, it will throw a
@@ -136,6 +137,7 @@ public:
     /*!
      * \param json JSON Value containing all input information.
      * \param path Path for JSON path specification.
+     * \return Pointer to the newly built grid.
      *
      * This function builds a grid from a JSON node. It will return a nullptr
      * if an unknown error occured, but generally, it will throw a
@@ -209,7 +211,7 @@ public:
     /*!
      * \warning Serialization not yet implemented.
      */
-    void Serialize(Json::Value& /*json*/) const override
+    void Serialize(Json::Value& json) const override
     {
 
     }
