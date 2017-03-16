@@ -20,6 +20,7 @@
 #pragma once
 
 #include <cmath>
+#include <exception>
 #include <vector>
 
 namespace SSAGES
