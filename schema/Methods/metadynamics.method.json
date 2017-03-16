@@ -63,7 +63,9 @@
 		"widths", 
 		"height",
 		"lower_bound_restraints",
-		"upper_bound_restraints"
+		"upper_bound_restraints",
+		"lower_bounds",
+		"upper_bounds"
 	],
 	"additionalProperties": false
 }

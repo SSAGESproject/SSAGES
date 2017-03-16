@@ -23,7 +23,6 @@
 #include <math.h>
 #include <iostream>
 #include "Drivers/DriverException.h"
-#include "Grid.h"
 
 namespace SSAGES
 {
@@ -72,8 +71,16 @@ namespace SSAGES
 			hillsout_.close();
 		}
 
-		// Create a grid for each CV. 
-
+		// Initialize grid to zero. 
+		if(grid_ != nullptr)
+		{
+			Vector vec(cvs.size());
+			for(size_t i = 0; i < cvs.size(); ++i)
+				vec[i] = 0;
+			
+			for(auto& v : *grid_)
+				v = vec;
+		} 
 
 		auto n = snapshot->GetTargetIterations();
 		n = n ? n : 1e5; // Pre-allocate at least something.
@@ -94,8 +101,6 @@ namespace SSAGES
 
 		// Always calculate the current bias.
 		CalcBiasForce(cvs);
-
-		// TODO: Bounds check needs to go in somewhere.
 
 		// Take each CV and add its biased forces to the atoms
 		// using the chain rule.
@@ -152,6 +157,41 @@ namespace SSAGES
 			if(world_.rank() == 0)
 				PrintHill(hills_.back(), iteration);
 		}
+
+		// If grid is defined, add bias onto grid. 
+		if(grid_ != nullptr)
+		{
+			std::vector<double> dx(n, 0.0), df(n, 1.0);
+			auto& hill = hills_.back();
+			for(auto it = grid_->begin(); it != grid_->end(); ++it)
+			{
+				auto& val = *it;
+				auto coord = it.coordinates();
+
+				// Compute difference between grid point and current val. 
+				for(size_t i = 0; i < n; ++i)
+				{
+					dx[i] = -cvs[i]->GetDifference(coord[i]);
+					df[i] = 1.;
+				}
+
+				// Compute derivative.
+				for(size_t i = 0; i < n; ++i)
+				{
+					for(size_t j = 0; j < n; ++j)
+					{
+						if(j != i) 
+							df[i] *= gaussian(dx[j], hill.width[j]);
+						else
+							df[i] *= gaussianDerv(dx[j], hill.width[j]);
+					}
+				}
+
+				// Add to grid. 
+				for(size_t i = 0; i < n; ++i)
+					val[i] += height_*df[i];
+			}
+		}
 	}
 
 	// Writes hill to output file. This should only be called by the 
@@ -181,32 +221,54 @@ namespace SSAGES
 
 		// Reset vectors.
 		std::fill(derivatives_.begin(), derivatives_.end(), 0);
-
-		// Loop through hills and calculate the bias force.
-		for(auto& hill : hills_)
-		{		
-			auto tbias = 1.;
-			std::fill(tder_.begin(), tder_.end(), 1.0);
-			std::fill(dx_.begin(), dx_.end(), 1.0);
-			
+		
+		// Look up and apply grid bias. 
+		if(grid_ != nullptr)
+		{
+			bool inbounds = true;
+			std::vector<double> val(n, 0.);
 			for(size_t i = 0; i < n; ++i)
 			{
-				dx_[i] = cvs[i]->GetDifference(hill.center[i]);
-				tbias *= gaussian(dx_[i], hill.width[i]);
+				val[i] = cvs[i]->GetValue();
+				if(val[i] < grid_->GetLower(i) || val[i]  > grid_->GetUpper(i))
+					inbounds = false;
 			}
 
-			for(size_t i = 0; i < n; ++i)
-				for(size_t j = 0; j < n; ++j)
+			if(true)
+			{
+				auto frc = (*grid_)[val];
+				for(size_t i = 0; i < n; ++i)
+					derivatives_[i] = frc[i];
+			}
+		}
+		else
+		{
+			// Loop through hills and calculate the bias force.
+			for(auto& hill : hills_)
+			{		
+				auto tbias = 1.;
+				std::fill(tder_.begin(), tder_.end(), 1.0);
+				std::fill(dx_.begin(), dx_.end(), 1.0);
+				
+				for(size_t i = 0; i < n; ++i)
 				{
-					if(j != i) 
-						tder_[i] *= gaussian(dx_[j], hill.width[j]);
-					else
-						tder_[i] *= gaussianDerv(dx_[j], hill.width[j]);
+					dx_[i] = cvs[i]->GetDifference(hill.center[i]);
+					tbias *= gaussian(dx_[i], hill.width[i]);
 				}
 
-			bias += height_ * tbias;
-			for(size_t i = 0; i < n; ++i)
-				derivatives_[i] += height_*tder_[i];
+				for(size_t i = 0; i < n; ++i)
+					for(size_t j = 0; j < n; ++j)
+					{
+						if(j != i) 
+							tder_[i] *= gaussian(dx_[j], hill.width[j]);
+						else
+							tder_[i] *= gaussianDerv(dx_[j], hill.width[j]);
+					}
+
+				bias += height_ * tbias;
+				for(size_t i = 0; i < n; ++i)
+					derivatives_[i] += height_*tder_[i];
+			}
 		}
 
 		// Restraints.

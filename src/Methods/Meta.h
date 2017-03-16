@@ -22,8 +22,8 @@
 #pragma once
 
 #include "Method.h"
-#include "../CVs/CollectiveVariable.h"
-#include "Grid.h"
+#include "../CVs/CollectiveVariable.h"	
+#include "Grids/Grid.h"
 #include <fstream>
 #include <vector>
 
@@ -85,7 +85,7 @@ namespace SSAGES
 		unsigned int hillfreq_;
 
 		//! CV Grid. 
-		Grid<double>* grid_;
+		Grid<Vector>* grid_;
 
 		//! Bounds 
 		std::vector<double> upperb_, lowerb_; 
@@ -138,7 +138,7 @@ namespace SSAGES
 			 const std::vector<double>& upperb,
 			 const std::vector<double>& lowerk,
 			 const std::vector<double>& upperk,
-			 Grid<double>* grid,
+			 Grid<Vector>* grid,
 			 unsigned int hillfreq,
 			 unsigned int frequency) : 
 		Method(frequency, world, comm), hills_(), height_(height), widths_(widths), 

@@ -123,9 +123,9 @@ namespace SSAGES
 				widths.push_back(s.asDouble());
 
 			std::vector<double> lowerb, upperb, lowerk, upperk;
-			Grid<double>* grid = nullptr;
+			Grid<Vector>* grid = nullptr;
 			if(json.isMember("grid"))
-				grid = Grid<double>::BuildGrid(json.get("grid", Json::Value()));
+				grid = Grid<Vector>::BuildGrid(json.get("grid", Json::Value()));
 			else if(!json.isMember("lower_bounds") || !json.isMember("upper_bounds"))
 				throw BuildException({
 					"#/Method/Metadynamics: Both upper_bounds and lower_bounds "
@@ -136,13 +136,8 @@ namespace SSAGES
 			{
 				lowerk.push_back(json["lower_bound_restraints"][i].asDouble());
 				upperk.push_back(json["upper_bound_restraints"][i].asDouble());
-				
-				// Only load these up if grid is undefined.
-				if(grid == nullptr)
-				{
-					lowerb.push_back(json["lower_bounds"][i].asDouble());
-					upperb.push_back(json["upper_bounds"][i].asDouble());
-				}
+				lowerb.push_back(json["lower_bounds"][i].asDouble());
+				upperb.push_back(json["upper_bounds"][i].asDouble());
 			}
 		
 			auto height = json.get("height", 1.0).asDouble();
