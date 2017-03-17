@@ -286,11 +286,9 @@ namespace SSAGES
 		{
 			auto cval = cvs[i]->GetValue();
 			if(cval < lowerb_[i])
-				for(auto& d : derivatives_)
-					d += lowerk_[i]*(cval - lowerb_[i]);
+				derivatives_[i] += lowerk_[i]*(cval - lowerb_[i]);
 			else if(cval > upperb_[i])
-				for(auto& d : derivatives_)
-					d += upperk_[i]*(cval - upperb_[i]);
+				derivatives_[i] += upperk_[i]*(cval - upperb_[i]);
 		}
 	}
 }
