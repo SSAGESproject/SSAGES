@@ -234,11 +234,21 @@ namespace SSAGES
 					inbounds = false;
 			}
 
-			if(true)
+			if(inbounds)
 			{
 				auto frc = (*grid_)[val];
 				for(size_t i = 0; i < n; ++i)
 					derivatives_[i] = frc[i];
+			}
+			else
+			{
+				if(comm_.rank() == 0)
+				{
+					std::cerr << "Metadynamics: out of bounds ( ";
+					for(auto& v : val)
+						std::cerr << v << " "; 
+					std::cerr << ")" << std::endl;
+				}
 			}
 		}
 		else
