@@ -56,6 +56,9 @@
 		},
 		"grid" : {
 			"type" : "object"
+		},
+		"load_hills" : {
+			"type" : "string"
 		}
 	},
 	"required": [

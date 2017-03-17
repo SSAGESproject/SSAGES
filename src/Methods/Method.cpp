@@ -150,6 +150,9 @@ namespace SSAGES
 				grid, hillfreq, freq
 			);
 
+			if(json.isMember("load_hills"))
+				m->LoadHills(json["load_hills"].asString());
+
 			method = static_cast<Method*>(m);
 		}
 		else if(type == "ABF")

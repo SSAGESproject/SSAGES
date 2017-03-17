@@ -168,6 +168,16 @@ namespace SSAGES
 		 */
 		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
 
+		//! Load hills from file. 
+		/*! 
+		 * \param filename File name containing hills. 
+		 *
+		 * \note File format must match the output written by this method and 
+		 *       the dimensionality of the hills must match the initialized 
+		 *       Meta class. 
+		 */
+		void LoadHills(const std::string& filename);
+
 		//! \copydoc Serializable::Serialize()
 		/*!
 		 * \warning Serialization not implemented yet!

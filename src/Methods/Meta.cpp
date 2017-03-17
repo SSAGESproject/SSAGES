@@ -127,6 +127,41 @@ namespace SSAGES
 	{
 	}
 
+	// Load hills from file. 
+	void Meta::LoadHills(const std::string& filename)
+	{
+		std::ifstream file(filename);
+		std::string line; 
+
+		if(comm_.rank() != 0)
+			return;
+
+		auto dim = widths_.size();
+		double iteration = 0, height = 0;
+		std::vector<double> width(dim, 0.), center(dim, 0);
+
+		// First line is a comment. 
+		std::getline(file, line);
+		while(std::getline(file, line))
+		{
+			std::istringstream iss(line);
+			iss >> iteration; // Not really using this. 
+			
+			// Load centers.
+			for(size_t i = 0; i < dim; ++i)
+				iss >> center[i];
+			
+			// Load widths.
+			for(size_t i = 0; i < dim; ++i)
+				iss >> width[i];
+			
+			// Load height. 
+			iss >> height;
+
+			hills_.emplace_back(center, width, height);
+		}
+	}
+
 	// Drop a new hill.
 	void Meta::AddHill(const CVList& cvs, int iteration)
 	{
