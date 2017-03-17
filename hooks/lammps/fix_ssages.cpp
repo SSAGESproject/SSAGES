@@ -17,6 +17,8 @@ using namespace SSAGES;
 using namespace LAMMPS_NS::FixConst;
 using namespace boost;
 
+#define INVOKED_SCALAR 1
+
 namespace LAMMPS_NS
 {
 	FixSSAGES::FixSSAGES(LAMMPS *lmp, int narg, char **arg) : 
@@ -89,6 +91,7 @@ namespace LAMMPS_NS
 		mask |= POST_FORCE;
 		mask |= POST_RUN;
 		mask |= END_OF_STEP;
+		mask |= THERMO_ENERGY;
 		return mask;
 	}
 
@@ -126,14 +129,21 @@ namespace LAMMPS_NS
 		charges.resize(n);
 
 		// Thermo properties:
-		snapshot_->SetTemperature(tempid_->compute_scalar());
-		tempid_->addstep(update->ntimestep + 1);
+		if (!(tempid_->invoked_flag & INVOKED_SCALAR)) 
+		{
+      		tempid_->compute_scalar();
+      		tempid_->invoked_flag |= INVOKED_SCALAR;
+    	}
+		snapshot_->SetTemperature(tempid_->scalar);
+		//tempid_->addstep(update->ntimestep + 1);
 		
 		//Energy
 		double etot = 0;
 
 		// Get potential energy.
-		etot += peid_->compute_scalar();
+		peid_->compute_scalar();
+		peid_->invoked_flag |= INVOKED_SCALAR;
+		etot += peid_->scalar;
 		peid_->addstep(update->ntimestep + 1);
 
 		// Compute kinetic energy.
