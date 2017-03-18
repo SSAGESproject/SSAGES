@@ -49,8 +49,8 @@ namespace SSAGES
 		using std::ofstream;
 
 		// In and out files for Qbox communication. 
-		auto infile = "ssages_in" + std::to_string(_wid);
-		auto outfile = "ssages_out" + std::to_string(_wid);
+		auto infile = "ssages_in" + std::to_string(wid_);
+		auto outfile = "ssages_out" + std::to_string(wid_);
 		auto lockfile = infile + ".lock";
 
 		// Wait for initial lockfile to exist. This means Qbox is ready 
@@ -59,7 +59,7 @@ namespace SSAGES
 		// Write initial input file to qbox. 
 		ofstream fin;
 		fin.open(infile, std::ofstream::trunc);
-		fin << _inputfile << std::endl;
+		fin << inputfile_ << std::endl;
 		fin.close();
 
 		// Remove lock file to get Qbox running.

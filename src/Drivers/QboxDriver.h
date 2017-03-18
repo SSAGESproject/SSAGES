@@ -71,14 +71,9 @@ namespace SSAGES
 			mdsteps_ = json.get("MDSteps", 1).asInt();
 
 			// Set hook. 
-<<<<<<< HEAD:src/Drivers/QBoxDriver.h
-			auto* hook = new QBoxHook();
-			hook_ = dynamic_cast<Hook*>(&hook);
-=======
 			qbhook_ = new QboxHook();
 			qmsteps_ = json.get("qm_steps", 30).asDouble();
-			_hook = dynamic_cast<Hook*>(qbhook_);
->>>>>>> Qbox synctoengine basics complete.:src/Drivers/QboxDriver.h
+			hook_ = dynamic_cast<Hook*>(qbhook_);
 		}
 
 	};

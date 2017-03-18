@@ -70,10 +70,10 @@ namespace SSAGES
 		fout.open(commandfile, std::ofstream::trunc);
 		fout.precision(10);
 
-		const auto& pos = _snapshot->GetPositions();
-		const auto& vel = _snapshot->GetVelocities();
-		const auto& frc = _snapshot->GetForces();
-		const auto& typ = _snapshot->GetAtomTypes();
+		const auto& pos = snapshot_->GetPositions();
+		const auto& vel = snapshot_->GetVelocities();
+		const auto& frc = snapshot_->GetForces();
+		const auto& typ = snapshot_->GetAtomTypes();
 
 		auto& atomset = pt_.get_child("fpmd:simulation.iteration.atomset");
 
@@ -137,13 +137,13 @@ namespace SSAGES
 		int natoms = atomset.size() - 1;
 
 		// Build species index on first iteration. 
-		if(_snapshot->GetIteration() == 0)
+		if(snapshot_->GetIteration() == 0)
 			BuildSpeciesInfo();
 
 
 		// Load em up. 
-		_snapshot->SetIteration(_snapshot->GetIteration() + 1);
-		_snapshot->SetNumAtoms(natoms);
+		snapshot_->SetIteration(snapshot_->GetIteration() + 1);
+		snapshot_->SetNumAtoms(natoms);
 
 		//Set temperature.
 		//Set potential energy.
@@ -152,17 +152,17 @@ namespace SSAGES
 		//Set periodic boundary 
 
 		// Resize vectors.
-		auto& pos = _snapshot->GetPositions();
+		auto& pos = snapshot_->GetPositions();
 		pos.resize(natoms);
-		auto& vel = _snapshot->GetVelocities();
+		auto& vel = snapshot_->GetVelocities();
 		vel.resize(natoms);
-		auto& frc = _snapshot->GetForces();
+		auto& frc = snapshot_->GetForces();
 		frc.resize(natoms);
-		auto& mass = _snapshot->GetMasses();
+		auto& mass = snapshot_->GetMasses();
 		mass.resize(natoms);
-		auto& ids = _snapshot->GetAtomIDs();
+		auto& ids = snapshot_->GetAtomIDs();
 		ids.resize(natoms);
-		auto& typs = _snapshot->GetAtomTypes();
+		auto& typs = snapshot_->GetAtomTypes();
 		typs.resize(natoms);
 
 		// Resize previous forces. 
@@ -198,7 +198,7 @@ namespace SSAGES
 				H.row(1) = Hi;
 				to_vector3<Vector3>(v.second.get<std::string>("<xmlattr>.c"), Hi);
 				H.row(2) = Hi;
-				_snapshot->SetHMatrix(H);
+				snapshot_->SetHMatrix(H);
 			}
 		}
 	}

@@ -287,7 +287,7 @@ namespace SSAGES
 			#ifdef ENABLE_QBOX
 			if(MDEngine_ == "Qbox")
 			{
-				QBoxDriver* en = new QBoxDriver(world_, comm_, wid);
+				QboxDriver* en = new QboxDriver(world_, comm_, wid);
 				if(!(MDDriver_ = static_cast<Driver*>(en)))
 				{
 					std::cout << "Unable to static cast engine on node " << world_.rank() << std::endl;
