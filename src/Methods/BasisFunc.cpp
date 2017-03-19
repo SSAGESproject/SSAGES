@@ -38,15 +38,6 @@ namespace SSAGES
         // Make sure the iteration index is set correctly
         iteration_ = 0;
 
-        if(!histlocal_)
-		{
-            std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-            std::cerr<<"ERROR: Method expected a histogram but none built."<<std::endl;
-            std::cerr<<"Exiting on node ["<<mpiid_<<"]"<<std::endl;
-            std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-			world_.abort(EXIT_FAILURE);
-		}
-
         // There are a few error messages / checks that are in place with defining CVs and grids
         else
         {
