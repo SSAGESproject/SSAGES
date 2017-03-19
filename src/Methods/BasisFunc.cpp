@@ -38,35 +38,33 @@ namespace SSAGES
         // Make sure the iteration index is set correctly
         iteration_ = 0;
 
-        // There are a few error messages / checks that are in place with defining CVs and grids
-        else
+        // There are a few error messages / checks that are in place with
+        // defining CVs and grids
+        if(histlocal_->GetDimension() != cvs.size())
         {
-            if(histlocal_->GetDimension() != cvs.size())
+            std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
+            std::cerr<<"ERROR: Histogram dimensions doesn't match number of CVS."<<std::endl;
+            std::cerr<<"Exiting on node ["<<mpiid_<<"]"<<std::endl;
+            std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
+            world_.abort(EXIT_FAILURE);
+        }
+        else if(cvs.size() != polyords_.size())
+        {
+            std::cout<<cvs.size()<<std::endl;
+            std::cout<<polyords_.size()<<std::endl;
+            std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
+            std::cout<<"WARNING: The number of polynomial orders is not the same"<<std::endl;
+            std::cout<<"as the number of CVs"<<std::endl;
+            std::cout<<"The simulation will take the first defined input"<<std::endl;
+            std::cout<<"as the same for all CVs. ["<<polyords_[0]<<"]"<<std::endl;
+            std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
+
+            //! Resize the polynomial vector so that it doesn't crash here
+            polyords_.resize(cvs.size());
+            //! And now reinitialize the vector
+            for(size_t i = 0; i < cvs.size(); ++i)
             {
-                std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                std::cerr<<"ERROR: Histogram dimensions doesn't match number of CVS."<<std::endl;
-                std::cerr<<"Exiting on node ["<<mpiid_<<"]"<<std::endl;
-                std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                world_.abort(EXIT_FAILURE);
-            }
-            else if(cvs.size() != polyords_.size())
-            {
-                std::cout<<cvs.size()<<std::endl;
-                std::cout<<polyords_.size()<<std::endl;
-                std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                std::cout<<"WARNING: The number of polynomial orders is not the same"<<std::endl;
-                std::cout<<"as the number of CVs"<<std::endl;
-                std::cout<<"The simulation will take the first defined input"<<std::endl;
-                std::cout<<"as the same for all CVs. ["<<polyords_[0]<<"]"<<std::endl;
-                std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-               
-                //! Resize the polynomial vector so that it doesn't crash here
-                polyords_.resize(cvs.size());
-                //! And now reinitialize the vector
-                for(size_t i = 0; i < cvs.size(); ++i)
-                {
-                    polyords_[i] = polyords_[0];
-                }
+                polyords_[i] = polyords_[0];
             }
         }
 
