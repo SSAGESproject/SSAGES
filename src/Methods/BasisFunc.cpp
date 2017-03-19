@@ -287,7 +287,7 @@ namespace SSAGES
 
         // And then it is repacked into the struct
         id1d = 0;
-        for(it = histlocal_->begin(); it != histlocal_->end(); ++it, ++id1d) {
+        for(it = histglobal_->begin(); it != histglobal_->end(); ++it, ++id1d) {
             hist_[id1d].value = *it;
         }
 
