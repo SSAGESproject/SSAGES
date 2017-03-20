@@ -92,8 +92,8 @@ namespace SSAGES
 		Map temp_map(idx,0.0);
         
         // Initialize the mapping for the hist function
-        for (Histogram<int>::iterator it = hist_->begin(); it != hist_->end(); ++it) {
-            *it = 0;
+        for (int &val : *hist_) {
+            val = 0;
         }
 
         //Initialize the mapping for the coeff function
@@ -261,24 +261,17 @@ namespace SSAGES
         double basis = 1.0;
 
         // For multiple walkers, the struct is unpacked
-        Histogram<int>::iterator it;
-        Histogram<int>::iterator it2 = hist_->begin();
-        for(it = histlocal_->begin(); it != histlocal_->end(); ++it, ++it2) {
-            *it = *it2;
-        }
+        *histlocal_ = *hist_;
 
         // Summed between all walkers
         MPI_Allreduce(histlocal_->data(), histglobal_->data(), hist_->size(), MPI_INT, MPI_SUM, world_);
 
         // And then it is repacked into the struct
-        it2 = hist_->begin();
-        for(it = histglobal_->begin(); it != histglobal_->end(); ++it, ++it2) {
-            *it2 = *it;
-        }
+        *hist_ = *histglobal_;
 
         // Construct the biased histogram
         size_t i = 0;
-        for (it2 = hist_->begin(); it2 != hist_->end(); ++it2, ++i)
+        for (Histogram<int>::iterator it2 = hist_->begin(); it2 != hist_->end(); ++it2, ++i)
         {
             // This is to make sure that the CV projects across the entire surface
             if (*it2 == 0) { *it2 = 1; }
@@ -310,12 +303,15 @@ namespace SSAGES
             coeff_[i].value = 0.0;
         }
 
-        Histogram<int>::iterator hgit = histglobal_->begin();
-        it2 = hist_->begin();
-        for(it = histlocal_->begin(); it != histlocal_->end(); ++it, ++it2, hgit++) {
-                *it = 0;
-                *it2 = 0;
-                *hgit = 0;
+        // Reset histograms
+        for (int &val : *histlocal_) {
+            val = 0;
+        }
+        for (int &val : *histglobal_) {
+            val = 0;
+        }
+        for (int &val : *hist_) {
+            val = 0;
         }
 
         // The loop that evaluates the new coefficients by integrating the CV space
@@ -325,7 +321,7 @@ namespace SSAGES
             
             // The method uses a standard integration with trap rule weights
             size_t j = 0;
-            for(it2 = hist_->begin(); it2 != hist_->end(); ++it2, ++j)
+            for(Histogram<int>::iterator it2 = hist_->begin(); it2 != hist_->end(); ++it2, ++j)
             {
                 double weight = std::pow(2.0,cvs.size());
 
