@@ -3,6 +3,7 @@
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
  * Copyright 2016 Joshua Moller <jmoller@uchicago.edu>
+ *           2017 Julian Helfferich <julian.helfferich@gmail.com>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,26 +92,10 @@ namespace SSAGES
 		Map temp_map(idx,0.0);
         
         // Initialize the mapping for the hist function
-        for(size_t i = 0; i < bin_size; ++i)
-        {
-            for(size_t j = 0; j < idx.size(); ++j)
-            {
-                if(idx[j] > 0 && idx[j] % (nbins_[j]) == 0)
-                {
-                    if(j != cvs.size() - 1)
-                    { 
-                        idx[j+1]++;
-                        idx[j] = 0;
-                    }
-                }
-                temp_map.map[j] = idx[j];
-				temp_map.value  = 0.0; 
-            } 
-            // Resize histogram vectors to correct size
-            hist_.push_back(temp_map);
-            idx[0]++;
+        for (Histogram<int>::iterator it = hist_->begin(); it != hist_->end(); ++it) {
+            *it = 0;
         }
- 
+
         //Initialize the mapping for the coeff function
         for(size_t i = 0; i < coeff_size; ++i)
         {
@@ -164,7 +149,7 @@ namespace SSAGES
             } 
 
             // The histogram is updated based on the index
-            hist_[ii].value++;
+            hist_->at(x) += 1;
     
             // Update the basis projection after a predefined number of steps
             if(snapshot->GetIteration()  % cyclefreq_ == 0) {	
@@ -277,27 +262,26 @@ namespace SSAGES
 
         // For multiple walkers, the struct is unpacked
         Histogram<int>::iterator it;
-        size_t id1d = 0;
-        for(it = histlocal_->begin(); it != histlocal_->end(); ++it, ++id1d) {
-            *it = (int)hist_[id1d].value;
+        Histogram<int>::iterator it2 = hist_->begin();
+        for(it = histlocal_->begin(); it != histlocal_->end(); ++it, ++it2) {
+            *it = *it2;
         }
 
         // Summed between all walkers
         MPI_Allreduce(histlocal_->data(), histglobal_->data(), histlocal_->size(), MPI_INT, MPI_SUM, world_);
 
         // And then it is repacked into the struct
-        id1d = 0;
-        for(it = histglobal_->begin(); it != histglobal_->end(); ++it, ++id1d) {
-            hist_[id1d].value = *it;
+        it2 = hist_->begin();
+        for(it = histglobal_->begin(); it != histglobal_->end(); ++it, ++it2) {
+            *it2 = *it;
         }
 
         // Construct the biased histogram
-        for(size_t i = 0; i < hist_.size(); ++i)
+        size_t i = 0;
+        for (it2 = hist_->begin(); it2 != hist_->end(); ++it2, ++i)
         {
-            auto& hist = hist_[i];
-
             // This is to make sure that the CV projects across the entire surface
-            if(hist.value == 0) {hist.value = 1;} 
+            if (*it2 == 0) { *it2 = 1; }
            
             // The loop builds the previous basis projection for each bin of the histogram
             for(size_t k = 1; k < coeff_.size(); ++k)
@@ -306,7 +290,7 @@ namespace SSAGES
                 for(size_t l = 0; l < cvs.size(); ++l)
                 { 
                     // The previous bias is only calculated after each sweep has happened
-                    basis *= LUT_[l].values[hist.map[l] + coeff.map[l]*(nbins_[l])];
+                    basis *= LUT_[l].values[it2.indices()[l] + coeff.map[l]*(nbins_[l])];
                 }
                 bias += coeff.value*basis;
                 basis = 1.0;
@@ -315,7 +299,7 @@ namespace SSAGES
             /* The evaluation of the biased histogram which projects the histogram to the
              * current bias of CV space.
              */
-            unbias_[i] += hist.value * exp(bias) * weight_ / (double)(cyclefreq_); 
+            unbias_[i] += (*it2) * exp(bias) * weight_ / (double)(cyclefreq_);
             bias = 0.0;
         }
 
@@ -327,12 +311,11 @@ namespace SSAGES
         }
 
         Histogram<int>::iterator hgit = histglobal_->begin();
-        id1d = 0;
-        for(it = histlocal_->begin(); it != histlocal_->end(); ++it, hgit++) {
-                hist_[id1d].value = 0.0;
+        it2 = hist_->begin();
+        for(it = histlocal_->begin(); it != histlocal_->end(); ++it, ++it2, hgit++) {
                 *it = 0;
+                *it2 = 0;
                 *hgit = 0;
-                ++id1d;
         }
 
         // The loop that evaluates the new coefficients by integrating the CV space
@@ -341,15 +324,15 @@ namespace SSAGES
             auto& coeff = coeff_[i];
             
             // The method uses a standard integration with trap rule weights
-            for(size_t j = 0; j < hist_.size(); ++j)
+            size_t j = 0;
+            for(it2 = hist_->begin(); it2 != hist_->end(); ++it2, ++j)
             {
-                auto& hist = hist_[j];
                 double weight = std::pow(2.0,cvs.size());
 
                 // This adds in a trap-rule type weighting which lowers error significantly at the boundaries
                 for(size_t k = 0; k < cvs.size(); ++k)
                 {
-                    if(hist.map[k] == 0 || hist.map[k] == nbins_[k]-1)
+                    if(it2.indices()[k] == 0 || it2.indices()[k] == nbins_[k]-1)
                         weight /= 2.0;
                 }
             
@@ -358,7 +341,7 @@ namespace SSAGES
                  */
                 for(size_t l = 0; l < cvs.size(); l++)
                 {
-                    basis *= LUT_[l].values[hist.map[l] + coeff.map[l]*(nbins_[l])] / nbins_[l];
+                    basis *= LUT_[l].values[it2.indices()[l] + coeff.map[l]*(nbins_[l])] / nbins_[l];
                     basis *= 2.0 * coeff.map[l] + 1.0;
                 }
                 coeff.value += basis * log(unbias_[j]) * weight/std::pow(2.0,cvs.size());
@@ -391,7 +374,7 @@ namespace SSAGES
      */
     void Basis::PrintBias(const CVList& cvs, const double beta)
     {
-        std::vector<double> bias(hist_.size(), 0);
+        std::vector<double> bias(hist_->size(), 0);
         std::vector<double> x(cvs.size(), 0);
         double temp = 1.0; 
         double pos = 0;
@@ -399,14 +382,14 @@ namespace SSAGES
         /* Since the coefficients are the only piece that needs to be
          *updated, the bias is only evaluated when printing
          */
-        for(size_t i = 0; i < hist_.size(); ++i)
+        size_t i = 0;
+        for(Histogram<int>::iterator it = hist_->begin(); it != hist_->end(); ++it, ++i)
         {
             for(size_t j = 1; j < coeff_.size(); ++j)
             {
                 for(size_t k = 0; k < cvs.size(); ++k)
                 {
-                    
-                    temp *=  LUT_[k].values[hist_[i].map[k] + coeff_[j].map[k] * (nbins_[k])];
+                    temp *=  LUT_[k].values[it.indices()[k] + coeff_[j].map[k] * (nbins_[k])];
                 }
                 bias[i] += coeff_[j].value*temp;
                 temp  = 1.0;
@@ -426,12 +409,13 @@ namespace SSAGES
         coeffout_ << iteration_  <<std::endl;
         basisout_ << "CV Values" << std::setw(35*cvs.size()) << "Basis Set Bias" << std::setw(35) << "PMF Estimate" << std::setw(35) << "Biased Histogram" << std::endl;
         
-        for(size_t j = 0; j < unbias_.size(); ++j)
+        size_t j = 0;
+        for(Histogram<int>::iterator it = hist_->begin(); it != hist_->end(); ++it, ++j)
         {
             for(size_t k = 0; k < cvs.size(); ++k)
             {
                 // Evaluate the CV values for printing purposes
-                pos = (hist_[j].map[k]+0.5)*(histlocal_->GetUpper(k) - histlocal_->GetLower(k)) * 1.0 /(double)( nbins_[k]) + histlocal_->GetLower(k);
+                pos = (it.indices()[k]+0.5)*(histlocal_->GetUpper(k) - histlocal_->GetLower(k)) * 1.0 /(double)( nbins_[k]) + histlocal_->GetLower(k);
                 basisout_ << pos << std::setw(35);
             }
             basisout_ << -bias[j] << std::setw(35);
@@ -515,8 +499,8 @@ namespace SSAGES
                     temp = 1.0;
                     for (size_t k = 0; k < cvs.size(); ++k)
                     {
-                        temp *= j == k ?  LUT_[k].derivs[hist_[ii].map[k] + coeff_[i].map[k]*(nbins_[k])] * 2.0 / (histlocal_->GetUpper(j) - histlocal_->GetLower(j))
-                                       :  LUT_[k].values[hist_[ii].map[k] + coeff_[i].map[k]*(nbins_[k])];
+                        temp *= j == k ?  LUT_[k].derivs[hist_->GetIndices(x)[k] + coeff_[i].map[k]*(nbins_[k])] * 2.0 / (histlocal_->GetUpper(j) - histlocal_->GetLower(j))
+                                       :  LUT_[k].values[hist_->GetIndices(x)[k] + coeff_[i].map[k]*(nbins_[k])];
                     }
                     derivatives_[j] -= coeff_[i].value * temp;
                 }

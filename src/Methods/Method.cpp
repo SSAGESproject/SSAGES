@@ -458,12 +458,14 @@ namespace SSAGES
             auto tol  = json.get("tolerance", 1e-6).asDouble();
             auto conv = json.get("convergence_exit", false).asBool();
  
+            Histogram<int> *hist = Histogram<int>::BuildHistogram(
+                                            json.get("grid", Json::Value()) );
             Histogram<int> *histlocal = Histogram<int>::BuildHistogram(
                                             json.get("grid", Json::Value()) );
             Histogram<int> *histglobal = Histogram<int>::BuildHistogram(
                                             json.get("grid", Json::Value()) );
 
-            auto* m = new Basis(world, comm, histlocal, histglobal, coefsCV, restrCV, boundUp, boundLow,
+            auto* m = new Basis(world, comm, hist, histlocal, histglobal, coefsCV, restrCV, boundUp, boundLow,
                                 cyclefreq, freq, bnme, cnme, temp, tol, wght,
                                 conv);
 

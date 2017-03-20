@@ -3,6 +3,7 @@
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
  * Copyright 2016 Joshua Moller <jmoller@uchicago.edu>
+ *           2017 Julian Helfferich <julian.helfferich@gmail.com>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,11 +94,9 @@ namespace SSAGES
         
         //! Histogram of visited states.
         /*!
-         * Histogram is stored locally. It is a 1D vector that holds N
-         * dimensional data over the number of walkers using a row major
-         * mapping.
+         * Histogram is stored locally.
          */
-        std::vector<Map> hist_;
+        Histogram<int> *hist_;
 
         //! Locally defined histogram array for easy mpi operations.
         /*!
@@ -254,6 +253,7 @@ namespace SSAGES
          */
 		Basis(boost::mpi::communicator& world,
 			 boost::mpi::communicator& comm,
+             Histogram<int> *hist,
              Histogram<int> *histlocal,
              Histogram<int> *histglobal,
 			 const std::vector<unsigned int>& polyord,
@@ -268,7 +268,7 @@ namespace SSAGES
              const double tol,
              const double weight,
              bool converge) :
-		Method(frequency, world, comm), hist_(), histlocal_(histlocal), histglobal_(histglobal),
+		Method(frequency, world, comm), hist_(hist), histlocal_(histlocal), histglobal_(histglobal),
         coeff_(), unbias_(), coeff_arr_(), LUT_(), derivatives_(), polyords_(polyord),
         nbins_(), restraint_(restraint), boundUp_(boundUp), boundLow_(boundLow),
         cyclefreq_(cyclefreq), mpiid_(0), weight_(weight),
@@ -369,6 +369,7 @@ namespace SSAGES
         //! Destructor.
         ~Basis()
         {
+            delete hist_;
             delete histlocal_;
             delete histglobal_;
         }
