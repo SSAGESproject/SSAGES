@@ -41,7 +41,7 @@ namespace SSAGES
 
         // There are a few error messages / checks that are in place with
         // defining CVs and grids
-        if(histlocal_->GetDimension() != cvs.size())
+        if(hist_->GetDimension() != cvs.size())
         {
             std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
             std::cerr<<"ERROR: Histogram dimensions doesn't match number of CVS."<<std::endl;
@@ -72,7 +72,7 @@ namespace SSAGES
         // Setting the number of bins here for simplicity
         nbins_.resize(cvs.size());
         for(size_t i = 0; i < cvs.size(); ++i)
-            nbins_[i] = histlocal_->GetNumPoints(i);
+            nbins_[i] = hist_->GetNumPoints(i);
 
         // This is to check for non-periodic bounds. It comes into play in the update bias function
         bounds_ = true;
@@ -140,7 +140,7 @@ namespace SSAGES
         if(bounds_)
         {
             // Convert the CV value to its discretized value through the grid tool
-            idx = histlocal_->GetIndices(x);
+            idx = hist_->GetIndices(x);
            
             // Map the grid index to the form of the hist and unbias mapping
             for(size_t i = 0; i < cvs.size(); ++i)
@@ -268,7 +268,7 @@ namespace SSAGES
         }
 
         // Summed between all walkers
-        MPI_Allreduce(histlocal_->data(), histglobal_->data(), histlocal_->size(), MPI_INT, MPI_SUM, world_);
+        MPI_Allreduce(histlocal_->data(), histglobal_->data(), hist_->size(), MPI_INT, MPI_SUM, world_);
 
         // And then it is repacked into the struct
         it2 = hist_->begin();
@@ -415,7 +415,7 @@ namespace SSAGES
             for(size_t k = 0; k < cvs.size(); ++k)
             {
                 // Evaluate the CV values for printing purposes
-                pos = (it.indices()[k]+0.5)*(histlocal_->GetUpper(k) - histlocal_->GetLower(k)) * 1.0 /(double)( nbins_[k]) + histlocal_->GetLower(k);
+                pos = (it.indices()[k]+0.5)*(hist_->GetUpper(k) - hist_->GetLower(k)) * 1.0 /(double)( nbins_[k]) + hist_->GetLower(k);
                 basisout_ << pos << std::setw(35);
             }
             basisout_ << -bias[j] << std::setw(35);
@@ -452,10 +452,10 @@ namespace SSAGES
         for (size_t j = 0; j < cvs.size(); ++j)
         {
             x[j] = cvs[j]->GetValue();
-            double min = histlocal_->GetLower(j);
-            double max = histlocal_->GetUpper(j);
+            double min = hist_->GetLower(j);
+            double max = hist_->GetUpper(j);
 
-            if(!histlocal_->GetPeriodic(j))
+            if(!hist_->GetPeriodic(j))
             {
                 // In order to prevent the index for the histogram from going out of bounds a check is in place
                 if(x[j] > max && bounds_)
@@ -487,7 +487,7 @@ namespace SSAGES
         // Only apply soft wall potential in the event that it has left the boundaries
         if(bounds_)
         {
-            idx = histlocal_->GetIndices(x);
+            idx = hist_->GetIndices(x);
 
             for(size_t i = 0; i < cvs.size(); ++i)
                 ii += (idx[i])*std::pow(nbins_[i],i);
@@ -499,7 +499,7 @@ namespace SSAGES
                     temp = 1.0;
                     for (size_t k = 0; k < cvs.size(); ++k)
                     {
-                        temp *= j == k ?  LUT_[k].derivs[hist_->GetIndices(x)[k] + coeff_[i].map[k]*(nbins_[k])] * 2.0 / (histlocal_->GetUpper(j) - histlocal_->GetLower(j))
+                        temp *= j == k ?  LUT_[k].derivs[hist_->GetIndices(x)[k] + coeff_[i].map[k]*(nbins_[k])] * 2.0 / (hist_->GetUpper(j) - hist_->GetLower(j))
                                        :  LUT_[k].values[hist_->GetIndices(x)[k] + coeff_[i].map[k]*(nbins_[k])];
                     }
                     derivatives_[j] -= coeff_[i].value * temp;
@@ -511,10 +511,10 @@ namespace SSAGES
         for(size_t j = 0; j < cvs.size(); ++j)
         {
             // Are these used?
-            // double min = histlocal_->GetLower(j);
-            // double max = histlocal_->GetUpper(j);
+            // double min = hist_->GetLower(j);
+            // double max = hist_->GetUpper(j);
 
-            if(!histlocal_->GetPeriodic(j)) 
+            if(!hist_->GetPeriodic(j))
             {
                 if(x[j] > boundUp_[j])
                     derivatives_[j] -= restraint_[j] * (x[j] - boundUp_[j]);
