@@ -264,7 +264,7 @@ namespace SSAGES
                 { 
                     // The previous bias is only calculated after each sweep has happened
                     int nbins = hist_->GetNumPoints(l);
-                    basis *= LUT_[l].values[it2.indices()[l] + coeff.map[l]*nbins];
+                    basis *= LUT_[l].values[it2.index(l) + coeff.map[l]*nbins];
                 }
                 bias += coeff.value*basis;
                 basis = 1.0;
@@ -303,8 +303,8 @@ namespace SSAGES
                 // This adds in a trap-rule type weighting which lowers error significantly at the boundaries
                 for(size_t k = 0; k < cvs.size(); ++k)
                 {
-                    if( it2.indices()[k] == 0 ||
-                        it2.indices()[k] == hist_->GetNumPoints(k)-1)
+                    if( it2.index(k) == 0 ||
+                        it2.index(k) == hist_->GetNumPoints(k)-1)
                         weight /= 2.0;
                 }
             
@@ -314,7 +314,7 @@ namespace SSAGES
                 for(size_t l = 0; l < cvs.size(); l++)
                 {
                     int nbins = hist_->GetNumPoints(l);
-                    basis *= LUT_[l].values[it2.indices()[l] + coeff.map[l]*nbins] / nbins;
+                    basis *= LUT_[l].values[it2.index(l) + coeff.map[l]*nbins] / nbins;
                     basis *= 2.0 * coeff.map[l] + 1.0;
                 }
                 coeff.value += basis * log(unbias_[j]) * weight/std::pow(2.0,cvs.size());
@@ -362,7 +362,7 @@ namespace SSAGES
                 for(size_t k = 0; k < cvs.size(); ++k)
                 {
                     int nbins = hist_->GetNumPoints(k);
-                    temp *=  LUT_[k].values[it.indices()[k] + coeff_[j].map[k] * nbins];
+                    temp *=  LUT_[k].values[it.index(k) + coeff_[j].map[k] * nbins];
                 }
                 bias[i] += coeff_[j].value*temp;
                 temp  = 1.0;
@@ -388,7 +388,7 @@ namespace SSAGES
             for(size_t k = 0; k < cvs.size(); ++k)
             {
                 // Evaluate the CV values for printing purposes
-                basisout_ << it.coordinates()[k] << std::setw(35);
+                basisout_ << it.coordinate(k) << std::setw(35);
             }
             basisout_ << -bias[j] << std::setw(35);
             if(unbias_[j])
