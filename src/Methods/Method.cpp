@@ -460,12 +460,8 @@ namespace SSAGES
  
             Histogram<int> *hist = Histogram<int>::BuildHistogram(
                                             json.get("grid", Json::Value()) );
-            Histogram<int> *histlocal = Histogram<int>::BuildHistogram(
-                                            json.get("grid", Json::Value()) );
-            Histogram<int> *histglobal = Histogram<int>::BuildHistogram(
-                                            json.get("grid", Json::Value()) );
 
-            auto* m = new Basis(world, comm, hist, histlocal, histglobal, coefsCV, restrCV, boundUp, boundLow,
+            auto* m = new Basis(world, comm, hist, coefsCV, restrCV, boundUp, boundLow,
                                 cyclefreq, freq, bnme, cnme, temp, tol, wght,
                                 conv);
 

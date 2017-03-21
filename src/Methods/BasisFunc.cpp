@@ -261,13 +261,10 @@ namespace SSAGES
         double basis = 1.0;
 
         // For multiple walkers, the struct is unpacked
-        *histlocal_ = *hist_;
+        Histogram<int> histlocal(*hist_);
 
         // Summed between all walkers
-        MPI_Allreduce(histlocal_->data(), histglobal_->data(), hist_->size(), MPI_INT, MPI_SUM, world_);
-
-        // And then it is repacked into the struct
-        *hist_ = *histglobal_;
+        MPI_Allreduce(histlocal.data(), hist_->data(), hist_->size(), MPI_INT, MPI_SUM, world_);
 
         // Construct the biased histogram
         size_t i = 0;
@@ -303,13 +300,7 @@ namespace SSAGES
             coeff_[i].value = 0.0;
         }
 
-        // Reset histograms
-        for (int &val : *histlocal_) {
-            val = 0;
-        }
-        for (int &val : *histglobal_) {
-            val = 0;
-        }
+        // Reset histogram
         for (int &val : *hist_) {
             val = 0;
         }

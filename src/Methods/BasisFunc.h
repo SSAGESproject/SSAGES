@@ -98,18 +98,6 @@ namespace SSAGES
          */
         Histogram<int> *hist_;
 
-        //! Locally defined histogram array for easy mpi operations.
-        /*!
-         * \note It does take up more memory.
-         */
-        Histogram<int> *histlocal_;
-
-        //! Globally defined histogram array for easy mpi operations.
-        /*!
-         * \note Needs lots of memory.
-         */
-        Histogram<int> *histglobal_;
-
         //! Globally located coefficient values.
 		/*!
          * As coefficients are updated at the same time, the coefficients
@@ -254,8 +242,6 @@ namespace SSAGES
 		Basis(boost::mpi::communicator& world,
 			 boost::mpi::communicator& comm,
              Histogram<int> *hist,
-             Histogram<int> *histlocal,
-             Histogram<int> *histglobal,
 			 const std::vector<unsigned int>& polyord,
              const std::vector<double>& restraint,
              const std::vector<double>& boundUp,
@@ -268,7 +254,7 @@ namespace SSAGES
              const double tol,
              const double weight,
              bool converge) :
-		Method(frequency, world, comm), hist_(hist), histlocal_(histlocal), histglobal_(histglobal),
+		Method(frequency, world, comm), hist_(hist),
         coeff_(), unbias_(), coeff_arr_(), LUT_(), derivatives_(), polyords_(polyord),
         nbins_(), restraint_(restraint), boundUp_(boundUp), boundLow_(boundLow),
         cyclefreq_(cyclefreq), mpiid_(0), weight_(weight),
@@ -370,8 +356,6 @@ namespace SSAGES
         ~Basis()
         {
             delete hist_;
-            delete histlocal_;
-            delete histglobal_;
         }
 	};
 }
