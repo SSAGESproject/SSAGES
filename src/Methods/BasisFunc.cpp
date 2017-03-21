@@ -30,9 +30,6 @@ namespace SSAGES
 	// Pre-simulation hook.
 	void Basis::PreSimulation(Snapshot* snapshot, const CVList& cvs)
 	{
-        // Open file for writing and allocate derivatives vector
-        size_t coeff_size = 1, bin_size = 1;
-       
         // For print statements and file I/O, the walker IDs are used
         mpiid_ = snapshot->GetWalkerID();
 
@@ -69,22 +66,18 @@ namespace SSAGES
             }
         }
 
-        // Setting the number of bins here for simplicity
-        nbins_.resize(cvs.size());
-        for(size_t i = 0; i < cvs.size(); ++i)
-            nbins_[i] = hist_->GetNumPoints(i);
-
         // This is to check for non-periodic bounds. It comes into play in the update bias function
         bounds_ = true;
                  
+        size_t coeff_size = 1;
+
         for(size_t i = 0; i < cvs.size(); ++i)
         {
-            bin_size   *= nbins_[i];
             coeff_size *= polyords_[i]+1;
         }
 
 		derivatives_.resize(cvs.size());
-        unbias_.resize(bin_size,0);
+        unbias_.resize(hist_->size(),0);
         coeff_arr_.resize(coeff_size,0);
 
         std::vector<int> idx(cvs.size(), 0);
@@ -125,8 +118,6 @@ namespace SSAGES
 	void Basis::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
         std::vector<double> x(cvs.size(),0);
-        std::vector<int> idx(cvs.size(),0);
-        int ii = 0;
 
         /*The binned cv space is updated at every step
          *After a certain number of steps has been passed, the system updates a
@@ -139,15 +130,6 @@ namespace SSAGES
        
         if(bounds_)
         {
-            // Convert the CV value to its discretized value through the grid tool
-            idx = hist_->GetIndices(x);
-           
-            // Map the grid index to the form of the hist and unbias mapping
-            for(size_t i = 0; i < cvs.size(); ++i)
-            {
-                ii += (idx[i])*std::pow(nbins_[i],i);
-            } 
-
             // The histogram is updated based on the index
             hist_->at(x) += 1;
     
@@ -212,38 +194,39 @@ namespace SSAGES
 		for( size_t k = 0; k < cvs.size(); k++)
 		{
 			size_t ncoeff = polyords_[k]+1;
+            int nbins = hist_->GetNumPoints(k);
 
-			std::vector<double> dervs(nbins_[k]*ncoeff,0);
-			std::vector<double> vals(nbins_[k]*ncoeff,0);
-            std::vector<double> x(nbins_[k],0);
+            std::vector<double> dervs(nbins*ncoeff,0);
+            std::vector<double> vals(nbins*ncoeff,0);
+            std::vector<double> x(nbins,0);
 
             /*As the values for Legendre polynomials can be defined recursively, \
              *both the derivatives and values are defined at the same time,
              */
-			for (int i = 0; i < nbins_[k]; ++i)
+			for (int i = 0; i < nbins; ++i)
 			{
-                x[i] = (2.0*i + 1.0)/nbins_[k] - 1.0;
+                x[i] = (2.0*i + 1.0)/nbins - 1.0;
 				vals[i] = 1.0;
 				dervs[i] = 0.0;
 			}
 
-			for (int i = 0; i < nbins_[k]; ++i)
+			for (int i = 0; i < nbins; ++i)
 			{
-				vals[i+nbins_[k]] = x[i];
-				dervs[i+nbins_[k]] = 1.0;
+				vals[i+nbins] = x[i];
+				dervs[i+nbins] = 1.0;
 			}
 
 			for (size_t j = 2; j < ncoeff; j++)
 			{
-				for (int i = 0; i < nbins_[k]; i++)
+				for (int i = 0; i < nbins; i++)
 				{
                     //Evaluate the values of the Legendre polynomial at each bin
-					vals[i+j*nbins_[k]] = ( ( 2.0*j - 1.0 ) * x[i] * vals[i+(j-1)*nbins_[k]]
-					- (j - 1.0) * vals[i+(j-2)*nbins_[k]] ) / j;
+					vals[i+j*nbins] = ( ( 2.0*j - 1.0 ) * x[i] * vals[i+(j-1)*nbins]
+					- (j - 1.0) * vals[i+(j-2)*nbins] ) / j;
 
                     //Evaluate the derivatives of the Legendre polynomial at each bin
-                    dervs[i+j*nbins_[k]] = ( ( 2.0*j - 1.0 ) * ( vals[i+(j-1)*nbins_[k]] + x[i] * dervs[i+(j-1)*nbins_[k]] )
-                    - (j - 1.0) * dervs[i+(j-2)*nbins_[k]] ) / j;
+                    dervs[i+j*nbins] = ( ( 2.0*j - 1.0 ) * ( vals[i+(j-1)*nbins] + x[i] * dervs[i+(j-1)*nbins] )
+                    - (j - 1.0) * dervs[i+(j-2)*nbins] ) / j;
 				}
 			}
             BasisLUT TempLUT(vals,dervs);
@@ -280,7 +263,8 @@ namespace SSAGES
                 for(size_t l = 0; l < cvs.size(); ++l)
                 { 
                     // The previous bias is only calculated after each sweep has happened
-                    basis *= LUT_[l].values[it2.indices()[l] + coeff.map[l]*(nbins_[l])];
+                    int nbins = hist_->GetNumPoints(l);
+                    basis *= LUT_[l].values[it2.indices()[l] + coeff.map[l]*nbins];
                 }
                 bias += coeff.value*basis;
                 basis = 1.0;
@@ -319,7 +303,8 @@ namespace SSAGES
                 // This adds in a trap-rule type weighting which lowers error significantly at the boundaries
                 for(size_t k = 0; k < cvs.size(); ++k)
                 {
-                    if(it2.indices()[k] == 0 || it2.indices()[k] == nbins_[k]-1)
+                    if( it2.indices()[k] == 0 ||
+                        it2.indices()[k] == hist_->GetNumPoints(k)-1)
                         weight /= 2.0;
                 }
             
@@ -328,7 +313,8 @@ namespace SSAGES
                  */
                 for(size_t l = 0; l < cvs.size(); l++)
                 {
-                    basis *= LUT_[l].values[it2.indices()[l] + coeff.map[l]*(nbins_[l])] / nbins_[l];
+                    int nbins = hist_->GetNumPoints(l);
+                    basis *= LUT_[l].values[it2.indices()[l] + coeff.map[l]*nbins] / nbins;
                     basis *= 2.0 * coeff.map[l] + 1.0;
                 }
                 coeff.value += basis * log(unbias_[j]) * weight/std::pow(2.0,cvs.size());
@@ -376,7 +362,8 @@ namespace SSAGES
             {
                 for(size_t k = 0; k < cvs.size(); ++k)
                 {
-                    temp *=  LUT_[k].values[it.indices()[k] + coeff_[j].map[k] * (nbins_[k])];
+                    int nbins = hist_->GetNumPoints(k);
+                    temp *=  LUT_[k].values[it.indices()[k] + coeff_[j].map[k] * nbins];
                 }
                 bias[i] += coeff_[j].value*temp;
                 temp  = 1.0;
@@ -402,7 +389,8 @@ namespace SSAGES
             for(size_t k = 0; k < cvs.size(); ++k)
             {
                 // Evaluate the CV values for printing purposes
-                pos = (it.indices()[k]+0.5)*(hist_->GetUpper(k) - hist_->GetLower(k)) * 1.0 /(double)( nbins_[k]) + hist_->GetLower(k);
+                int nbins = hist_->GetNumPoints(k);
+                pos = (it.indices()[k]+0.5)*(hist_->GetUpper(k) - hist_->GetLower(k)) / nbins + hist_->GetLower(k);
                 basisout_ << pos << std::setw(35);
             }
             basisout_ << -bias[j] << std::setw(35);
@@ -430,10 +418,8 @@ namespace SSAGES
 		// Reset derivatives
         std::fill(derivatives_.begin(), derivatives_.end(), 0);
         std::vector<double> x(cvs.size(),0);
-        std::vector<int> idx(cvs.size(),0);
 
         double temp = 1.0;
-        size_t ii = 0;
 
         //This is calculating the derivatives for the bias force
         for (size_t j = 0; j < cvs.size(); ++j)
@@ -474,11 +460,6 @@ namespace SSAGES
         // Only apply soft wall potential in the event that it has left the boundaries
         if(bounds_)
         {
-            idx = hist_->GetIndices(x);
-
-            for(size_t i = 0; i < cvs.size(); ++i)
-                ii += (idx[i])*std::pow(nbins_[i],i);
-            
             for (size_t i = 1; i < coeff_.size(); ++i)
             {
                 for (size_t j = 0; j < cvs.size(); ++j)
@@ -486,8 +467,9 @@ namespace SSAGES
                     temp = 1.0;
                     for (size_t k = 0; k < cvs.size(); ++k)
                     {
-                        temp *= j == k ?  LUT_[k].derivs[hist_->GetIndices(x)[k] + coeff_[i].map[k]*(nbins_[k])] * 2.0 / (hist_->GetUpper(j) - hist_->GetLower(j))
-                                       :  LUT_[k].values[hist_->GetIndices(x)[k] + coeff_[i].map[k]*(nbins_[k])];
+                        int nbins = hist_->GetNumPoints(k);
+                        temp *= j == k ?  LUT_[k].derivs[hist_->GetIndices(x)[k] + coeff_[i].map[k]*nbins] * 2.0 / (hist_->GetUpper(j) - hist_->GetLower(j))
+                                       :  LUT_[k].values[hist_->GetIndices(x)[k] + coeff_[i].map[k]*nbins];
                     }
                     derivatives_[j] -= coeff_[i].value * temp;
                 }

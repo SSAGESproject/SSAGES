@@ -129,9 +129,6 @@ namespace SSAGES
         //! The order of the basis polynomials
         std::vector<unsigned int> polyords_;
 
-        //! Storing number of bins for simplicity and readability of code
-        std::vector<int> nbins_;
-
         //! Spring constants for restrained system.
         /*!
          * The system uses this to determine if the system is to be restrained
@@ -256,7 +253,7 @@ namespace SSAGES
              bool converge) :
 		Method(frequency, world, comm), hist_(hist),
         coeff_(), unbias_(), coeff_arr_(), LUT_(), derivatives_(), polyords_(polyord),
-        nbins_(), restraint_(restraint), boundUp_(boundUp), boundLow_(boundLow),
+        restraint_(restraint), boundUp_(boundUp), boundLow_(boundLow),
         cyclefreq_(cyclefreq), mpiid_(0), weight_(weight),
         temperature_(temperature), tol_(tol),
         converge_exit_(converge), bnme_(bnme), cnme_(cnme)
