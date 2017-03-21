@@ -350,7 +350,6 @@ namespace SSAGES
         std::vector<double> bias(hist_->size(), 0);
         std::vector<double> x(cvs.size(), 0);
         double temp = 1.0; 
-        double pos = 0;
 
         /* Since the coefficients are the only piece that needs to be
          *updated, the bias is only evaluated when printing
@@ -389,9 +388,7 @@ namespace SSAGES
             for(size_t k = 0; k < cvs.size(); ++k)
             {
                 // Evaluate the CV values for printing purposes
-                int nbins = hist_->GetNumPoints(k);
-                pos = (it.indices()[k]+0.5)*(hist_->GetUpper(k) - hist_->GetLower(k)) / nbins + hist_->GetLower(k);
-                basisout_ << pos << std::setw(35);
+                basisout_ << it.coordinates()[k] << std::setw(35);
             }
             basisout_ << -bias[j] << std::setw(35);
             if(unbias_[j])
