@@ -50,7 +50,7 @@ namespace SSAGES
 		unsigned int min_num_umbrella_steps_;
 
 		//! Flag to run umbrella or not during post-integration        
-        bool run_umbrella_;
+        int run_umbrella_;
 
         //! Iterator that keeps track of umbrella iterations
 		unsigned int umbrella_iter_;

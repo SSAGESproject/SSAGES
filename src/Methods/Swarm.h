@@ -74,7 +74,7 @@ namespace SSAGES
             bool snapshot_stored;        
             
             //! Flag for whether a system is initialized at a given iteration
-            bool initialized;
+            int initialized;
 
             //! Flag for whether a system was initialized before it checked whether other systems were
             bool original_initialized; 

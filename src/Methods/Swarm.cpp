@@ -84,7 +84,7 @@ namespace SSAGES
                 snapshot_stored = true;
             }
         }
-        MPI_Allreduce(MPI::IN_PLACE, &initialized, 1, MPI::BOOL, MPI::LAND, world_);
+        MPI_Allreduce(MPI_IN_PLACE, &initialized, 1, MPI_INT, MPI_LAND, world_);
         if(!initialized && !sampling_started)
         {//Ensure CVs are initialized well
             //Do restrained sampling, and do not harvest trajectories 
