@@ -35,31 +35,39 @@ namespace Json {
 namespace SSAGES
 {
 
-//! Basic Grid.
+//! Basic Histogram.
 /*!
- * \tparam T type of data to be stored in the grid.
+ * \tparam T type of data to be stored in the histogram.
  *
- * A Grid is a method to store data in SSAGES. It is used to discretize a
- * continuous number, typically a collective variable or a function, into
- * \c number_points grid points. At each grid point, an arbitrary type of
- * data can be stored, specified via the template parameter \c T.
+ * A Histogram is a method to store data in SSAGES. It is used to discretize
+ * a continuous number, typically a collective variable, into \c number_points
+ * bins. For each bin, an arbitrary type of data can be stored, specified via
+ * the template parameter \c T.
  *
- * The grid can be of arbitrary dimension. For each dimension, the lower
+ * The histogram can be of arbitrary dimension. For each dimension, the lower
  * bound, the upper bound and the number of grid points need to be specified.
- * Furthermore, the grid can be defined as periodic or non-periodic in the
- * respective dimension. By default, the grid is non-periodic. The grid points
+ * Furthermore, the histogram can be defined as periodic or non-periodic in the
+ * respective dimension. By default, the histogram is non-periodic. The bins
  * are indexed from 0 to number_points-1 following the standard C/C++
- * convention.
+ * convention. In contrast to the Grid, a Histogram additionally includes
+ * an under- and an overflow bin in each non-periodic dimension. These can be
+ * accessed via the indices -1 an \c number_points (see below).
  *
- * The grid spacing \c Delta is given by (upper - lower)/number_points. Thus,
- * grid point \c n corresponds to the interval [lower + n*Delta, lower + (n+1)*Delta).
+ * The bin width \c Delta is given by (upper - lower)/number_points. Thus, bin
+ * \c n corresponds to the interval [lower + n*Delta, lower + (n+1)*Delta).
  * Note that n follows the C/C++ convention, i.e. n = 0 for the first interval.
  * The bin indices pertaining to a given point can be obtained via GetIndices().
+ *
+ * In non-periodic dimensions, an overflow and an underflow interval exist. The
+ * underflow interval corresponds to the interval (-infinity, lower), i.e. all
+ * points below \c lower. Similarly, the overflow interval corresponds to the
+ * interval [upper, infinity). The underflow grid point can be accessed via the
+ * index -1, the overflow grid point via the index \c number_points.
  *
  * \ingroup Core
  */
 template<typename T>
-class Grid : public GridBase<T>
+class Histogram : public GridBase<T>
 {
 private:
     //! Map d-dimensional indices to 1-d data vector
@@ -76,18 +84,25 @@ private:
         // Check if an index is out of bounds
         for (size_t i=0; i < GridBase<T>::GetDimension(); ++i) {
             int index = indices.at(i);
+            bool periodic = GridBase<T>::GetPeriodic(i);
             int numpoints = GridBase<T>::GetNumPoints(i);
-            if ( index < 0 || index >= numpoints )
+            if ( (periodic && (index < 0 || index >= numpoints)) ||
+                 (periodic && (index < -1 || index > numpoints)) )
             {
-                throw std::out_of_range("Grid index out of range.");
+                throw std::out_of_range("Bin index out of range.");
             }
         }
 
         size_t idx = 0;
         size_t fac = 1;
         for (size_t i=0; i < GridBase<T>::GetDimension(); ++i) {
-            idx += indices.at(i) * fac;
-            fac *= GridBase<T>::GetNumPoints(i);
+            if (GridBase<T>::GetPeriodic(i)) {
+                idx += indices.at(i) * fac;
+                fac *= GridBase<T>::GetNumPoints(i);
+            } else {
+                idx += (indices.at(i) + 1) * fac;
+                fac *= GridBase<T>::GetNumPoints(i) + 2;
+            }
         }
         return idx;
     }
@@ -104,7 +119,7 @@ public:
      * The dimension of the grid is determined by the size of the parameter
      * vectors.
      */
-    Grid(std::vector<int> numPoints,
+    Histogram(std::vector<int> numPoints,
               std::vector<double> lower,
               std::vector<double> upper,
               std::vector<bool> isPeriodic)
@@ -113,37 +128,38 @@ public:
         size_t data_size = 1;
         for (size_t d = 0; d < GridBase<T>::GetDimension(); ++d) {
             size_t storage_size = GridBase<T>::GetNumPoints(d);
+            if (!GridBase<T>::GetPeriodic(d)) { storage_size += 2; }
             data_size *= storage_size;
         }
 
         GridBase<T>::data_.resize(data_size);
     }
 
-    //! Set up the grid
+    //! Set up the histogram
     /*!
      * \param json JSON value containing all input information.
-     * \return Pointer to the newly built grid.
+     * \return Pointer to the newly built histogram.
      *
-     * This function builds a grid from a JSON node. It will return a nullptr
+     * This function builds a histogram from a JSON node. It will return a nullptr
      * if an unknown error occured, but generally, it will throw a
      * BuildException of failure.
      */
-    static Grid<T>* BuildGrid(const Json::Value& json)
+    static Histogram<T>* BuildHistogram(const Json::Value& json)
     {
-        return BuildGrid(json, "#/Grid");
+        return BuildHistogram(json, "#/Histogram");
     }
 
-    //! Set up the grid
+    //! Set up the histogram
     /*!
      * \param json JSON Value containing all input information.
      * \param path Path for JSON path specification.
-     * \return Pointer to the newly built grid.
+     * \return Pointer to the newly built histogram.
      *
-     * This function builds a grid from a JSON node. It will return a nullptr
+     * This function builds a histogram from a JSON node. It will return a nullptr
      * if an unknown error occured, but generally, it will throw a
      * BuildException on failure.
      */
-    static Grid<T>* BuildGrid(const Json::Value& json, const std::string& path)
+    static Histogram<T>* BuildHistogram(const Json::Value& json, const std::string& path)
     {
         Json::ObjectRequirement validator;
         Json::Value schema;
@@ -202,9 +218,9 @@ public:
         }
 
         // Construct the grid.
-        Grid<T>* grid = new Grid(number_points, lower, upper, isPeriodic);
+        Histogram<T>* hist = new Histogram(number_points, lower, upper, isPeriodic);
 
-        return grid;
+        return hist;
     }
 
     //! \copydoc Serializable::Serialize()
@@ -218,18 +234,15 @@ public:
 
     //! Custom Iterator
     /*!
-     * This iterator is designed of travesing through a grid. The starting point
-     * is at grid index 0 for each dimension. The last valid grid point has the
-     * num_points in each dimension, where num_points is the number of grid
-     * points in the respective dimension.
+     * This iterator is designed of travesing through a histogram. The starting
+     * point is at grid index 0 (-1) for each periodic (non-periodic) dimension.
      *
      * The iterator can be used as a standard iterator with operator* accessing
      * the grid point at which the iterator currently is.
      *
-     * Additionally, the functions GridIterator::indices() and
-     * GridIterator::coordinates() are provided. These functions return the
-     * indices of the current grid point and the center of the grid point
-     * interval in real space, respectively.
+     * Additionally, the functions HistIterator::indices() and
+     * HistIterator::coordinates() are provided. These functions return the
+     * indices of the current bin and the bin center in real space, respectively.
      *
      * The iterator can be moved to an arbitrary position. As indices() returns
      * a reference (and not a const reference), it can be used to move the
@@ -240,13 +253,14 @@ public:
      * it.indices() = {1,1,1};
      * \endcode
      *
-     * moves the iterator to the grid point [1, 1, 1].
+     * moves the iterator to the bin with indices [1, 1, 1].
      *
      * The iterator can be traversed in a standard fashion with the increment
      * and decrement operators operator++ and operator--. When the increment
      * operator is invoked, the bin index for the lowest dimension is increased
-     * by 1. If it moves beyond the valid range in this dimension, the index is
-     * reset to 0 and the index of the next higher dimension is increased by 1.
+     * by 1. If it is beyond the histogram size in this dimension, the index is
+     * reset to its smallest value (0 for periodic, -1 for non-periodic
+     * dimensions) and the index of the next higher dimension is increased by 1.
      * The decrement operator traveses the grid in the same fashion but opposite
      * direction.
      *
@@ -254,10 +268,10 @@ public:
      * of ints. The vector needs to have the same dimension as the histogram.
      */
     template<typename R>
-    class GridIterator {
+    class HistIterator {
     public:
         //! Type name of the iterator.
-        typedef GridIterator self_type;
+        typedef HistIterator self_type;
 
         //! Difference type is an int.
         typedef int difference_type;
@@ -275,25 +289,25 @@ public:
         typedef std::bidirectional_iterator_tag iterator_category;
 
         //! Use default constructor.
-        GridIterator() = default;
+        HistIterator() = default;
 
         //! Constructor
         /*!
          * \param indices Bin indices specifying the current position of the
          *                iterator.
-         * \param hist Pointer to the grid to iterate over.
+         * \param hist Pointer to the histogram to iterate over.
          */
-        GridIterator(const std::vector<int> &indices, Grid<T> *grid)
-            : indices_(indices), grid_(grid)
+        HistIterator(const std::vector<int> &indices, Histogram<T> *hist)
+            : indices_(indices), hist_(hist)
         {
         }
 
         //! Copy constructor
         /*!
-         * \param other GridIterator to be copied.
+         * \param other HistIterator to be copied.
          */
-        GridIterator(const GridIterator &other)
-            : indices_(other.indices_), grid_(other.grid_)
+        HistIterator(const HistIterator &other)
+            : indices_(other.indices_), hist_(other.hist_)
         {
         }
 
@@ -301,22 +315,31 @@ public:
         /*!
          * \return Reference to the value at the current grid position.
          */
-        reference operator*() { return grid_->at(indices_); }
+        reference operator*() { return hist_->at(indices_); }
 
         //! Pre-increment operator.
         /*!
          * \return Reference to iterator.
          *
-         * Increments the bin index of lowest dimension. If an index moves
-         * beyond the maximum value (num_points-1), it is reset to 0 and the
-         * index of the next higher dimension is increased by 1.
+         * Increments the bin index of the lowest dimension. If an index moves
+         * beyond the maximum value (num_points-1 for periodic and num_points
+         * for non-periodic dimensions), it is reset to its smallest value (0
+         * for periodic, -1 for non-periodic dimensions) and the index of the
+         * next higher dimension is increased by 1.
          */
         self_type &operator++()
         {
             indices_.at(0) += 1;
-            for (size_t i = 0; i < grid_->GetDimension() - 1; ++i) {
-                if (indices_.at(i) >= grid_->GetNumPoints(i)) {
+            for (size_t i = 0; i < hist_->GetDimension() - 1; ++i) {
+                if (hist_->GetPeriodic(i) &&
+                    indices_.at(i) >= hist_->GetNumPoints(i)) {
+
                     indices_.at(i) = 0;
+                    indices_.at(i+1) += 1;
+                } else if (!hist_->GetPeriodic(i) &&
+                           indices_.at(i) > hist_->GetNumPoints(i)) {
+
+                    indices_.at(i) = -1;
                     indices_.at(i+1) += 1;
                 }
             }
@@ -330,7 +353,7 @@ public:
          */
         self_type operator++(int)
         {
-            GridIterator it(*this);
+            HistIterator it(*this);
             ++(*this);
             return it;
         }
@@ -345,21 +368,19 @@ public:
          *
          * Example:
          *
-         * \code{.cpp}
          * if += {1,1,1};
-         * \endcode
          *
          * In this example the current position of the iterator is shifted
          * diagonally.
          */
         self_type &operator+=(std::vector<int> shift)
         {
-            if (shift.size() != grid_->GetDimension()) {
+            if (shift.size() != hist_->GetDimension()) {
                 throw std::invalid_argument("Vector to shift iterator does not "
-                                            "match grid dimension.");
+                                            "match histogram dimension.");
             }
 
-            for (size_t i = 0; i < grid_->GetDimension(); ++i) {
+            for (size_t i = 0; i < hist_->GetDimension(); ++i) {
                 indices_.at(i) += shift.at(i);
             }
 
@@ -375,7 +396,7 @@ public:
          */
         const self_type operator+(std::vector<int> shift)
         {
-            return GridIterator(*this) += shift;
+            return HistIterator(*this) += shift;
         }
 
         //! Pre-decrement operator.
@@ -388,9 +409,12 @@ public:
         self_type &operator--()
         {
             indices_.at(0) -= 1;
-            for (size_t i = 0; i < grid_->GetDimension() - 1; ++i) {
-                if (indices_.at(i) < 0) {
-                    indices_.at(i) = grid_->GetNumPoints(i)-1;
+            for (size_t i = 0; i < hist_->GetDimension() - 1; ++i) {
+                if (hist_->GetPeriodic(i) && indices_.at(i) < 0) {
+                    indices_.at(i) = hist_->GetNumPoints(i)-1;
+                    indices_.at(i+1) -= 1;
+                } else if (!hist_->GetPeriodic(i) && indices_.at(i) < -1) {
+                    indices_.at(i) = hist_->GetNumPoints(i);
                     indices_.at(i+1) -= 1;
                 }
             }
@@ -404,7 +428,7 @@ public:
          */
         self_type operator--(int)
         {
-            GridIterator it(*this);
+            HistIterator it(*this);
             --(*this);
             return it;
         }
@@ -416,12 +440,12 @@ public:
          */
         self_type &operator-=(std::vector<int> shift)
         {
-            if (shift.size() != grid_->GetDimension()) {
+            if (shift.size() != hist_->GetDimension()) {
                 throw std::invalid_argument("Vector to shift iterator does not "
                                             "match histogram dimension.");
             }
 
-            for (size_t i = 0; i < grid_->GetDimension(); ++i) {
+            for (size_t i = 0; i < hist_->GetDimension(); ++i) {
                 indices_.at(i) -= shift.at(i);
             }
 
@@ -435,7 +459,7 @@ public:
          */
         const self_type operator-(std::vector<int> shift)
         {
-            return GridIterator(*this) -= shift;
+            return HistIterator(*this) -= shift;
         }
 
         //! Equality operator
@@ -446,7 +470,7 @@ public:
          */
         bool operator==(const self_type &rhs) const
         {
-            return indices_ == rhs.indices_ && grid_ == rhs.grid_;
+            return indices_ == rhs.indices_ && hist_ == rhs.hist_;
         }
 
         //! Non-equality operator.
@@ -478,78 +502,104 @@ public:
          */
         std::vector<double> coordinates() const
         {
-            return grid_->GetCoordinates(indices_);
+            return hist_->GetCoordinates(indices_);
         }
     private:
         //! Indices of current bin.
         std::vector<int> indices_;
 
         //! Pointer to histogram to iterate over.
-        Grid<T> *grid_;
+        Histogram<T> *hist_;
     };
 
     //! Custom iterator over a histogram.
-    typedef GridIterator<T> iterator;
+    typedef HistIterator<T> iterator;
 
     //! Custom constant iterator over a histogram.
-    typedef GridIterator<const T> const_iterator;
+    typedef HistIterator<const T> const_iterator;
 
-    //! Return iterator at first grid point.
+    //! Return iterator at first bin of histogram
     /*!
-     * \return Iterator at first grid point.
+     * \return Iterator at first bin of the histogram.
      *
-     * The first grid point is defined as the grid point with index 0 in all
-     * dimensions.
+     * The first bin is the bin that has the lowest allowed index in all
+     * dimensions, i.e. 0 in periodic and -1 in non-periodic dimensions.
      */
     iterator begin()
     {
-        std::vector<int> indices(GridBase<T>::GetDimension(), 0);
+        std::vector<int> indices(GridBase<T>::GetDimension());
+        for (size_t i = 0; i < indices.size(); ++i) {
+            if(GridBase<T>::GetPeriodic(i)) {
+                indices.at(i) = 0;
+            } else {
+                indices.at(i) = -1;
+            }
+        }
 
         return iterator(indices, this);
     }
 
-    //! Return iterator after last valid grid point.
+    //! Return iterator after last valid bin.
     /*!
-     * \return Iterator after last valid grid point.
+     * \return Iterator after last valid bin.
      *
-     * The last valid grid point has index num_points - 1 in all dimensions.
+     * The last valid bin is the bin that has the highest allowed index in all
+     * dimensions, i.e. num_points - 1 in periodic and num_points in
+     * non-periodic dimensions.
      */
     iterator end()
     {
         std::vector<int> indices(GridBase<T>::GetDimension());
         for (size_t i = 0; i < indices.size(); ++i) {
-            indices.at(i) = GridBase<T>::GetNumPoints(i) - 1;
+            if (GridBase<T>::GetPeriodic(i)) {
+                indices.at(i) = GridBase<T>::GetNumPoints(i) - 1;
+            } else {
+                indices.at(i) = GridBase<T>::GetNumPoints(i);
+            }
         }
 
         iterator it(indices, this);
         return ++it;
     }
 
-    //! Return const iterator at first grid point.
+    //! Return const iterator at first bin of histogram
     /*!
-     * \return Const iterator at first grid point.
+     * \return Const iterator at first bin of the histogram.
      *
-     * The first grid point is defined as the grid point with index 0 in all
-     * dimensions.
+     * The first bin is the bin that has the lowest allowed index in all
+     * dimensions, i.e. 0 in periodic and -1 in non-periodic dimensions.
      */
     typename std::vector<T>::const_iterator begin() const
     {
-        std::vector<int> indices(GridBase<T>::GetDimension(), 0);
+        std::vector<int> indices(GridBase<T>::GetDimension());
+        for (size_t i = 0; i < indices.size(); ++i) {
+            if(GridBase<T>::GetPeriodic(i)) {
+                indices.at(i) = 0;
+            } else {
+                indices.at(i) = -1;
+            }
+        }
 
         return iterator(indices, this);
     }
 
-    //! Return const iterator after last valid grid point.
+    //! Return const iterator after last valid bin.
     /*!
-     * \return Const iterator after last valid grid point.
+     * \return Const iterator after last valid bin.
      *
-     * The last valid grid point has index num_points - 1 in all dimensions.
+     * The last valid bin is the bin that has the highest allowed index in all
+     * dimensions, i.e. num_points - 1 in periodic and num_points in
+     * non-periodic dimensions.
      */
     typename std::vector<T>::const_iterator end() const
     {
         std::vector<int> indices(GridBase<T>::GetDimension());
         for (size_t i = 0; i < indices.size(); ++i) {
-            indices.at(i) = GridBase<T>::GetNumPoints(i) - 1;
+            if (GridBase<T>::GetPeriodic(i)) {
+                indices.at(i) = GridBase<T>::GetNumPoints(i) - 1;
+            } else {
+                indices.at(i) = GridBase<T>::GetNumPoints(i);
+            }
         }
 
         iterator it(indices, this);

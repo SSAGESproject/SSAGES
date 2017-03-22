@@ -42,6 +42,9 @@ namespace SSAGES
 	protected:
 		//! Gradient vector dCv/dxi.
 		std::vector<Vector3> grad_;
+
+		//! Gradient w.r.t box vectors dCv/dHij.
+		Matrix3 boxgrad_;
 		
 	 	//! Current value of CV.
 		double val_;				
@@ -51,7 +54,7 @@ namespace SSAGES
 	public:
 		//! Constructor.
 		CollectiveVariable() : 
-		grad_(0), val_(0), bounds_{{0,0}}
+		grad_(0), boxgrad_(Matrix3::Zero()), val_(0), bounds_{{0,0}}
 		{}
 
 		//! Destructor.
@@ -126,6 +129,17 @@ namespace SSAGES
 		const std::vector<Vector3>& GetGradient() const
 		{
 			return grad_;
+		}
+
+		//! Get gradient contribution to box. 
+		/*
+		 * \return Gradient of CV with respect to box. 
+		 *
+		 * Returns the gradient of the CV with respect to the box.
+		 */
+		const Matrix3& GetBoxGradient() const
+		{
+			return boxgrad_;
 		}
 
 		//! Get CV boundaries.

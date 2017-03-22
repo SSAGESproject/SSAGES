@@ -33,7 +33,6 @@
 #include "../Constraints/Constraint.h"
 #include "../Snapshot.h"
 #include "../JSON/JSONLoader.h"
-#include "../Grids/Grid.h"
 #include "../Simulations/SimObservable.h"
 #include "../Simulations/SimObserver.h"
 #include "../Observers/Visitable.h"
@@ -210,16 +209,6 @@ namespace SSAGES
 				this->AddObserver(o);
 		}
 
-		//! Build the grid.
-		/*!
-		 * \param json JSON value containing input information.
-		 * \param path Path for JSON path specification.
-		 */
-		void BuildGrid(const Json::Value& json, const std::string& path)
-		{
-			method_->BuildGrid(json, path);
-		}
-
 		//! Finalize the setup
 		/*!
 		 * Create the snapshot and put all gathered values into the local hook.
@@ -264,11 +253,6 @@ namespace SSAGES
 			SerializeObservers(json["observers"]);
 
 			method_->Serialize(json["method"]);
-
-			auto* Grid = method_->GetGrid();
-
-			if(Grid)
-				Grid->Serialize(json["grid"]);
 
 			auto& tmp = json["CVs"];
 			for(unsigned int i = 0; i < CVs_.size();i++)

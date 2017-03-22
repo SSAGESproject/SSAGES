@@ -5,7 +5,6 @@ set(TEST_DEPS
 	libssages)
 
 set  (UNIT_TESTS "ParticlePositionCVTests"
-                 "GridTests"
                  "ABFTests"
                  "TorsionalCVTests"
                  "SnapshotTests"
@@ -21,7 +20,8 @@ set  (UNIT_TESTS "ParticlePositionCVTests"
 				 "FTSTest"
                  "StringMethodTest"
                  "GyrationTensorCVTests"
-                 "RouseModeCVTests")
+                 "RouseModeCVTests"
+                 "CoordinationNumberCVTests")
 
 set (INTEGRATION_TESTS "Meta_Single_Atom_Test"
                        "Basis_ADP_Test")
