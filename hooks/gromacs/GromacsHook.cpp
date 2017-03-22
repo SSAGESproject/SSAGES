@@ -100,6 +100,7 @@ namespace SSAGES
 		     boxmat[1][0], boxmat[1][1], boxmat[1][2],
 		     boxmat[2][0], boxmat[2][1], boxmat[2][2];
 		snapshot_->SetHMatrix(H);
+		snapshot_->SetVirial(Matrix3::Zero());
 	}
 
  	template<typename T>
@@ -110,7 +111,8 @@ namespace SSAGES
 		T masses[],
 		T positions[][3], 
 		T velocities[][3],
-		T forces[][3])
+		T forces[][3],
+		T virial[3][3])
 	{
 		const auto& pos = snapshot_->GetPositions();
 		const auto& vel = snapshot_->GetVelocities();
@@ -118,6 +120,7 @@ namespace SSAGES
 		const auto& mass = snapshot_->GetMasses();
 		const auto& ids = snapshot_->GetAtomIDs();
 		const auto& typs = snapshot_->GetAtomTypes();
+		const auto& vir = snapshot_->GetVirial();
 
 		for(int i = 0; i < natoms; ++i)
 		{
@@ -143,6 +146,16 @@ namespace SSAGES
 			forces[i][1] = frc[i][1];
 			forces[i][2] = frc[i][2];
 		}
+
+		virial[0][0] += vir(0,0);
+		virial[0][1] += vir(0,1);
+		virial[0][2] += vir(0,2);
+		virial[1][0] += vir(1,0);
+		virial[1][1] += vir(1,1);
+		virial[1][2] += vir(1,2);
+		virial[2][0] += vir(2,0);
+		virial[2][1] += vir(2,1);
+		virial[2][2] += vir(2,2);
 	}
 
 // Explicit instantiation. Normally we'd let this happen in Gromacs, 
@@ -168,7 +181,8 @@ template void GromacsHook::PushToGromacs<float>(
 	float[],
 	float[][3], 
 	float[][3],
-	float[][3]);
+	float[][3],
+	float[3][3]);
 
 template void GromacsHook::PullToSSAGES<double>(
 	int, 
@@ -191,5 +205,6 @@ template void GromacsHook::PushToGromacs<double>(
 	double[],
 	double[][3], 
 	double[][3],
-	double[][3]);
+	double[][3],
+	double[3][3]);
 }

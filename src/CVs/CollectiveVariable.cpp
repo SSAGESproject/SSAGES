@@ -34,6 +34,8 @@
 #include "GyrationTensorCV.h"
 #include "RMSDCV.h"
 #include "RouseModeCV.h"
+#include "CoordinationNumberCV.h"
+#include "BoxVolumeCV.h"
 
 using namespace Json;
 
@@ -261,10 +263,44 @@ namespace SSAGES
 					groups.back().push_back(id.asInt());
 				}
 			}
-			auto mode      = json.get("mode",0).asInt();
+			auto mode = json.get("mode",0).asInt();
 
 			auto* c = new RouseModeCV( groups, mode);
 			
+			cv = static_cast<CollectiveVariable*>(c);
+		}
+		else if(type == "CoordinationNumber")
+		{
+			reader.parse(JsonSchema::CoordinationNumberCV, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+			
+			std::vector<int> group1, group2;
+			
+			for(auto& s : json["group1"])
+				group1.push_back(s.asInt());
+
+			for(auto& s : json["group2"])
+				group2.push_back(s.asInt());
+			
+			auto* c = new CoordinationNumberCV(group1, group2, SwitchingFunction::Build(json["switching"]));
+			cv = static_cast<CollectiveVariable*>(c);
+		}
+		else if(type == "BoxVolume")
+		{
+			reader.parse(JsonSchema::BoxVolumeCV, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+
+			auto* c = new BoxVolumeCV();
 			cv = static_cast<CollectiveVariable*>(c);
 		}
 		else

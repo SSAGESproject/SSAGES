@@ -66,6 +66,5 @@ compute xx all reduce sum c_xxa
 timestep 0.0001
 thermo_style custom step temp ke pe etotal c_xx c_ffx c_ee press
 
-#For the sync to engine to work correctly need to set thermo 1 for now
-thermo 1
+thermo 1000
 dump xers all xyz 10000 basis.xyz

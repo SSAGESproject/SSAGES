@@ -29,7 +29,6 @@
 #include "../Constraints/Constraint.h"
 #include "../Drivers/Driver.h"
 #include "../Drivers/DriverException.h"
-#include "../Grids/Grid.h"
 #include "../JSON/Serializable.h"
 #include "../JSON/JSONLoader.h"
 #include "../JSON/Serializable.h"
@@ -191,7 +190,6 @@ namespace SSAGES
 		 */
 		bool BuildDriver(const Json::Value& json, const std::string& path)
 		{
-
 			ArrayRequirement validator;
 			Value schema;
 			Value JsonDrivers;
@@ -304,12 +302,6 @@ namespace SSAGES
 			}
 
             // Build the CVs
-			//if(!json.isMember("CVs") && !JsonDriver.isMember("CVs"))
-			//{
-			//	DumpErrorsToConsole({"Need global CVs or per driver CVs"},notw_);
-			//	success_build = false;
-			//}
-			//else if(JsonDriver.isMember("CVs"))
 			if(JsonDriver.isMember("CVs"))
 			{
 				if(!BuildCVs(JsonDriver, "#/CVs"))
@@ -322,11 +314,6 @@ namespace SSAGES
 			}
 
 			// Build the method
-			//if(!json.isMember("method") && !JsonDriver.isMember("method"))			{
-			//	DumpErrorsToConsole({"Need global method or per driver method"},notw_);
-			//	success_build = false;
-			//}
-			//else if (JsonDriver.isMember("method"))
 			if (JsonDriver.isMember("method"))
 			{
 				if(!BuildMethod(JsonDriver, "#/Methods"))
@@ -335,18 +322,6 @@ namespace SSAGES
 			else if (json.isMember("method"))
 			{
 				if(!BuildMethod(json,"#/Methods"))
-					success_build = false;
-			}
-
-			// Build the grid if it exists
-			if(JsonDriver.isMember("grid"))
-			{
-				if(!BuildGrid(JsonDriver,"#/Grids"))
-					success_build = false;
-			}
-			else if (json.isMember("grid"))
-			{
-				if(!BuildGrid(json,"#/Grids"))
 					success_build = false;
 			}
 
@@ -486,34 +461,6 @@ namespace SSAGES
 			// Build method(s).
 			try{
 				MDDriver_->BuildObservers(json.get("observers", Json::objectValue), nwalkers_);
-			} catch(BuildException& e) {
-				DumpErrorsToConsole(e.GetErrors(), notw_);
-				return false;
-			} catch(std::exception& e) {
-				DumpErrorsToConsole({e.what()}, notw_);
-				return false;
-			}
-
-			return true;
-		}
-
-		//! Set up grid
-		/*!
-		 * \param json JSON value containing input information.
-		 * \param path JSON path specification.
-		 * \return \c True if Grid has been set up sucessfully, else return \c False .
-		 *
-		 * Set up the grid for the Metadynamics simulation.
-		 */
-		bool BuildGrid(const Json::Value& json, const std::string& path)
-		{
-			// Check that MDDriver has been built
-			if (!MDDriver_) {
-				throw std::runtime_error("Simulation Driver needs to be built before Grid.");
-			}
-
-			try{
-				MDDriver_->BuildGrid(json, path);
 			} catch(BuildException& e) {
 				DumpErrorsToConsole(e.GetErrors(), notw_);
 				return false;
