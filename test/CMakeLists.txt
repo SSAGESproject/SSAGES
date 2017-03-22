@@ -20,7 +20,8 @@ set  (UNIT_TESTS "ParticlePositionCVTests"
 				 "SwarmTest"
 				 "FTSTest"
                  "StringMethodTest"
-                 "GyrationTensorCVTests")
+                 "GyrationTensorCVTests"
+                 "RouseModeCVTests")
 
 set (INTEGRATION_TESTS "Meta_Single_Atom_Test"
                        "Basis_ADP_Test")
