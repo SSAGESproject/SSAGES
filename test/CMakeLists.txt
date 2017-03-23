@@ -20,6 +20,7 @@ set  (UNIT_TESTS "ParticlePositionCVTests"
 				 "FTSTest"
                  "StringMethodTest"
                  "GyrationTensorCVTests"
+                 "RouseModeCVTests"
                  "CoordinationNumberCVTests")
 
 set (INTEGRATION_TESTS "Meta_Single_Atom_Test"
