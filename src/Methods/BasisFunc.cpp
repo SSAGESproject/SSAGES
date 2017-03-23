@@ -128,35 +128,34 @@ namespace SSAGES
             x[i] = cvs[i]->GetValue();
         }
        
-        if(bounds_)
-        {
-            // The histogram is updated based on the index
-            hist_->at(x) += 1;
+        // The histogram is updated based on the index
+        hist_->at(x) += 1;
     
-            // Update the basis projection after a predefined number of steps
-            if(snapshot->GetIteration()  % cyclefreq_ == 0) {	
-                double beta;
-                beta = 1.0 / (snapshot->GetTemperature() * snapshot->GetKb());
+        // Update the basis projection after a predefined number of steps
+        if(snapshot->GetIteration()  % cyclefreq_ == 0) {
+            double beta;
+            beta = 1.0 / (snapshot->GetTemperature() * snapshot->GetKb());
 
-                // For systems with poorly defined temperature (ie: 1 particle) the user needs to define their own temperature. This is a hack that will be removed in future versions. 
+            // For systems with poorly defined temperature (ie: 1 particle) the
+            // user needs to define their own temperature. This is a hack that
+            // will be removed in future versions.
 
-                if(snapshot->GetTemperature() == 0)
+            if(snapshot->GetTemperature() == 0)
+            {
+                beta = temperature_;
+                if(temperature_ == 0)
                 {
-                    beta = temperature_;
-                    if(temperature_ == 0)
-                    {
-                        std::cout<<std::endl;
-                        std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                        std::cerr<<"ERROR: Input temperature needs to be defined for this simulation"<<std::endl;
-                        std::cerr<<"Exiting on node ["<<mpiid_<<"]"<<std::endl;
-                        std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                        exit(EXIT_FAILURE);
-                    }
+                    std::cout<<std::endl;
+                    std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
+                    std::cerr<<"ERROR: Input temperature needs to be defined for this simulation"<<std::endl;
+                    std::cerr<<"Exiting on node ["<<mpiid_<<"]"<<std::endl;
+                    std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
+                    exit(EXIT_FAILURE);
                 }
-                iteration_+= 1;
-                UpdateBias(cvs,beta);
-                std::cout<<"Node: ["<<mpiid_<<"]"<<std::setw(10)<<"\tSweep: "<<iteration_<<std::endl;
             }
+            iteration_+= 1;
+            UpdateBias(cvs,beta);
+            std::cout<<"Node: ["<<mpiid_<<"]"<<std::setw(10)<<"\tSweep: "<<iteration_<<std::endl;
         }
 
 		// This calculates the bias force based on the existing basis projection.
@@ -253,6 +252,11 @@ namespace SSAGES
         size_t i = 0;
         for (Histogram<int>::iterator it2 = hist_->begin(); it2 != hist_->end(); ++it2, ++i)
         {
+            if (it2.isUnderOverflowBin()) {
+                --i;
+                continue;
+            }
+
             // This is to make sure that the CV projects across the entire surface
             if (*it2 == 0) { *it2 = 1; }
            
@@ -275,6 +279,7 @@ namespace SSAGES
              */
             unbias_[i] += (*it2) * exp(bias) * weight_ / (double)(cyclefreq_);
             bias = 0.0;
+
         }
 
         // The coefficients and histograms are reset after evaluating the biased histogram values
@@ -298,6 +303,11 @@ namespace SSAGES
             size_t j = 0;
             for(Histogram<int>::iterator it2 = hist_->begin(); it2 != hist_->end(); ++it2, ++j)
             {
+                if (it2.isUnderOverflowBin()) {
+                    --j;
+                    continue;
+                }
+
                 double weight = std::pow(2.0,cvs.size());
 
                 // This adds in a trap-rule type weighting which lowers error significantly at the boundaries
@@ -357,6 +367,11 @@ namespace SSAGES
         size_t i = 0;
         for(Histogram<int>::iterator it = hist_->begin(); it != hist_->end(); ++it, ++i)
         {
+            if (it.isUnderOverflowBin()) {
+                --i;
+                continue;
+            }
+
             for(size_t j = 1; j < coeff_.size(); ++j)
             {
                 for(size_t k = 0; k < cvs.size(); ++k)
@@ -385,6 +400,11 @@ namespace SSAGES
         size_t j = 0;
         for(Histogram<int>::iterator it = hist_->begin(); it != hist_->end(); ++it, ++j)
         {
+            if (it.isUnderOverflowBin()) {
+                --j;
+                continue;
+            }
+
             for(size_t k = 0; k < cvs.size(); ++k)
             {
                 // Evaluate the CV values for printing purposes
