@@ -2,7 +2,9 @@
  * This file is part of
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
- * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
+ Copyright 2016 Ben Sikora <bsikora906@gmail.com>
+ *              Ashley Guo <azguo@uchicago.edu>
+ *              Cody Bezik <bezik@uchicago.edu>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,7 +88,7 @@ namespace SSAGES
 		//! Store velocities for starting trajectories
 		std::vector<std::vector<double>> prev_velocities_;
 
-		//! Store velocities for starting trajectories
+		//! Store atom IDs for starting trajectories
 		std::vector<std::vector<int>> prev_IDs_;
 
 		//! Updates the position of the string.
@@ -143,8 +145,8 @@ namespace SSAGES
 			       world_, &status);
 			}
 
-			MPI_Bcast(&(*lcv0)[0],centers_.size(),MPI::DOUBLE,0,comm_);
-			MPI_Bcast(&(*ucv0)[0],centers_.size(),MPI::DOUBLE,0,comm_);
+			MPI_Bcast(&(*lcv0)[0],centers_.size(),MPI_DOUBLE,0,comm_);
+			MPI_Bcast(&(*ucv0)[0],centers_.size(),MPI_DOUBLE,0,comm_);
 		}
 
 		//! Reparameterize the string
@@ -161,7 +163,7 @@ namespace SSAGES
 				alpha_star_vector[mpiid_] = mpiid_ == 0 ? 0 : alpha_star;
 
 			//Gather each alpha_star into a vector 
-			MPI_Allreduce(MPI::IN_PLACE, &alpha_star_vector[0], numnodes_, MPI::DOUBLE, MPI::SUM, world_);
+			MPI_Allreduce(MPI_IN_PLACE, &alpha_star_vector[0], numnodes_, MPI_DOUBLE, MPI_SUM, world_);
 
 			for(size_t i = 1; i < alpha_star_vector.size(); i++)
 			    alpha_star_vector[i] += alpha_star_vector[i-1];
@@ -178,7 +180,7 @@ namespace SSAGES
 				if(comm_.rank() == 0)
 					cvs_new[mpiid_] = centers_[i];
 
-				MPI_Allreduce(MPI::IN_PLACE, &cvs_new[0], numnodes_, MPI::DOUBLE, MPI::SUM, world_);
+				MPI_Allreduce(MPI_IN_PLACE, &cvs_new[0], numnodes_, MPI_DOUBLE, MPI_SUM, world_);
 
 			    spl.set_points(alpha_star_vector, cvs_new);
 			    centers_[i] = spl(mpiid_/(numnodes_ - 1.0)); 
@@ -200,8 +202,7 @@ namespace SSAGES
 					cvs_new[mpiid_] = centers_[i];
                 }
 
-
-				MPI_Allreduce(MPI::IN_PLACE, &cvs_new[0], numnodes_, MPI::DOUBLE, MPI::SUM, world_);
+				MPI_Allreduce(MPI_IN_PLACE, &cvs_new[0], numnodes_, MPI_DOUBLE, MPI_SUM, world_);
 
 				for(int j = 0; j < numnodes_; j++)
                 {
@@ -247,9 +248,9 @@ namespace SSAGES
 				world_.abort(-1);
 			}
 
-            bool local_tolvalue = TolCheck();
+            int local_tolvalue = TolCheck();
 
-			MPI_Allreduce(MPI::IN_PLACE, &local_tolvalue, 1, MPI::BOOL, MPI::LAND, world_);
+			MPI_Allreduce(MPI_IN_PLACE, &local_tolvalue, 1, MPI_INT, MPI_LAND, world_);
 
 			if(local_tolvalue)
 			{

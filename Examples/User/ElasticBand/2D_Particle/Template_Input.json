@@ -1,5 +1,5 @@
 {
-	"inputfile" : "in.LAMMPS_Meta_Test",
+	"inputfile" : "in.LAMMPS_2DParticle",
 	"driver" : [
 		{
 			"number processors" : 1,
@@ -12,14 +12,14 @@
 					"atom_ids" : [
 						1
 					],
-					"dimension" : "x"
+					"dimension" : "x" 
 				},
 				{
 					"type": "ParticleCoordinate",
 					"atom_ids" : [
 						1
 					],
-                    "dimension" : "y"
+					"dimension" : "y"
 				}
 			],
 			"method" : {
@@ -27,16 +27,17 @@
 				"centers" : [
 						-1.39,
                         1.31
-				],	
-				"max_iterations" : 1000,	
+				],
+				"equilibration_steps" : 1000,
+				"evolution_steps" : 50,
+				"kstring" : 1,
+				"block_iterations": 50,
+				"max_iterations" : 100000,
+				"time_step" : 0.1,
 				"frequency" : 1,
-				"ksprings" : [500,500],
+				"ksprings" : [150, 150],
 				"tolerance" : [0.0001, 0.0001],
-				"flavor" : "SWARM",
-				"initial_steps" : 1000,
-				"harvest_length" : 10,
-				"number_of_trajectories" : 200,
-                "swarm_length" : 2
+				"flavor" : "ElasticBand"
 			}
 		}
 	]

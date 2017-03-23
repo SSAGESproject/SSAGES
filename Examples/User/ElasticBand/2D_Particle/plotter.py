@@ -2,11 +2,14 @@
 
 #Execute this script in the folder with your node-00XX.log outputs to get a graph of initial and final images
 
+
 import numpy as np
 import matplotlib.pyplot as plt
 import math
 
-nodes = 22
+########## INPUT #####################
+nodes = 16 #Number of string nodes
+######################################
 end_lines = list()
 end_data = list()
 start_lines = list()
@@ -23,7 +26,7 @@ for i in range(0, nodes):
     end_lines.append(lineList[-1])
     start_lines.append(lineList[0])
     fileHandle.close()
-    
+
 for line in end_lines:
     end_data.append(line.split(' '))
 
@@ -60,6 +63,6 @@ ax1.set_ylabel('Y')
 ax1.plot(end_xdegree,end_ydegree, 'ro-', label='Final Images')
 ax1.plot(start_xdegree, start_ydegree, 'bo-', label='Initial Images')
 
-leg = ax1.legend()
+#leg = ax1.legend()
 
 plt.show()
