@@ -507,6 +507,20 @@ public:
             return indices()[d];
         }
 
+        //! Check if current iterator position is under- or overflow bin.
+        /*!
+         * \return \c True if current bin is an underflow or an overflow bin.
+         */
+        bool isUnderOverflowBin() const
+        {
+            for (size_t i = 0; i < indices_.size(); ++i) {
+                if (indices_.at(i) == -1 || indices_.at(i) == hist_->GetNumPoints(i)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         //! Access coordinates.
         /*!
          * \return Center point of the current bin.
