@@ -22,10 +22,10 @@
 #pragma once
 
 #include "Method.h"
-#include "../CVs/CollectiveVariable.h"
+#include "../CVs/CollectiveVariable.h"	
+#include "Grids/Grid.h"
 #include <fstream>
 #include <vector>
-
 
 namespace SSAGES
 {
@@ -84,11 +84,21 @@ namespace SSAGES
 		//! Frequency of new hills
 		unsigned int hillfreq_;
 
+		//! CV Grid. 
+		Grid<Vector>* grid_;
+
+		//! Bounds 
+		std::vector<double> upperb_, lowerb_; 
+
+		//! Bound restraints. 
+		std::vector<double> upperk_, lowerk_;
+
 		//! Adds a new hill.
 		/*!
 		 * \param cvs List of CVs.
+		 * \param iteration Current iteration.
 		 */
-		void AddHill(const CVList& cvs);
+		void AddHill(const CVList& cvs, int iteration);
 
 		//! Computes the bias force.
 		/*!
@@ -99,8 +109,9 @@ namespace SSAGES
 		//! Prints the new hill to file
 		/*!
 		 * \param hill Hill to be printed.
+		 * \param iteration Current iteration.
 		 */
-		void PrintHill(const Hill& hill);
+		void PrintHill(const Hill& hill, int interation);
 
 		//! Output stream for hill data.
 		std::ofstream hillsout_;
@@ -123,10 +134,16 @@ namespace SSAGES
 			 boost::mpi::communicator& comm,
 			 double height, 
 			 const std::vector<double>& widths, 
+			 const std::vector<double>& lowerb,
+			 const std::vector<double>& upperb,
+			 const std::vector<double>& lowerk,
+			 const std::vector<double>& upperk,
+			 Grid<Vector>* grid,
 			 unsigned int hillfreq,
 			 unsigned int frequency) : 
 		Method(frequency, world, comm), hills_(), height_(height), widths_(widths), 
-		derivatives_(0), tder_(0), dx_(0), hillfreq_(hillfreq)
+		derivatives_(0), tder_(0), dx_(0), hillfreq_(hillfreq), grid_(grid),
+		upperb_(upperb), lowerb_(lowerb), upperk_(upperk), lowerk_(lowerk)
 		{
 		}
 
@@ -150,6 +167,16 @@ namespace SSAGES
 		 * \param cvs List of CVs.
 		 */
 		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
+
+		//! Load hills from file. 
+		/*! 
+		 * \param filename File name containing hills. 
+		 *
+		 * \note File format must match the output written by this method and 
+		 *       the dimensionality of the hills must match the initialized 
+		 *       Meta class. 
+		 */
+		void LoadHills(const std::string& filename);
 
 		//! \copydoc Serializable::Serialize()
 		/*!

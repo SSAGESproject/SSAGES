@@ -122,11 +122,36 @@ namespace SSAGES
 			for(auto& s : json["widths"])
 				widths.push_back(s.asDouble());
 
+			std::vector<double> lowerb, upperb, lowerk, upperk;
+			Grid<Vector>* grid = nullptr;
+			if(json.isMember("grid"))
+				grid = Grid<Vector>::BuildGrid(json.get("grid", Json::Value()));
+			else if(!json.isMember("lower_bounds") || !json.isMember("upper_bounds"))
+				throw BuildException({
+					"#/Method/Metadynamics: Both upper_bounds and lower_bounds "
+					"must be defined if grid is not being used."});
+
+			// Assume all vectors are the same size. 
+			for(int i = 0; i < json["lower_bound_restraints"].size(); ++i)
+			{
+				lowerk.push_back(json["lower_bound_restraints"][i].asDouble());
+				upperk.push_back(json["upper_bound_restraints"][i].asDouble());
+				lowerb.push_back(json["lower_bounds"][i].asDouble());
+				upperb.push_back(json["upper_bounds"][i].asDouble());
+			}
+		
 			auto height = json.get("height", 1.0).asDouble();
 			auto hillfreq = json.get("hill_frequency", 1).asInt();
 			auto freq = json.get("frequency", 1).asInt();
 
-			auto* m = new Meta(world, comm, height, widths, hillfreq, freq);
+			auto* m = new Meta(
+			    world, comm, height, widths, 
+				lowerb, upperb, lowerk,	upperk,
+				grid, hillfreq, freq
+			);
+
+			if(json.isMember("load_hills"))
+				m->LoadHills(json["load_hills"].asString());
 
 			method = static_cast<Method*>(m);
 		}
