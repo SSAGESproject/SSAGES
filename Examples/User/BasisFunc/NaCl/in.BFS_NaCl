@@ -48,7 +48,7 @@ timestep	2
 
 group nacl id 4498 4499
 
-read_dump equilibrate.xyz 10000 x y z box no format xyz
+read_dump equilibrate.xyz 0 x y z box no format xyz
 
 #compute ra nacl pair/local dist
 #compute r all reduce sum c_ra

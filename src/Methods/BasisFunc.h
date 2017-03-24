@@ -3,6 +3,7 @@
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
  * Copyright 2016 Joshua Moller <jmoller@uchicago.edu>
+ *           2017 Julian Helfferich <julian.helfferich@gmail.com>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,23 +94,9 @@ namespace SSAGES
         
         //! Histogram of visited states.
         /*!
-         * Histogram is stored locally. It is a 1D vector that holds N
-         * dimensional data over the number of walkers using a row major
-         * mapping.
+         * Histogram is stored locally.
          */
-        std::vector<Map> hist_;
-
-        //! Locally defined histogram array for easy mpi operations.
-        /*!
-         * \note It does take up more memory.
-         */
-        Histogram<int> *histlocal_;
-
-        //! Globally defined histogram array for easy mpi operations.
-        /*!
-         * \note Needs lots of memory.
-         */
-        Histogram<int> *histglobal_;
+        Histogram<int> *hist_;
 
         //! Globally located coefficient values.
 		/*!
@@ -141,9 +128,6 @@ namespace SSAGES
 
         //! The order of the basis polynomials
         std::vector<unsigned int> polyords_;
-
-        //! Storing number of bins for simplicity and readability of code
-        std::vector<int> nbins_;
 
         //! Spring constants for restrained system.
         /*!
@@ -254,8 +238,7 @@ namespace SSAGES
          */
 		Basis(boost::mpi::communicator& world,
 			 boost::mpi::communicator& comm,
-             Histogram<int> *histlocal,
-             Histogram<int> *histglobal,
+             Histogram<int> *hist,
 			 const std::vector<unsigned int>& polyord,
              const std::vector<double>& restraint,
              const std::vector<double>& boundUp,
@@ -268,9 +251,9 @@ namespace SSAGES
              const double tol,
              const double weight,
              bool converge) :
-		Method(frequency, world, comm), hist_(), histlocal_(histlocal), histglobal_(histglobal),
+		Method(frequency, world, comm), hist_(hist),
         coeff_(), unbias_(), coeff_arr_(), LUT_(), derivatives_(), polyords_(polyord),
-        nbins_(), restraint_(restraint), boundUp_(boundUp), boundLow_(boundLow),
+        restraint_(restraint), boundUp_(boundUp), boundLow_(boundLow),
         cyclefreq_(cyclefreq), mpiid_(0), weight_(weight),
         temperature_(temperature), tol_(tol),
         converge_exit_(converge), bnme_(bnme), cnme_(cnme)
@@ -369,8 +352,7 @@ namespace SSAGES
         //! Destructor.
         ~Basis()
         {
-            delete histlocal_;
-            delete histglobal_;
+            delete hist_;
         }
 	};
 }

@@ -42,7 +42,7 @@ protected:
     std::vector<T> data_;
 
     //! Dimension of the grid
-    const size_t dimension_;
+    size_t dimension_;
 
     //! Number of points in each dimension.
     std::vector<int> numPoints_;

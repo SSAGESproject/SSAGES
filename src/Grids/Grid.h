@@ -462,36 +462,58 @@ public:
 
         //! Access indices.
         /*!
-         * \return Indices of current bin.
+         * \return Indices of current grid point.
          *
          * \note This function returns a reference and can be used to move the
-         *       current bin.
+         *       current grid point.
          */
         std::vector<int> &indices()
         {
             return indices_;
         }
 
+        //! Access a specific index.
+        /*!
+         * \param d Dimension of the index.
+         * \return Index of the current grid point in the specified dimension.
+         *
+         */
+        int &index(size_t d)
+        {
+            return indices()[d];
+        }
+
         //! Access coordinates.
         /*!
-         * \return Center point of the current bin.
+         * \return Center point of the current grid point.
          */
         std::vector<double> coordinates() const
         {
             return grid_->GetCoordinates(indices_);
         }
+
+        //! Access specific coordinate dimension.
+        /*!
+         * \param d Dimension of the coordinate.
+         * \return Center of the current grid point in the specified dimension.
+         */
+        double coordinate(size_t d) const
+        {
+            return coordinates()[d];
+        }
+
     private:
-        //! Indices of current bin.
+        //! Indices of current grid point.
         std::vector<int> indices_;
 
-        //! Pointer to histogram to iterate over.
+        //! Pointer to grid to iterate over.
         Grid<T> *grid_;
     };
 
-    //! Custom iterator over a histogram.
+    //! Custom iterator over a grid.
     typedef GridIterator<T> iterator;
 
-    //! Custom constant iterator over a histogram.
+    //! Custom constant iterator over a grid.
     typedef GridIterator<const T> const_iterator;
 
     //! Return iterator at first grid point.
