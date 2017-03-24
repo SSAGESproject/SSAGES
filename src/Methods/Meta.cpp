@@ -74,12 +74,8 @@ namespace SSAGES
 		// Initialize grid to zero. 
 		if(grid_ != nullptr)
 		{
-			Vector vec(cvs.size());
-			for(size_t i = 0; i < cvs.size(); ++i)
-				vec[i] = 0;
-			
-			for(auto& v : *grid_)
-				v = vec;
+			Vector vec = Vector::Zero(cvs.size());
+			std::fill(grid_->begin(), grid_->end(), vec);
 		} 
 
 		auto n = snapshot->GetTargetIterations();
@@ -132,9 +128,6 @@ namespace SSAGES
 	{
 		std::ifstream file(filename);
 		std::string line; 
-
-		if(comm_.rank() != 0)
-			return;
 
 		auto dim = widths_.size();
 		double iteration = 0, height = 0;
