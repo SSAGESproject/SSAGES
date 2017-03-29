@@ -28,6 +28,7 @@
 
 #cmakedefine ENABLE_LAMMPS
 #cmakedefine ENABLE_GROMACS
+#cmakedefine ENABLE_QBOX
 
 #define GIT_SHA1 "@GIT_SHA1@"
 
