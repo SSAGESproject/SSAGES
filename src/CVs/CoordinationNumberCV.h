@@ -47,9 +47,9 @@
 			const auto xarg = (rij - d0_)/r0_;
 			const auto xn = std::pow(xarg, n_);
 			const auto xm = std::pow(xarg, m_);
-			const auto f = (1-xn)/(1-xm);
+			const auto f = (1.-xn)/(1.-xm);
 			
-			df = f/(d0_-rij)*(n_*xn/(1-xn)+m_*xm/(xm-1));
+			df = f/(d0_-rij)*(n_*xn/(1.-xn)+m_*xm/(xm-1.));
 			return 	f;
 		}
 
@@ -224,7 +224,7 @@
 				for(size_t j = 0; j < group2_.size(); ++j)
 				{
 					Vector3 rij = {p[0] - gpos[3*j], p[1] - gpos[3*j+1], p[2] - gpos[3*j+2]};
-					snapshot.ApplyMinimumImage(rij);
+					snapshot.ApplyMinimumImage(&rij);
 					auto r = rij.norm();
 					val_ +=  sf_.Evaluate(r, df);
 
