@@ -28,57 +28,57 @@ namespace SSAGES
 {
 	void Hook::PreSimulationHook()
 	{
-		_snapshot->Changed(false);
+		snapshot_->Changed(false);
 	
 		// Initialize/evaluate CVs.
-		for(auto& cv : _cvs)
+		for(auto& cv : cvs_)
 		{
-			cv->Initialize(*_snapshot);
-			cv->Evaluate(*_snapshot);
+			cv->Initialize(*snapshot_);
+			cv->Evaluate(*snapshot_);
 		}
 
 		// Call presimulation method on listeners. 
-		for(auto& listener : _listeners)
-			listener->PreSimulation(_snapshot, _cvs);
+		for(auto& listener : listeners_)
+			listener->PreSimulation(snapshot_, cvs_);
 
 		// Sync snapshot to engine.
-		if(_snapshot->HasChanged())
+		if(snapshot_->HasChanged())
 			SyncToEngine();
 
-		_snapshot->Changed(false);		
+		snapshot_->Changed(false);		
 	}
 
 	void Hook::PostIntegrationHook()
 	{
-		_snapshot->Changed(false);
+		snapshot_->Changed(false);
 
-		for(auto& cv : _cvs)
-			cv->Evaluate(*_snapshot);
+		for(auto& cv : cvs_)
+			cv->Evaluate(*snapshot_);
 
-		for(auto& listener : _listeners)
-			if(_snapshot->GetIteration() % listener->GetFrequency() == 0)
-				listener->PostIntegration(_snapshot, _cvs);
+		for(auto& listener : listeners_)
+			if(snapshot_->GetIteration() % listener->GetFrequency() == 0)
+				listener->PostIntegration(snapshot_, cvs_);
 
-		if(_snapshot->HasChanged())
+		if(snapshot_->HasChanged())
 			SyncToEngine();
 
-		_snapshot->Changed(false);		
+		snapshot_->Changed(false);		
 	}
 
 	void Hook::PostSimulationHook()
 	{
-		_snapshot->Changed(false);
+		snapshot_->Changed(false);
 
-		for(auto& cv : _cvs)
-			cv->Evaluate(*_snapshot);
+		for(auto& cv : cvs_)
+			cv->Evaluate(*snapshot_);
 		
-		for(auto& listener : _listeners)
-			listener->PostSimulation(_snapshot, _cvs);
+		for(auto& listener : listeners_)
+			listener->PostSimulation(snapshot_, cvs_);
 
-		if(_snapshot->HasChanged())
+		if(snapshot_->HasChanged())
 			SyncToEngine();
 
-		_snapshot->Changed(false);		
+		snapshot_->Changed(false);		
 	}
 
 	//! Sets the active snapshot.
