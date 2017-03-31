@@ -12,6 +12,7 @@
 #include <boost/version.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
+#include "Snapshot.h"
 
 using namespace SSAGES;
 using namespace LAMMPS_NS::FixConst;
