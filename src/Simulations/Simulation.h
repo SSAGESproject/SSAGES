@@ -44,6 +44,7 @@
 
 #ifdef ENABLE_QBOX
 #include "Drivers/QboxDriver.h"
+#endif
 
 #ifdef ENABLE_OPENMD
 #include "Drivers/OpenMDDriver.h"
@@ -300,12 +301,12 @@ namespace SSAGES
 			else
 			#endif
 			#ifdef ENABLE_OPENMD
-			if(_MDEngine == "OpenMD")
+			if(MDEngine_ == "OpenMD")
 			{
-				auto en = new OpenMDDriver(_world, _comm, wid);
-				if(!(_MDDriver = static_cast<Driver*>(en)))
+				auto en = new OpenMDDriver(world_, comm_, wid);
+				if(!(MDDriver_ = static_cast<Driver*>(en)))
 				{
-					std::cout << "Unable to static cast engine on node " << _world.rank() << std::endl;
+					std::cout << "Unable to static cast engine on node " << world_.rank() << std::endl;
 					success_build = false;
 				}
 			}

@@ -12,11 +12,11 @@ namespace SSAGES
 {
 	void OpenMDHook::SyncToEngine() 
 	{
-		const auto& pos = _snapshot->GetPositions();
-		const auto& vel = _snapshot->GetVelocities();
-		const auto& frc = _snapshot->GetForces();
-		const auto& mass = _snapshot->GetMasses();
-		const auto& ids = _snapshot->GetAtomIDs();
+		const auto& pos = snapshot_->GetPositions();
+		const auto& vel = snapshot_->GetVelocities();
+		const auto& frc = snapshot_->GetForces();
+		const auto& mass = snapshot_->GetMasses();
+		const auto& ids = snapshot_->GetAtomIDs();
 		
 		// Loop through and set atom properties.
 		size_t index = 0;
@@ -40,30 +40,30 @@ namespace SSAGES
 		auto natoms = siminfo_->getNGlobalAtoms();
 
 		// Resize vectors.
-		auto& pos = _snapshot->GetPositions();
+		auto& pos = snapshot_->GetPositions();
 		pos.resize(natoms);
-		auto& vel = _snapshot->GetVelocities();
+		auto& vel = snapshot_->GetVelocities();
 		vel.resize(natoms);
-		auto& frc = _snapshot->GetForces();
+		auto& frc = snapshot_->GetForces();
 		frc.resize(natoms);
-		auto& mass = _snapshot->GetMasses();
+		auto& mass = snapshot_->GetMasses();
 		mass.resize(natoms);
-		auto& ids = _snapshot->GetAtomIDs();
+		auto& ids = snapshot_->GetAtomIDs();
 		ids.resize(natoms);
-		auto& typs = _snapshot->GetAtomTypes();
+		auto& typs = snapshot_->GetAtomTypes();
 		typs.resize(natoms);
 
 		// Get OpenMD snapshot. 
 		auto* osnap = siminfo_->getSnapshotManager()->getCurrentSnapshot();
 
 		// Get temperature/energy/pressure.
-		auto& comm = _snapshot->GetCommunicator();
+		auto& comm = snapshot_->GetCommunicator();
 		auto thermo = Thermo(siminfo_);
 
-		_snapshot->SetIteration(_snapshot->GetIteration()+1);
-		_snapshot->SetTemperature(thermo.getTemperature());
-		_snapshot->SetEnergy(thermo.getTotalEnergy());
-		_snapshot->SetKb(PhysicalConstants::kB);
+		snapshot_->SetIteration(snapshot_->GetIteration()+1);
+		snapshot_->SetTemperature(thermo.getTemperature());
+		snapshot_->SetEnergy(thermo.getTotalEnergy());
+		snapshot_->SetKb(PhysicalConstants::kB);
 
 		// Loop through and get atom properties.
 		size_t index = 0;
@@ -102,7 +102,7 @@ namespace SSAGES
 		H << Homd(0,0), Homd(0,1), Homd(0,2),
 		     Homd(1,0), Homd(1,1), Homd(1,2),
 		     Homd(2,0), Homd(2,1), Homd(2,2);
-		_snapshot->SetHMatrix(H);
+		snapshot_->SetHMatrix(H);
 
         pos.resize(index);
         vel.resize(index);
@@ -110,7 +110,7 @@ namespace SSAGES
         mass.resize(index);
         ids.resize(index);
         typs.resize(index);
-        _snapshot->SetNumAtoms(index);
+        snapshot_->SetNumAtoms(index);
 
 		Hook::PostStepHook();
 	}

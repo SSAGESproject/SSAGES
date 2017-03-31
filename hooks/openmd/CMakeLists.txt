@@ -52,8 +52,8 @@ function(CONFIGURE_ENGINE)
 	)
 	target_link_libraries(ssages 
 		libssages
-		${CMAKE_CURRENT_BINARY_DIR}/libopenmd_core.a
-		${CMAKE_CURRENT_BINARY_DIR}/libopenmd_parallel.a
-		${CMAKE_CURRENT_BINARY_DIR}/libopenmd_core.a
+		${CMAKE_CURRENT_BINARY_DIR}/hooks/openmd/libopenmd_core.a
+		${CMAKE_CURRENT_BINARY_DIR}/hooks/openmd/libopenmd_parallel.a
+		${CMAKE_CURRENT_BINARY_DIR}/hooks/openmd/libopenmd_core.a
 		)
 endfunction()

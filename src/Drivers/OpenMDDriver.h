@@ -70,10 +70,10 @@ namespace SSAGES
 	  		errorCheckPoint();
 	  		OpenMD::registerAll();
 
-	  		worldRank = _world.rank();
+	  		worldRank = world_.rank();
 
 	  		OpenMD::SimCreator creator;
-	  		auto* info = creator.createSim(_inputfile);
+	  		auto* info = creator.createSim(inputfile_);
 	  		auto* simparams = info->getSimParams();
 	  		if(!simparams->haveEnsemble())
 	  			throw std::invalid_argument("SSAGES only supports ensemble mode for OpenMD.");
@@ -99,13 +99,13 @@ namespace SSAGES
 		 */
 		void BuildDriver(const Json::Value& json, const std::string& path) override
 		{
-			_inputfile = json.get("inputfile","none").asString();
+			inputfile_ = json.get("inputfile","none").asString();
 			MDSteps_ = json.get("MDSteps", 1).asInt();
 
 			// Set hook. 
 			auto& hook = OpenMDHook::Instance();
 			//hook.SetIterationTarget(MDSteps_);
-			_hook = dynamic_cast<Hook*>(&hook);
+			hook_ = dynamic_cast<Hook*>(&hook);
 
 			// Restart?
 			restart_ = json.get("restart", false).asBool();
