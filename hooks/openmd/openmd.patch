@@ -1,0 +1,63 @@
+diff --git a/src/brains/ForceManager.cpp b/src/brains/ForceManager.cpp
+index 3e0f1b3..455fddd 100755
+--- /a/src/brains/ForceManager.cpp
++++ /b/src/brains/ForceManager.cpp
+@@ -60,6 +60,7 @@
+ #include "perturbations/UniformField.hpp"
+ #include "perturbations/UniformGradient.hpp"
+ #include "parallel/ForceMatrixDecomposition.hpp"
++#include "OpenMDHook.h"
+ 
+ #include <cstdio>
+ #include <iostream>
+@@ -436,6 +437,11 @@ namespace OpenMD {
+     preCalculation();
+     shortRangeInteractions();
+     longRangeInteractions();
++
++    auto& ssages = SSAGES::OpenMDHook::Instance();
++    ssages.SyncToSSAGES();
++    ssages.PostIntegrationHook();
++
+     postCalculation();
+   }
+   
+diff --git a/src/integrators/VelocityVerletIntegrator.cpp b/src/integrators/VelocityVerletIntegrator.cpp
+index b4fbe62..d529c78 100755
+--- /a/src/integrators/VelocityVerletIntegrator.cpp
++++ /b/src/integrators/VelocityVerletIntegrator.cpp
+@@ -51,6 +51,8 @@
+ #include "integrators/DLM.hpp"
+ #include "utils/StringUtils.hpp"
+ #include "utils/ProgressBar.hpp"
++#include "OpenMDHook.h"
++#include <mpi.h>
+ 
+ namespace OpenMD {
+   VelocityVerletIntegrator::VelocityVerletIntegrator(SimInfo *info) : Integrator(info) { 
+@@ -71,6 +73,11 @@ namespace OpenMD {
+     // find the initial fluctuating charges.
+     flucQ_->initialize();
+     
++    auto& ssages = SSAGES::OpenMDHook::Instance();
++    ssages.SetSimInfo(info_);
++    ssages.SyncToSSAGES();
++    ssages.PreSimulationHook();
++    
+     // initialize the forces before the first step
+     calcForce();
+     
+@@ -195,6 +202,10 @@ namespace OpenMD {
+ 
+ 
+   void VelocityVerletIntegrator::finalize() {
++    auto& ssages = SSAGES::OpenMDHook::Instance();
++    ssages.SyncToSSAGES();
++    ssages.PostSimulationHook();
++    
+     dumpWriter->writeEor();
+     if (simParams->getRNEMDParameters()->getUseRNEMD()) {
+       rnemd_->writeOutputFile();
+-- 
+2.7.4
+

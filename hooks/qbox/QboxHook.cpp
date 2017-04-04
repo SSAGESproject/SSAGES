@@ -1,4 +1,5 @@
 #include "QboxHook.h"
+#include "Snapshot.h"
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/trim.hpp>

@@ -47,11 +47,11 @@ set(SOURCE
 	src/Methods/Umbrella.cpp
 	src/Methods/ElasticBand.cpp
 	src/Methods/FiniteTempString.cpp
-    src/Methods/Swarm.cpp
+   	src/Methods/Swarm.cpp
 	src/Methods/ForwardFlux.cpp
 	src/Methods/DirectForwardFlux.cpp
 	src/Methods/ABF.cpp
-    src/Methods/BasisFunc.cpp
+   	src/Methods/BasisFunc.cpp
 	src/Validator/RequirementLoader.cpp
 	src/JSON/jsoncpp.cpp
 	src/CVs/CollectiveVariable.cpp
@@ -75,6 +75,7 @@ set(GROMACS NO CACHE BOOL "Use GROMACS simulation engine.")
 set(LAMMPS_SRC "" CACHE STRING "LAMMPS source directory.")
 set(GROMACS_SRC "" CACHE STRING "GROMACS source directory.")
 set(QBOX NO CACHE BOOL "Use QBox simulation engine.")
+set(OPENMD_SRC "" CACHE STRING "OpenMD source directory.")
 
 ### Determine which simulation engine to use.
 if(LAMMPS_SRC OR LAMMPS)
@@ -83,6 +84,8 @@ elseif(GROMACS OR GROMACS_SRC)
     add_subdirectory(hooks/gromacs/)
 elseif(QBOX) 
 	add_subdirectory(hooks/qbox/)
+elseif(OPENMD_SRC)
+	add_subdirectory(hooks/openmd/)
 endif()
 
 ################### END MD ENGINES ######################

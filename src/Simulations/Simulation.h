@@ -46,6 +46,10 @@
 #include "Drivers/QboxDriver.h"
 #endif
 
+#ifdef ENABLE_OPENMD
+#include "Drivers/OpenMDDriver.h"
+#endif
+
 namespace mpi = boost::mpi;
 using namespace Json;
 namespace SSAGES
@@ -288,6 +292,18 @@ namespace SSAGES
 			if(MDEngine_ == "Qbox")
 			{
 				QboxDriver* en = new QboxDriver(world_, comm_, wid);
+				if(!(MDDriver_ = static_cast<Driver*>(en)))
+				{
+					std::cout << "Unable to static cast engine on node " << world_.rank() << std::endl;
+					success_build = false;
+				}
+			}
+			else
+			#endif
+			#ifdef ENABLE_OPENMD
+			if(MDEngine_ == "OpenMD")
+			{
+				auto en = new OpenMDDriver(world_, comm_, wid);
 				if(!(MDDriver_ = static_cast<Driver*>(en)))
 				{
 					std::cout << "Unable to static cast engine on node " << world_.rank() << std::endl;
