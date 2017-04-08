@@ -17,13 +17,59 @@
  * You should have received a copy of the GNU General Public License
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "NewDriver.h" 
+#include "CVs/CVManager.h"
+#include "Drivers/DriverException.h"
+#include "Validator/ObjectRequirement.h"
+#include "NewDriver.h"
+#include "schema.h"
+#include <mxx/comm.hpp>
+
+using namespace Json;
 
 namespace SSAGES
 {
-    NewDriver::NewDriver(const MPI_Comm& world, const MPI_Comm& comm, uint walkerid) : 
-    world_(world), comm_(comm), walkerid_(walkerid)
-    {
-        
-    }
+	NewDriver::NewDriver(const MPI_Comm& world, const MPI_Comm& comm, uint walkerid) : 
+	world_(world), comm_(comm), walkerid_(walkerid), cvmanager_(new CVManager())
+	{
+		
+	}
+
+	NewDriver* NewDriver::Build(const Value& json, const MPI_Comm& world)
+	{
+		ObjectRequirement validator;
+		Value schema;
+		Reader reader;
+
+		// Parse and validate top level schema. This just 
+		// makes sure the proper fields exist and the correct 
+		// types are specified in the input files.
+		reader.parse(JsonSchema::Simulation, schema);
+		validator.Parse(schema, "#");
+		validator.Validate(json, "#");
+		if(validator.HasErrors())
+			throw BuildException(validator.GetErrors());
+		
+		// Get number of desired walkers and create array of input files.
+		auto nwalkers = json.get("walkers", 1).asInt();
+		if(json["input"].isArray() && json["input"].size() != nwalkers)
+			throw BuildException({"#/input: Number of inputs do not match requested walkers."});
+		
+		std::vector<std::string> inputs;
+		for(int i = 0; i < nwalkers; ++i)
+		{
+			if(json["input"].isArray())
+				inputs.push_back(json["input"][i].asString());
+			else
+				inputs.push_back(json["input"].asString());
+		}
+
+		// Get basic MPI info and verify that the total number of 
+		// cores are divisble by number of walkers. 
+		auto wcomm = mxx::comm(world);
+		if(wcomm.size() % nwalkers != 0) 
+			throw BuildException({"#/walkers: Allocated processors not divisible by number of walkers."});
+		
+		// Split communicators.
+		auto comm = wcomm.split(wcomm.rank()/nwalkers);
+	}
 }

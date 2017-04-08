@@ -21,48 +21,60 @@
 
 #include "JSON/Serializable.h"
 #include <mpi.h>
+#include <vector>
 
 namespace SSAGES
 {
-    //! Primary abstract class that drives a simulation. 
-    /*!
-     * 
-     * Driver is responsible for intialzing the major components 
-     * of a simulation including the engine, methods, and collective
-     * variables. It is also responsible for the lifetime of the objects 
-     * it creates. 
-     * 
-     * Each simulation engine must implement a concrete driver which 
-     * handles the implementation-specific parts of the initialization 
-     * routines.
-     */
-    class NewDriver : public Serializable
-    {
-    protected: 
-        //! MPI communicator containing all processors. 
-        MPI_Comm world_; 
+	//! Primary abstract class that drives a simulation. 
+	/*!
+	 * 
+	 * Driver is responsible for intialzing the major components 
+	 * of a simulation including the engine, methods, and collective
+	 * variables. It is also responsible for the lifetime of the objects 
+	 * it creates. 
+	 * 
+	 * Each simulation engine must implement a concrete driver which 
+	 * handles the implementation-specific parts of the initialization 
+	 * routines.
+	 */
+	class NewDriver : public Serializable
+	{
+	protected: 
+		//! MPI communicator containing all processors. 
+		MPI_Comm world_; 
 
-        //! MPI communicator containing processors for specific walker. 
-        MPI_Comm comm_;
+		//! MPI communicator containing processors for specific walker. 
+		MPI_Comm comm_;
 
-        //! Walker ID for specific driver. 
-        uint walkerid_; 
+		//! Walker ID for specific driver. 
+		uint walkerid_; 
 
-        //! Snapshot of system state (pointer). 
-        class Snapshot* snapshot_;
+		//! Snapshot of system state (pointer). 
+		class Snapshot* snapshot_;
 
-        //! Vector of advanced sampling methods. 
-        std::vector<class Method*> methods_;
+		//! Vector of advanced sampling methods. 
+		std::vector<class Method*> methods_;
 
-        //! Collective variable manager. 
-        class CVManager cvmanager_;
-    public:
-        //! Constructor. 
-        /*!
-         * \param world MPI communicator containing all processors. 
-         * \param comm MPI communicator containing walker-specific processors. 
-         * \param walkerid ID of the walker for the current processor. 
-         */
-        NewDriver(const MPI_Comm& world, const MPI_Comm& comm, uint walkerid);
-    };
+		//! Collective variable manager. 
+		class CVManager* cvmanager_;
+
+	public:
+		//! Constructor. 
+		/*!
+		 * \param world MPI communicator containing all processors. 
+		 * \param comm MPI communicator containing walker-specific processors. 
+		 * \param walkerid ID of the walker for the current processor. 
+		 */
+		NewDriver(const MPI_Comm& world, const MPI_Comm& comm, uint walkerid);
+
+		//! Build a new Driver from JSON. 
+		/*!
+		 * \param json JSON root node containing driver (and children) specifications. 
+		 * \param world MPI communicator containing all processors. 
+		 * \return Pointer to newly created driver. 
+		 * 
+		 * \note Object lifetime is caller's responsibility!
+		 */
+		static NewDriver* Build(const Json::Value& json, const MPI_Comm& world);
+	};
 }
