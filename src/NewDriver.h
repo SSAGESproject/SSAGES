@@ -63,9 +63,14 @@ namespace SSAGES
 		/*!
 		 * \param world MPI communicator containing all processors. 
 		 * \param comm MPI communicator containing walker-specific processors. 
-		 * \param walkerid ID of the walker for the current processor. 
+		 * \param walkerid ID of the walker for the current processor.
+		 * \param methods Vector of pointers to methods. 
+		 * \param CVManager Pointer to CV manager. 
+		 * 
+		 * \note Driver will be responsible for lifetime of methods and CV manager. 
 		 */
-		NewDriver(const MPI_Comm& world, const MPI_Comm& comm, uint walkerid);
+		NewDriver(const MPI_Comm& world, const MPI_Comm& comm, uint walkerid,
+		          const std::vector<class Method*>& methods, class CVManager* cvmanager);
 
 		//! Build a new Driver from JSON. 
 		/*!

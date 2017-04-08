@@ -20,6 +20,7 @@
 #include "CVs/CVManager.h"
 #include "Drivers/DriverException.h"
 #include "Validator/ObjectRequirement.h"
+#include "Methods/Method.h"
 #include "NewDriver.h"
 #include "schema.h"
 #include <mxx/comm.hpp>
@@ -28,10 +29,11 @@ using namespace Json;
 
 namespace SSAGES
 {
-	NewDriver::NewDriver(const MPI_Comm& world, const MPI_Comm& comm, uint walkerid) : 
-	world_(world), comm_(comm), walkerid_(walkerid), cvmanager_(new CVManager())
-	{
-		
+	NewDriver::NewDriver(
+		const MPI_Comm& world, const MPI_Comm& comm, uint walkerid,
+		const std::vector<Method*>& methods, CVManager* cvmanager) : 
+	world_(world), comm_(comm), walkerid_(walkerid), methods_(methods), cvmanager_(cvmanager)
+	{	
 	}
 
 	NewDriver* NewDriver::Build(const Value& json, const MPI_Comm& world)
@@ -70,6 +72,7 @@ namespace SSAGES
 			throw BuildException({"#/walkers: Allocated processors not divisible by number of walkers."});
 		
 		// Split communicators.
-		auto comm = wcomm.split(wcomm.rank()/nwalkers);
+		int walkerid = wcomm.rank()/nwalkers;
+		auto comm = wcomm.split(walkerid);
 	}
 }
