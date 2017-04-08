@@ -1,0 +1,39 @@
+{
+	"type": "object",
+	"varname" : "Simulation",
+	"properties" : {
+		"input" : {
+			"oneOf" : [
+				{
+					"type" : "string"
+				}, 
+				{
+					"type" : "array", 
+					"minItems" : 1, 
+					"items" : {
+						"type" : "string"
+					}
+				}
+			]
+		},
+		"walkers" : {
+			"type" : "integer", 
+			"minimum" : 1
+		},
+		"CVs" : {
+			"type" : "array",
+			"minItems" : 1
+		},
+		"methods" : {
+			"type" : "array"
+		},
+		"observers" : {
+			"type" : "array"
+		},
+		"constraints" : {
+			"type" : "array"
+		}
+	},
+	"required" : ["input"],
+	"additionalProperties": false
+}
