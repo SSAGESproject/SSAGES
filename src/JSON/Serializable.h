@@ -26,6 +26,7 @@
 #pragma once 
 
 #include "json/json.h"
+#include <mpi.h>
 
 namespace SSAGES
 {
@@ -50,4 +51,34 @@ namespace SSAGES
         //! Destructor
         virtual ~Serializable() { }
     };
+
+    //! Base class for JSON buildable objects. 
+    /*!
+     * \ingroup JSON 
+     */
+    template<class T> 
+    class Buildable
+    {
+        //! Build an object from JSON node. 
+		/*! 
+		 * \param JSON Value containing all input information.
+		 * \param world MPI global communicator. 
+         * \param comm MPI local communicator. 
+		 * \param path Path for JSON specification. 
+		 * \return Pointer to built object.
+		 *
+		 * \note This function builds an object from a JSON node. It will generally 
+		 *       throw an exception if an error occurs, but may also return nullptr 
+		 *       if an unknown error occurs. 
+		 *       Object lifetime is the caller's responsibility! 
+		 */
+        static T* Build(const Json::Value& json, 
+                        const MPI_Comm& world, 
+                        const MPI_Comm& comm, 
+                        const std::string& path)
+        {
+            return T::Construct(json, world, comm, path);
+        }
+    };
+
 }
