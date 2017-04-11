@@ -2,7 +2,7 @@
  * This file is part of
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
- * Copyright 2016 Hythem Sidky <hsidky@nd.edu>
+ * Copyright 2017 Hythem Sidky <hsidky@nd.edu>
  *                Ben Sikora <bsikora906@gmail.com>
  *
  * SSAGES is free software: you can redistribute it and/or modify
@@ -21,7 +21,6 @@
 #pragma once 
 
 #include "Method.h"
-#include "../CVs/CollectiveVariable.h"
 #include <fstream>
 
 namespace SSAGES
@@ -33,7 +32,7 @@ namespace SSAGES
 	 *
 	 * \ingroup Methods
 	 */
-	class Umbrella : public Method
+	class Umbrella : public Method, public Buildable<Umbrella>
 	{
 	private:
 		//! Vector of spring constants.
@@ -66,8 +65,9 @@ namespace SSAGES
 		//! Print umbrella values.
 		/*!
 		 * \param cvs List of CVs.
+		 * \param iteration Current iteration.
 		 */
-		void PrintUmbrella(const CVList& cvs);
+		void PrintUmbrella(const CVList& cvs, uint iteration);
 
 	public:
 		//! Constructor.
@@ -83,15 +83,16 @@ namespace SSAGES
 		 * centers "centers". Note the sizes of the vectors should be
 		 * commensurate with the number of CVs.
 		 */
-		Umbrella(boost::mpi::communicator& world,
-				 boost::mpi::communicator& comm,
+		Umbrella(const MPI_Comm& world,
+				 const MPI_Comm& comm,
 				 const std::vector<double>& kspring,
 				 const std::vector<double>& centers,
 				 std::string name,
 				 unsigned int frequency) : 
 		Method(frequency, world, comm), kspring_(kspring), centers0_(centers),
 		centers1_(centers), time_(0), filename_(name), logevery_(1)
-		{}
+		{
+		}
 
 		//! Constructor.
 		/*!
@@ -108,8 +109,8 @@ namespace SSAGES
 		 * centers "centers". Note the sizes of the vectors should be
 		 * commensurate with the number of CVs.
 		 */
-		Umbrella(boost::mpi::communicator& world,
-				 boost::mpi::communicator& comm,
+		Umbrella(const MPI_Comm& world,
+				 const MPI_Comm& comm,
 				 const std::vector<double>& kspring,
 				 const std::vector<double>& centers0,
 				 const std::vector<double>& centers1,
@@ -118,7 +119,8 @@ namespace SSAGES
 				 unsigned int frequency) : 
 		Method(frequency, world, comm), kspring_(kspring), centers0_(centers0),
 		centers1_(centers1), time_(timesteps), filename_(name), logevery_(1)
-		{}
+		{
+		}
 
 		//! Pre-simulation hook.
 		/*!
@@ -150,6 +152,12 @@ namespace SSAGES
 			logevery_ = iter;
 		}
 
+		//! \copydoc Buildable::Build()
+		static Umbrella* Build(const Json::Value& json, 
+		                       const MPI_Comm& world,
+		                       const MPI_Comm& comm,
+					           const std::string& path);
+
 		//! \copydoc Serializable::Serialize()
 		/*!
 		 * \warning The serialization is not implemented yet.
@@ -177,7 +185,6 @@ namespace SSAGES
 			}
 
 			json["file name"] = filename_;
-			json["iteration"] = iteration_;
 			json["log every"] = logevery_;
 		}
 
