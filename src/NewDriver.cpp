@@ -22,6 +22,7 @@
 #include "Validator/ObjectRequirement.h"
 #include "Methods/Method.h"
 #include "NewDriver.h"
+#include "Snapshot.h"
 #include "schema.h"
 #include <mxx/comm.hpp>
 
@@ -32,8 +33,10 @@ namespace SSAGES
 	NewDriver::NewDriver(
 		const MPI_Comm& world, const MPI_Comm& comm, uint walkerid,
 		const std::vector<Method*>& methods, CVManager* cvmanager) : 
-	world_(world), comm_(comm), walkerid_(walkerid), methods_(methods), cvmanager_(cvmanager)
-	{	
+	world_(world), comm_(comm), walkerid_(walkerid), methods_(methods), 
+	cvmanager_(cvmanager)
+	{
+		snapshot_ = new Snapshot(comm, walkerid);
 	}
 
 	NewDriver* NewDriver::Build(const Value& json, const MPI_Comm& world)
@@ -74,5 +77,18 @@ namespace SSAGES
 		// Split communicators.
 		int walkerid = wcomm.rank()/nwalkers;
 		auto comm = wcomm.split(walkerid);
+
+		// Build methods. 
+		std::vector<Method*> methods; 
+		for(auto& m : json["methods"])
+			methods.push_back(Method::BuildMethod(m, world, comm, "#/methods"));
+	}
+
+	NewDriver::~NewDriver()
+	{
+		delete snapshot_; 
+		delete cvmanager_;
+		for(auto& m : methods_)
+			delete m; 
 	}
 }
