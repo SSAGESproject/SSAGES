@@ -145,4 +145,31 @@ namespace SSAGES
 		return m;
 	}
 
+	void Umbrella::Serialize(Value& json) const
+	{
+		json["type"] = "Umbrella";
+		for(auto& k : kspring_)
+			json["ksprings"].append(k);
+
+		if(time_ != 0 )
+		{
+			for(auto& c : centers0_)
+				json["centers0"].append(c);
+			
+			for(auto& c : centers1_)
+				json["centers1"].append(c);
+
+			json["timesteps"] = time_;
+		}
+		else
+		{			
+			for(auto& c : centers0_)
+				json["centers"].append(c);
+		}
+
+		json["file name"] = filename_;
+		json["log every"] = logevery_;
+	}
+
+
 }

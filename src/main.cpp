@@ -2,8 +2,8 @@
  * This file is part of
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
- * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
- *                Hythem Sidky <hsidky@nd.edu>
+ * Copyright 2017 Hythem Sidky <hsidky@nd.edu>
+ *                Ben Sikora <bsikora906@gmail.com>
  *                Julian Helfferich <julian.helfferich@gmail.com>
  *
  * SSAGES is free software: you can redistribute it and/or modify
@@ -19,24 +19,26 @@
  * You should have received a copy of the GNU General Public License
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <boost/mpi.hpp>
 #include <getopt.h>
 #include <string>
 #include <sstream>
 
 #include "config.h"
-#include "Simulations/Simulation.h"
-
-namespace mpi = boost::mpi;
+#include <mxx/comm.hpp>
+#include <mxx/env.hpp>
+#include "NewDriver.h"
+#include "JSON/JSONLoader.h"
+#include "Drivers/DriverException.h"
 
 using namespace SSAGES;
 using namespace Json;
 
 int main(int argc, char* argv[])
 {
-	// Let MPI collect command line arguments pertaining to MPI
-	mpi::environment env(argc, argv);
-	mpi::communicator world;
+	// Let MPI collect command line arguments pertaining to MPI.
+	mxx::env env(argc, argv);
+	mxx::env::set_exception_on_error();
+	auto world = mxx::comm();
 
 	std::stringstream helpStream;
 	helpStream
@@ -95,11 +97,32 @@ int main(int argc, char* argv[])
 		return 2;
 	}
 
-	// Read in input file
-	std::string inputFile = argv[optionindex];
+	try{
+		// Read in input file
+		std::string input = argv[optionindex];
+		auto json = JSONLoader().LoadFile(input, world);
+
+		// Build driver.
+		auto* driver = NewDriver::Build(json, world);
+	} catch(BuildException& e) {
+		if(world.rank() == 0)
+			DumpErrorsToConsole(e.GetErrors(), 30);
+		MPI_Abort(world, -1);
+	} catch(std::exception& e) {
+		if(world.rank() == 0)		
+			DumpErrorsToConsole({e.what()},	 30);
+		MPI_Abort(world, -1);
+	} catch(int& k) { 
+		std::string err = strerror(k);
+		if(world.rank() == 0)		
+			DumpErrorsToConsole({"File IO error: " + err}, 30);
+		MPI_Abort(world, -1);
+	}
+	/*
 	Json::Value root;
 	Simulation Sim(world);
 
+	
 	// Perform all the JSON reading and build the correct driver
 	root = Sim.ReadJSON(inputFile);
 
@@ -148,4 +171,5 @@ int main(int argc, char* argv[])
 		DumpErrorsToConsole({"File IO error: " + err}, 30);
 		world.abort(-1);
 	}
+	*/
 }
