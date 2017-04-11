@@ -43,18 +43,18 @@ link_directories(${MPI_CXX_LIBRARIES})
 
 # General source files
 set(SOURCE
+	src/Methods/ABF.cpp
+	src/Methods/Method.cpp
+	src/Methods/Umbrella.cpp
 #	src/Constraints/Constraint.cpp
 #	src/Constraints/COPSSImage.cpp
 #	src/CVs/CollectiveVariable.cpp
 #	src/Methods/Meta.cpp
-	src/Methods/Method.cpp
-	src/Methods/Umbrella.cpp
 #	src/Methods/ElasticBand.cpp
 #	src/Methods/FiniteTempString.cpp
 #  	src/Methods/Swarm.cpp
 #	src/Methods/ForwardFlux.cpp
 #	src/Methods/DirectForwardFlux.cpp
-#	src/Methods/ABF.cpp
 #  	src/Methods/BasisFunc.cpp
 #	src/Observers/JSONObserver.cpp
 	src/Validator/RequirementLoader.cpp

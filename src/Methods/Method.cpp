@@ -22,6 +22,7 @@
 #include "schema.h"
 #include "../Validator/ObjectRequirement.h"
 #include "../Validator/ArrayRequirement.h"
+#include "ABF.h"
 #include "Umbrella.h"
 #include <stdexcept>
 
@@ -34,7 +35,9 @@ namespace SSAGES
 							    const MPI_Comm& comm, 
 							    const std::string& path)
 	{
-		if(json["type"] == "Umbrella")
+		if(json["type"] == "ABF")
+			return ABF::Build(json, world, comm, path);
+		else if(json["type"] == "Umbrella")
 			return Umbrella::Build(json, world, comm, path);
 		else
 			throw std::invalid_argument(path + ": Unknown method type specified.");

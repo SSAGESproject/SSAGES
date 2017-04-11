@@ -19,17 +19,16 @@
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "ABF.h"
-#include <math.h>
+#include "Drivers/DriverException.h"
+#include "Validator/ObjectRequirement.h"
+#include "schema.h"
 #include <algorithm>
-#include <iostream>
-#include <cassert>
+#include <fstream>
 
-
+using namespace Json;
 // "Adaptive biasing force method for scalar and vector free energy calculations"
 // Darve, Rodriguez-Gomez, Pohorille
 // J. Chem. Phys. (2008)
-
-namespace mpi = boost::mpi;
 namespace SSAGES
 {
 	// Function to return histogram coordinates, given CV values. Returns -1 if any CV value is outside bounds.
@@ -42,8 +41,6 @@ namespace SSAGES
 	// 2) Mapping from N dimensions to one dimension.
 	// -> Simply constructed by writing out all members of the fictitious object in a line. This is a vector of length equal to the product of number of bins in each dimension.
 	// -> For the above example, this is 3.5 = 15 members. First 5 members are Y = [1 2 3 4 5] bins with X = 1. Next 5 members are Y = [1 2 3 4 5] with X = 2 ....
-
-
 	int ABF::histCoords(const CVList& cvs)
 	{
 		// Histogram details: This is a 2 Dimensional object set up as the following:
@@ -96,39 +93,37 @@ namespace SSAGES
 	// Pre-simulation hook.
 	void ABF::PreSimulation(Snapshot* snapshot, const CVList& cvs)
 	{
-		mpiid_ = snapshot->GetWalkerID();
-		char file[1024];
-		sprintf(file, "node-%04d.log",mpiid_);
-	 	walkerout_.open(file);
-
-		if(mpiid_ == 0)
-		 	worldout_.open(filename_.c_str());
-
+		// Open/close outfile to create it fresh. 
+		if(world_.rank() == 0)
+		{
+			worldout_.open(filename_);
+			worldout_.close();
+		}
+		
 		// Convenience. Number of CVs.
-		ncv_ = cvs.size();
+		auto ncv = cvs.size();
 
 		// Size and initialize Fold_
-		Fold_.setZero(ncv_);
+		Fold_.setZero(ncv);
 		
 		// Size and initialize Fworld_ and Nworld_		
 		auto nel = 1;
-		for(auto i = 0; i < ncv_; ++i)
+		for(auto i = 0; i < ncv; ++i)
 			nel *= histdetails_[i][2];
 
-		Fworld_.setZero(nel*ncv_);
+		Fworld_.setZero(nel*ncv);
 		Nworld_.resize(nel, 0);
 
 		// If F or N are empty, size appropriately. 
-		if(_F.size() == 0) _F.setZero(nel*ncv_);
+		if(_F.size() == 0) _F.setZero(nel*ncv);
 		if(_N.size() == 0) _N.resize(nel, 0);
 
 		// Initialize biases.
 		biases_.resize(snapshot->GetPositions().size(), Vector3{0, 0, 0});
 		
 		// Initialize w \dot p's for finite difference. 
-		wdotp1_.setZero(ncv_);
-		wdotp2_.setZero(ncv_);
-		
+		wdotp1_.setZero(ncv);
+		wdotp2_.setZero(ncv);	
 	}
 
 	//! Post-integration hook.
@@ -149,15 +144,16 @@ namespace SSAGES
 		auto& mass = snapshot->GetMasses();
 		auto& forces = snapshot->GetForces();
 		auto n = snapshot->GetNumAtoms();
+		auto ncv = cvs.size();
 
 		//! Coord holds where we are in CV space in current timestep.
 		int coord = histCoords(cvs);
 
 		//! Eigen::MatrixXd to hold the CV gradient.
-		Eigen::MatrixXd J(ncv_, 3*n);
+		Eigen::MatrixXd J(ncv, 3*n);
 
 		// Fill J. Each column represents grad(CV) with flattened Cartesian elements. 
-		for(int i = 0; i < ncv_; ++i)
+		for(int i = 0; i < ncv; ++i)
 		{
 			auto& grad = cvs[i]->GetGradient();
 			for(size_t j = 0; j < n; ++j)
@@ -170,12 +166,11 @@ namespace SSAGES
 		if(massweigh_)
 		{
 			for(size_t i = 0; i < forces.size(); ++i)
-				Jmass.block(3*i, 0, 3, ncv_) = Jmass.block(3*i, 0, 3, ncv_)/mass[i];
+				Jmass.block(3*i, 0, 3, ncv) = Jmass.block(3*i, 0, 3, ncv)/mass[i];
 		}
 							
 		Eigen::MatrixXd Minv = J*Jmass;
 		MPI_Allreduce(MPI_IN_PLACE, Minv.data(), Minv.size(), MPI_DOUBLE, MPI_SUM, comm_);
-
 		Eigen::MatrixXd Wt = Minv.inverse()*Jmass.transpose();	
 
 		// Fill momenta.
@@ -196,7 +191,7 @@ namespace SSAGES
 		// If we are in bounds, sum force into running total.
 		if(coord != -1)
 		{
-			_F.segment(ncv_*coord, ncv_) += dwdotpdt;
+			_F.segment(ncv*coord, ncv) += dwdotpdt;
 			++_N[coord];
 		}
 
@@ -206,7 +201,7 @@ namespace SSAGES
 
 		// If we are in bounds, store the old summed force.
 		if(coord != -1)
-			Fold_ = Fworld_.segment(ncv_*coord, ncv_)/std::max(min_, Nworld_[coord]);
+			Fold_ = Fworld_.segment(ncv*coord, ncv)/std::max(min_, Nworld_[coord]);
 	
 		// Update finite difference time derivatives.
 		wdotp2_ = wdotp1_;
@@ -229,13 +224,12 @@ namespace SSAGES
 	void ABF::PostSimulation(Snapshot*, const CVList&)
 	{
 		WriteData();
-		worldout_.close();		
-		walkerout_.close();
 	}
 
 	void ABF::CalcBiasForce(const Snapshot* snapshot, const CVList& cvs, int coord)
 	{
 		// Reset the bias.
+		auto ncv = cvs.size();
 		biases_.resize(snapshot->GetNumAtoms(), Vector3{0,0,0});
 		for(auto& b : biases_)
 			b.setZero();
@@ -243,30 +237,30 @@ namespace SSAGES
 		// Compute bias if within bounds
 		if(coord != -1)
 		{
-			for(int i = 0; i < ncv_; ++i)
+			for(int i = 0; i < ncv; ++i)
 			{
 				auto& grad = cvs[i]->GetGradient();
 				for(size_t j = 0; j < biases_.size(); ++j)
-					biases_[j] -= Fworld_[ncv_*coord+i]*grad[j]/std::max(min_, Nworld_[coord]);
+					biases_[j] -= Fworld_[ncv*coord+i]*grad[j]/std::max(min_, Nworld_[coord]);
 			}
 		}
 		else
 		{
-			for(int i = 0; i < ncv_; ++i)
+			for(int i = 0; i < ncv; ++i)
 			{
 				double cvVal = cvs[i]->GetValue();
 				auto k = 0.;
 				auto x0 = 0.;
 				
 				if(isperiodic_[i])
-					{
+				{
 					double periodsize = periodicboundaries_[i][1]-periodicboundaries_[i][0];
 					double cvRestrMidpoint = (restraint_[i][1]+restraint_[i][0])/2;
 					while((cvVal-cvRestrMidpoint) > periodsize/2)
 						cvVal -= periodsize;
 					while((cvVal-cvRestrMidpoint) < -periodsize/2)
 						cvVal += periodsize;
-					}
+				}
 
 				if(cvVal < restraint_[i][0] && restraint_[i][2] > 0)
 				{
@@ -287,10 +281,12 @@ namespace SSAGES
 	}
 
 	void ABF::WriteData()
-	{		
-		if(mpiid_ != 0)
-			return;
+	{
+		if(world_.rank() != 0)
+			return; 
 
+		auto ncv = histdetails_.size();
+		worldout_.open(filename_, std::ofstream::app);
 		worldout_ << std::endl;
 		worldout_ << "Iteration: " << iteration_ << std::endl;			
 		worldout_ << "Printing out the current Adaptive Biasing Vector Field." << std::endl;
@@ -320,12 +316,167 @@ namespace SSAGES
 				index = index % modulo;
 			}
 
-			for(int j = 0; j < ncv_; ++j)
-				worldout_ << Fworld_[ncv_*i+j]/std::max(Nworld_[i],min_) << " ";
+			for(size_t j = 0; j < ncv; ++j)
+				worldout_ << Fworld_[ncv*i+j]/std::max(Nworld_[i],min_) << " ";
 		}
 
 		worldout_ << std::endl;
 		worldout_ << std::endl;
+		worldout_.close();
+	}
+
+	ABF* ABF::Build(const Value& json, 
+		            const MPI_Comm& world,
+		            const MPI_Comm& comm,
+			        const std::string& path)
+	{
+		ObjectRequirement validator;
+		Value schema;
+		Reader reader;
+		
+		reader.parse(JsonSchema::ABFMethod, schema);
+		validator.Parse(schema, path);
+
+		// Validate inputs.
+		validator.Validate(json, path);
+		if(validator.HasErrors())
+			throw BuildException(validator.GetErrors());
+
+		std::vector<double> minsCV;
+		for(auto& mins : json["CV_lower_bounds"])
+			minsCV.push_back(mins.asDouble());
+		
+		std::vector<double> maxsCV;
+		for(auto& maxs : json["CV_upper_bounds"])
+			maxsCV.push_back(maxs.asDouble());
+
+		std::vector<double> binsCV;
+		for(auto& bins : json["CV_bins"])
+			binsCV.push_back(bins.asDouble());
+
+		std::vector<double> minsrestCV;
+		for(auto& mins : json["CV_restraint_minimums"])
+			minsrestCV.push_back(mins.asDouble());
+		
+		std::vector<double> maxsrestCV;
+		for(auto& maxs : json["CV_restraint_maximums"])
+			maxsrestCV.push_back(maxs.asDouble());
+
+		std::vector<double> springkrestCV;
+		for(auto& bins : json["CV_restraint_spring_constants"])
+			springkrestCV.push_back(bins.asDouble());
+
+		std::vector<bool> isperiodic;
+		for(auto& isperCV : json["CV_isperiodic"])
+			isperiodic.push_back(isperCV.asBool());
+
+		std::vector<double> minperboundaryCV;
+		for(auto& minsperCV : json["CV_periodic_boundary_lower_bounds"])
+			minperboundaryCV.push_back(minsperCV.asDouble());
+
+		std::vector<double> maxperboundaryCV;
+		for(auto& maxsperCV : json["CV_periodic_boundary_upper_bounds"])
+			maxperboundaryCV.push_back(maxsperCV.asDouble());
+
+		if(!(minsCV.size() == maxsCV.size() && 
+			 maxsCV.size() == binsCV.size() &&
+			 binsCV.size() == minsrestCV.size() &&
+			 minsrestCV.size() == maxsrestCV.size() &&
+			 maxsrestCV.size() == springkrestCV.size() &&
+			 springkrestCV.size() == isperiodic.size()))			
+			throw BuildException({"CV lower bounds, upper bounds, bins, restrain minimums, restrains maximums, spring constants and periodicity info must all have the size == number of CVs defined."});
+
+		bool anyperiodic=false;
+		for(size_t i = 0; i<isperiodic.size(); ++i)
+			if(isperiodic[i])
+			{
+				anyperiodic = true;
+				if(!(isperiodic.size() == minperboundaryCV.size() &&
+				     minperboundaryCV.size() == maxperboundaryCV.size()))
+					throw BuildException({"If any CV is defined as periodic, please define the full upper and lower bound vectors. They should both have the same number of entries as CV lower bounds, upper bounds... Entries corresponding to non-periodic CVs will not be used."});
+			}
+				
+		auto FBackupInterv = json.get("backup_frequency", 1000).asInt();
+		auto unitconv = json.get("unit_conversion", 0).asDouble();
+		auto timestep = json.get("timestep",2).asDouble();
+		auto min = json.get("minimum_count",100).asDouble();
+		auto massweigh = json.get("mass_weighing",false).asBool();			
+
+		std::vector<std::vector<double>> histdetails;
+		std::vector<std::vector<double>> restraint;
+		std::vector<std::vector<double>> periodicboundaries;
+		std::vector<double> temp1(3);
+		std::vector<double> temp2(3);
+		std::vector<double> temp3(2);
+
+		for(size_t i=0; i<minsCV.size(); ++i)
+		{
+			temp1 = {minsCV[i], maxsCV[i], binsCV[i]};
+			temp2 = {minsrestCV[i], maxsrestCV[i], springkrestCV[i]};
+			histdetails.push_back(temp1);
+			restraint.push_back(temp2);
+			if(anyperiodic)
+			{
+				temp3 = {minperboundaryCV[i], maxperboundaryCV[i]};
+				periodicboundaries.push_back(temp3);
+			}
+		}
+
+		auto freq = json.get("frequency", 1).asInt();
+		auto filename = json.get("filename", "F_out").asString();
+		auto* m = new ABF(world, comm, restraint, isperiodic, periodicboundaries, min, massweigh, filename, histdetails, FBackupInterv, unitconv, timestep, freq);
+
+		if(json.isMember("F") && json.isMember("N"))
+		{
+			Eigen::VectorXd F;
+			std::vector<int> N;
+			F.resize(json["F"].size());
+			for(int i = 0; i < (int)json["F"].size(); ++i)
+				F[i] = json["F"][i].asDouble();
+
+			for(auto& n : json["N"])
+				N.push_back(n.asInt());
+
+			m->SetHistogram(F,N);
+		}
+
+		if(json.isMember("iteration"))
+			m->SetIteration(json.get("iteration",0).asInt());
+
+		return m;
+	}
+
+	void ABF::Serialize(Value& json) const
+	{
+		json["type"] = "ABF";
+		for(size_t i = 0; i < histdetails_.size(); ++i)
+		{
+			json["CV_lower_bounds"].append(histdetails_[i][0]);				
+			json["CV_upper_bounds"].append(histdetails_[i][1]);
+			json["CV_bins"].append(histdetails_[i][2]);
+		}
+
+		for(size_t i = 0; i < restraint_.size(); ++i)
+		{
+			json["CV_restraint_minimums"].append(restraint_[i][0]);
+			json["CV_restraint_maximums"].append(restraint_[i][1]);
+			json["CV_restraint_spring_constants"].append(restraint_[i][2]);
+		}
+
+		json["timestep"] = timestep_;
+		json["minimum_count"] = min_;
+		json["backup_frequency"] = FBackupInterv_;			
+		json["unit_conversion"] = unitconv_;
+		json["iteration"] = iteration_;
+		json["filename"] = filename_;		
+			
+		for(int i = 0; i < _F.size(); ++i)
+			json["F"].append(_F[i]);
+
+		for(size_t i = 0; i < _N.size(); ++i)
+			json["N"].append(_N[i]);
+
+	
 	}
 }
 

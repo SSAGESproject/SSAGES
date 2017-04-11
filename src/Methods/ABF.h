@@ -22,12 +22,10 @@
 #pragma once
 
 #include "Method.h"
-#include "../CVs/CollectiveVariable.h"
+#include "CVs/CollectiveVariable.h"
 #include <fstream>
 #include <vector>
 #include <string>
-
-#include <Eigen/Dense>
 
 namespace SSAGES
 {
@@ -40,8 +38,7 @@ namespace SSAGES
 	 * Implementation of the Adaptive Biasing Force algorithm based on
 	 * \cite DARVE2008144120
 	 */
-
-	class ABF : public Method
+	class ABF : public Method, public Buildable<ABF>
 	{
 	private:	
 		//! To store running total. 
@@ -126,17 +123,11 @@ namespace SSAGES
 		//! Number of CVs in system
 		unsigned int dim_;
 
-		//! Output stream for walker-specific data.
-		std::ofstream walkerout_;
-
 		//! Output stream for world data.
 		std::ofstream worldout_;
 
 		//! File name for world data
 		std::string filename_;
-
-		//! The node this belongs to
-		unsigned int mpiid_;
 
 		//! Histogram details. 
 		/*!
@@ -173,8 +164,8 @@ namespace SSAGES
 		//! Timestep of integration
 		double timestep_;
 
-		//! Number of cvs
-		int ncv_ = 0;
+		//! Iteration counter. 
+		uint iteration_;
 
 		//! Mass vector. Empty unless required.
 		Eigen::VectorXd mass_;
@@ -199,8 +190,8 @@ namespace SSAGES
 		 * \note The restraints should be outside of the range defined in
 		 *       histdetails_ by at least one bin size on each side.
 		 */ 
-		ABF(boost::mpi::communicator& world,
-			boost::mpi::communicator& comm,
+		ABF(const MPI_Comm& world,
+			const MPI_Comm& comm,
 			std::vector<std::vector<double>> restraint,
 			std::vector<bool> isperiodic,
 			std::vector<std::vector<double>> periodicboundaries,
@@ -214,9 +205,10 @@ namespace SSAGES
 			unsigned int frequency) :
 		Method(frequency, world, comm), _F(), Fworld_(), _N(0), Nworld_(0),
 		restraint_(restraint), isperiodic_(isperiodic), periodicboundaries_(periodicboundaries),
-		 min_(min), wdotp1_(), wdotp2_(), Fold_(), massweigh_(massweigh),
-		biases_(), dim_(0), filename_(filename), mpiid_(0), histdetails_(histdetails), 
-		FBackupInterv_(FBackupInterv), unitconv_(unitconv), timestep_(timestep)
+		min_(min), wdotp1_(), wdotp2_(), Fold_(), massweigh_(massweigh),
+		biases_(), dim_(0), filename_(filename), histdetails_(histdetails), 
+		FBackupInterv_(FBackupInterv), unitconv_(unitconv), timestep_(timestep),
+		iteration_(0)
 		{
 		}
 
@@ -260,42 +252,15 @@ namespace SSAGES
 		{
 			iteration_ = iter;
 		}			
+		
+		//! \copydoc Buildable::Build()
+		static ABF* Build(const Json::Value& json, 
+		                  const MPI_Comm& world,
+		                  const MPI_Comm& comm,
+					      const std::string& path);
 
 		//! \copydoc Serializable::Serialize()
-		void Serialize(Json::Value& json) const override
-		{
-		
-			json["type"] = "ABF";
-
-			for(size_t i = 0; i < histdetails_.size(); ++i)
-			{
-				json["CV_lower_bounds"].append(histdetails_[i][0]);				
-				json["CV_upper_bounds"].append(histdetails_[i][1]);
-				json["CV_bins"].append(histdetails_[i][2]);
-			}
-
-			for(size_t i = 0; i < restraint_.size(); ++i)
-			{
-				json["CV_restraint_minimums"].append(restraint_[i][0]);
-				json["CV_restraint_maximums"].append(restraint_[i][1]);
-				json["CV_restraint_spring_constants"].append(restraint_[i][2]);
-			}
-
-			json["timestep"] = timestep_;
-			json["minimum_count"] = min_;
-			json["backup_frequency"] = FBackupInterv_;			
-			json["unit_conversion"] = unitconv_;
-			json["iteration"] = iteration_;
-			json["filename"] = filename_;		
-				
-			for(int i = 0; i < _F.size(); ++i)
-				json["F"].append(_F[i]);
-
-			for(size_t i = 0; i < _N.size(); ++i)
-				json["N"].append(_N[i]);
-	
-		
-		}
+		void Serialize(Json::Value& json) const override;
 
 		//! Destructor
 		~ABF() {}
