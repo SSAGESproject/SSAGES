@@ -2,11 +2,7 @@
  * This file is part of
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
- * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
- *                Emre Sevgen <sesevgen@uchicago.edu>
- *                Joshua Moller <jmoller@uchicago.edu>
- *                Cody Bezik <bezik@uchicago.edu>
- *                Ashley Guo <azguo@uchicago.edu>
+ * Copyright 2017 Hythem Sidky <hsidky@nd.edu>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,21 +22,24 @@
 #include "schema.h"
 #include "../Validator/ObjectRequirement.h"
 #include "../Validator/ArrayRequirement.h"
-#include "../Drivers/DriverException.h"
-#include "ElasticBand.h"
-#include "FiniteTempString.h"
-#include "StringMethod.h"
-#include "Meta.h"
 #include "Umbrella.h"
-#include "DirectForwardFlux.h"
-#include "ABF.h"
-#include "BasisFunc.h"
-#include "Swarm.h"
+#include <stdexcept>
 
 using namespace Json;
 
 namespace SSAGES
 {
+	Method* Method::BuildMethod(const Json::Value& json, 
+		                        const MPI_Comm& world, 
+							    const MPI_Comm& comm, 
+							    const std::string& path)
+	{
+		if(json["type"] == "Umbrella")
+			return Umbrella::Build(json, world, comm, path);
+		else
+			throw std::invalid_argument(path + ": Unknown method type specified.");
+	}
+	/*
 	Method* Method::BuildMethod(const Value &json, 
 						boost::mpi::communicator& world, 
 						boost::mpi::communicator& comm,
@@ -517,5 +516,6 @@ namespace SSAGES
 		
 		return method;
 	}
+	*/
 }
 
