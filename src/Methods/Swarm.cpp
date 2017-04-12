@@ -18,7 +18,9 @@
 - * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.     
 - */
 #include "Swarm.h"
-#include "../spline.h"
+#include "spline.h"
+#include "Snapshot.h"
+#include "CVs/CollectiveVariable.h"
 #include <cmath>
 #include <iostream>
 #include <iomanip>
@@ -26,7 +28,6 @@
 #include <sstream>
 #include <algorithm>
 
-namespace mpi = boost::mpi;
 namespace SSAGES
 {
 
@@ -281,5 +282,16 @@ namespace SSAGES
 		StringReparam(alphastar);
   
 	}
+
+    void Swarm::Serialize(Json::Value& json) const
+    {
+        StringMethod::Serialize(json);
+
+        json["flavor"] = "SWARM";
+        json["initial_steps"] = initialize_steps_;
+        json["harvest_length"] = harvest_length_;
+        json["number_of_trajectories"] = number_trajectories_;
+        json["swarm_length"] = swarm_length_; 
+    }
 }
 

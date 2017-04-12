@@ -52,11 +52,11 @@ set(SOURCE
 	src/Methods/Meta.cpp
 	src/Methods/Method.cpp
 	src/Methods/StringMethod.cpp
+  	src/Methods/Swarm.cpp
 	src/Methods/Umbrella.cpp
 #	src/Constraints/Constraint.cpp
 #	src/Constraints/COPSSImage.cpp
 #	src/CVs/CollectiveVariable.cpp
-#  	src/Methods/Swarm.cpp
 #	src/Observers/JSONObserver.cpp
 	src/Validator/RequirementLoader.cpp
 #	src/Simulations/SimObserver.cpp

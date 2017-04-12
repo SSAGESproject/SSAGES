@@ -23,6 +23,7 @@
 #include "ElasticBand.h"
 #include "FiniteTempString.h"
 #include "StringMethod.h"
+#include "Swarm.h"
 #include "CVs/CollectiveVariable.h"
 #include "Validator/ObjectRequirement.h"
 #include "Drivers/DriverException.h"
@@ -318,7 +319,33 @@ namespace SSAGES
 				m->SetTolerance(tol);
 			}
 		}
+		else if(flavor == "SWARM")
+		{
+			reader.parse(JsonSchema::SwarmMethod, schema);
+			validator.Parse(schema, path);
+			
+			//Validate input
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
 
+			auto InitialSteps = json.get("initial_steps", 2500).asInt();
+			auto HarvestLength = json.get("harvest_length", 10).asInt();
+			auto NumberTrajectories = json.get("number_of_trajectories", 250).asInt();
+			auto SwarmLength = json.get("swarm_length", 20).asInt();
+			
+			auto* m = new Swarm(world, comm, centers, maxiterator, ksprings, freq, InitialSteps, HarvestLength, NumberTrajectories, SwarmLength);
+			
+			if(json.isMember("tolerance"))
+			{
+				std::vector<double> tol;
+				for(auto& s : json["tolerance"])
+					tol.push_back(s.asDouble());
+
+				m->SetTolerance(tol);
+			}
+		}
+		
 		return m;
 	}
 
