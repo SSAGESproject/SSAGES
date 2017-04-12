@@ -45,17 +45,17 @@ link_directories(${MPI_CXX_LIBRARIES})
 set(SOURCE
 	src/Methods/ABF.cpp
   	src/Methods/BasisFunc.cpp
+	src/Methods/DirectForwardFlux.cpp
+	src/Methods/ForwardFlux.cpp
+	src/Methods/Meta.cpp
 	src/Methods/Method.cpp
 	src/Methods/Umbrella.cpp
 #	src/Constraints/Constraint.cpp
 #	src/Constraints/COPSSImage.cpp
 #	src/CVs/CollectiveVariable.cpp
-#	src/Methods/Meta.cpp
 #	src/Methods/ElasticBand.cpp
 #	src/Methods/FiniteTempString.cpp
 #  	src/Methods/Swarm.cpp
-#	src/Methods/ForwardFlux.cpp
-#	src/Methods/DirectForwardFlux.cpp
 #	src/Observers/JSONObserver.cpp
 	src/Validator/RequirementLoader.cpp
 #	src/Simulations/SimObserver.cpp

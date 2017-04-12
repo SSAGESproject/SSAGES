@@ -23,6 +23,12 @@
 #include <math.h>
 #include <iostream>
 #include "Drivers/DriverException.h"
+#include "CVs/CollectiveVariable.h"
+#include "Validator/ObjectRequirement.h"
+#include "Drivers/DriverException.h"
+#include "schema.h"
+
+using namespace Json;
 
 namespace SSAGES
 {
@@ -318,5 +324,60 @@ namespace SSAGES
 			else if(cval > upperb_[i])
 				derivatives_[i] += upperk_[i]*(cval - upperb_[i]);
 		}
+	}
+
+	Meta* Meta::Construct(const Json::Value& json, 
+		                  const MPI_Comm& world,
+		                  const MPI_Comm& comm,
+					      const std::string& path)
+	{
+		ObjectRequirement validator;
+		Value schema;
+		Reader reader;
+		
+		reader.parse(JsonSchema::MetadynamicsMethod, schema);
+		validator.Parse(schema, path);
+
+		// Validate inputs.
+		validator.Validate(json, path);
+		if(validator.HasErrors())
+			throw BuildException(validator.GetErrors());
+
+		std::vector<double> widths;
+		for(auto& s : json["widths"])
+			widths.push_back(s.asDouble());
+
+		std::vector<double> lowerb, upperb, lowerk, upperk;
+		Grid<Vector>* grid = nullptr;
+		if(json.isMember("grid"))
+			grid = Grid<Vector>::BuildGrid(json.get("grid", Json::Value()));
+		else if(!json.isMember("lower_bounds") || !json.isMember("upper_bounds"))
+			throw BuildException({
+				"#/Method/Metadynamics: Both upper_bounds and lower_bounds "
+				"must be defined if grid is not being used."});
+
+		// Assume all vectors are the same size. 
+		for(int i = 0; i < json["lower_bound_restraints"].size(); ++i)
+		{
+			lowerk.push_back(json["lower_bound_restraints"][i].asDouble());
+			upperk.push_back(json["upper_bound_restraints"][i].asDouble());
+			lowerb.push_back(json["lower_bounds"][i].asDouble());
+			upperb.push_back(json["upper_bounds"][i].asDouble());
+		}
+	
+		auto height = json.get("height", 1.0).asDouble();
+		auto hillfreq = json.get("hill_frequency", 1).asInt();
+		auto freq = json.get("frequency", 1).asInt();
+
+		auto* m = new Meta(
+			world, comm, height, widths, 
+			lowerb, upperb, lowerk,	upperk,
+			grid, hillfreq, freq
+		);
+
+		if(json.isMember("load_hills"))
+			m->LoadHills(json["load_hills"].asString());
+
+		return m;		
 	}
 }

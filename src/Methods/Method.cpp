@@ -20,11 +20,13 @@
 #include "Method.h"
 #include "json/json.h"
 #include "schema.h"
-#include "../Validator/ObjectRequirement.h"
-#include "../Validator/ArrayRequirement.h"
+#include "Validator/ObjectRequirement.h"
+#include "Validator/ArrayRequirement.h"
 #include "ABF.h"
 #include "Umbrella.h"
 #include "BasisFunc.h"
+#include "ForwardFlux.h"
+#include "Meta.h"
 #include <stdexcept>
 
 using namespace Json;
@@ -40,6 +42,10 @@ namespace SSAGES
 			return ABF::Build(json, world, comm, path);
 		else if(json["type"] == "Basis")
 			return Basis::Build(json, world, comm, path);
+		else if(json["type"] == "ForwardFlux")
+			return ForwardFlux::Build(json, world, comm, path);
+		else if(json["type"] == "Metadynamics")
+			return Meta::Build(json, world, comm, path);
 		else if(json["type"] == "Umbrella")
 			return Umbrella::Build(json, world, comm, path);
 		else
@@ -60,59 +66,6 @@ namespace SSAGES
 		// Get method type. 
 		std::string type = json.get("type", "none").asString();
 
-		if(type == "Umbrella")
-		{
-			reader.parse(JsonSchema::UmbrellaMethod, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-
-			std::vector<double> ksprings;
-			for(auto& s : json["ksprings"])
-				ksprings.push_back(s.asDouble());
-
-			std::vector<double> centers0, centers1;
-			auto timesteps = json.get("timesteps", 0).asInt();
-			if(json.isMember("centers"))
-			{
-				for(auto& s : json["centers"])
-					centers0.push_back(s.asDouble());
-			}
-			else if(json.isMember("centers0") && json.isMember("centers1") && json.isMember("timesteps"))
-			{
-				for(auto& s : json["centers0"])
-					centers0.push_back(s.asDouble());
-
-				for(auto& s : json["centers1"])
-					centers1.push_back(s.asDouble());
-			}
-			else
-				throw BuildException({"Either \"centers\" or \"timesteps\", \"centers0\" and \"centers1\" must be defined for umbrella."});
-
-			if(ksprings.size() != centers0.size())
-				throw BuildException({"Need to define a spring for every center or a center for every spring!"});
-
-			auto freq = json.get("frequency", 1).asInt();
-
-			auto name = json.get("file name","none").asString();
-
-			Umbrella* m = nullptr;
-			if(timesteps == 0)
-				m = new Umbrella(world, comm, ksprings, centers0, name, freq);
-			else
-				m = new Umbrella(world, comm, ksprings, centers0, centers1, timesteps, name, freq);
-
-			if(json.isMember("iteration"))
-				m->SetIteration(json.get("iteration",0).asInt());
-
-			if(json.isMember("log every"))
-				m->SetLogStep(json.get("log every",0).asInt());
-
-			method = static_cast<Method*>(m);
-		}
 		else if(type == "Metadynamics")
 		{
 			reader.parse(JsonSchema::MetadynamicsMethod, schema);
@@ -160,175 +113,7 @@ namespace SSAGES
 
 			method = static_cast<Method*>(m);
 		}
-		else if(type == "ABF")
-		{
-			reader.parse(JsonSchema::ABFMethod, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-
-			std::vector<double> minsCV;
-			for(auto& mins : json["CV_lower_bounds"])
-				minsCV.push_back(mins.asDouble());
-			
-			std::vector<double> maxsCV;
-			for(auto& maxs : json["CV_upper_bounds"])
-				maxsCV.push_back(maxs.asDouble());
-
-			std::vector<double> binsCV;
-			for(auto& bins : json["CV_bins"])
-				binsCV.push_back(bins.asDouble());
-
-			std::vector<double> minsrestCV;
-			for(auto& mins : json["CV_restraint_minimums"])
-				minsrestCV.push_back(mins.asDouble());
-			
-			std::vector<double> maxsrestCV;
-			for(auto& maxs : json["CV_restraint_maximums"])
-				maxsrestCV.push_back(maxs.asDouble());
-
-			std::vector<double> springkrestCV;
-			for(auto& bins : json["CV_restraint_spring_constants"])
-				springkrestCV.push_back(bins.asDouble());
-
-			std::vector<bool> isperiodic;
-			for(auto& isperCV : json["CV_isperiodic"])
-				isperiodic.push_back(isperCV.asBool());
-
-			std::vector<double> minperboundaryCV;
-			for(auto& minsperCV : json["CV_periodic_boundary_lower_bounds"])
-				minperboundaryCV.push_back(minsperCV.asDouble());
-
-			std::vector<double> maxperboundaryCV;
-			for(auto& maxsperCV : json["CV_periodic_boundary_upper_bounds"])
-				maxperboundaryCV.push_back(maxsperCV.asDouble());
-
-			
-			if(!(minsCV.size() 	 	== maxsCV.size() && 
-			     maxsCV.size() 	 	== binsCV.size() &&
-			     binsCV.size()	 	== minsrestCV.size() &&
-			     minsrestCV.size()	 	== maxsrestCV.size() &&
-			     maxsrestCV.size()    	== springkrestCV.size() &&
-			     springkrestCV.size()	== isperiodic.size()))			
-
-			throw BuildException({"CV lower bounds, upper bounds, bins, restrain minimums, restrains maximums, spring constants and periodicity info must all have the size == number of CVs defined."});
-
-			bool anyperiodic=false;
-			for(size_t i = 0; i<isperiodic.size(); ++i)
-				if(isperiodic[i])
-					{
-					anyperiodic = true;
-					if(!(isperiodic.size() 	    	== minperboundaryCV.size() &&
-			     		   minperboundaryCV.size()	== maxperboundaryCV.size()))
-					throw BuildException({"If any CV is defined as periodic, please define the full upper and lower bound vectors. They should both have the same number of entries as CV lower bounds, upper bounds... Entries corresponding to non-periodic CVs will not be used."});
-					}
-			     
-			int FBackupInterv = json.get("backup_frequency", 1000).asInt();
-
-			double unitconv = json.get("unit_conversion", 0).asDouble();
 		
-			double timestep = json.get("timestep",2).asDouble();
-
-			double min = json.get("minimum_count",100).asDouble();
-
-			bool massweigh = json.get("mass_weighing",false).asBool();			
-
-			std::vector<std::vector<double>> histdetails;
-			std::vector<std::vector<double>> restraint;
-			std::vector<std::vector<double>> periodicboundaries;
-			std::vector<double> temp1(3);
-			std::vector<double> temp2(3);
-			std::vector<double> temp3(2);
-
-			for(size_t i=0; i<minsCV.size(); ++i)
-				{
-				temp1 = {minsCV[i], maxsCV[i], binsCV[i]};
-				temp2 = {minsrestCV[i], maxsrestCV[i], springkrestCV[i]};
-				histdetails.push_back(temp1);
-				restraint.push_back(temp2);
-				if(anyperiodic)
-					{
-					temp3 = {minperboundaryCV[i], maxperboundaryCV[i]};
-					periodicboundaries.push_back(temp3);
-					}
-				}
-
-			auto freq = json.get("frequency", 1).asInt();
-
-			std::string filename = json.get("filename", "F_out").asString();
-
-			auto* m = new ABF(world, comm, restraint, isperiodic, periodicboundaries, min, massweigh, filename, histdetails, FBackupInterv, unitconv, timestep, freq);
-
-			method = static_cast<Method*>(m);
-
-			if(json.isMember("F") && json.isMember("N"))
-				{
-				Eigen::VectorXd F;
-				std::vector<int> N;
-				F.resize(json["F"].size());
-				for(int i = 0; i < (int)json["F"].size(); ++i)
-					F[i] = json["F"][i].asDouble();
-
-				for(auto& n : json["N"])
-					N.push_back(n.asInt());
-
-				m->SetHistogram(F,N);
-				}
-
-			if(json.isMember("iteration"))
-				m->SetIteration(json.get("iteration",0).asInt());
-
-		}
-		else if(type == "ForwardFlux")
-		{
-			reader.parse(JsonSchema::ForwardFluxMethod, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-            
-
-            double ninterfaces = json.get("nInterfaces", 2).asDouble();
-            
-            std::vector<double> interfaces;
-            for(auto& s : json["interfaces"])
-            	interfaces.push_back(s.asDouble());
-
-            std::vector<unsigned int> M;
-            for(auto& s : json["trials"])
-            	M.push_back(s.asInt());
-           
-           	if ((ninterfaces != interfaces.size()) || (ninterfaces != M.size())){
-           		throw BuildException({"The size of \"interfaces\" and \"trials\" must be equal to \"nInterfaces\". See documentation for more information"});
-           	}
-
-            unsigned int N0Target = json.get("N0Target", 1).asInt();
-
-            bool initialFluxFlag = json.get("computeInitialFlux", true).asBool();
-           
-            bool saveTrajectories = json.get("saveTrajectories", true).asBool();
-
-            unsigned int currentInterface = json.get("currentInterface", 0).asInt();
-
-            unsigned int freq = json.get("frequency", 1).asInt();
-
-            std::string flavor = json.get("flavor", "none").asString();
-
-            std::string output_directory = json.get("outputDirectoryName", "FFSoutput").asString();
-
-            if(flavor == "DirectForwardFlux"){
-            	auto *m = new DirectForwardFlux(world, comm, ninterfaces, interfaces, N0Target, M, initialFluxFlag, saveTrajectories, currentInterface, output_directory, freq);            	
-            	method = static_cast<Method*>(m);
-            } else {
-            	throw BuildException({"Unknow flavor of forward flux. The options are \"DirectForwardFlux\""});
-            }
-
-		}
 		else if(type == "String")
 		{
 			reader.parse(JsonSchema::StringMethod, schema);
