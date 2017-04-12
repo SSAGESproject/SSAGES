@@ -19,16 +19,16 @@
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "ElasticBand.h"
+#include "CVs/CollectiveVariable.h"
+#include "Snapshot.h" 
 #include <math.h>
 #include <iostream>
-#include "../Drivers/DriverException.h"
 
 namespace SSAGES
 {
 	// Post-integration hook.
 	void ElasticBand::PostIntegration(Snapshot* snapshot, const CVList& cvs)
 	{
-
 		auto& forces = snapshot->GetForces();
 
 		// Apply umbrella to cvs

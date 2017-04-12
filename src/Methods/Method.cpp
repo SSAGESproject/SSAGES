@@ -27,6 +27,7 @@
 #include "BasisFunc.h"
 #include "ForwardFlux.h"
 #include "Meta.h"
+#include "StringMethod.h"
 #include <stdexcept>
 
 using namespace Json;
@@ -48,6 +49,8 @@ namespace SSAGES
 			return Meta::Build(json, world, comm, path);
 		else if(json["type"] == "Umbrella")
 			return Umbrella::Build(json, world, comm, path);
+		else if(json["type"] == "String")
+			return StringMethod::Build(json, world, comm, path);
 		else
 			throw std::invalid_argument(path + ": Unknown method type specified.");
 	}
@@ -66,54 +69,6 @@ namespace SSAGES
 		// Get method type. 
 		std::string type = json.get("type", "none").asString();
 
-		else if(type == "Metadynamics")
-		{
-			reader.parse(JsonSchema::MetadynamicsMethod, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-
-			std::vector<double> widths;
-			for(auto& s : json["widths"])
-				widths.push_back(s.asDouble());
-
-			std::vector<double> lowerb, upperb, lowerk, upperk;
-			Grid<Vector>* grid = nullptr;
-			if(json.isMember("grid"))
-				grid = Grid<Vector>::BuildGrid(json.get("grid", Json::Value()));
-			else if(!json.isMember("lower_bounds") || !json.isMember("upper_bounds"))
-				throw BuildException({
-					"#/Method/Metadynamics: Both upper_bounds and lower_bounds "
-					"must be defined if grid is not being used."});
-
-			// Assume all vectors are the same size. 
-			for(int i = 0; i < json["lower_bound_restraints"].size(); ++i)
-			{
-				lowerk.push_back(json["lower_bound_restraints"][i].asDouble());
-				upperk.push_back(json["upper_bound_restraints"][i].asDouble());
-				lowerb.push_back(json["lower_bounds"][i].asDouble());
-				upperb.push_back(json["upper_bounds"][i].asDouble());
-			}
-		
-			auto height = json.get("height", 1.0).asDouble();
-			auto hillfreq = json.get("hill_frequency", 1).asInt();
-			auto freq = json.get("frequency", 1).asInt();
-
-			auto* m = new Meta(
-			    world, comm, height, widths, 
-				lowerb, upperb, lowerk,	upperk,
-				grid, hillfreq, freq
-			);
-
-			if(json.isMember("load_hills"))
-				m->LoadHills(json["load_hills"].asString());
-
-			method = static_cast<Method*>(m);
-		}
-		
 		else if(type == "String")
 		{
 			reader.parse(JsonSchema::StringMethod, schema);
@@ -238,68 +193,6 @@ namespace SSAGES
                 method->SetIteration(json.get("iteration",0).asInt());
             
 		}
-        else if(type == "Basis")
-        {
-            reader.parse(JsonSchema::BFSMethod, schema);
-            validator.Parse(schema, path);
-
-            //Validate Inputs
-            validator.Validate(json, path);
-            if(validator.HasErrors())
-                throw BuildException(validator.GetErrors());
-
-			std::vector<unsigned int> coefsCV(0);
-			for(auto& coefs : json["CV_coefficients"])
-				coefsCV.push_back(coefs.asInt());
-
-            std::vector<double> restrCV(0);
-			for(auto& restr : json["CV_restraint_spring_constants"])
-                restrCV.push_back(restr.asDouble());
-
-            std::vector<double> boundLow(0);
-            for(auto& bndl : json["CV_restraint_minimums"])
-                boundLow.push_back(bndl.asDouble());
-        
-            std::vector<double> boundUp(0);
-            for(auto& bndu : json["CV_restraint_maximums"])
-                boundUp.push_back(bndu.asDouble());
-
-            auto cyclefreq = json.get("cycle_frequency", 100000).asInt();
-            auto freq = json.get("frequency", 1).asInt();
-            auto wght = json.get("weight", 1.0).asDouble();
-            auto bnme = json.get("basis_filename", "").asString();
-            auto cnme = json.get("coeff_filename", "").asString();
-            auto temp = json.get("temperature", 0.0).asDouble();
-            auto tol  = json.get("tolerance", 1e-6).asDouble();
-            auto conv = json.get("convergence_exit", false).asBool();
- 
-            Histogram<int> *hist = Histogram<int>::BuildHistogram(
-                                            json.get("grid", Json::Value()) );
-
-            auto* m = new Basis(world, comm, hist, coefsCV, restrCV, boundUp, boundLow,
-                                cyclefreq, freq, bnme, cnme, temp, tol, wght,
-                                conv);
-
-            method = static_cast<Method*>(m);
-			
-            if(json.isMember("iteration"))
-				m->SetIteration(json.get("iteration",0).asInt());
-
-            if(json.isMember("coefficients") && json.isMember("bias hist"))
-            {
-                std::vector<double> coeff;
-                std::vector<double> unbias;
-
-                for(auto& c : json["coefficients"])
-                    coeff.push_back(c.asDouble());
-
-                for(auto& u : json["bias hist"])
-                    unbias.push_back(u.asDouble());
-
-                m->SetBasis(coeff, unbias);
-            }
-
-        }
 		else
 		{
 			throw BuildException({path + ": Unknown method type specified."});
