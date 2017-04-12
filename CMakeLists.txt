@@ -47,6 +47,7 @@ set(SOURCE
   	src/Methods/BasisFunc.cpp
 	src/Methods/DirectForwardFlux.cpp
 	src/Methods/ElasticBand.cpp
+	src/Methods/FiniteTempString.cpp
 	src/Methods/ForwardFlux.cpp
 	src/Methods/Meta.cpp
 	src/Methods/Method.cpp
@@ -55,7 +56,6 @@ set(SOURCE
 #	src/Constraints/Constraint.cpp
 #	src/Constraints/COPSSImage.cpp
 #	src/CVs/CollectiveVariable.cpp
-#	src/Methods/FiniteTempString.cpp
 #  	src/Methods/Swarm.cpp
 #	src/Observers/JSONObserver.cpp
 	src/Validator/RequirementLoader.cpp

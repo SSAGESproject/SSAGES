@@ -21,6 +21,7 @@
  */
 
 #include "ElasticBand.h"
+#include "FiniteTempString.h"
 #include "StringMethod.h"
 #include "CVs/CollectiveVariable.h"
 #include "Validator/ObjectRequirement.h"
@@ -279,6 +280,34 @@ namespace SSAGES
 								maxiterator, isteps,
 								tau, ksprings, eqsteps,
 								evsteps, stringspring, freq);
+
+			if(json.isMember("tolerance"))
+			{
+				std::vector<double> tol;
+				for(auto& s : json["tolerance"])
+					tol.push_back(s.asDouble());
+
+				m->SetTolerance(tol);
+			}
+		}
+		else if(flavor == "FTS")
+		{
+			reader.parse(JsonSchema::FTSMethod, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+			
+			auto isteps = json.get("block_iterations", 2000).asInt();
+			auto tau = json.get("time_step", 0.1).asDouble();
+			auto kappa = json.get("kappa", 0.1).asDouble();
+			auto springiter = json.get("umbrella_iterations",2000).asDouble();
+			m = new FiniteTempString(world, comm, centers, 
+								     maxiterator, isteps,
+								     tau, ksprings, kappa,
+								     springiter, freq);
 
 			if(json.isMember("tolerance"))
 			{

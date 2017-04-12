@@ -18,15 +18,16 @@
  * You should have received a copy of the GNU General Public License
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "CVs/CollectiveVariable.h"
 #include "FiniteTempString.h"
+#include "Snapshot.h" 
+#include "spline.h"
 #include <math.h>
 #include <iostream>
 #include <algorithm>
-#include "../spline.h"
 
 namespace SSAGES
 { 
-
 	// Check whether CV values are within their respective Voronoi cell in CV space
 	bool FiniteTempString::InCell(const CVList& cvs) const
 	{
@@ -215,5 +216,19 @@ namespace SSAGES
 		GatherNeighbors(&lcv0, &ucv0);
 		double alphastar = distance(centers_, lcv0);
 		StringReparam(alphastar);
+	}
+
+	void FiniteTempString::Serialize(Json::Value& json) const
+	{
+		StringMethod::Serialize(json);
+
+		json["umbrella_iterations"] = min_num_umbrella_steps_;
+		json["flavor"] = "FTS";
+		json["kappa"] = kappa_;
+		json["block_iterations"] = blockiterations_;
+		json["time_step"] = tau_;
+
+		for(auto& nw : newcenters_)
+			json["running_average"].append(nw);
 	}
 }
