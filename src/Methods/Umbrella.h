@@ -153,10 +153,10 @@ namespace SSAGES
 		}
 
 		//! \copydoc Buildable::Build()
-		static Umbrella* Build(const Json::Value& json, 
-		                       const MPI_Comm& world,
-		                       const MPI_Comm& comm,
-					           const std::string& path);
+		static Umbrella* Construct(const Json::Value& json, 
+		                           const MPI_Comm& world,
+		                           const MPI_Comm& comm,
+					               const std::string& path);
 
 		//! \copydoc Serializable::Serialize()
 		/*!

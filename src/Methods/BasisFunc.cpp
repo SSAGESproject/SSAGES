@@ -19,11 +19,16 @@
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "BasisFunc.h"
+#include "Validator/ObjectRequirement.h"
+#include "Drivers/DriverException.h"
+#include "CVs/CollectiveVariable.h"
+#include "Snapshot.h"
 #include <cmath>
 #include <iostream>
 #include <iomanip>
 
-namespace mpi = boost::mpi;
+using namespace Json; 
+
 namespace SSAGES
 {
 
@@ -44,7 +49,7 @@ namespace SSAGES
             std::cerr<<"ERROR: Histogram dimensions doesn't match number of CVS."<<std::endl;
             std::cerr<<"Exiting on node ["<<mpiid_<<"]"<<std::endl;
             std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-            world_.abort(EXIT_FAILURE);
+            MPI_Abort(world_, EXIT_FAILURE);
         }
         else if(cvs.size() != polyords_.size())
         {
@@ -509,4 +514,105 @@ namespace SSAGES
             }
         }
     }
+
+	//! \copydoc Method::Build()
+	Basis* Basis::Construct(const Json::Value& json, 
+			       		    const MPI_Comm& world,
+					        const MPI_Comm& comm,
+					        const std::string& path)
+    {
+		ObjectRequirement validator;
+		Value schema;
+		Reader reader;
+        
+		reader.parse(JsonSchema::BFSMethod, schema);
+        validator.Parse(schema, path);
+
+        //Validate Inputs
+        validator.Validate(json, path);
+        if(validator.HasErrors())
+            throw BuildException(validator.GetErrors());
+
+        std::vector<unsigned int> coefsCV(0);
+        for(auto& coefs : json["CV_coefficients"])
+            coefsCV.push_back(coefs.asInt());
+
+        std::vector<double> restrCV(0);
+        for(auto& restr : json["CV_restraint_spring_constants"])
+            restrCV.push_back(restr.asDouble());
+
+        std::vector<double> boundLow(0);
+        for(auto& bndl : json["CV_restraint_minimums"])
+            boundLow.push_back(bndl.asDouble());
+    
+        std::vector<double> boundUp(0);
+        for(auto& bndu : json["CV_restraint_maximums"])
+            boundUp.push_back(bndu.asDouble());
+
+        auto cyclefreq = json.get("cycle_frequency", 100000).asInt();
+        auto freq = json.get("frequency", 1).asInt();
+        auto wght = json.get("weight", 1.0).asDouble();
+        auto bnme = json.get("basis_filename", "").asString();
+        auto cnme = json.get("coeff_filename", "").asString();
+        auto temp = json.get("temperature", 0.0).asDouble();
+        auto tol  = json.get("tolerance", 1e-6).asDouble();
+        auto conv = json.get("convergence_exit", false).asBool();
+
+        Histogram<int> *hist = Histogram<int>::BuildHistogram(
+                                        json.get("grid", Json::Value()) );
+
+        auto* m = new Basis(world, comm, hist, coefsCV, restrCV, boundUp, boundLow,
+                            cyclefreq, freq, bnme, cnme, temp, tol, wght,
+                            conv);
+      
+        if(json.isMember("iteration"))
+            m->SetIteration(json.get("iteration",0).asInt());
+
+        if(json.isMember("coefficients") && json.isMember("bias hist"))
+        {
+            std::vector<double> coeff;
+            std::vector<double> unbias;
+
+            for(auto& c : json["coefficients"])
+                coeff.push_back(c.asDouble());
+
+            for(auto& u : json["bias hist"])
+                unbias.push_back(u.asDouble());
+
+            m->SetBasis(coeff, unbias);
+    	}
+
+		return m;
+    }
+
+    void Basis::Serialize(Json::Value& json) const
+    {
+        json["type"] = "Basis";
+        for(auto& p: polyords_)
+            json["CV_coefficients"].append(p);
+
+        for(auto& k: restraint_)
+            json["CV_restraint_spring_constants"].append(k);
+
+        for(auto& u: boundUp_)
+            json["CV_restraint_maximums"].append(u);
+
+        for(auto& l: boundLow_)
+            json["CV_restraint_minimums"].append(l);
+
+        for(auto& b: unbias_)
+            json["bias_hist"].append(b);
+
+        for(auto& c: coeff_arr_)
+            json["coefficients"].append(c);
+
+        json["tolerance"] = tol_;
+        json["convergence_exit"] = converge_exit_;
+        json["basis_filename"] = bnme_;
+        json["coeff_filename"] = cnme_;
+        json["iteration"] = iteration_;
+        json["cycle_frequency"] = cyclefreq_;
+        json["weight"] = weight_;
+        json["temperature"] = temperature_;
+	}
 }

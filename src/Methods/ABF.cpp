@@ -325,10 +325,10 @@ namespace SSAGES
 		worldout_.close();
 	}
 
-	ABF* ABF::Build(const Value& json, 
-		            const MPI_Comm& world,
-		            const MPI_Comm& comm,
-			        const std::string& path)
+	ABF* ABF::Construct(const Value& json, 
+		                const MPI_Comm& world,
+		                const MPI_Comm& comm,
+			            const std::string& path)
 	{
 		ObjectRequirement validator;
 		Value schema;

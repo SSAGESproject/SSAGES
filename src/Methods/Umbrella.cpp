@@ -87,10 +87,10 @@ namespace SSAGES
 	}
 
 	//! \copydoc Method::Build()
-	Umbrella* Umbrella::Build(const Json::Value& json, 
-			    		      const MPI_Comm& world,
-					          const MPI_Comm& comm,
-					          const std::string& path)
+	Umbrella* Umbrella::Construct(const Json::Value& json, 
+			    		          const MPI_Comm& world,
+					              const MPI_Comm& comm,
+					              const std::string& path)
 	{
 		ObjectRequirement validator;
 		Value schema;

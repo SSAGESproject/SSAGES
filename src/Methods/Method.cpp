@@ -24,6 +24,7 @@
 #include "../Validator/ArrayRequirement.h"
 #include "ABF.h"
 #include "Umbrella.h"
+#include "BasisFunc.h"
 #include <stdexcept>
 
 using namespace Json;
@@ -37,6 +38,8 @@ namespace SSAGES
 	{
 		if(json["type"] == "ABF")
 			return ABF::Build(json, world, comm, path);
+		else if(json["type"] == "Basis")
+			return Basis::Build(json, world, comm, path);
 		else if(json["type"] == "Umbrella")
 			return Umbrella::Build(json, world, comm, path);
 		else

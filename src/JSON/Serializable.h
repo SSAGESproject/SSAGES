@@ -59,6 +59,7 @@ namespace SSAGES
     template<class T> 
     class Buildable
     {
+    public:
         //! Build an object from JSON node. 
 		/*! 
 		 * \param JSON Value containing all input information.

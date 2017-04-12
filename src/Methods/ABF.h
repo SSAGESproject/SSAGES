@@ -254,10 +254,10 @@ namespace SSAGES
 		}			
 		
 		//! \copydoc Buildable::Build()
-		static ABF* Build(const Json::Value& json, 
-		                  const MPI_Comm& world,
-		                  const MPI_Comm& comm,
-					      const std::string& path);
+		static ABF* Construct(const Json::Value& json, 
+		                      const MPI_Comm& world,
+		                      const MPI_Comm& comm,
+					          const std::string& path);
 
 		//! \copydoc Serializable::Serialize()
 		void Serialize(Json::Value& json) const override;

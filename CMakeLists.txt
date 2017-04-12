@@ -44,6 +44,7 @@ link_directories(${MPI_CXX_LIBRARIES})
 # General source files
 set(SOURCE
 	src/Methods/ABF.cpp
+  	src/Methods/BasisFunc.cpp
 	src/Methods/Method.cpp
 	src/Methods/Umbrella.cpp
 #	src/Constraints/Constraint.cpp
@@ -55,7 +56,6 @@ set(SOURCE
 #  	src/Methods/Swarm.cpp
 #	src/Methods/ForwardFlux.cpp
 #	src/Methods/DirectForwardFlux.cpp
-#  	src/Methods/BasisFunc.cpp
 #	src/Observers/JSONObserver.cpp
 	src/Validator/RequirementLoader.cpp
 #	src/Simulations/SimObserver.cpp
