@@ -82,6 +82,9 @@ namespace SSAGES
 		 */
 		static NewDriver* Build(const Json::Value& json, const MPI_Comm& world);
 
+        //! \copydoc Serializable::Serialize()
+		void Serialize(Json::Value& json) const override;
+
 		//! Destructor.
 		~NewDriver();
 	};

@@ -87,6 +87,13 @@ namespace SSAGES
 		auto* cvmanager = new CVManager();
 		for(auto& cv : json["CVs"])
 			cvmanager->AddCV(CollectiveVariable::BuildCV(cv, "#/CVs"));
+		
+		return new NewDriver(world, comm, walkerid, methods, cvmanager);
+	}
+	
+	void NewDriver::Serialize(Value& json) const
+	{
+
 	}
 
 	NewDriver::~NewDriver()

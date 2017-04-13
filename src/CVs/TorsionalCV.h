@@ -19,12 +19,13 @@
  * You should have received a copy of the GNU General Public License
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #pragma once 
 
-#include "Drivers/DriverException.h"
 #include "CollectiveVariable.h"
-
+#include "Validator/ObjectRequirement.h"
+#include "Drivers/DriverException.h"
+#include "Snapshot.h"
+#include "schema.h"
 #include <array>
 #include <cmath>
 
@@ -38,8 +39,7 @@ namespace SSAGES
 	 *
 	 * \ingroup CVs
 	 */
-
-	class TorsionalCV : public CollectiveVariable
+	class TorsionalCV : public CollectiveVariable, public Buildable<TorsionalCV>
 	{
 	private:
 		//! Vector of 4 atom ID's of interest.
@@ -223,6 +223,28 @@ namespace SSAGES
 				return (val_ + 2.0*M_PI);	
 
             return val_;
+		}
+
+		static TorsionalCV* Construct(const Json::Value& json, const std::string& path)
+		{
+			Json::ObjectRequirement validator;
+			Json::Value schema;
+			Json::Reader reader;
+
+			reader.parse(JsonSchema::TorsionalCV, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+
+			std::vector<int> atomids;
+			for(auto& s : json["atom_ids"])
+				atomids.push_back(s.asInt());
+
+			auto periodic = json.get("periodic", true).asBool();
+			return new TorsionalCV(atomids[0], atomids[1], atomids[2], atomids[3], periodic);
 		}
 
 		//! Serialize this CV for restart purposes.

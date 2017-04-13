@@ -33,7 +33,7 @@ namespace SSAGES
      * 
      * \ingroup CVs
      */
-    class BoxVolumeCV : public CollectiveVariable
+    class BoxVolumeCV : public CollectiveVariable, public Buildable<BoxVolumeCV>
     {
     public:
         //! Constructor
@@ -61,7 +61,7 @@ namespace SSAGES
                 boxgrad_ = val_*Matrix3::Identity();
         }
         
-        static BoxVolumeCV* Construct(Json::Value& json, const std::string& path)
+        static BoxVolumeCV* Construct(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
