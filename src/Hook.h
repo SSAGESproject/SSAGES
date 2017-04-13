@@ -20,14 +20,16 @@
  */
 #pragma once
 
-#include "Simulations/SimObservable.h"
 #include "EventListener.h"
-#include "CVs/CollectiveVariable.h"
-#include "Snapshot.h"
 #include <algorithm>
 
 namespace SSAGES
 {
+	// Forward declare.
+	class Driver; 
+	class CollectiveVariable;
+	class Snapshot;
+
 	//! Base class for hooks into the simultion engines
 	/*!
 	 * \ingroup core
@@ -104,27 +106,7 @@ namespace SSAGES
 		 * This should be called at the appropriate
 		 * time by the Hook implementation.
 		 */
-		void PreSimulationHook()
-		{
-			snapshot_->Changed(false);
-		
-			// Initialize/evaluate CVs.
-			for(auto& cv : cvs_)
-			{
-				cv->Initialize(*snapshot_);
-				cv->Evaluate(*snapshot_);
-			}
-
-			// Call presimulation method on listeners. 
-			for(auto& listener : listeners_)
-				listener->PreSimulation(snapshot_, cvs_);
-
-			// Sync snapshot to engine.
-			if(snapshot_->HasChanged())
-				SyncToEngine();
-
-			snapshot_->Changed(false);
-		}
+		void PreSimulationHook();
 
 		//! Post-integration hook.
 		/*!
@@ -132,22 +114,7 @@ namespace SSAGES
 		 * integration routine such that the forces, position, velocities,
 		 * etc.. will be updated.
 		 */
-		void PostIntegrationHook()
-		{
-			snapshot_->Changed(false);
-
-			for(auto& cv : cvs_)
-				cv->Evaluate(*snapshot_);
-
-			for(auto& listener : listeners_)
-				if(snapshot_->GetIteration() % listener->GetFrequency() == 0)
-					listener->PostIntegration(snapshot_, cvs_);
-
-			if(snapshot_->HasChanged())
-				SyncToEngine();
-
-			snapshot_->Changed(false);
-		}
+		void PostIntegrationHook();
 
 		//! Post-step hook.
 		/*!
@@ -165,21 +132,7 @@ namespace SSAGES
 		 * This method should be called by the Hook implementation at the
 		 * end of the simulation.
 		 */
-		void PostSimulationHook()
-		{
-			snapshot_->Changed(false);
-
-			for(auto& cv : cvs_)
-				cv->Evaluate(*snapshot_);
-			
-			for(auto& listener : listeners_)
-				listener->PostSimulation(snapshot_, cvs_);
-
-			if(snapshot_->HasChanged())
-				SyncToEngine();
-
-			snapshot_->Changed(false);
-		}
+		void PostSimulationHook();
 
 		//! Destructor
 		virtual ~Hook(){}

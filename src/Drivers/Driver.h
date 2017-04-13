@@ -36,6 +36,7 @@
 #include "../Simulations/SimObservable.h"
 #include "../Simulations/SimObserver.h"
 #include "../Observers/Visitable.h"
+#include "../CVs/CollectiveVariable.h"
 
 namespace SSAGES
 {
