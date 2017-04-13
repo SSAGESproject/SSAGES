@@ -48,7 +48,7 @@ namespace SSAGES
         //-----------------------------------------------------------------
         
         //! Function that checks if interfaces have been crossed (different for each FFS flavor)
-        void CheckForInterfaceCrossings(Snapshot*, const CVList&) override;
+        void CheckForInterfaceCrossings(Snapshot*, const class CVManager&) override;
 
         //! Initialize the Queue
         void InitializeQueue(Snapshot*, const CVList&) override;
@@ -74,9 +74,9 @@ namespace SSAGES
 		//! Post-integration hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
+         * \param cvmanager Collective variable manager.
 		 */
-		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
+		void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override;
         
 		//! \copydoc Buildable::Build()
 		static DirectForwardFlux* Construct(const Json::Value& json, 

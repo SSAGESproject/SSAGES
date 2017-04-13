@@ -95,9 +95,9 @@ namespace SSAGES
 		//! Post-integration hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
+		 * \param cvmanager Collective variable manager.
 		 */
-		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
+		void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Serialize the Method
 		/*!

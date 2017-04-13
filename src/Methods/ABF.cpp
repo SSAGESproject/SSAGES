@@ -19,6 +19,7 @@
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "ABF.h"
+#include "CVs/CVManager.h"
 #include "Drivers/DriverException.h"
 #include "Validator/ObjectRequirement.h"
 #include "Snapshot.h"
@@ -92,7 +93,7 @@ namespace SSAGES
 	}
 	
 	// Pre-simulation hook.
-	void ABF::PreSimulation(Snapshot* snapshot, const CVList& cvs)
+	void ABF::PreSimulation(Snapshot* snapshot, const CVManager& cvmanager)
 	{
 		// Open/close outfile to create it fresh. 
 		if(world_.rank() == 0)
@@ -102,6 +103,7 @@ namespace SSAGES
 		}
 		
 		// Convenience. Number of CVs.
+		auto cvs = cvmanager.GetCVs(cvmask_);
 		auto ncv = cvs.size();
 
 		// Size and initialize Fold_
@@ -136,11 +138,12 @@ namespace SSAGES
 	 * Then, information is printed out if its enabled.
 	 * Finally, bias is applied from current estimate of generalized force.
 	 */
-	void ABF::PostIntegration(Snapshot* snapshot, const CVList& cvs)
+	void ABF::PostIntegration(Snapshot* snapshot, const CVManager& cvmanager)
 	{
 		++iteration_;
 
 		// Gather information.
+		auto cvs = cvmanager.GetCVs(cvmask_);
 		auto& vels = snapshot->GetVelocities();
 		auto& mass = snapshot->GetMasses();
 		auto& forces = snapshot->GetForces();
@@ -222,7 +225,7 @@ namespace SSAGES
 	}
 
 	// Post-simulation hook.
-	void ABF::PostSimulation(Snapshot*, const CVList&)
+	void ABF::PostSimulation(Snapshot*, const CVManager&)
 	{
 		WriteData();
 	}

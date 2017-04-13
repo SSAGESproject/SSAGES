@@ -48,6 +48,9 @@ namespace SSAGES
 		mxx::comm world_; //!< Global MPI communicator
 		mxx::comm comm_; //!< Local MPI communicator
 
+		//! Mask which identifies which CVs to act on.
+		std::vector<uint> cvmask_; 
+
 	public:
 		//! Constructor
 		/*!
@@ -58,36 +61,42 @@ namespace SSAGES
 		 * Frequency of sampling must be specified by all methods.
 		 */
 		Method(uint frequency, const MPI_Comm& world, const MPI_Comm& comm) : 
-		EventListener(frequency), world_(world), comm_(comm)
+		EventListener(frequency), world_(world), comm_(comm), cvmask_()
 		{}
 
 		//! Method call prior to simulation initiation.
 		/*!
 		 * \param snapshot Pointer to the simulation snapshot.
-		 * \param cvs List of CVs.
+		 * \param cvmanager Collective variable manager.
 		 *
 		 * This function will be called before the simulation is started.
 		 */
-		virtual void PreSimulation(Snapshot* snapshot, const CVList& cvs) override = 0;
+		virtual void PreSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override = 0;
 
 		//! Method call post integration.
 		/*!
 		 * \param snapshot Pointer to the simulation snapshot.
-		 * \param cvs List of CVs.
+		 * \param cvmanager Collective variable manager.
 		 *
 		 * This function will be called after each integration step.
 		 */
-		virtual void PostIntegration(Snapshot* snapshot, const CVList& cvs) override = 0;
+		virtual void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override = 0;
 
 		//! Method call post simulation.
 		/*!
 		 * \param snapshot Pointer to the simulation snapshot.
-		 * \param cvs List of CVs.
+		 * \param cvmanager Collective variable manager.
 		 *
 		 * This function will be called after the end of the simulation run.
 		 */
-		virtual void PostSimulation(Snapshot* snapshot, const CVList& cvs) override = 0;
+		virtual void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override = 0;
 		
+		//! Sets the collective variable mask.
+		void SetCVMask(const std::vector<uint>& mask)
+		{
+			cvmask_ = mask;
+		}
+
 		//! Build a derived method from JSON node.
 		/*!
 		 * \param json JSON Value containing all input information.

@@ -18,39 +18,60 @@
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "Method.h"
-#include "json/json.h"
-#include "schema.h"
-#include "Validator/ObjectRequirement.h"
-#include "Validator/ArrayRequirement.h"
 #include "ABF.h"
 #include "Umbrella.h"
 #include "BasisFunc.h"
 #include "ForwardFlux.h"
 #include "Meta.h"
 #include "StringMethod.h"
+#include "schema.h"
+#include "json/json.h"
+#include "Drivers/DriverException.h"
+#include "Validator/ObjectRequirement.h"
 #include <stdexcept>
+
+using namespace Json;
 
 namespace SSAGES
 {
-	Method* Method::BuildMethod(const Json::Value& json, 
+	Method* Method::BuildMethod(const Value& json, 
 		                        const MPI_Comm& world, 
 							    const MPI_Comm& comm, 
 							    const std::string& path)
 	{
+		ObjectRequirement validator;
+		Value schema;
+		Reader reader;
+		
+		reader.parse(JsonSchema::Method, schema);
+		validator.Parse(schema, path);
+		validator.Validate(json, path);
+		if(validator.HasErrors())
+			throw BuildException(validator.GetErrors());
+
+		Method* method = nullptr;
 		if(json["type"] == "ABF")
-			return ABF::Build(json, world, comm, path);
+			method = ABF::Build(json, world, comm, path);
 		else if(json["type"] == "Basis")
-			return Basis::Build(json, world, comm, path);
+			method = Basis::Build(json, world, comm, path);
 		else if(json["type"] == "ForwardFlux")
-			return ForwardFlux::Build(json, world, comm, path);
+			method = ForwardFlux::Build(json, world, comm, path);
 		else if(json["type"] == "Metadynamics")
-			return Meta::Build(json, world, comm, path);
+			method = Meta::Build(json, world, comm, path);
 		else if(json["type"] == "Umbrella")
-			return Umbrella::Build(json, world, comm, path);
+			method = Umbrella::Build(json, world, comm, path);
 		else if(json["type"] == "String")
-			return StringMethod::Build(json, world, comm, path);
+			method = StringMethod::Build(json, world, comm, path);
 		else
 			throw std::invalid_argument(path + ": Unknown method type specified.");
+
+		// Load cv mask. 
+		std::vector<uint> cvmask; 
+		for(auto& v : json["cvs"])
+			cvmask.push_back(v.asUInt());
+		
+		method->SetCVMask(cvmask);
+		return method;
 	}
 }
 

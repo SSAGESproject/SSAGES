@@ -18,9 +18,9 @@
 - * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.     
 - */
 #include "Swarm.h"
-#include "spline.h"
+#include "CVs/CVManager.h"
 #include "Snapshot.h"
-#include "CVs/CollectiveVariable.h"
+#include "spline.h"
 #include <cmath>
 #include <iostream>
 #include <iomanip>
@@ -57,12 +57,13 @@ namespace SSAGES
         return true; //OK to move on to regular sampling
     }
 
-    void Swarm::PostIntegration(Snapshot* snapshot, const CVList& cvs)
+    void Swarm::PostIntegration(Snapshot* snapshot, const CVManager& cvmanager)
     {
-         auto& forces = snapshot->GetForces();
-         auto& positions = snapshot->GetPositions();
-         auto& velocities = snapshot->GetVelocities();
-         auto& atomids = snapshot->GetAtomIDs();
+        auto cvs = cvmanager.GetCVs(cvmask_);
+        auto& forces = snapshot->GetForces();
+        auto& positions = snapshot->GetPositions();
+        auto& velocities = snapshot->GetVelocities();
+        auto& atomids = snapshot->GetAtomIDs();
 
         if(snapshot_stored)
         {

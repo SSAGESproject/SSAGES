@@ -55,29 +55,29 @@ namespace SSAGES
 		//! Method call prior to simulation initiation.
 		/*!
 		 * \param snapshot Pointer to the simulation snapshot.
-		 * \param cvs List of CVs.
+		 * \param cvmanager Collective variable manager.
 		 *
 		 * This function will be called before the simulation is started.
 		 */
-		virtual void PreSimulation(Snapshot* snapshot, const CVList& cvs) = 0;
+		virtual void PreSimulation(Snapshot* snapshot, const class CVManager& cvmanager) = 0;
 
 		//! Method call post integration.
 		/*!
 		 * \param snapshot Pointer to the simulation snapshot.
-		 * \param cvs List of CVs.
+		 * \param cvmanager Collective variable manager.
 		 *
 		 * This function will be called at the end of each integration step.
 		 */
-		virtual void PostIntegration(Snapshot* snapshot, const CVList& cvs) = 0;
+		virtual void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) = 0;
 
 		//! Method call post simulation.
 		/*!
 		 * \param snapshot Pointer to the simulation snapshot.
-		 * \param cvs List of CVs.
+		 * \param cvmanager Collective variable manager.
 		 *
 		 * This function will be called after the simulation has finished.
 		 */
-		virtual void PostSimulation(Snapshot* snapshot, const CVList& cvs) = 0;
+		virtual void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) = 0;
 
 		//! Destructor
 		virtual ~EventListener() {}

@@ -21,7 +21,7 @@
 #include "BasisFunc.h"
 #include "Validator/ObjectRequirement.h"
 #include "Drivers/DriverException.h"
-#include "CVs/CollectiveVariable.h"
+#include "CVs/CVManager.h"
 #include "Snapshot.h"
 #include <cmath>
 #include <iostream>
@@ -33,8 +33,9 @@ namespace SSAGES
 {
 
 	// Pre-simulation hook.
-	void Basis::PreSimulation(Snapshot* snapshot, const CVList& cvs)
+	void Basis::PreSimulation(Snapshot* snapshot, const CVManager& cvmanager)
 	{
+        auto cvs = cvmanager.GetCVs(cvmask_);
         // For print statements and file I/O, the walker IDs are used
         mpiid_ = snapshot->GetWalkerID();
 
@@ -120,8 +121,9 @@ namespace SSAGES
 	}
 
 	// Post-integration hook.
-	void Basis::PostIntegration(Snapshot* snapshot, const CVList& cvs)
+	void Basis::PostIntegration(Snapshot* snapshot, const CVManager& cvmanager)
 	{
+        auto cvs = cvmanager.GetCVs(cvmask_);        
         std::vector<double> x(cvs.size(),0);
 
         /*The binned cv space is updated at every step
@@ -185,7 +187,7 @@ namespace SSAGES
 	}
 
 	// Post-simulation hook.
-	void Basis::PostSimulation(Snapshot*, const CVList&)
+	void Basis::PostSimulation(Snapshot*, const CVManager&)
 	{
 	    std::cout<<"Run has finished"<<std::endl;	
 	}

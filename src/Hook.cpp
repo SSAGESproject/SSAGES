@@ -31,7 +31,7 @@ namespace SSAGES
 		snapshot_->Changed(false);
 	
 		// Initialize/evaluate CVs.
-		for(auto& cv : cvs_)
+		for(auto& cv : cvmanager_->GetCVs({}))
 		{
 			cv->Initialize(*snapshot_);
 			cv->Evaluate(*snapshot_);
@@ -39,7 +39,7 @@ namespace SSAGES
 
 		// Call presimulation method on listeners. 
 		for(auto& listener : listeners_)
-			listener->PreSimulation(snapshot_, cvs_);
+			listener->PreSimulation(snapshot_, cvmanager_);
 
 		// Sync snapshot to engine.
 		if(snapshot_->HasChanged())
@@ -52,12 +52,12 @@ namespace SSAGES
 	{
 		snapshot_->Changed(false);
 
-		for(auto& cv : cvs_)
+		for(auto& cv : cvmanager_->GetCVs({}))
 			cv->Evaluate(*snapshot_);
 
 		for(auto& listener : listeners_)
 			if(snapshot_->GetIteration() % listener->GetFrequency() == 0)
-				listener->PostIntegration(snapshot_, cvs_);
+				listener->PostIntegration(snapshot_, cvmanager_);
 
 		if(snapshot_->HasChanged())
 			SyncToEngine();
@@ -69,7 +69,7 @@ namespace SSAGES
 	{
 		snapshot_->Changed(false);
 
-		for(auto& cv : cvs_)
+		for(auto& cv : cvmanager_->GetCVs({}))
 			cv->Evaluate(*snapshot_);
 		
 		for(auto& listener : listeners_)
@@ -88,9 +88,15 @@ namespace SSAGES
 	}
 
 	//! Sets the active Driver
-	void Hook::SetMDDriver(Driver* MDDriver)
+	void Hook::SetDriver(Driver* driver)
 	{
-		MDDriver_ = MDDriver;
+		driver_ = driver;
+	}
+
+	//! Sets the active CV manager.
+	void Hook::SetCVManager(CVManager* cvmanager)
+	{
+		cvmanager_ = cvmanager;
 	}
 
 	//! Add a listener to the hook.
@@ -105,22 +111,10 @@ namespace SSAGES
 			listeners_.push_back(listener);
 	}
 
-	//! Add a CollectiveVariable to the hook.
-	/*!
-	 * \param cv CollectiveVariable to be added to the hook.
-	 *
-	 * Does nothing if the CollectiveVariable is already added.
-	 */
-	void Hook::AddCV(CollectiveVariable* cv)
-	{
-		if(std::find(cvs_.begin(), cvs_.end(), cv) == cvs_.end())
-			cvs_.push_back(cv);
-	}
-
 	void Hook::NotifyObservers()
 	{
 		auto& comm = snapshot_->GetCommunicator();
 		if(comm.rank() == 0)
-			MDDriver_->NotifyObservers(SimEvent(MDDriver_, snapshot_->GetIteration()));
+			driver_->NotifyObservers(SimEvent(driver_, snapshot_->GetIteration()));
 	}
 }

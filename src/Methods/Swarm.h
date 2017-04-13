@@ -128,7 +128,7 @@ namespace SSAGES
             }
 
             //! Post-integration hook
-            void PostIntegration(Snapshot* snapshot, const CVList& cvs) override; 
+            void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override; 
 
             void Serialize(Json::Value& json) const override;
             

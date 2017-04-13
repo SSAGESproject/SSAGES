@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "CVs/CollectiveVariable.h"
 #include "FiniteTempString.h"
+#include "CVs/CVManager.h"
 #include "Snapshot.h" 
 #include "spline.h"
 #include <math.h>
@@ -45,8 +45,9 @@ namespace SSAGES
 	}
 
 	// Post-integration hook.
-	void FiniteTempString::PostIntegration(Snapshot* snapshot, const CVList& cvs)
+	void FiniteTempString::PostIntegration(Snapshot* snapshot, const CVManager& cvmanager)
 	{
+		auto cvs = cvmanager.GetCVs(cvmask_);
 		auto& forces = snapshot->GetForces();
         bool insidecell;
 

@@ -181,13 +181,13 @@ namespace SSAGES
 		}
 
 		//! Pre-simulation hook.
-		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override;
+		void PreSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Post-integration hook.
-		virtual void PostIntegration(Snapshot* snapshot, const CVList& cvs) override = 0;
+		virtual void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override = 0;
 
 		// Post-simulation hook.
-		void PostSimulation(Snapshot*, const CVList&) override
+		void PostSimulation(Snapshot*, const class CVManager&) override
 		{
 			stringout_.close();
 		}

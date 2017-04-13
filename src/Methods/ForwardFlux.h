@@ -197,7 +197,7 @@ namespace SSAGES
         void ComputeInitialFlux(Snapshot*, const CVList&);
 
         //! Function that checks if interfaces have been crossed (different for each FFS flavor)
-        virtual void CheckForInterfaceCrossings(Snapshot*, const CVList&) =0;
+        virtual void CheckForInterfaceCrossings(Snapshot*, const class CVManager&) = 0;
 
         //! Initialize the Queue
         virtual void InitializeQueue(Snapshot*, const CVList&) =0;
@@ -344,23 +344,23 @@ namespace SSAGES
 		//! Pre-simulation hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
+         * \param cvmanager Collective variable manager.
 		 */
-		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override;
+		void PreSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Post-integration hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
+         * \param cvmanager Collective variable manager.
 		 */
-		virtual void PostIntegration(Snapshot* snapshot, const CVList& cvs) = 0;
+		virtual void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) = 0;
 
 		//! Post-simulation hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
+         * \param cvmanager Collective variable manager.
 		 */
-		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
+		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! \copydoc Serializable::Serialize()
 		void Serialize(Json::Value& json) const override;

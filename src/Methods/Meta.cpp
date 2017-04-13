@@ -23,7 +23,7 @@
 #include <math.h>
 #include <iostream>
 #include "Drivers/DriverException.h"
-#include "CVs/CollectiveVariable.h"
+#include "CVs/CVManager.h"
 #include "Validator/ObjectRequirement.h"
 #include "Drivers/DriverException.h"
 #include "Snapshot.h"
@@ -59,8 +59,9 @@ namespace SSAGES
 	}
 
 	// Pre-simulation hook.
-	void Meta::PreSimulation(Snapshot* snapshot, const CVList& cvs)
+	void Meta::PreSimulation(Snapshot* snapshot, const CVManager& cvmanager)
 	{
+		auto cvs = cvmanager.GetCVs(cvmask_);
 		// Write ouput file header.
 		if(world_.rank() == 0)
 		{
@@ -96,8 +97,9 @@ namespace SSAGES
 	}
 
 	// Post-integration hook.
-	void Meta::PostIntegration(Snapshot* snapshot, const CVList& cvs)
+	void Meta::PostIntegration(Snapshot* snapshot, const CVManager& cvmanager)
 	{
+		auto cvs = cvmanager.GetCVs(cvmask_);
 		// Add hills when needed.
 		if(snapshot->GetIteration() % hillfreq_ == 0)
 			AddHill(cvs, snapshot->GetIteration());
@@ -126,7 +128,7 @@ namespace SSAGES
 	}
 
 	// Post-simulation hook.
-	void Meta::PostSimulation(Snapshot*, const CVList&)
+	void Meta::PostSimulation(Snapshot*, const CVManager&)
 	{
 	}
 

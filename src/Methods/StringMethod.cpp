@@ -24,7 +24,7 @@
 #include "FiniteTempString.h"
 #include "StringMethod.h"
 #include "Swarm.h"
-#include "CVs/CollectiveVariable.h"
+#include "CVs/CVManager.h"
 #include "Validator/ObjectRequirement.h"
 #include "Drivers/DriverException.h"
 #include "Snapshot.h"
@@ -149,18 +149,19 @@ namespace SSAGES
         return true;
     }
 
-    void StringMethod::PreSimulation(Snapshot* snapshot, const CVList& cvs)
+    void StringMethod::PreSimulation(Snapshot* snapshot, const CVManager& cvmanager)
     {
-        mpiid_ = snapshot->GetWalkerID();
         char file[1024];
+        mpiid_ = snapshot->GetWalkerID();
         sprintf(file, "node-%04d.log",mpiid_);
         stringout_.open(file);
-
+		
+        auto cvs = cvmanager.GetCVs(cvmask_);        
         SetSendRecvNeighbors();
-
         worldstring_.resize(numnodes_);
         for(auto& w : worldstring_)
             w.resize(centers_.size());
+        
         UpdateWorldString(cvs);
         PrintString(cvs);
     }

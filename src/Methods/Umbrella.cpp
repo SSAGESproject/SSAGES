@@ -20,7 +20,7 @@
  */
 #include "Umbrella.h"
 #include "Snapshot.h" 
-#include "CVs/CollectiveVariable.h"
+#include "CVs/CVManager.h"
 #include "Validator/ObjectRequirement.h"
 #include "Drivers/DriverException.h"
 #include "schema.h"
@@ -30,16 +30,16 @@ using namespace Json;
 
 namespace SSAGES
 {
-	void Umbrella::PreSimulation(Snapshot* /* snapshot */, const CVList& /* cvs */)
+	void Umbrella::PreSimulation(Snapshot* /* snapshot */, const CVManager& /* cvs */)
 	{
 		if(comm_.rank() == 0)
 		 	umbrella_.open(filename_.c_str(), std::ofstream::out | std::ofstream::app);
 	}
 
-	void Umbrella::PostIntegration(Snapshot* snapshot, const CVList& cvs)
+	void Umbrella::PostIntegration(Snapshot* snapshot, const CVManager& cvmanager)
 	{
-		// Compute the forces on the atoms from the CV's using the chain 
-		// rule.
+		// Get necessary info. 
+		auto cvs = cvmanager.GetCVs(cvmask_);
 		auto& forces = snapshot->GetForces();
 		auto& virial = snapshot->GetVirial();
 		auto& H = snapshot->GetHMatrix();
@@ -66,7 +66,7 @@ namespace SSAGES
 			PrintUmbrella(cvs, snapshot->GetIteration());
 	}
 
-	void Umbrella::PostSimulation(Snapshot*, const CVList&)
+	void Umbrella::PostSimulation(Snapshot*, const CVManager&)
 	{
 		if(comm_.rank() ==0)
 			umbrella_.close();

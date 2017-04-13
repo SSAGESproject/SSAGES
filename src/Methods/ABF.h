@@ -22,7 +22,6 @@
 #pragma once
 
 #include "Method.h"
-#include "CVs/CollectiveVariable.h"
 #include <fstream>
 #include <vector>
 #include <string>
@@ -215,23 +214,23 @@ namespace SSAGES
 		//! Pre-simulation hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
+		 * \param cvmanager Collective variable manager.
 		 */
-		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override;
+		void PreSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Post-integration hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
+		 * \param cvmanager Collective variable manager.
 		 */
-		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
+		void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Post-simulation hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
+		 * \param cvmanager Collective variable manager.
 		 */
-		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
+		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Set biasing histogram
 		/*!

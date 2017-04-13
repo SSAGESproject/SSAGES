@@ -22,19 +22,20 @@
  */
 #include "DirectForwardFlux.h"
 #include "FileContents.h"
-#include "CVs/CollectiveVariable.h"
+#include "CVs/CVManager.h"
 #include <iostream>
 #include <random>
 #include <queue>
 
 namespace SSAGES
 {
-	void DirectForwardFlux::PostIntegration(Snapshot* snapshot, const CVList& cvs)
+	void DirectForwardFlux::PostIntegration(Snapshot* snapshot, const CVManager& cvmanager)
 	{
 		//check if we want to check FFS interfaces this timestep
 		//for now, do it every time step
 		if (iteration_ % 1 != 0) return;
-
+		
+		auto cvs = cvmanager.GetCVs(cvmask_);
 		// check the structure at the beginning of the simulation
 		if (iteration_ == 0)
 			CheckInitialStructure(cvs);
@@ -57,16 +58,17 @@ namespace SSAGES
 		// Else check the FFS interfaces
 		else
 		{
-			CheckForInterfaceCrossings(snapshot,cvs);
+			CheckForInterfaceCrossings(snapshot, cvmanager);
 			//FluxBruteForce(snapshot,cvs);
 		}
 		// Other modes?
 	}
 
-	void DirectForwardFlux::CheckForInterfaceCrossings(Snapshot* snapshot, const CVList& cvs)
+	void DirectForwardFlux::CheckForInterfaceCrossings(Snapshot* snapshot, const CVManager& cvmanager)
 	{
 		//This is the main FFS method. The magic happens here!
-
+		auto cvs = cvmanager.GetCVs(cvmask_);
+		
 		//QUESTION: Whats the difference between world_ and _comm?
 		//For now I'll use world_ for everything. But if each driver uses multiple procs then I suspect that this will be wrong.
 		_cvvalue = cvs[0]->GetValue();
@@ -257,7 +259,7 @@ namespace SSAGES
 			{
 				std::cout << "DFFS should be finished here, do something special? like exit?\n";
 				//Hythem said this is "acceptable" until the code is changed
-				PostSimulation(snapshot,cvs);
+				PostSimulation(snapshot, cvmanager);
 			}
 		}
 

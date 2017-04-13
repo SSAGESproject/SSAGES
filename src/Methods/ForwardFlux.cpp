@@ -23,7 +23,7 @@
 #include "ForwardFlux.h"
 #include "DirectForwardFlux.h"
 #include "FileContents.h"
-#include "CVs/CollectiveVariable.h"
+#include "CVs/CVManager.h"
 #include "Validator/ObjectRequirement.h"
 #include "Drivers/DriverException.h"
 #include "Snapshot.h"
@@ -36,15 +36,16 @@ using namespace Json;
 
 namespace SSAGES
 {
-	void ForwardFlux::PreSimulation(Snapshot* /* snap */, const CVList& cvs)
+	void ForwardFlux::PreSimulation(Snapshot* /* snap */, const CVManager& cvmanager)
 	{
+		auto cvs = cvmanager.GetCVs(cvmask_);
 		if(cvs.size() > 1)
 			throw BuildException({"Forwardflux currently only works with one cv."});
 
         std::cout << "\nWARNING! MAKE SURE LAMMPS GIVES A DIFFERENT RANDOM SEED TO EACH PROCESSOR, OTHERWISE EACH FFS TRAJ WILL BE IDENTICAL!\n";        
     }
 
-	void ForwardFlux::PostSimulation(Snapshot* snapshot, const CVList& cvs)
+	void ForwardFlux::PostSimulation(Snapshot* snapshot, const CVManager&)
 	{
         std::cout << "Post simulation\n";
 

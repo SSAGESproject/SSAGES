@@ -53,7 +53,8 @@ namespace SSAGES
 		 */
 		void AddCV(CollectiveVariable* cv)
 		{
-			cvs_.push_back(cv);
+			if(std::find(cvs_.begin(), cvs_.end(), cv) == cvs_.end())
+				cvs_.push_back(cv);
 		}
 
 		//! Get CV iterator. 
