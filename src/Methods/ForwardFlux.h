@@ -35,7 +35,7 @@ namespace SSAGES
      * The notation used here is drawn largely from Allen, Valeriani and Rein ten Wolde. J. Phys.: Condens. Matter (2009) 21:463102. 
      * We recommend referring to this review if the reader is unfamiliar with the method, or our variable naming conventions.
 	 */
-	class ForwardFlux : public Method, public Buildable<ForwardFlux>
+	class ForwardFlux : public Method, public BuildableMPI<ForwardFlux>
 	{
 	protected:
         //! Nested class to store different FFS Config IDs

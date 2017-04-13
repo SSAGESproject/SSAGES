@@ -35,7 +35,7 @@ namespace SSAGES
 	 * Implementation of a multi-walker finite string
 	 * method with hard wall voronoi cells and running block averages.
 	 */
-	class StringMethod : public Method, public Buildable<StringMethod>
+	class StringMethod : public Method, public BuildableMPI<StringMethod>
 	{
 	protected:	
 		

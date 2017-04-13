@@ -86,7 +86,7 @@ namespace SSAGES
      * Implementation of the Basis Function Sampling Method based on
      * \cite WHITMER2014190602.
      */
-	class Basis : public Method, public Buildable<Basis>
+	class Basis : public Method, public BuildableMPI<Basis>
 	{
 	private:	
         

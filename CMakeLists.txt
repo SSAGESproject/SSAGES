@@ -56,7 +56,7 @@ set(SOURCE
 	src/Methods/Umbrella.cpp
 #	src/Constraints/Constraint.cpp
 #	src/Constraints/COPSSImage.cpp
-#	src/CVs/CollectiveVariable.cpp
+	src/CVs/CollectiveVariable.cpp
 #	src/Observers/JSONObserver.cpp
 	src/Validator/RequirementLoader.cpp
 #	src/Simulations/SimObserver.cpp

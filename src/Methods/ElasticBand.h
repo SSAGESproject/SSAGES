@@ -31,7 +31,7 @@ namespace SSAGES
 	 *
 	 * \ingroup Methods
 	 */
-	class ElasticBand : public StringMethod, public Buildable<ElasticBand>
+	class ElasticBand : public StringMethod, public BuildableMPI<ElasticBand>
 	{
 	private:	
 		//! Number Equilibration steps, number of MD steps to

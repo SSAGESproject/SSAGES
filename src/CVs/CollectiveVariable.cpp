@@ -19,50 +19,30 @@
  * You should have received a copy of the GNU General Public License
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include "CollectiveVariable.h"
-#include "json/json.h"
-#include "schema.h"
-#include "../Drivers/DriverException.h"
-#include "../Validator/ObjectRequirement.h"
-#include "../Validator/ArrayRequirement.h"
-#include "ParticleCoordinateCV.h"
-#include "ParticlePositionCV.h"
-#include "ParticleSeparationCV.h"
-#include "TorsionalCV.h"
 #include "AngleCV.h"
-#include "GyrationTensorCV.h"
-#include "RMSDCV.h"
-#include "RouseModeCV.h"
-#include "CoordinationNumberCV.h"
 #include "BoxVolumeCV.h"
-
-using namespace Json;
+#include "json/json.h"
+//#include "ParticleCoordinateCV.h"
+//#include "ParticlePositionCV.h"
+//#include "ParticleSeparationCV.h"
+//#include "TorsionalCV.h"
+//#include "GyrationTensorCV.h"
+//#include "RMSDCV.h"
+//#include "RouseModeCV.h"
+//#include "CoordinationNumberCV.h"
 
 namespace SSAGES
 {
-	CollectiveVariable* CollectiveVariable::BuildCV(const Json::Value &json)
+	CollectiveVariable* CollectiveVariable::BuildCV(const Json::Value &json, const std::string& path)
 	{
-		return BuildCV(json, "#/CVs");
-	}
-
-	CollectiveVariable* CollectiveVariable::BuildCV(const Json::Value &json,
-						const std::string& path)
-	{
-		ObjectRequirement validator;
-		Value schema;
-		Reader reader;
-
-		CollectiveVariable* cv = nullptr;
-
-		// Random device for seed generation. 
-		// std::random_device rd;
-		// auto maxi = std::numeric_limits<int>::max();
-		// auto seed = json.get("seed", rd() % maxi).asUInt();
-
 		// Get move type. 
-		std::string type = json.get("type", "none").asString();
+		auto type = json.get("type", "none").asString();
 
+		if(type == "Angle")
+			return AngleCV::Build(json, path);
+
+		/*
 		if(type == "ParticleCoordinate")
 		{
 			reader.parse(JsonSchema::ParticleCoordinateCV, schema);
@@ -174,24 +154,6 @@ namespace SSAGES
 
 			cv = static_cast<CollectiveVariable*>(c);
 		}
-		else if(type == "Angle")
-		{
-			reader.parse(JsonSchema::AngleCV, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-			
-			std::vector<int> atomids;
-			for(auto& s : json["atom_ids"])
-				atomids.push_back(s.asInt());
-
-			auto* c = new AngleCV(atomids[0], atomids[1], atomids[2]);
-
-			cv = static_cast<CollectiveVariable*>(c);
-		}
 		else if(type == "GyrationTensor")
 		{
 			reader.parse(JsonSchema::GyrationTensorCV, schema); 
@@ -292,47 +254,13 @@ namespace SSAGES
 		}
 		else if(type == "BoxVolume")
 		{
-			reader.parse(JsonSchema::BoxVolumeCV, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-
-			auto* c = new BoxVolumeCV();
-			cv = static_cast<CollectiveVariable*>(c);
+			
 		}
 		else
 		{
 			throw BuildException({path + ": Unknown CV type specified."+type+" is not a valid type!"});
 		}
 
-		return cv;
-	}
-
-	void CollectiveVariable::BuildCV(const Json::Value &json, 
-						  CVList &cvlist,
-						  const std::string &path)
-	{
-		ArrayRequirement validator;
-		Value schema;
-		Reader reader;
-
-		reader.parse(JsonSchema::CVs, schema);
-		validator.Parse(schema, path);
-
-		// Validate high level schema.
-		validator.Validate(json, path);
-		if(validator.HasErrors())
-			throw BuildException(validator.GetErrors());
-
-		// Loop through CVs.
-		int i = 0;
-		for(auto& m : json)
-		{
-			cvlist.push_back(BuildCV(m, path + "/" + std::to_string(i)));
-			++i;
-		}
+		*/
 	}
 }

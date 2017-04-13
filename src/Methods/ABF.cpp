@@ -21,6 +21,7 @@
 #include "ABF.h"
 #include "Drivers/DriverException.h"
 #include "Validator/ObjectRequirement.h"
+#include "Snapshot.h"
 #include "schema.h"
 #include <algorithm>
 #include <fstream>

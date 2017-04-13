@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include "CollectiveVariable.h"
 #include <vector>
 
 namespace SSAGES
@@ -40,10 +41,44 @@ namespace SSAGES
 	{
 	private:
 	//! List of collective variables.
-	std::vector<class CollectiveVariable*> cvs_;
+	std::vector<CollectiveVariable*> cvs_;
 
 	public:
-		CVManager()
-		{}
+		CVManager() = default;
+
+		//! Adds a CV to the CV manager. 
+		/*!
+		 * 
+		 * \param cv Pointer to collective variable. 
+		 */
+		void AddCV(CollectiveVariable* cv)
+		{
+			cvs_.push_back(cv);
+		}
+
+		//! Get CV iterator. 
+		 /* 
+		  * \param mask Vector mask which contains the indices of
+		  *        which CV to include in the container. 
+		  * \return Vector containing pointers to requested CVs.
+		  */
+		std::vector<CollectiveVariable*> GetCVs(const std::vector<uint>& mask) const
+		{
+			if(mask.empty())
+				return cvs_; 
+			
+			// Pack from mask. 
+			std::vector<CollectiveVariable*> cvs;
+			for(auto& i : mask)
+				cvs.push_back(cvs_[i]);
+			
+			return cvs;
+		}
+
+		~CVManager()
+		{
+			for(auto& cv : cvs_)
+            	delete cv;
+		}
 	};
 }

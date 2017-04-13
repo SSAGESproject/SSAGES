@@ -38,7 +38,7 @@ namespace SSAGES
 	 * Implementation of the Adaptive Biasing Force algorithm based on
 	 * \cite DARVE2008144120
 	 */
-	class ABF : public Method, public Buildable<ABF>
+	class ABF : public Method, public BuildableMPI<ABF>
 	{
 	private:	
 		//! To store running total. 

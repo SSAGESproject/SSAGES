@@ -26,6 +26,7 @@
 #include "CVs/CollectiveVariable.h"
 #include "Validator/ObjectRequirement.h"
 #include "Drivers/DriverException.h"
+#include "Snapshot.h"
 #include "schema.h"
 
 using namespace Json;

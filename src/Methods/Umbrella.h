@@ -32,7 +32,7 @@ namespace SSAGES
 	 *
 	 * \ingroup Methods
 	 */
-	class Umbrella : public Method, public Buildable<Umbrella>
+	class Umbrella : public Method, public BuildableMPI<Umbrella>
 	{
 	private:
 		//! Vector of spring constants.

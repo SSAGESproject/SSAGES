@@ -182,7 +182,7 @@ namespace SSAGES
 		 * Access the communicator containing the set of processors that belong
 		 * to a single simulation box.
 		 */
-		MPI_Comm GetCommunicator() const
+		const mxx::comm& GetCommunicator() const
 		{
 			return comm_;
 		}

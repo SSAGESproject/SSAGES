@@ -65,7 +65,7 @@ namespace SSAGES
 	 *
 	 * \ingroup Methods
 	 */
-	class Meta : public Method, public Buildable<Meta>
+	class Meta : public Method, public BuildableMPI<Meta>
 	{
 	private:	
 		//! Hills.

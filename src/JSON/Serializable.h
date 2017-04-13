@@ -52,12 +52,12 @@ namespace SSAGES
         virtual ~Serializable() { }
     };
 
-    //! Base class for JSON buildable objects. 
+    //! Base class for JSON buildable MPI-dependent objects. 
     /*!
      * \ingroup JSON 
      */
     template<class T> 
-    class Buildable
+    class BuildableMPI
     {
     public:
         //! Build an object from JSON node. 
@@ -79,6 +79,32 @@ namespace SSAGES
                         const std::string& path)
         {
             return T::Construct(json, world, comm, path);
+        }
+    };
+
+    //! Base class for JSON buildable objects. 
+    /*!
+     * \ingroup JSON 
+     */
+    template<class T> 
+    class Buildable
+    {
+    public:
+        //! Build an object from JSON node. 
+		/*! 
+		 * \param JSON Value containing all input information.
+		 * \param path Path for JSON specification. 
+		 * \return Pointer to built object.
+		 *
+		 * \note This function builds an object from a JSON node. It will generally 
+		 *       throw an exception if an error occurs, but may also return nullptr 
+		 *       if an unknown error occurs. 
+		 *       Object lifetime is the caller's responsibility! 
+		 */
+        static T* Build(const Json::Value& json, 
+                        const std::string& path)
+        {
+            return T::Construct(json, path);
         }
     };
 

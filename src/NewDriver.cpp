@@ -82,6 +82,11 @@ namespace SSAGES
 		std::vector<Method*> methods; 
 		for(auto& m : json["methods"])
 			methods.push_back(Method::BuildMethod(m, world, comm, "#/methods"));
+
+		// Build collective variables. 
+		auto* cvmanager = new CVManager();
+		for(auto& cv : json["CVs"])
+			cvmanager->AddCV(CollectiveVariable::BuildCV(cv, "#/CVs"));
 	}
 
 	NewDriver::~NewDriver()

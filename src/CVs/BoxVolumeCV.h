@@ -20,6 +20,10 @@
 #pragma once 
 
 #include "CollectiveVariable.h"
+#include "Validator/ObjectRequirement.h"
+#include "Drivers/DriverException.h"
+#include "Snapshot.h"
+#include "schema.h"
 
 namespace SSAGES
 {
@@ -57,6 +61,23 @@ namespace SSAGES
                 boxgrad_ = val_*Matrix3::Identity();
         }
         
+        static BoxVolumeCV* Construct(Json::Value& json, const std::string& path)
+		{
+			Json::ObjectRequirement validator;
+			Json::Value schema;
+			Json::Reader reader;
+
+			reader.parse(JsonSchema::BoxVolumeCV, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+
+			return new BoxVolumeCV();
+		}
+
         //! Serialize this CV for restart purposes.
 		/*!
 		 * \param json JSON value

@@ -30,8 +30,6 @@
 #include "StringMethod.h"
 #include <stdexcept>
 
-using namespace Json;
-
 namespace SSAGES
 {
 	Method* Method::BuildMethod(const Json::Value& json, 
