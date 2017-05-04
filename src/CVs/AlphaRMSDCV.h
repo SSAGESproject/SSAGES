@@ -135,8 +135,6 @@ namespace SSAGES
 			//const auto& image_flags = snapshot.GetImageFlags();
 			std::vector<int> groupidx;
 			snapshot.GetLocalIndices(atomids_, &groupidx);	// get correct local atom indices
-			
-			unsigned int resgroups = resids_.size() - 5;
 
 			double rmsd, dist_norm, dxgrouprmsd;
 			Vector3 dist_xyz, dist_ref;
@@ -146,6 +144,8 @@ namespace SSAGES
 			std::fill(grad_.begin(), grad_.end(), Vector3{0,0,0});
 			grad_.resize(snapshot.GetNumAtoms(), Vector3{0,0,0});
 			val_ = 0.0;
+
+			unsigned int resgroups = resids_.size() - 5;
 
 			// for each set of 6 residues
 			for(size_t i = 0; i < resgroups; i++){
@@ -175,6 +175,7 @@ namespace SSAGES
 				rmsd /= 43.5;
 				val_ += (1 - pow(rmsd, 8.0)) / (1 - pow(rmsd, 12.0));
 
+				// is ther ea better WAY
 				dxgrouprmsd = 8E8 * (5E3 * pow(rmsd, 11.0) + pow(rmsd, 7.0));
 				dxgrouprmsd /= 1E8 * pow(rmsd, 8.0) + 1E4 * pow(rmsd, 4.0) + 1;
 				dxgrouprmsd /= 1E8 * pow(rmsd, 8.0) + 1E4 * pow(rmsd, 4.0) + 1;

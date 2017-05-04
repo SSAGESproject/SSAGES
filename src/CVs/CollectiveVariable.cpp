@@ -65,6 +65,10 @@ namespace SSAGES
 			return TorsionalCV::Build(json, path);
 		else if (type == "AlphaRMSD")
 			return AlphaRMSDCV::Build(json, path);
+		else if (type == "ParallelBetaRMSD")
+			return ParallelBetaRMSDCV::Build(json, path);
+		else if (type == "AntiBetaRMSD")
+			return AntiBetaRMSDCV::Build(json, path);
 		else
 			throw std::invalid_argument(path + ": Unknown CV type specified.");
 	}

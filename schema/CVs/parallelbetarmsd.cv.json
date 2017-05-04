@@ -1,0 +1,22 @@
+{
+	"type" : "object",
+	"varname" : "ParallelBetaRMSDCV",
+	"properties" : {
+		"type" : { 
+			"type" : "string",
+			"enum" : ["ParallelBetaRMSD"]
+		},
+		"reference" : {
+			"type" : "string"
+		},
+		"residue_ids" : {
+			"type" : "array",
+			"minItems" : 1,
+			"items" : {
+				"type" : "integer"
+			}
+		}
+	},
+	"required": ["type", "reference", "residue_ids"],
+	"additionalProperties": false
+}
