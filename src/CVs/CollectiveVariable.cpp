@@ -35,6 +35,7 @@
 #include "RMSDCV.h"
 #include "RouseModeCV.h"
 #include "CoordinationNumberCV.h"
+#include "NearestNeighborsCV.h"
 #include "BoxVolumeCV.h"
 
 using namespace Json;
