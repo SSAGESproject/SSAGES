@@ -18,7 +18,7 @@
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once 
+#pragma once
 
 #include "CollectiveVariable.h"
 #include "Utility/ReadBackbone.h"
@@ -31,7 +31,7 @@ namespace SSAGES
 	 * the Efficient Exploration of Protein Beta-Sheet Structures: Application
 	 * to SH3 and GB1", JCTC, 2009, 5(9): 2197-2201.
 	 *
-	 * Check blocks of six consecutive protein residues for RMSD from 
+	 * Check blocks of six consecutive protein residues for RMSD from
 	 * reference "ideal" alpha helix structure.
 	 */
 
@@ -46,12 +46,12 @@ namespace SSAGES
 		std::vector<int> atomids_;
 
 		//!< Name of pdb reference for system
-		std::string refpdb_;		
+		std::string refpdb_;
 
 		//!< Coordinates for reference structure
 		std::vector<Vector3> refalpha_;
 
-		//!< Length unit conversion: convert 1 nm to your internal MD units (ex. if using angstroms use 10) 
+		//!< Length unit conversion: convert 1 nm to your internal MD units (ex. if using angstroms use 10)
 		double unitconv_;
 
 	public:
@@ -77,13 +77,13 @@ namespace SSAGES
 			if(resids[0] >= resids[1]){
 				std::cout << "AlphaRMSDCV: Input must list lower residue index first: please reverse residue range." << std::endl;
 				exit(0);
-			} else if(resids[1] - resids[0] < 6) {
+			} else if(resids[1] - resids[0] < 5) {
 				std::cout << "AlphaRMSDCV: Residue range must span at least 6 residues for alpha helix calculation." << std::endl;
 				exit(0);
 			}
-			
+
 			std::cout << "AlphaRMSDCV: Calculating alpha helix character from residue " << resids[0] << " to " << resids[1]  << "." << std::endl;
-			
+
 			for(unsigned int i = resids[0]; i <= resids[1]; i++){
 				resids_.push_back(i);
 			}
@@ -93,34 +93,34 @@ namespace SSAGES
 		void Initialize(const Snapshot& snapshot) override
 		{
 			atomids_ = ReadBackbone::GetPdbBackbone(refpdb_, resids_);
-			
+
 			// reference 'ideal' alpha helix structure, in nanometers
-			refalpha_.push_back(unitconv_ * Vector3{ .0733,  .0519,  .5298 }); // N    
+			refalpha_.push_back(unitconv_ * Vector3{ .0733,  .0519,  .5298 }); // N
 			refalpha_.push_back(unitconv_ * Vector3{ .1763,  .0810,  .4301 }); // CA
 			refalpha_.push_back(unitconv_ * Vector3{ .3166,  .0543,  .4881 }); // CB
 			refalpha_.push_back(unitconv_ * Vector3{ .1527, -.0045,  .3053 }); // C
 			refalpha_.push_back(unitconv_ * Vector3{ .1646,  .0436,  .1928 }); // O
-			refalpha_.push_back(unitconv_ * Vector3{ .1180, -.1312,  .3254 }); // N    
+			refalpha_.push_back(unitconv_ * Vector3{ .1180, -.1312,  .3254 }); // N
 			refalpha_.push_back(unitconv_ * Vector3{ .0924, -.2203,  .2126 }); // CA
 			refalpha_.push_back(unitconv_ * Vector3{ .0650, -.3626,  .2626 }); // CB
 			refalpha_.push_back(unitconv_ * Vector3{-.0239, -.1711,  .1261 }); // C
 			refalpha_.push_back(unitconv_ * Vector3{-.0190, -.1815,  .0032 }); // O
-			refalpha_.push_back(unitconv_ * Vector3{-.1280, -.1172,  .1891 }); // N   
+			refalpha_.push_back(unitconv_ * Vector3{-.1280, -.1172,  .1891 }); // N
 			refalpha_.push_back(unitconv_ * Vector3{-.2416, -.0661,  .1127 }); // CA
 			refalpha_.push_back(unitconv_ * Vector3{-.3548, -.0217,  .2056 }); // CB
 			refalpha_.push_back(unitconv_ * Vector3{-.1964,  .0529,  .0276 }); // C
 			refalpha_.push_back(unitconv_ * Vector3{-.2364,  .0659, -.0880 }); // O
-			refalpha_.push_back(unitconv_ * Vector3{-.1130,  .1391,  .0856 }); // N   
+			refalpha_.push_back(unitconv_ * Vector3{-.1130,  .1391,  .0856 }); // N
 			refalpha_.push_back(unitconv_ * Vector3{-.0620,  .2565,  .0148 }); // CA
 			refalpha_.push_back(unitconv_ * Vector3{ .0228,  .3439,  .1077 }); // CB
 			refalpha_.push_back(unitconv_ * Vector3{ .0231,  .2129, -.1032 }); // C
 			refalpha_.push_back(unitconv_ * Vector3{ .0179,  .2733, -.2099 }); // O
-			refalpha_.push_back(unitconv_ * Vector3{ .1028,  .1084, -.0833 }); // N   
+			refalpha_.push_back(unitconv_ * Vector3{ .1028,  .1084, -.0833 }); // N
 			refalpha_.push_back(unitconv_ * Vector3{ .1872,  .0593, -.1919 }); // CA
 			refalpha_.push_back(unitconv_ * Vector3{ .2850, -.0462, -.1397 }); // CB
 			refalpha_.push_back(unitconv_ * Vector3{ .1020,  .0020, -.3049 }); // C
 			refalpha_.push_back(unitconv_ * Vector3{ .1317,  .0227, -.4224 }); // O
-			refalpha_.push_back(unitconv_ * Vector3{-.0051, -.0684, -.2696 }); // N   
+			refalpha_.push_back(unitconv_ * Vector3{-.0051, -.0684, -.2696 }); // N
 			refalpha_.push_back(unitconv_ * Vector3{-.0927, -.1261, -.3713 }); // CA
 			refalpha_.push_back(unitconv_ * Vector3{-.1933, -.2219, -.3074 }); // CB
 			refalpha_.push_back(unitconv_ * Vector3{-.1663, -.0171, -.4475 }); // C
@@ -139,8 +139,8 @@ namespace SSAGES
 			double rmsd, dist_norm, dxgrouprmsd;
 			Vector3 dist_xyz, dist_ref;
 			std::vector<Vector3> refxyz;
-			std::vector< std::vector< Vector3 > > deriv(30, std::vector<Vector3>(30, Vector3{0,0,0})); 
-			
+			std::vector< std::vector< Vector3 > > deriv(30, std::vector<Vector3>(30, Vector3{0,0,0}));
+
 			std::fill(grad_.begin(), grad_.end(), Vector3{0,0,0});
 			grad_.resize(snapshot.GetNumAtoms(), Vector3{0,0,0});
 			val_ = 0.0;
@@ -152,7 +152,7 @@ namespace SSAGES
 
 				// clear temp rmsd calculation
 				rmsd = 0.0;
-				
+
 				// load refxyz with the correct 30 reference atoms
 				std::fill(refxyz.begin(), refxyz.end(), Vector3{0,0,0});
 				refxyz.resize(30, Vector3{0,0,0});
@@ -167,7 +167,7 @@ namespace SSAGES
 						dist_ref = refalpha_[j] - refalpha_[k]; // could be precalculated
 						dist_norm = dist_xyz.norm() - dist_ref.norm();
 						rmsd += dist_norm * dist_norm;
-						
+
 						deriv[j][k] = dist_xyz * dist_norm / dist_xyz.norm();
 					}
 				}

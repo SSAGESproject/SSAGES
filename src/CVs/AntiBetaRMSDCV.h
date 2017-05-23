@@ -18,7 +18,7 @@
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once 
+#pragma once
 
 #include "CollectiveVariable.h"
 #include "Utility/ReadBackbone.h"
@@ -31,7 +31,7 @@ namespace SSAGES
 	 * the Efficient Exploration of Protein Beta-Sheet Structures: Application
 	 * to SH3 and GB1", JCTC, 2009, 5(9): 2197-2201.
 	 *
-	 * Check blocks of six consecutive protein residues for RMSD from 
+	 * Check 2 blocks of 3 consecutive protein residues for RMSD from
 	 * reference "ideal" antiparallel beta sheet structure.
 	 */
 
@@ -46,12 +46,12 @@ namespace SSAGES
 		std::vector<int> atomids_;
 
 		//!< Name of pdb reference for system
-		std::string refpdb_;		
+		std::string refpdb_;
 
 		//!< Coordinates for reference structure
 		std::vector<Vector3> refalpha_;
 
-		//!< Length unit conversion: convert 1 nm to your internal MD units (ex. if using angstroms use 10) 
+		//!< Length unit conversion: convert 1 nm to your internal MD units (ex. if using angstroms use 10)
 		double unitconv_;
 
 	public:
@@ -75,13 +75,13 @@ namespace SSAGES
 			if(resids[0] >= resids[1]){
 				std::cout << "AntiBetaRMSDCV: Input must list lower residue index first: please reverse residue range." << std::endl;
 				exit(0);
-			} else if(resids[1] - resids[0] < 6) {
+			} else if(resids[1] - resids[0] < 5){
 				std::cout << "AntiBetaRMSDCV: Residue range must span at least 6 residues for secondary structure calculation." << std::endl;
 				exit(0);
 			}
-			
+
 			std::cout << "AntiBetaRMSDCV: Calculating antiparallel beta sheet character from residue " << resids[0] << " to " << resids[1]  << "." << std::endl;
-			
+
 			for(unsigned int i = resids[0]; i <= resids[1]; i++){
 				resids_.push_back(i);
 			}
@@ -118,7 +118,7 @@ namespace SSAGES
 			refalpha_.push_back(unitconv_ * Vector3{-.3053, -.2199, -.1291}); // CB
 			refalpha_.push_back(unitconv_ * Vector3{-.0869, -.1949, -.2512}); // C
 			refalpha_.push_back(unitconv_ * Vector3{-.1255, -.2070, -.3710}); // O
-			refalpha_.push_back(unitconv_ * Vector3{ .0326, -.2363, -.2072}); // N    i + h 
+			refalpha_.push_back(unitconv_ * Vector3{ .0326, -.2363, -.2072}); // N    i + h
 			refalpha_.push_back(unitconv_ * Vector3{ .1405, -.2992, -.2872}); // CA
 			refalpha_.push_back(unitconv_ * Vector3{ .2699, -.2129, -.2917}); // CB
 			refalpha_.push_back(unitconv_ * Vector3{ .1745, -.4399, -.2330}); // C
@@ -128,12 +128,14 @@ namespace SSAGES
 		// Evaluate the CV
 		void Evaluate(const Snapshot& snapshot) override
 		{
+
+			std::cout<< "helloooooo" << std::endl;
 			// need atom positions for all atoms in atomids_
 			const auto& pos = snapshot.GetPositions();
 			std::vector<int> groupidx;
 			snapshot.GetLocalIndices(atomids_, &groupidx);	// get correct local atom indices
-			
-			unsigned int resgroups = resids_.size() - 5;
+
+			unsigned int resgroups = resids_.size() - 2;
 			// resgroups needs to be assigned differently for parallel and anti beta sheet
 			// instead of 6 consecutive residues, use 2 separate segments of 3 residues
 			// need to find all 3+3 combinations from specified backbone range
@@ -143,15 +145,14 @@ namespace SSAGES
 			double rmsd, dist_norm, dxgrouprmsd;
 			Vector3 dist_xyz, dist_ref;
 			std::vector<Vector3> refxyz;
-			std::vector< std::vector< Vector3 > > deriv(30, std::vector<Vector3>(30, Vector3{0,0,0})); 
-			
+			std::vector< std::vector< Vector3 > > deriv(30, std::vector<Vector3>(30, Vector3{0,0,0}));
+
 			std::fill(grad_.begin(), grad_.end(), Vector3{0,0,0});
 			grad_.resize(snapshot.GetNumAtoms(), Vector3{0,0,0});
 			val_ = 0.0;
 
-			for(size_t i = 0; i < resgroups - 1; i++){
-				//for(size_t j = i + 1; j < resgroups; j++{
-				for(size_t j = resgroups - 1; j > i; j--){
+			for(size_t i = 0; i < resgroups - 3; i++){
+				for(size_t j = resgroups - 1; j > i + 2; j--){
 					rmsd = 0.0;
 					std::fill(refxyz.begin(), refxyz.end(), Vector3{0,0,0});
 					refxyz.resize(30, Vector3{0,0,0});
@@ -172,7 +173,7 @@ namespace SSAGES
 							deriv[k][h] = dist_xyz * dist_norm / dist_xyz.norm();
 						}
 					}
-					
+
 					rmsd /= 43.5; // (30 * 29 / 2) * 0.1 for switching function
 					val_ += (1 - pow(rmsd, 8.0)) / (1 - pow(rmsd, 12.0));
 
@@ -183,11 +184,21 @@ namespace SSAGES
 					// magic numbers come from derivative of switching function
 					// shouldn't be different between different secondary structures
 					// only thing that changes between SS types should be atom indices used for drmsd comparison
-			
-					for(size_t k = 0; k < 29; k++){
-						for(size_t h = k + 1; h < 30; h++){
-							grad_[groupidx[5 * i + h]] += dxgrouprmsd * deriv[k][h];
-							grad_[groupidx[5 * i + k]] -= dxgrouprmsd * deriv[k][h];
+
+					for(size_t k = 0; k < 15; k++){
+						for(size_t h = k + 1; h < 15; h++){
+							grad_[groupidx[5 * i + k]] += dxgrouprmsd * deriv[k][h];
+							grad_[groupidx[5 * i + h]] -= dxgrouprmsd * deriv[k][h];
+						}
+						for(size_t h = 0; h < 15; h++){
+							grad_[groupidx[5 * i + k]] += dxgrouprmsd * deriv[k][h+15];
+							grad_[groupidx[5 * j + h]] -= dxgrouprmsd * deriv[k][h+15];
+						}
+					}
+					for(size_t k = 0; k < 14; k++){
+						for(size_t h = k + 1; h < 15; h++){
+							grad_[groupidx[5 * j + k]] += dxgrouprmsd * deriv[k+15][h+15];
+							grad_[groupidx[5 * j + h]] -= dxgrouprmsd * deriv[k+15][h+15];
 						}
 					}
 				}
