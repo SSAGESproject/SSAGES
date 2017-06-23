@@ -108,17 +108,17 @@ namespace SSAGES
 			refalpha_.push_back(unitconv_ * Vector3{ .1580,  .3940,  .0395}); // CB
 			refalpha_.push_back(unitconv_ * Vector3{-.0394,  .5011,  .1630}); // C
 			refalpha_.push_back(unitconv_ * Vector3{-.1459,  .4814,  .0982}); // O
-			refalpha_.push_back(unitconv_ * Vector3{-.2962,  .3559, -.1359}); // N    i + h + 2
+			refalpha_.push_back(unitconv_ * Vector3{-.2962,  .3559, -.1359}); // N    j - 2
 			refalpha_.push_back(unitconv_ * Vector3{-.2439,  .2526, -.2287}); // CA
 			refalpha_.push_back(unitconv_ * Vector3{-.1189,  .3006, -.3087}); // CB
 			refalpha_.push_back(unitconv_ * Vector3{-.2081,  .1231, -.1520}); // C
 			refalpha_.push_back(unitconv_ * Vector3{-.1524,  .1324, -.0409}); // O
-			refalpha_.push_back(unitconv_ * Vector3{-.2326,  .0037, -.2095}); // N    i + h + 1
+			refalpha_.push_back(unitconv_ * Vector3{-.2326,  .0037, -.2095}); // N    j - 1
 			refalpha_.push_back(unitconv_ * Vector3{-.1858, -.1269, -.1554}); // CA
 			refalpha_.push_back(unitconv_ * Vector3{-.3053, -.2199, -.1291}); // CB
 			refalpha_.push_back(unitconv_ * Vector3{-.0869, -.1949, -.2512}); // C
 			refalpha_.push_back(unitconv_ * Vector3{-.1255, -.2070, -.3710}); // O
-			refalpha_.push_back(unitconv_ * Vector3{ .0326, -.2363, -.2072}); // N    i + h
+			refalpha_.push_back(unitconv_ * Vector3{ .0326, -.2363, -.2072}); // N    j
 			refalpha_.push_back(unitconv_ * Vector3{ .1405, -.2992, -.2872}); // CA
 			refalpha_.push_back(unitconv_ * Vector3{ .2699, -.2129, -.2917}); // CB
 			refalpha_.push_back(unitconv_ * Vector3{ .1745, -.4399, -.2330}); // C
@@ -150,13 +150,14 @@ namespace SSAGES
 			val_ = 0.0;
 
 			for(size_t i = 0; i < resgroups - 3; i++){
-				for(size_t j = resgroups - 1; j > i + 2; j--){
+				for(size_t j = i + 3; j < resgroups; j++){
 					rmsd = 0.0;
 					std::fill(refxyz.begin(), refxyz.end(), Vector3{0,0,0});
 					refxyz.resize(30, Vector3{0,0,0});
 					for(size_t k = 0; k < 15; k++){
 						refxyz[k] = pos[groupidx[5 * i + k]];
 					}
+
 					for(size_t k = 0; k < 15; k++){
 						refxyz[k + 15] = pos[groupidx[5 * j + k]];
 					}
