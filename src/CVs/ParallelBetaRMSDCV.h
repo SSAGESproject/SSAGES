@@ -158,7 +158,6 @@ namespace SSAGES
 					for(size_t k = 0; k < 15; k++){
 						refxyz[k] = pos[groupidx[5 * i + k]];
 					}
-
 					for(size_t k = 0; k < 15; k++){
 						refxyz[k + 15] = pos[groupidx[5 * j + k]];
 					}
@@ -174,7 +173,7 @@ namespace SSAGES
 						}
 					}
 
-					rmsd /= 43.5; // (30 * 29 / 2) * 0.1 for switching function
+					rmsd = pow(rmsd / 435, 0.5) / 0.1;
 					val_ += (1 - pow(rmsd, 8.0)) / (1 - pow(rmsd, 12.0));
 
 					dxgrouprmsd = 8E8 * (5E3 * pow(rmsd, 11.0) + pow(rmsd, 7.0));

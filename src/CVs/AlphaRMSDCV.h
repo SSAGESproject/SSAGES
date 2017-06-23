@@ -167,12 +167,11 @@ namespace SSAGES
 						dist_ref = refalpha_[j] - refalpha_[k]; // could be precalculated
 						dist_norm = dist_xyz.norm() - dist_ref.norm();
 						rmsd += dist_norm * dist_norm;
-
 						deriv[j][k] = dist_xyz * dist_norm / dist_xyz.norm();
 					}
 				}
 
-				rmsd /= 43.5;
+				rmsd = pow(rmsd / 435, 0.5) / 0.1;
 				val_ += (1 - pow(rmsd, 8.0)) / (1 - pow(rmsd, 12.0));
 
 				// is ther ea better WAY

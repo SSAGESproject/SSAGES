@@ -128,8 +128,6 @@ namespace SSAGES
 		// Evaluate the CV
 		void Evaluate(const Snapshot& snapshot) override
 		{
-
-			std::cout<< "helloooooo" << std::endl;
 			// need atom positions for all atoms in atomids_
 			const auto& pos = snapshot.GetPositions();
 			std::vector<int> groupidx;
@@ -174,7 +172,7 @@ namespace SSAGES
 						}
 					}
 
-					rmsd /= 43.5; // (30 * 29 / 2) * 0.1 for switching function
+					rmsd = pow(rmsd / 435, 0.5) / 0.1;
 					val_ += (1 - pow(rmsd, 8.0)) / (1 - pow(rmsd, 12.0));
 
 					dxgrouprmsd = 8E8 * (5E3 * pow(rmsd, 11.0) + pow(rmsd, 7.0));
@@ -211,7 +209,7 @@ namespace SSAGES
 		 */
 		virtual void Serialize(Json::Value& json) const override
 		{
-			json["type"] = "ParallelBetaRMSD";
+			json["type"] = "AntiBetaRMSD";
 			json["reference"] = refpdb_;
 			for(size_t i=0; i < resids_.size(); ++i)
 				json["residue_ids"].append(resids_[i]);

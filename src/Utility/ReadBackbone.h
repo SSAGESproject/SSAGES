@@ -96,7 +96,7 @@ namespace SSAGES
 					}
 				}
 			}
-			
+
 			// atoms in PDB not necessarily in N CA CB C O order, fix that:
 			for(size_t i = 0; i < resids.size(); i++){
 				for(size_t j = 5 * i; j < (5 * i + 5); j++){
