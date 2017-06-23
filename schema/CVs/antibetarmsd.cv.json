@@ -15,8 +15,11 @@
 			"items" : {
 				"type" : "integer"
 			}
+		},
+		"mode" : {
+			"type" : "integer"
 		}
 	},
-	"required": ["type", "reference", "residue_ids"],
+	"required": ["type", "reference", "residue_ids", "mode"],
 	"additionalProperties": false
 }

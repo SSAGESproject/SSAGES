@@ -43,7 +43,8 @@ namespace SSAGES
 		std::vector<int> resids_;
 
 		//!< Atom IDs for secondary structure calculation: backbone of resids_
-		std::vector<int> atomids_;
+		//std::vector<int> atomids_;
+		std::vector< std::vector<std::string> > atomids_;
 
 		//!< Name of pdb reference for system
 		std::string refpdb_;
@@ -54,6 +55,9 @@ namespace SSAGES
 		//!< Length unit conversion: convert 1 nm to your internal MD units (ex. if using angstroms use 10)
 		double unitconv_;
 
+		//!< mode
+		int mode_;
+
 	public:
 		//! Constructor.
 		/*!
@@ -62,8 +66,8 @@ namespace SSAGES
 		 *
 		 * \todo Bounds needs to be an input and periodic boundary conditions ?
 		 */
-		ParallelBetaRMSDCV(std::vector<int> resids, std::string refpdb, double unitconv) :
-		resids_(resids), refpdb_(refpdb), unitconv_(unitconv)
+		ParallelBetaRMSDCV(std::vector<int> resids, std::string refpdb, double unitconv, int mode) :
+		resids_(resids), refpdb_(refpdb), unitconv_(unitconv), mode_(mode)
 		{
 			if(resids_.size() != 2 ){
 				std::cout << "ParallelBetaRMSDCV: Input must designate range of residues with 2 residue numbers." << std::endl;
@@ -131,15 +135,11 @@ namespace SSAGES
 			// need atom positions for all atoms in atomids_
 			const auto& pos = snapshot.GetPositions();
 			std::vector<int> groupidx;
-			snapshot.GetLocalIndices(atomids_, &groupidx);	// get correct local atom indices
+			std::vector<int> double_atomids(atomids_[0].size());
+			std::transform(atomids_[0].begin(), atomids_[0].end(), double_atomids.begin(), [](std::string val) {return std::stod(val);});
+			snapshot.GetLocalIndices(double_atomids, &groupidx);
 
-			unsigned int resgroups = resids_.size() - 2; // groups of 3
-			// resgroups needs to be iterated through differently for parallel and anti beta sheet
-			// instead of 6 consecutive residues, use 2 separate segments of 3 residues
-			// need to find all 3+3 combinations from specified backbone range
-			// i i+1 i+2
-			// h h+1 h+2
-
+			unsigned int resgroups = resids_.size() - 2;
 			double rmsd, dist_norm, dxgrouprmsd;
 			Vector3 dist_xyz, dist_ref;
 			std::vector<Vector3> refxyz;
@@ -149,52 +149,54 @@ namespace SSAGES
 			grad_.resize(snapshot.GetNumAtoms(), Vector3{0,0,0});
 			val_ = 0.0;
 
-			// for each set of i residues i i+1 i+2
 			for(size_t i = 0; i < resgroups - 3; i++){
 				for(size_t j = i + 3; j < resgroups; j++){
-					rmsd = 0.0;
-					std::fill(refxyz.begin(), refxyz.end(), Vector3{0,0,0});
-					refxyz.resize(30, Vector3{0,0,0});
-					for(size_t k = 0; k < 15; k++){
-						refxyz[k] = pos[groupidx[5 * i + k]];
-					}
-					for(size_t k = 0; k < 15; k++){
-						refxyz[k + 15] = pos[groupidx[5 * j + k]];
-					}
-
-					// sum over all pairs to calculate CV
-					for(size_t k = 0; k < 29; k++){
-						for(size_t h = k + 1; h < 30; h++){
-							dist_xyz = refxyz[k] - refxyz[h];
-							dist_ref = refalpha_[k] - refalpha_[h];
-							dist_norm = dist_xyz.norm() - dist_ref.norm();
-							rmsd += dist_norm * dist_norm;
-							deriv[k][h] = dist_xyz * dist_norm / dist_xyz.norm();
+					// mode: 0 for all, 1 for inter, 2 for intra
+					if((mode_ == 0) || (mode_ == 1 && atomids_[1][5 * j] != atomids_[1][5 * i]) || (mode_ == 2 && atomids_[1][5 * j] == atomids_[1][5 * i])){
+						rmsd = 0.0;
+						std::fill(refxyz.begin(), refxyz.end(), Vector3{0,0,0});
+						refxyz.resize(30, Vector3{0,0,0});
+						for(size_t k = 0; k < 15; k++){
+							refxyz[k] = pos[groupidx[5 * i + k]];
 						}
-					}
-
-					rmsd = pow(rmsd / 435, 0.5) / 0.1;
-					val_ += (1 - pow(rmsd, 8.0)) / (1 - pow(rmsd, 12.0));
-
-					dxgrouprmsd = pow(rmsd, 11.0) + pow(rmsd, 7.0);
-					dxgrouprmsd /= pow(rmsd, 8.0) + pow(rmsd, 4.0) + 1;
-					dxgrouprmsd /= pow(rmsd, 8.0) + pow(rmsd, 4.0) + 1;
-					dxgrouprmsd *= -40. / 435;
-
-					for(size_t k = 0; k < 15; k++){
-						for(size_t h = k + 1; h < 15; h++){
-							grad_[groupidx[5 * i + k]] += dxgrouprmsd * deriv[k][h];
-							grad_[groupidx[5 * i + h]] -= dxgrouprmsd * deriv[k][h];
+						for(size_t k = 0; k < 15; k++){
+							refxyz[k + 15] = pos[groupidx[5 * j + k]];
 						}
-						for(size_t h = 0; h < 15; h++){
-							grad_[groupidx[5 * i + k]] += dxgrouprmsd * deriv[k][h+15];
-							grad_[groupidx[5 * j + h]] -= dxgrouprmsd * deriv[k][h+15];
+
+						// sum over all pairs to calculate CV
+						for(size_t k = 0; k < 29; k++){
+							for(size_t h = k + 1; h < 30; h++){
+								dist_xyz = refxyz[k] - refxyz[h];
+								dist_ref = refalpha_[k] - refalpha_[h];
+								dist_norm = dist_xyz.norm() - dist_ref.norm();
+								rmsd += dist_norm * dist_norm;
+								deriv[k][h] = dist_xyz * dist_norm / dist_xyz.norm();
+							}
 						}
-					}
-					for(size_t k = 0; k < 14; k++){
-						for(size_t h = k + 1; h < 15; h++){
-							grad_[groupidx[5 * j + k]] += dxgrouprmsd * deriv[k+15][h+15];
-							grad_[groupidx[5 * j + h]] -= dxgrouprmsd * deriv[k+15][h+15];
+
+						rmsd = pow(rmsd / 435, 0.5) / 0.1;
+						val_ += (1 - pow(rmsd, 8.0)) / (1 - pow(rmsd, 12.0));
+
+						dxgrouprmsd = pow(rmsd, 11.0) + pow(rmsd, 7.0);
+						dxgrouprmsd /= pow(rmsd, 8.0) + pow(rmsd, 4.0) + 1;
+						dxgrouprmsd /= pow(rmsd, 8.0) + pow(rmsd, 4.0) + 1;
+						dxgrouprmsd *= -40. / 435;
+
+						for(size_t k = 0; k < 15; k++){
+							for(size_t h = k + 1; h < 15; h++){
+								grad_[groupidx[5 * i + k]] += dxgrouprmsd * deriv[k][h];
+								grad_[groupidx[5 * i + h]] -= dxgrouprmsd * deriv[k][h];
+							}
+							for(size_t h = 0; h < 15; h++){
+								grad_[groupidx[5 * i + k]] += dxgrouprmsd * deriv[k][h+15];
+								grad_[groupidx[5 * j + h]] -= dxgrouprmsd * deriv[k][h+15];
+							}
+						}
+						for(size_t k = 0; k < 14; k++){
+							for(size_t h = k + 1; h < 15; h++){
+								grad_[groupidx[5 * j + k]] += dxgrouprmsd * deriv[k+15][h+15];
+								grad_[groupidx[5 * j + h]] -= dxgrouprmsd * deriv[k+15][h+15];
+							}
 						}
 					}
 				}

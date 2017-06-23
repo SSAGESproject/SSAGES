@@ -51,20 +51,23 @@ namespace SSAGES
 		 * extracted for each residue in the order: N CA CB C O. For Glycine 
 		 * residues, HA1 is located in place of CB. 
 		 */
-		static std::vector<int> GetPdbBackbone(std::string refpdb, std::vector<int> resids)
+		//static std::vector<int> GetPdbBackbone(std::string refpdb, std::vector<int> resids)
+		static std::vector< std::vector< std::string> > GetPdbBackbone(std::string refpdb, std::vector<int> resids)
 		{
-			std::vector<int> atomids;
-			std::vector<int> atomnums;
+			//std::vector<int> atomids;
+			std::vector< std::vector< std::string > > atomids(2, std::vector<std::string> (0));
+			//std::vector<int> atomnums;
+			std::vector<std::string> atomnums;
 			std::vector<std::string> atomtypes;
 			std::vector<std::string> resnames;
 			std::vector<std::string> chains;
 			std::vector<int> resnums;
-			std::vector<int> tempatoms(5);
+			//std::vector<int> tempatoms(5);
+			std::vector<std::string> tempatoms(5);
 			std::vector<std::string> backboneAtoms = {"N", "CA", "CB", "C", "O", "OT1"};
 			std::vector<std::string> glycineAtoms = {"N", "CA", "HA1", "C", "O", "OT1"};
 			std::string atomnum, resnum;
 			std::string record, atomtype, resname, chain;
-			
 			std::ifstream pdbfile;
 			pdbfile.open(refpdb, std::ios::in);
 			std::string line;
@@ -82,13 +85,15 @@ namespace SSAGES
 					atomtype.erase( std::remove( atomtype.begin(), atomtype.end(), ' '), atomtype.end());
 					resname.erase( std::remove( resname.begin(), resname.end(), ' '), resname.end());
 					if(resname == "GLY" && std::find(glycineAtoms.begin(), glycineAtoms.end(), atomtype) != glycineAtoms.end()){
-						atomnums.push_back(std::stoul(atomnum));
+						//atomnums.push_back(std::stoul(atomnum));
+						atomnums.push_back(atomnum);
 						atomtypes.push_back(atomtype);
 						resnames.push_back(resname);
 						chains.push_back(chain);
 						resnums.push_back(std::stoul(resnum));
 					} else if(std::find(backboneAtoms.begin(), backboneAtoms.end(), atomtype) != backboneAtoms.end()){
-						atomnums.push_back(std::stoul(atomnum));
+						//atomnums.push_back(std::stoul(atomnum));
+						atomnums.push_back(atomnum);
 						atomtypes.push_back(atomtype);
 						resnames.push_back(resname);
 						chains.push_back(chain);
@@ -119,8 +124,10 @@ namespace SSAGES
 						tempatoms[2] = atomnums[j]; 
 						std::cout << atomtypes[j] << " - Atom " << tempatoms[2] << " - Chain " << chains[j] << std::endl;
 					}
+					atomids[1].push_back(chains[j]);
 				}
-				atomids.insert(atomids.end(), tempatoms.begin(), tempatoms.end());
+				//atomids.insert(atomids.end(), tempatoms.begin(), tempatoms.end());
+				atomids[0].insert(atomids[0].end(), tempatoms.begin(), tempatoms.end());
 			}
 
 			return atomids;

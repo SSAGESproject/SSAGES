@@ -43,7 +43,8 @@ namespace SSAGES
 		std::vector<int> resids_;
 
 		//!< Atom IDs for secondary structure calculation: backbone of resids_
-		std::vector<int> atomids_;
+		//std::vector<int> atomids_;
+		std::vector< std::vector<std::string> > atomids_;
 
 		//!< Name of pdb reference for system
 		std::string refpdb_;
@@ -134,7 +135,9 @@ namespace SSAGES
 			const auto& pos = snapshot.GetPositions();
 			//const auto& image_flags = snapshot.GetImageFlags();
 			std::vector<int> groupidx;
-			snapshot.GetLocalIndices(atomids_, &groupidx);	// get correct local atom indices
+			std::vector<int> double_atomids(atomids_[0].size());
+			std::transform(atomids_[0].begin(), atomids_[0].end(), double_atomids.begin(), [](std::string val) {return std::stod(val);});
+			snapshot.GetLocalIndices(double_atomids, &groupidx);	// get correct local atom indices
 
 			double rmsd, dist_norm, dxgrouprmsd;
 			Vector3 dist_xyz, dist_ref;
