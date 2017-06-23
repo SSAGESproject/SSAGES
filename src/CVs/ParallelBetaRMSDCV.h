@@ -176,10 +176,10 @@ namespace SSAGES
 					rmsd = pow(rmsd / 435, 0.5) / 0.1;
 					val_ += (1 - pow(rmsd, 8.0)) / (1 - pow(rmsd, 12.0));
 
-					dxgrouprmsd = 8E8 * (5E3 * pow(rmsd, 11.0) + pow(rmsd, 7.0));
-					dxgrouprmsd /= 1E8 * pow(rmsd, 8.0) + 1E4 * pow(rmsd, 4.0) + 1;
-					dxgrouprmsd /= 1E8 * pow(rmsd, 8.0) + 1E4 * pow(rmsd, 4.0) + 1;
-					dxgrouprmsd *= -2.0 / 435;
+					dxgrouprmsd = pow(rmsd, 11.0) + pow(rmsd, 7.0);
+					dxgrouprmsd /= pow(rmsd, 8.0) + pow(rmsd, 4.0) + 1;
+					dxgrouprmsd /= pow(rmsd, 8.0) + pow(rmsd, 4.0) + 1;
+					dxgrouprmsd *= -40. / 435;
 
 					for(size_t k = 0; k < 15; k++){
 						for(size_t h = k + 1; h < 15; h++){

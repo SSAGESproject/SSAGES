@@ -174,11 +174,10 @@ namespace SSAGES
 				rmsd = pow(rmsd / 435, 0.5) / 0.1;
 				val_ += (1 - pow(rmsd, 8.0)) / (1 - pow(rmsd, 12.0));
 
-				// is ther ea better WAY
-				dxgrouprmsd = 8E8 * (5E3 * pow(rmsd, 11.0) + pow(rmsd, 7.0));
-				dxgrouprmsd /= 1E8 * pow(rmsd, 8.0) + 1E4 * pow(rmsd, 4.0) + 1;
-				dxgrouprmsd /= 1E8 * pow(rmsd, 8.0) + 1E4 * pow(rmsd, 4.0) + 1;
-				dxgrouprmsd *= -2.0 / 435;  // derivative has prefactor of -2 / (30 choose 2)
+				dxgrouprmsd = pow(rmsd, 11.0) + pow(rmsd, 7.0);
+				dxgrouprmsd /= pow(rmsd, 8.0) + pow(rmsd, 4.0) + 1;
+				dxgrouprmsd /= pow(rmsd, 8.0) + pow(rmsd, 4.0) + 1;
+				dxgrouprmsd *= -40. / 435;
 
 				for(size_t j = 0; j < 29; j++){
 					for(size_t k = j + 1; k < 30; k++){
