@@ -1,5 +1,5 @@
 {
-    "inputfile" : "ABF_ADP_Gromacs_Example/example_adp.tpr",
+    "inputfile" : "example_adp.tpr",
     "driver" : [        
         {
             "number processors" : 1,
@@ -53,7 +53,7 @@
                 {
                     "periodic": true,
                     "type": "Torsional",
-                    "atom ids": [
+                    "atom_ids": [
                         5,
                         7,
                         9,
@@ -63,7 +63,7 @@
                 {
                     "periodic": true,
                     "type": "Torsional",
-                    "atom ids": [
+                    "atom_ids": [
                         7,
                         9,
                         15,
