@@ -1,4 +1,13 @@
 {
-	"type" : "object",
-	"varname" : "methods"
+	"varname" : "Method",
+	"type" : "object", 
+	"properties" : {
+		"cvs" : {
+			"type" : "array",
+			"items" : {
+				"type" : "integer", 
+				"minimum" : 0
+			}
+		}
+	}
 }

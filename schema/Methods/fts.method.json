@@ -22,6 +22,9 @@
 		"block_iterations" : {
 			"type" : "integer",
 			"minimum" : 1
+		},
+		"cvs" : {
+			"type" : "array"
 		}
 	},
 	"required": ["kappa", "time_step", "block_iterations"]

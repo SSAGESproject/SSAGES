@@ -42,6 +42,9 @@
 		},
 		"iteration" : {
 			"type" : "integer"
+		},
+		"cvs" : {
+			"type" : "array"
 		}
 	},
 	"required": ["type", "centers", "max_iterations", 

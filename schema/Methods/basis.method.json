@@ -82,7 +82,10 @@
         },
         "convergence_exit" : {
             "type" : "boolean"
-        }
+        },
+		"cvs" : {
+			"type" : "array"
+		}
 	},
 	"required": ["type", "grid", "CV_coefficients", "cycle_frequency"],
 	"additionalProperties": false

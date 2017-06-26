@@ -22,12 +22,9 @@
 #pragma once 
 
 #include "Method.h"
-#include "../CVs/CollectiveVariable.h"
 #include <fstream>
 #include <random>
 #include <deque>
-#include "../FileContents.h"
-#include "../Drivers/DriverException.h"
 #include "sys/stat.h"
 
 namespace SSAGES
@@ -38,12 +35,9 @@ namespace SSAGES
      * The notation used here is drawn largely from Allen, Valeriani and Rein ten Wolde. J. Phys.: Condens. Matter (2009) 21:463102. 
      * We recommend referring to this review if the reader is unfamiliar with the method, or our variable naming conventions.
 	 */
-	class ForwardFlux : public Method
+	class ForwardFlux : public Method, public BuildableMPI<ForwardFlux>
 	{
 	protected:
-
-
-
         //! Nested class to store different FFS Config IDs
         class FFSConfigID
         {
@@ -54,7 +48,6 @@ namespace SSAGES
             unsigned int lprev;      //!< Previous Interface number (i.e. traj I came from)
             unsigned int nprev;      //!< Previous Configuration Number
             unsigned int aprev;      //!< Previous Attempt number
-
 
             //! Constructor
             FFSConfigID(const unsigned int l, 
@@ -72,7 +65,6 @@ namespace SSAGES
             {}
         };
 
-
 		//! Number of FFS interfaces
         //! note that _ninterfaces = n+1 where n is \lambda_n the interface defining B
 		double _ninterfaces;
@@ -82,7 +74,6 @@ namespace SSAGES
 
         //! Interfaces must monotonically increase (or decrease), this determines whether going to the 'next' interface will be higher values of CV, or lower ones
         bool _interfaces_increase;
-
 
 		//! Previous cv position, used to determine if you've crossed an interface since last time
         double _cvvalue_previous;
@@ -171,6 +162,9 @@ namespace SSAGES
         //! file to which the current trajectory is written to
         std::ofstream _trajectory_file;
 
+		//! Method iteration counter/
+		uint iteration_;
+
         //-----------------------------------------------------------------
         // Private Functions
         //-----------------------------------------------------------------
@@ -180,7 +174,6 @@ namespace SSAGES
 
         //! Function to compute and write the initial flux
         void WriteInitialFlux();
-
 
         //! Function that adds new FFS configurations to the Queue
         //! Different FFS flavors can have differences in this method
@@ -204,7 +197,7 @@ namespace SSAGES
         void ComputeInitialFlux(Snapshot*, const CVList&);
 
         //! Function that checks if interfaces have been crossed (different for each FFS flavor)
-        virtual void CheckForInterfaceCrossings(Snapshot*, const CVList&) =0;
+        virtual void CheckForInterfaceCrossings(Snapshot*, const class CVManager&) = 0;
 
         //! Initialize the Queue
         virtual void InitializeQueue(Snapshot*, const CVList&) =0;
@@ -241,7 +234,6 @@ namespace SSAGES
         //! Take the current config in snapshot and append it to the provided ofstream
         void OpenTrajectoryFile(std::ofstream&);
 
-
 	public:
 		//! Constructor
 		/*!
@@ -251,144 +243,135 @@ namespace SSAGES
 		 *
 		 * Create instance of Forward Flux
 		 */
-		ForwardFlux(boost::mpi::communicator& world,
-                    boost::mpi::communicator& comm, 
+		ForwardFlux(const MPI_Comm& world,
+                    const MPI_Comm& comm, 
                     double ninterfaces, std::vector<double> interfaces,
                     unsigned int N0Target, std::vector<unsigned int> M,
                     bool initialFluxFlag, bool saveTrajectories,
                     unsigned int currentInterface, std::string output_directory, unsigned int frequency) : 
 		 Method(frequency, world, comm), _ninterfaces(ninterfaces), _interfaces(interfaces), _N0Target(N0Target), 
          _M(M), _initialFluxFlag(initialFluxFlag), _saveTrajectories(saveTrajectories), _current_interface(currentInterface),
-          _output_directory(output_directory), _generator(1) {
-           
+          _output_directory(output_directory), _generator(1), iteration_(0) 
+		{
+			//_output_directory = "FFSoutput";
+			mkdir(_output_directory.c_str(),S_IRWXU); //how to make directory?
 
-              //_output_directory = "FFSoutput";
-              mkdir(_output_directory.c_str(),S_IRWXU); //how to make directory?
-              
-              //_current_interface = 0;
-              _N0TotalSimTime = 0;
+			//_current_interface = 0;
+			_N0TotalSimTime = 0;
 
-              if (!_initialFluxFlag){
-                initializeQueueFlag = true;
-              }
+			if (!_initialFluxFlag)
+			    initializeQueueFlag = true;
 
-              _A.resize(_ninterfaces);
-              _P.resize(_ninterfaces);
-              _S.resize(_ninterfaces);
-              _N.resize(_ninterfaces);
-              
-              //_N[_current_interface] = _N0Target;
-              /*_M.resize(_ninterfaces);
-              
-              //code for setting up simple simulation and debugging
-              _ninterfaces = 5;
-              int i;
-              _interfaces.resize(_ninterfaces);
-              _interfaces[0]=-1.0;
-              _interfaces[1]=-0.95;
-              _interfaces[2]=-0.8;
-              _interfaces[3]= 0;
-              _interfaces[4]= 1.0;
+			_A.resize(_ninterfaces);
+			_P.resize(_ninterfaces);
+			_S.resize(_ninterfaces);
+			_N.resize(_ninterfaces);
 
-              _saveTrajectories = true;
+			//_N[_current_interface] = _N0Target;
+			/*_M.resize(_ninterfaces);
 
-              _initialFluxFlag = true;
+			//code for setting up simple simulation and debugging
+			_ninterfaces = 5;
+			int i;
+			_interfaces.resize(_ninterfaces);
+			_interfaces[0]=-1.0;
+			_interfaces[1]=-0.95;
+			_interfaces[2]=-0.8;
+			_interfaces[3]= 0;
+			_interfaces[4]= 1.0;
 
-              for(i=0;i<_ninterfaces;i++) _M[i] = 50;
+			_saveTrajectories = true;
 
-              _N0Target = 100;*/
-              //_N0Target = 100;
-              _nfailure_total = 0;
+			_initialFluxFlag = true;
+
+			for(i=0;i<_ninterfaces;i++) _M[i] = 50;
+
+			_N0Target = 100;*/
+			//_N0Target = 100;
+			_nfailure_total = 0;
 
 
-              //check if interfaces monotonically increase or decrease
-              bool errflag = false;
-              if (_interfaces[0]< _interfaces[1]) _interfaces_increase = true;
-              else if (_interfaces[0] > _interfaces[1]) _interfaces_increase = false;
-              else errflag = true;
-              for (unsigned int i=0;i<_ninterfaces-1;i++){
-                  if ((_interfaces_increase) && (_interfaces[i] >= _interfaces[i+1])){
-                    errflag = true;
-                  }
-                  else if ((!_interfaces_increase) && (_interfaces[i] <= _interfaces[i+1])){
-                    errflag = true;
-                  }
-              }
-              if (errflag){
-                  std::cerr << "Error! The interfaces are poorly defined. They must be monotonically increasing or decreasing and cannot equal one another! Please fix this.\n";
-                  for (auto interface : _interfaces){ std::cerr << interface << " ";}
-                  std::cerr << "\n";
-                  world_.abort(EXIT_FAILURE);
-              }
+			//check if interfaces monotonically increase or decrease
+			bool errflag = false;
+			if (_interfaces[0]< _interfaces[1]) _interfaces_increase = true;
+			else if (_interfaces[0] > _interfaces[1]) _interfaces_increase = false;
+			else errflag = true;
+			for (unsigned int i=0;i<_ninterfaces-1;i++)
+            {
+			    if((_interfaces_increase) && (_interfaces[i] >= _interfaces[i+1]))
+				    errflag = true;
+				else if ((!_interfaces_increase) && (_interfaces[i] <= _interfaces[i+1]))
+				    errflag = true;
+			}
+			if (errflag)
+            {
+				std::cerr << "Error! The interfaces are poorly defined. They must be monotonically increasing or decreasing and cannot equal one another! Please fix this.\n";
+				for (auto interface : _interfaces)
+                    std::cerr << interface << " ";
+				std::cerr << "\n";
+				MPI_Abort(world_, EXIT_FAILURE);
+			}
 
-
-              
-              // This is to generate an artificial Lambda0ConfigLibrary, Hadi's code does this for real
-              // THIS SHOULD BE SOMEWHERE ELSE!!! 
-              Lambda0ConfigLibrary.resize(_N0Target);
-              std::normal_distribution<double> distribution(0,1);
-              for (unsigned int i = 0; i < _N0Target ; i++){
+			// This is to generate an artificial Lambda0ConfigLibrary, Hadi's code does this for real
+			// THIS SHOULD BE SOMEWHERE ELSE!!! 
+			Lambda0ConfigLibrary.resize(_N0Target);
+			std::normal_distribution<double> distribution(0,1);
+			for (unsigned int i = 0; i < _N0Target ; i++)
+            {
                 Lambda0ConfigLibrary[i].l = 0;
                 Lambda0ConfigLibrary[i].n = i;
                 Lambda0ConfigLibrary[i].a = 0;
                 Lambda0ConfigLibrary[i].lprev = 0;
                 Lambda0ConfigLibrary[i].nprev = i;
                 Lambda0ConfigLibrary[i].aprev = 0;
-             
-                //FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
-              }
-                /*// Write the dump file out
-                std::ofstream file;
-                std::string filename = _output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
-                file.open(filename.c_str());
+			    //FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
+			}
+			/*// Write the dump file out
+			std::ofstream file;
+			std::string filename = _output_directory + "/l" + std::to_string(ffsconfig.l) + "-n" + std::to_string(ffsconfig.n) + ".dat";
+			file.open(filename.c_str());
 
-                //first line gives ID of where it came from
-                file << ffsconfig.lprev << " " << ffsconfig.nprev << " " << ffsconfig.aprev << "\n";
-                //write position and velocity
-                file << "1 -1 0 0 " << distribution(_generator) << " "  << distribution(_generator) << " 0\n";
+			//first line gives ID of where it came from
+			file << ffsconfig.lprev << " " << ffsconfig.nprev << " " << ffsconfig.aprev << "\n";
+			//write position and velocity
+			file << "1 -1 0 0 " << distribution(_generator) << " "  << distribution(_generator) << " 0\n";
 
-              }
-              */
-              _pop_tried_but_empty_queue = false;
-
-
-              
-          
-          }
-
+			}
+			*/
+			_pop_tried_but_empty_queue = false;
+        }
 
 		//! Pre-simulation hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
+         * \param cvmanager Collective variable manager.
 		 */
-		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override;
+		void PreSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Post-integration hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
+         * \param cvmanager Collective variable manager.
 		 */
-		virtual void PostIntegration(Snapshot* snapshot, const CVList& cvs) =0;
+		virtual void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) = 0;
 
 		//! Post-simulation hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
+         * \param cvmanager Collective variable manager.
 		 */
-		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
+		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! \copydoc Serializable::Serialize()
-		void Serialize(Json::Value& json) const override
-		{
-			//Needed to run
-			json["type"] = "ForwardFlux";
-        }
-
-
+		void Serialize(Json::Value& json) const override;
+        
+        //! \copydoc Buildable::Build()
+		static ForwardFlux* Construct(const Json::Value& json, 
+		                              const MPI_Comm& world,
+		                              const MPI_Comm& comm,
+					                  const std::string& path);
 	};
 }
-
 
 /*
 File Formats:

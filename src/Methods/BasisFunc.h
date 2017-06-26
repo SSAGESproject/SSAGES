@@ -21,11 +21,9 @@
 #pragma once
 
 #include "Method.h"
-#include "../CVs/CollectiveVariable.h"
-#include "../Grids/Histogram.h"
+#include "Grids/Histogram.h"
 #include <fstream>
 #include <vector>
-
 
 namespace SSAGES
 {
@@ -88,7 +86,7 @@ namespace SSAGES
      * Implementation of the Basis Function Sampling Method based on
      * \cite WHITMER2014190602.
      */
-	class Basis : public Method
+	class Basis : public Method, public BuildableMPI<Basis>
 	{
 	private:	
         
@@ -213,6 +211,9 @@ namespace SSAGES
         //! Coefficient filename
         std::string cnme_;
 
+        //! Iteration counter. 
+        uint iteration_;
+
 	public:
         //! Constructor
 		/*!
@@ -236,50 +237,50 @@ namespace SSAGES
          * updated once every cyclefreq_. For now, only the Legendre polynomial
          * is implemented. Others will be added later.
          */
-		Basis(boost::mpi::communicator& world,
-			 boost::mpi::communicator& comm,
-             Histogram<int> *hist,
-			 const std::vector<unsigned int>& polyord,
-             const std::vector<double>& restraint,
-             const std::vector<double>& boundUp,
-             const std::vector<double>& boundLow,
-             unsigned int cyclefreq,
-			 unsigned int frequency,
-             const std::string bnme,
-             const std::string cnme,
-             const double temperature,
-             const double tol,
-             const double weight,
-             bool converge) :
+		Basis(const MPI_Comm& world,
+			  const MPI_Comm& comm,
+              Histogram<int> *hist,
+			  const std::vector<unsigned int>& polyord,
+              const std::vector<double>& restraint,
+              const std::vector<double>& boundUp,
+              const std::vector<double>& boundLow,
+              unsigned int cyclefreq,
+			  unsigned int frequency,
+              const std::string bnme,
+              const std::string cnme,
+              const double temperature,
+              const double tol,
+              const double weight,
+              bool converge) :
 		Method(frequency, world, comm), hist_(hist),
         coeff_(), unbias_(), coeff_arr_(), LUT_(), derivatives_(), polyords_(polyord),
         restraint_(restraint), boundUp_(boundUp), boundLow_(boundLow),
         cyclefreq_(cyclefreq), mpiid_(0), weight_(weight),
         temperature_(temperature), tol_(tol),
-        converge_exit_(converge), bnme_(bnme), cnme_(cnme)
+        converge_exit_(converge), bnme_(bnme), cnme_(cnme), iteration_(0)
 		{
 		}
 
 		//! Pre-simulation hook.
         /*!
          * \param snapshot Simulation snapshot.
-         * \param cvs List of CVs.
+         * \param cvmanager Collective variable manager.
          */
-		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override;
+		void PreSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Post-integration hook.
         /*!
          * \param snapshot Simulation snapshot.
-         * \param cvs List of CVs.
+         * \param cvmanager Collective variable manager.
          */
-		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
+		void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Post-simulation hook.
         /*!
          * \param snapshot Simulation snapshot.
-         * \param cvs List of CVs.
+         * \param cvmanager Collective variable manager.
          */
-		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
+		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
         //! Set the current iteration
         /*!
@@ -307,47 +308,17 @@ namespace SSAGES
             unbias_ = unbias;
         }
 
+		//! \copydoc Buildable::Build()
+		static Basis* Construct(const Json::Value& json, 
+		                        const MPI_Comm& world,
+		                        const MPI_Comm& comm,
+					            const std::string& path);
+
         //! \copydoc Serializable::Serialize()
         /*!
          * \warning Serialization is not implemented yet!
          */
-		void Serialize(Json::Value& json) const override
-		{
-            json["type"] = "Basis";
-            for(auto& p: polyords_)
-                json["CV_coefficients"].append(p);
-
-            for(auto& k: restraint_)
-                json["CV_restraint_spring_constants"].append(k);
-
-            for(auto& u: boundUp_)
-                json["CV_restraint_maximums"].append(u);
-
-            for(auto& l: boundLow_)
-                json["CV_restraint_minimums"].append(l);
-
-            for(auto& b: unbias_)
-                json["bias_hist"].append(b);
-
-            for(auto& c: coeff_arr_)
-                json["coefficients"].append(c);
-
-            json["tolerance"] = tol_;
-
-            json["convergence_exit"] = converge_exit_;
-
-            json["basis_filename"] = bnme_;
-
-            json["coeff_filename"] = cnme_;
-
-            json["iteration"] = iteration_;
-
-            json["cycle_frequency"] = cyclefreq_;
-
-            json["weight"] = weight_;
-
-            json["temperature"] = temperature_;
-		}
+		void Serialize(Json::Value& json) const override;
 
         //! Destructor.
         ~Basis()

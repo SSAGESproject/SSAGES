@@ -22,10 +22,9 @@
 #include <numeric>
 #include <vector>
 #include <memory>
-#include <boost/mpi.hpp>
-#include "json/json.h"
-#include "JSON/Serializable.h"
+#include <mxx/comm.hpp>
 #include "types.h"
+#include "JSON/Serializable.h"
 
 namespace SSAGES
 {
@@ -46,10 +45,10 @@ namespace SSAGES
 	{
 	private:
 		//! Local snapshot (walker) communicator.
-		boost::mpi::communicator comm_;
+		mxx::comm comm_;
 
-		unsigned wid_; //!< Walker ID.
-		unsigned nlocal_; //!< Number of atoms located on this snapshot
+		uint wid_; //!< Walker ID.
+		uint nlocal_; //!< Number of atoms located on this snapshot
 
 		std::string ID_; //!< ID string
 
@@ -91,7 +90,7 @@ namespace SSAGES
 		 * Initialize a snapshot with MPI communicator and a
 		 * correpsonding walker ID.
 		 */
-		Snapshot(boost::mpi::communicator& comm, unsigned wid) :
+		Snapshot(const MPI_Comm& comm, uint wid) :
 		comm_(comm), wid_(wid), H_(), Hinv_(), virial_(Matrix3::Zero()), 
 		origin_({0,0,0}), isperiodic_({true, true, true}), positions_(0), 
 		images_(0), velocities_(0), forces_(0), masses_(0), atomids_(0), 
@@ -176,14 +175,14 @@ namespace SSAGES
 		 */
 		double Getqqrd2e() const { return qqrd2e_; }
 		
-		//! Get communicator for group (walker).
+		//! Get communicator for walker.
 		/*!
-		 * \return Communicator used for MetaDynamics.
+		 * \return Communicator containing processors for simulation instance (walker).
 		 *
 		 * Access the communicator containing the set of processors that belong
 		 * to a single simulation box.
 		 */
-		const boost::mpi::communicator& GetCommunicator() const
+		const mxx::comm& GetCommunicator() const
 		{
 			return comm_;
 		}

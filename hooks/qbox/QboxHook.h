@@ -1,15 +1,15 @@
 #pragma once 
 
 #include "Hook.h"
-#include <boost/property_tree/ptree.hpp>
+#include "pugixml.hpp"
 
 namespace SSAGES
 {
 	class QboxHook : public Hook
 	{
 	private: 
-		//! Property tree used for XML parsing.
-		boost::property_tree::ptree pt_;
+		//! XML document
+		pugi::xml_document xml_;
 
 		//! Vector of unique species. 
 		std::vector<std::string> species_; 

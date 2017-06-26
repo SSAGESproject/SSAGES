@@ -47,6 +47,9 @@
 		},
 		"outputDirectoryName" : {
 			"type" : "string"
+		},
+		"cvs" : {
+			"type" : "array"
 		}
 	},
 	"required": [],

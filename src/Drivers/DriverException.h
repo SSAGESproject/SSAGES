@@ -26,7 +26,6 @@
 #include <stdexcept>
 #include <sstream>
 #include <iomanip>
-#include <boost/mpi.hpp>
 
 namespace SSAGES
 {
@@ -73,13 +72,10 @@ namespace SSAGES
 	/*!
 	 * \param notice Text to be written to console.
 	 * \param msgw Width of the message.
-	 * \param world MPI global communicator.
 	 */
-	inline void PrintBoldNotice(const std::string& notice, int msgw, const boost::mpi::communicator& world)
+	inline void PrintBoldNotice(const std::string& notice, int msgw)
 	{
-
-		if(world.rank() == 0)
-			std::cout << std::setw(msgw + 8) << std::left << "\033[1m" + notice + "\033[0m";
+		std::cout << std::setw(msgw + 8) << std::left << "\033[1m" + notice + "\033[0m";
 	}
 
 	//! Print a list of errors
@@ -103,18 +99,14 @@ namespace SSAGES
 	 * \param msgs List of messages.
 	 * \param prefix Prefix to prepend to each message.
 	 * \param notw Width of the messages.
-	 * \param world MPI global communicator.
 	 */
-	inline void DumpNoticesToConsole(const std::vector<std::string>& msgs, std::string prefix, int notw, const boost::mpi::communicator& world)
+	inline void DumpNoticesToConsole(const std::vector<std::string>& msgs, std::string prefix, int notw)
 	{
-		if(world.rank() == 0)
-		{
-			std::cout << std::setw(notw) << std::right << "\033[32mOK!\033[0m\n";
-			if(msgs.size() == 0)
-				return;
-			
-			for(auto& msg : msgs)
-				std::cout << prefix << " * " << msg << "\n";
-		}
+		std::cout << std::setw(notw) << std::right << "\033[32mOK!\033[0m\n";
+		if(msgs.size() == 0)
+			return;
+		
+		for(auto& msg : msgs)
+			std::cout << prefix << " * " << msg << "\n";
 	}
 }

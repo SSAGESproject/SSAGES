@@ -20,10 +20,12 @@
 
 #pragma once 
 
-#include <numeric>
-
-#include "Drivers/DriverException.h"
 #include "CollectiveVariable.h"
+#include "Validator/ObjectRequirement.h"
+#include "Drivers/DriverException.h"
+#include "Snapshot.h"
+#include "schema.h"
+#include <numeric>
 
 namespace SSAGES
 {
@@ -35,7 +37,7 @@ namespace SSAGES
 	 *
 	 * \ingroup CVs
 	 */
-	class ParticleCoordinateCV : public CollectiveVariable
+	class ParticleCoordinateCV : public CollectiveVariable, public Buildable<ParticleCoordinateCV>
 	{
 	private:
 		//! IDs of atoms of interest. 
@@ -160,6 +162,39 @@ namespace SSAGES
 		double GetDifference(const double Location) const override
 		{
 			return val_ - Location;
+		}
+
+		static ParticleCoordinateCV* Construct(const Json::Value& json, const std::string& path)
+		{
+			Json::ObjectRequirement validator;
+			Json::Value schema;
+			Json::Reader reader;
+
+			reader.parse(JsonSchema::ParticleCoordinateCV, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+
+			Label atomids;
+			for(auto& id : json["atom_ids"])
+				atomids.push_back(id.asInt());
+
+			auto indextype = json.get("dimension","x").asString();
+
+			Dimension index;
+			if(indextype == "x")
+				index = Dimension::x;
+			else if(indextype == "y")
+				index = Dimension::y;
+			else if(indextype == "z")
+				index = Dimension::z;
+			else
+				throw BuildException({"Could not obtain ParticleCoordinate dimension specified."});
+
+			return new ParticleCoordinateCV(atomids, index);
 		}
 
 		//! Serialize this CV for restart purposes.

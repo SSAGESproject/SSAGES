@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include "../Snapshot.h"
 #include "../JSON/Serializable.h"
 #include "types.h"
 #include <vector>
@@ -66,7 +65,7 @@ namespace SSAGES
 		 * during the pre-simulation phase of the hook. It is typically used to
 		 * allocate/reserve memory.
 		 */
-		virtual void Initialize(const Snapshot&) {}
+		virtual void Initialize(const class Snapshot&) {}
 
 		//! Evaluate CV.
 		/*!
@@ -76,7 +75,7 @@ namespace SSAGES
 		 * post-integration phase every iteration. The CV should compute its
 		 * value and gradient, storing them in a local private variable.
 		 */
-		virtual void Evaluate(const Snapshot& snapshot) = 0;
+		virtual void Evaluate(const class Snapshot&) = 0;
 
 		//! Get current value of the CV.
 		/*!
@@ -175,36 +174,15 @@ namespace SSAGES
 		//! Set up collective variable.
 		/*!
 		 * \param json JSON input value.
+		 * \param path Path for JSON path specification.
 		 * \return Pointer to the CV built by this function. \c nullptr in case of unknown error.
 		 *
 		 * Builds a CV from a JSON node. Returns a pointer to the built cv. If
 		 * an unknown error is encountered, this function will return a
 		 * \c nullptr, but generally it will throw a BuildException on failure.
-		 * \warning Object lifetime is the caller's responsibility.
+		 * \warning Object lifetime is the caller's responsibility.		 
 		 */
-		static CollectiveVariable* BuildCV(const Json::Value& json);
+		static CollectiveVariable* BuildCV(const Json::Value& json, const std::string& path);
 
-		//! Set up collective variable.
-		/*!
-		 * \param json JSON input value.
-		 * \param path Path for JSON path specification.
-		 * \return Pointer to the CV built by this function. \c nullptr in case of unknown error.
-		 *
-		 * This function overloads CollectiveVariable::BuildCV(const Json::Value&).
-		 */
-		static CollectiveVariable* BuildCV(const Json::Value& json, 
-							   const std::string& path);
-
-		//! Set up CV and add it to list of CVs.
-		/*!
-		 * \param json JSON input value.
-		 * \param cvlist List of CVs to which the new CV will added.
-		 * \param path Path for JSON path specification.
-		 *
-		 * Builds CVs and adds them to the List of CV.
-		 */
-		static void BuildCV(const Json::Value& json, 
-							   CVList& cvlist,
-							   const std::string& path);
 	};
 }

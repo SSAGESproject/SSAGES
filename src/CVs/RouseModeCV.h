@@ -21,8 +21,10 @@
 #pragma once 
 
 #include "CollectiveVariable.h"
-#include "Drivers/DriverException.h" 
-
+#include "Validator/ObjectRequirement.h"
+#include "Drivers/DriverException.h"
+#include "Snapshot.h"
+#include "schema.h"
 
 namespace SSAGES
 {
@@ -34,7 +36,7 @@ namespace SSAGES
 	 *  a collection of atoms comprising the i'th bead in the N-bead polymer chain
 	 *  \ingroup CVs
 	 */
-	class  RouseModeCV : public CollectiveVariable
+	class RouseModeCV : public CollectiveVariable, public Buildable<RouseModeCV>
 	{
 	private:
 		std::vector<Label>     groups_; // vector of groups of indices to define the particle groups
@@ -183,6 +185,32 @@ namespace SSAGES
 			    }
 			}
 
+		}
+
+		static RouseModeCV* Construct(const Json::Value& json, const std::string& path)
+		{
+			Json::ObjectRequirement validator;
+			Json::Value schema;
+			Json::Reader reader;
+
+			reader.parse(JsonSchema::RouseModeCV, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+			
+			std::vector<Label> groups;
+			for (auto& group : json["groups"]) 
+			{
+				groups.push_back({});
+				for(auto& id : group) 
+					groups.back().push_back(id.asInt());
+			}
+
+			auto mode = json.get("mode",0).asInt();
+			return new RouseModeCV( groups, mode);	
 		}
 
 		//! Serialize this CV for restart purposes.

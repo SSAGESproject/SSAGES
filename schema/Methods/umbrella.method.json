@@ -50,6 +50,9 @@
 		},
 		"log every" : {
 			"type" : "integer"
+		},
+		"cvs" : {
+			"type" : "array"
 		}
 	},
 	"required": ["type", "ksprings", "file name"],

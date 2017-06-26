@@ -38,6 +38,11 @@ set(HOOKSRC
 	PARENT_SCOPE
 )
 
+set(DRIVERSRC
+    hooks/openmd/Driver.cpp
+    PARENT_SCOPE
+)
+
 set(ENABLE_OPENMD true PARENT_SCOPE)
 set(MD_ENGINE "OpenMD" PARENT_SCOPE)
 set(EXTRA_CONFIG "${CMAKE_CURRENT_BINARY_DIR}/openmd/src/openmd-build/config.h" PARENT_SCOPE)
@@ -45,6 +50,7 @@ set(EXTRA_CONFIG "${CMAKE_CURRENT_BINARY_DIR}/openmd/src/openmd-build/config.h" 
 # Function to do post library configuration.
 function(CONFIGURE_ENGINE)
 	include_directories(${OPENMD_SRC}/src)
+	include_directories(hooks/openmd/)
 	add_dependencies(libssages openmd)
 	add_dependencies(ssages libssages openmd)
 	set_target_properties(ssages PROPERTIES
