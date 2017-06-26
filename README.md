@@ -13,6 +13,7 @@ to expand its features and fix any bugs. Keep an eye on this page for future upd
 - Argument forwarding for Gromacs 
 - Updated forward flux examples 
 - Significant under-the-hood improvements
+- Fixed Gromacs auto-download
 
 <a id="features"></a>
 ## Features
