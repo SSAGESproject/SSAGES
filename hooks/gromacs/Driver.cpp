@@ -53,5 +53,10 @@ namespace SSAGES
 			args.push_back(s.asString());
 
 		return new Driver(rh, args);
-	}    
+	}   
+
+	Driver::~Driver()
+	{
+		delete rh_;
+	} 
 }

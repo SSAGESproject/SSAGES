@@ -52,5 +52,7 @@ namespace SSAGES
 		 * \note Object lifetime is caller's responsibility!
 		 */
 		static Driver* Build(const Json::Value& json, const MPI_Comm& world);
+
+        ~Driver();
     };
 }

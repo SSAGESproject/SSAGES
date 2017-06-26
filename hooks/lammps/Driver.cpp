@@ -60,4 +60,9 @@ namespace SSAGES
         auto* rh = ResourceHandler::Build(json, world);
         return new Driver(rh);
     }
+
+    Driver::~Driver()
+    {
+        delete rh_;
+    }
 }
