@@ -63,7 +63,7 @@ namespace SSAGES
 		  *        which CV to include in the container. 
 		  * \return Vector containing pointers to requested CVs.
 		  */
-		std::vector<CollectiveVariable*> GetCVs(const std::vector<uint>& mask) const
+		std::vector<CollectiveVariable*> GetCVs(const std::vector<uint>& mask = std::vector<uint>()) const
 		{
 			if(mask.empty())
 				return cvs_; 

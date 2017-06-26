@@ -86,7 +86,6 @@ namespace SSAGES
 		}
 	}
 
-	//! \copydoc Method::Build()
 	Umbrella* Umbrella::Construct(const Json::Value& json, 
 			    		          const MPI_Comm& world,
 					              const MPI_Comm& comm,

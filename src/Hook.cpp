@@ -32,7 +32,7 @@ namespace SSAGES
 		snapshot_->Changed(false);
 	
 		// Initialize/evaluate CVs.
-		for(auto& cv : cvmanager_->GetCVs({}))
+		for(auto& cv : cvmanager_->GetCVs())
 		{
 			cv->Initialize(*snapshot_);
 			cv->Evaluate(*snapshot_);
@@ -53,7 +53,7 @@ namespace SSAGES
 	{
 		snapshot_->Changed(false);
 
-		for(auto& cv : cvmanager_->GetCVs({}))
+		for(auto& cv : cvmanager_->GetCVs())
 			cv->Evaluate(*snapshot_);
 
 		for(auto& listener : listeners_)
@@ -70,7 +70,7 @@ namespace SSAGES
 	{
 		snapshot_->Changed(false);
 
-		for(auto& cv : cvmanager_->GetCVs({}))
+		for(auto& cv : cvmanager_->GetCVs())
 			cv->Evaluate(*snapshot_);
 		
 		for(auto& listener : listeners_)
