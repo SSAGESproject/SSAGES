@@ -22,18 +22,13 @@ find_package(MPI
 	1.6 
 	REQUIRED
 )
-find_package(Boost
-	1.55
-	REQUIRED
-	COMPONENTS mpi serialization
-)
+
 # Schema builder.
 add_subdirectory(schema)
 
 include(ExternalProject)
 include_directories(${MPI_INCLUDE_PATH})
 include_directories(${MPI_CXX_INCLUDE_PATH})
-include_directories(${Boost_INCLUDE_DIRS})
 include_directories("${PROJECT_SOURCE_DIR}/src")
 include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${PROJECT_BINARY_DIR}")
@@ -101,7 +96,7 @@ configure_file (
 # SSAGES library.
 add_library(libssages ${HOOKSRC} ${SOURCE})
 set_target_properties(libssages PROPERTIES PREFIX "")
-target_link_libraries(libssages ${MPI_CXX_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(libssages ${MPI_CXX_LIBRARIES})
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set_target_properties(libssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra -fPIC -g")
 elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
