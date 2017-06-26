@@ -21,30 +21,30 @@
 
 #include "JSON/Serializable.h"
 #include <mpi.h>
+#include <mxx/comm.hpp>
 #include <vector>
 
 namespace SSAGES
 {
-	//! Primary abstract class that drives a simulation. 
+	//! Class that handles SSAGES resources for a simulation.
 	/*!
 	 * 
-	 * Driver is responsible for intialzing the major components 
+	 * ResourceHandler is responsible for intialzing the major components 
 	 * of a simulation including the engine, methods, and collective
 	 * variables. It is also responsible for the lifetime of the objects 
 	 * it creates. 
 	 * 
-	 * Each simulation engine must implement a concrete driver which 
-	 * handles the implementation-specific parts of the initialization 
-	 * routines.
+	 * Each simulation engine must implement a driver which calls this 
+	 * resource handler and passes it the appropriate hook. 
 	 */
-	class NewDriver : public Serializable
+	class ResourceHandler : public Serializable
 	{
-	protected: 
+	private: 
 		//! MPI communicator containing all processors. 
-		MPI_Comm world_; 
+		mxx::comm world_; 
 
 		//! MPI communicator containing processors for specific walker. 
-		MPI_Comm comm_;
+		mxx::comm comm_;
 
 		//! Walker ID for specific driver. 
 		uint walkerid_; 
@@ -58,6 +58,9 @@ namespace SSAGES
 		//! Collective variable manager. 
 		class CVManager* cvmanager_;
 
+		//! Input file vector. 
+		std::vector<std::string> inputs_;
+
 	public:
 		//! Constructor. 
 		/*!
@@ -67,12 +70,23 @@ namespace SSAGES
 		 * \param methods Vector of pointers to methods. 
 		 * \param CVManager Pointer to CV manager. 
 		 * 
-		 * \note Driver will be responsible for lifetime of methods and CV manager. 
+		 * \note ResourceHandler will be responsible for lifetime of methods and CV manager. 
 		 */
-		NewDriver(const MPI_Comm& world, const MPI_Comm& comm, uint walkerid,
+		ResourceHandler(mxx::comm&& world, mxx::comm&& comm, uint walkerid,
 		          const std::vector<class Method*>& methods, class CVManager* cvmanager);
 
-		//! Build a new Driver from JSON. 
+		
+		std::string GetInput() const
+		{
+			return inputs_[walkerid_];
+		}
+
+		MPI_Comm GetLocalComm()
+		{
+			return comm_;
+		}
+
+		//! Build a new ResourceHandler from JSON. 
 		/*!
 		 * \param json JSON root node containing driver (and children) specifications. 
 		 * \param world MPI communicator containing all processors. 
@@ -80,12 +94,12 @@ namespace SSAGES
 		 * 
 		 * \note Object lifetime is caller's responsibility!
 		 */
-		static NewDriver* Build(const Json::Value& json, const MPI_Comm& world);
+		static ResourceHandler* Build(const Json::Value& json, const MPI_Comm& world);
 
         //! \copydoc Serializable::Serialize()
 		void Serialize(Json::Value& json) const override;
 
 		//! Destructor.
-		~NewDriver();
+		~ResourceHandler();
 	};
 }

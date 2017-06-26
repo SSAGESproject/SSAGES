@@ -26,7 +26,7 @@
 namespace SSAGES
 {
 	// Forward declare.
-	class Driver; 
+	class NewDriver; 
 	class CVManager;
 	class Snapshot;
 
@@ -47,7 +47,7 @@ namespace SSAGES
 		CVManager* cvmanager_;
 
 		//! Driver running this hook
-		Driver* driver_;
+		NewDriver* driver_;
 
 	protected:
 		//! Local snapshot.
@@ -81,7 +81,7 @@ namespace SSAGES
 		void SetSnapshot(Snapshot* snapshot);
 
 		//! Sets the active Driver
-		void SetDriver(Driver* driver);
+		void SetDriver(NewDriver* driver);
 
 		//! Sets the current CV manager. 
 		void SetCVManager(CVManager* cvmanager);
@@ -120,7 +120,6 @@ namespace SSAGES
 		 */
 		void PostStepHook()
 		{
-			NotifyObservers();
 		}
 
 		//! Post-simulation hook.

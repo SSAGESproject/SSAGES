@@ -20,8 +20,8 @@
  */
 
 #include "Hook.h"
-#include "Drivers/Driver.h"
-#include "CVs/CollectiveVariable.h"
+#include "Snapshot.h"
+#include "CVs/CVManager.h"
 #include <algorithm>
 
 namespace SSAGES
@@ -39,7 +39,7 @@ namespace SSAGES
 
 		// Call presimulation method on listeners. 
 		for(auto& listener : listeners_)
-			listener->PreSimulation(snapshot_, cvmanager_);
+			listener->PreSimulation(snapshot_, *cvmanager_);
 
 		// Sync snapshot to engine.
 		if(snapshot_->HasChanged())
@@ -57,7 +57,7 @@ namespace SSAGES
 
 		for(auto& listener : listeners_)
 			if(snapshot_->GetIteration() % listener->GetFrequency() == 0)
-				listener->PostIntegration(snapshot_, cvmanager_);
+				listener->PostIntegration(snapshot_, *cvmanager_);
 
 		if(snapshot_->HasChanged())
 			SyncToEngine();
@@ -73,7 +73,7 @@ namespace SSAGES
 			cv->Evaluate(*snapshot_);
 		
 		for(auto& listener : listeners_)
-			listener->PostSimulation(snapshot_, cvs_);
+			listener->PostSimulation(snapshot_, *cvmanager_);
 
 		if(snapshot_->HasChanged())
 			SyncToEngine();
@@ -88,7 +88,7 @@ namespace SSAGES
 	}
 
 	//! Sets the active Driver
-	void Hook::SetDriver(Driver* driver)
+	void Hook::SetDriver(NewDriver* driver)
 	{
 		driver_ = driver;
 	}
@@ -109,12 +109,5 @@ namespace SSAGES
 	{
 		if(std::find(listeners_.begin(), listeners_.end(), listener) == listeners_.end())
 			listeners_.push_back(listener);
-	}
-
-	void Hook::NotifyObservers()
-	{
-		auto& comm = snapshot_->GetCommunicator();
-		if(comm.rank() == 0)
-			driver_->NotifyObservers(SimEvent(driver_, snapshot_->GetIteration()));
 	}
 }

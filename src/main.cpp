@@ -26,7 +26,7 @@
 #include "config.h"
 #include <mxx/comm.hpp>
 #include <mxx/env.hpp>
-#include "NewDriver.h"
+#include "Driver.h"
 #include "JSON/JSONLoader.h"
 #include "Drivers/DriverException.h"
 
@@ -103,7 +103,8 @@ int main(int argc, char* argv[])
 		auto json = JSONLoader().LoadFile(input, world);
 
 		// Build driver.
-		auto* driver = NewDriver::Build(json, world);
+		auto* driver = Driver::Build(json, world);
+		driver->Run();	
 	} catch(BuildException& e) {
 		if(world.rank() == 0)
 			DumpErrorsToConsole(e.GetErrors(), 30);
@@ -118,6 +119,7 @@ int main(int argc, char* argv[])
 			DumpErrorsToConsole({"File IO error: " + err}, 30);
 		MPI_Abort(world, -1);
 	}
+
 	/*
 	Json::Value root;
 	Simulation Sim(world);

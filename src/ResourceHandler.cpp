@@ -21,7 +21,7 @@
 #include "Drivers/DriverException.h"
 #include "Validator/ObjectRequirement.h"
 #include "Methods/Method.h"
-#include "NewDriver.h"
+#include "ResourceHandler.h"
 #include "Snapshot.h"
 #include "schema.h"
 #include <mxx/comm.hpp>
@@ -30,16 +30,16 @@ using namespace Json;
 
 namespace SSAGES
 {
-	NewDriver::NewDriver(
-		const MPI_Comm& world, const MPI_Comm& comm, uint walkerid,
+	ResourceHandler::ResourceHandler(
+		mxx::comm&& world, mxx::comm&& comm, uint walkerid,
 		const std::vector<Method*>& methods, CVManager* cvmanager) : 
-	world_(world), comm_(comm), walkerid_(walkerid), methods_(methods), 
-	cvmanager_(cvmanager)
+	world_(std::move(world)), comm_(std::move(comm)), walkerid_(walkerid), methods_(methods), 
+	cvmanager_(cvmanager), inputs_(0)
 	{
 		snapshot_ = new Snapshot(comm, walkerid);
 	}
 
-	NewDriver* NewDriver::Build(const Value& json, const MPI_Comm& world)
+	ResourceHandler* ResourceHandler::Build(const Value& json, const MPI_Comm& world)
 	{
 		ObjectRequirement validator;
 		Value schema;
@@ -75,7 +75,8 @@ namespace SSAGES
 			throw BuildException({"#/walkers: Allocated processors not divisible by number of walkers."});
 		
 		// Split communicators.
-		int walkerid = wcomm.rank()/nwalkers;
+		int ppw = wcomm.size()/nwalkers;
+		int walkerid = wcomm.rank()/ppw;
 		auto comm = wcomm.split(walkerid);
 
 		// Build methods. 
@@ -88,15 +89,17 @@ namespace SSAGES
 		for(auto& cv : json["CVs"])
 			cvmanager->AddCV(CollectiveVariable::BuildCV(cv, "#/CVs"));
 		
-		return new NewDriver(world, comm, walkerid, methods, cvmanager);
+		auto* rh = new ResourceHandler(std::move(world), std::move(comm), walkerid, methods, cvmanager);
+		rh->inputs_ = inputs;
+		return rh;
 	}
 	
-	void NewDriver::Serialize(Value& json) const
+	void ResourceHandler::Serialize(Value& json) const
 	{
 
 	}
 
-	NewDriver::~NewDriver()
+	ResourceHandler::~ResourceHandler()
 	{
 		delete snapshot_; 
 		delete cvmanager_;
