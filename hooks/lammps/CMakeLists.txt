@@ -162,7 +162,11 @@ add_custom_command(
 # Add source for appropriate package hook.
 set(HOOKSRC
     hooks/lammps/fix_ssages.cpp
-    hooks/lammps/Driver.cpp
+    PARENT_SCOPE
+)
+
+set(DRIVERSRC
+    hooks/lammps/Driver.cpp 
     PARENT_SCOPE
 )
 

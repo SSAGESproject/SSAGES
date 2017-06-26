@@ -32,8 +32,14 @@
 		},
 		"constraints" : {
 			"type" : "array"
+		},
+		"args" : {
+			"type" : "array", 
+			"minItems" : 1, 
+			"items" : {
+				"type" : "string"
+			}
 		}
 	},
-	"required" : ["input"],
 	"additionalProperties": false
 }

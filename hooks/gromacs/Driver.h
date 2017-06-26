@@ -21,25 +21,23 @@
 
 #include <mpi.h>
 #include "JSON/Serializable.h"
-#include "lammps.h"
 
 namespace SSAGES
 {
-
-    //! Simulation driver. 
+	//! Simulation driver.
     class Driver
     {
-    private:
-    	//! Pointer to the local instance of lammps
-        LAMMPS_NS::LAMMPS* lammps_;
+	private:
+		//! Resource handler. 
+		class ResourceHandler* rh_;
 
-        //! Resource handler.
-        class ResourceHandler* rh_;
-    
-    public:
-        Driver(class ResourceHandler* rh) : 
-        rh_(rh)
-        {}
+		//! Gromacs arguments.
+		std::vector<std::string> args_;
+
+	public:
+		Driver(class ResourceHandler* rh, const std::vector<std::string>& args) : 
+		rh_(rh), args_(args)
+		{}
 
         void Run();
 

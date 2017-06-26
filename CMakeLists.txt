@@ -112,6 +112,7 @@ set_property(TARGET libssages PROPERTY CXX_STANDARD_REQUIRED ON)
 # SSAGES executable.
 add_executable(ssages
 	src/main.cpp
+	${DRIVERSRC}
 )
 
 # Call MD engine configuration.
