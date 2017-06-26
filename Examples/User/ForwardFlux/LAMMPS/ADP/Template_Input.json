@@ -1,0 +1,35 @@
+{
+	"driver" : [
+		{
+			"inputfile" : "in.ADP_Test",
+			"number processors" : 1,
+			"type" : "LAMMPS",
+			"MDSteps" : 10000000,
+			"logfile" : "log",
+			"CVs" : [
+				{
+					"type" : "Torsional",
+					"atom_ids" : [
+						5,
+						7,
+						9,
+						15
+					],
+					"periodic" : true 
+				}
+            ],
+			"method" : {
+				"type" : "ForwardFlux",
+				"flavor" : "DirectForwardFlux",
+				"nInterfaces" : 5,
+				"interfaces" : [],
+				"N0Target" : 100,
+				"trials" : [],
+				"computeInitialFlux" : true,
+				"saveTrajectories" : true,
+				"currentInterface" : 0,
+				"outputDirectoryName" : "FFSoutput"
+			}
+		}
+	]
+}

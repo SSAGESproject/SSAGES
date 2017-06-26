@@ -65,6 +65,7 @@ if (GROMACS_SRC)
     endforeach()
 else ()
     set (GROMACS_SRC ${CMAKE_CURRENT_BINARY_DIR}/gromacs-download-prefix/src/gromacs-download)
+    set (GROMACS_SRC ${GROMACS_SRC} PARENT_SCOPE )
 endif ()
 
 set(GRO_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}")
