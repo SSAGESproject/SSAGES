@@ -166,6 +166,7 @@ add_custom_command(
 # Add source for appropriate package hook.
 set(HOOKSRC
     hooks/lammps/fix_ssages.cpp
+    hooks/lammps/Driver.cpp
     PARENT_SCOPE
 )
 
@@ -176,6 +177,7 @@ SET(LAMMPS_SRC ${LAMMPS_SRC} PARENT_SCOPE)
 # Function to do post library configuration.
 function(CONFIGURE_ENGINE)
     include_directories("${LAMMPS_SRC}")
+    include_directories(hooks/lammps/)
     add_dependencies(lammps libssages)
 	if (LAMMPS)
 		add_dependencies(libssages lammps-download)

@@ -8,15 +8,10 @@
 #include "pair.h"
 #include "update.h"
 #include "domain.h"
-#include <boost/mpi.hpp>
-#include <boost/version.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
 #include "Snapshot.h"
 
 using namespace SSAGES;
 using namespace LAMMPS_NS::FixConst;
-using namespace boost;
 
 #define INVOKED_SCALAR 1
 
@@ -98,7 +93,6 @@ namespace LAMMPS_NS
 
 	void FixSSAGES::SyncToSnapshot() //put LAMMPS values -> Snapshot
 	{
-		using namespace boost::mpi;
 
 		// Obtain local reference to snapshot variables.
 		// Const Atom will ensure that atom variables are
