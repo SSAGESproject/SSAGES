@@ -94,6 +94,16 @@ namespace SSAGES
 			return world_;
 		}
 
+		const mxx::comm& GetLocalMxxComm() const
+		{
+			return comm_;
+		}
+		
+		const mxx::comm& GetWorldMxxComm() const
+		{
+			return world_;
+		}
+
 		uint GetWalkerID() const
 		{
 			return walkerid_;
