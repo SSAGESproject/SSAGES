@@ -21,6 +21,7 @@
 
 #include "Hook.h"
 #include "Snapshot.h"
+#include "ResourceHandler.h"
 #include "CVs/CVManager.h"
 #include <algorithm>
 
@@ -85,12 +86,6 @@ namespace SSAGES
 	void Hook::SetSnapshot(Snapshot* snapshot)
 	{
 		snapshot_ = snapshot;
-	}
-
-	//! Sets the active Driver
-	void Hook::SetDriver(NewDriver* driver)
-	{
-		driver_ = driver;
 	}
 
 	//! Sets the active CV manager.

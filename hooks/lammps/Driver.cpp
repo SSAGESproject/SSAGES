@@ -18,8 +18,14 @@
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "Driver.h"
+#include "Hook.h"
+#include "Drivers/DriverException.h"
 #include "ResourceHandler.h"
 #include "input.h"
+#include "modify.h"
+#include "fix.h"
+#include <iostream>
+#include <fstream>
 
 using namespace LAMMPS_NS;
 
@@ -28,7 +34,25 @@ namespace SSAGES
     void Driver::Run()
     {
         lammps_ = new LAMMPS(0, NULL, rh_->GetLocalComm());
-        lammps_->input->file(rh_->GetInput().c_str());
+
+        // Execute file. 
+        std::ifstream file(rh_->GetInput());
+        std::string line;
+        while(std::getline(file, line))
+        {
+            lammps_->input->one(line.c_str());
+            if(line.find("ssages") != std::string::npos)
+            {
+                auto fid = lammps_->modify->find_fix("ssages");
+                if(fid < 0)
+                    throw BuildException({"Found SSAGES reference but could find fix!"});
+                
+                Hook* hook;
+                if(!(hook = dynamic_cast<Hook*>(lammps_->modify->fix[fid])))
+                    throw BuildException({"Unable to dynamic cast hook on node " + std::to_string(rh_->GetWalkerID())});
+                rh_->ConfigureHook(hook);
+            }
+        }   
     }
 
     Driver* Driver::Build(const Json::Value& json, const MPI_Comm& world)

@@ -23,6 +23,7 @@
 #include "Methods/Method.h"
 #include "ResourceHandler.h"
 #include "Snapshot.h"
+#include "Hook.h"
 #include "schema.h"
 #include <mxx/comm.hpp>
 
@@ -34,9 +35,18 @@ namespace SSAGES
 		mxx::comm&& world, mxx::comm&& comm, uint walkerid,
 		const std::vector<Method*>& methods, CVManager* cvmanager) : 
 	world_(std::move(world)), comm_(std::move(comm)), walkerid_(walkerid), methods_(methods), 
-	cvmanager_(cvmanager), inputs_(0)
+	cvmanager_(cvmanager), hook_(nullptr), inputs_(0)
 	{
-		snapshot_ = new Snapshot(comm, walkerid);
+		snapshot_ = new Snapshot(comm_, walkerid);
+	}
+
+	void ResourceHandler::ConfigureHook(class Hook* hook)
+	{
+		hook->SetSnapshot(snapshot_);
+		hook->SetCVManager(cvmanager_);
+		for(auto& m : methods_)
+			hook->AddListener(m);
+		hook_ = hook;
 	}
 
 	ResourceHandler* ResourceHandler::Build(const Value& json, const MPI_Comm& world)

@@ -25,11 +25,6 @@
 
 namespace SSAGES
 {
-	// Forward declare.
-	class NewDriver; 
-	class CVManager;
-	class Snapshot;
-
 	//! Base class for hooks into the simultion engines
 	/*!
 	 * \ingroup core
@@ -44,14 +39,11 @@ namespace SSAGES
 		std::vector<EventListener*> listeners_;
 
 		//! Collective variable manager.
-		CVManager* cvmanager_;
-
-		//! Driver running this hook
-		NewDriver* driver_;
+		class CVManager* cvmanager_;
 
 	protected:
 		//! Local snapshot.
-		Snapshot* snapshot_;
+		class Snapshot* snapshot_;
 
 		//! Synchronization to the simulation engine
 		/*!
@@ -74,17 +66,14 @@ namespace SSAGES
 		 * corresponding walker ID.
 		 */
 		Hook() : 
-		listeners_(0), driver_(nullptr), snapshot_(nullptr)
+		listeners_(0), snapshot_(nullptr)
 		{}
 
 		//! Sets the active snapshot.
-		void SetSnapshot(Snapshot* snapshot);
-
-		//! Sets the active Driver
-		void SetDriver(NewDriver* driver);
+		void SetSnapshot(class Snapshot* snapshot);
 
 		//! Sets the current CV manager. 
-		void SetCVManager(CVManager* cvmanager);
+		void SetCVManager(class CVManager* cvmanager);
 
 		//! Add a listener to the hook.
 		/*!

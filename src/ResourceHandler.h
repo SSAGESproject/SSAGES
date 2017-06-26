@@ -58,6 +58,9 @@ namespace SSAGES
 		//! Collective variable manager. 
 		class CVManager* cvmanager_;
 
+		//! Hook pointer.
+		class Hook* hook_;
+
 		//! Input file vector. 
 		std::vector<std::string> inputs_;
 
@@ -81,10 +84,22 @@ namespace SSAGES
 			return inputs_[walkerid_];
 		}
 
-		MPI_Comm GetLocalComm()
+		MPI_Comm GetLocalComm() const
 		{
 			return comm_;
 		}
+
+		MPI_Comm GetWorldComm() const
+		{
+			return world_;
+		}
+
+		uint GetWalkerID() const
+		{
+			return walkerid_;
+		}
+
+		void ConfigureHook(class Hook* hook);
 
 		//! Build a new ResourceHandler from JSON. 
 		/*!

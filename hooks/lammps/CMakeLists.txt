@@ -137,12 +137,8 @@ ExternalProject_Add(
     BUILD_COMMAND $(MAKE) mpi mode=shlib 
     CCFLAGS=-I${PROJECT_SOURCE_DIR}/src  
     CCFLAGS+=-I${PROJECT_SOURCE_DIR}/include  
-    CCFLAGS+=-I${Boost_INCLUDE_DIRS}     
     CCFLAGS+=-std=c++11
     CCFLAGS+=-O3
-    CCFLAGS+=-L${Boost_LIBRARY_DIRS}      
-    LIB+=-lboost_mpi                      
-    LIB+=-lboost_serialization           
     LIB+=${CMAKE_BINARY_DIR}/libssages.a
     INSTALL_COMMAND ""
     BUILD_IN_SOURCE true
