@@ -1,23 +1,28 @@
 /**
- * This file is part of
- * SSAGES - Suite for Advanced Generalized Ensemble Simulations
+ * This file has been obtained from
+ * SAPHRON - Statistical Applied PHysics through Random On-the-fly Numerics
+ * https://github.com/hsidky/SAPHRON
  *
- * Copyright 2016 Ben Sikora <bsikora906@gmail.com>
+ * Copyright 2017 Hythem Sidky
  *
- * SSAGES is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * SSAGES is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
- */
-
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE. 
+*/
 #pragma once 
 
 #include <vector>
@@ -26,7 +31,6 @@
 #include <stdexcept>
 #include <sstream>
 #include <iomanip>
-#include <boost/mpi.hpp>
 
 namespace SSAGES
 {
@@ -73,13 +77,10 @@ namespace SSAGES
 	/*!
 	 * \param notice Text to be written to console.
 	 * \param msgw Width of the message.
-	 * \param world MPI global communicator.
 	 */
-	inline void PrintBoldNotice(const std::string& notice, int msgw, const boost::mpi::communicator& world)
+	inline void PrintBoldNotice(const std::string& notice, int msgw)
 	{
-
-		if(world.rank() == 0)
-			std::cout << std::setw(msgw + 8) << std::left << "\033[1m" + notice + "\033[0m";
+		std::cout << std::setw(msgw + 8) << std::left << "\033[1m" + notice + "\033[0m";
 	}
 
 	//! Print a list of errors
@@ -103,18 +104,14 @@ namespace SSAGES
 	 * \param msgs List of messages.
 	 * \param prefix Prefix to prepend to each message.
 	 * \param notw Width of the messages.
-	 * \param world MPI global communicator.
 	 */
-	inline void DumpNoticesToConsole(const std::vector<std::string>& msgs, std::string prefix, int notw, const boost::mpi::communicator& world)
+	inline void DumpNoticesToConsole(const std::vector<std::string>& msgs, std::string prefix, int notw)
 	{
-		if(world.rank() == 0)
-		{
-			std::cout << std::setw(notw) << std::right << "\033[32mOK!\033[0m\n";
-			if(msgs.size() == 0)
-				return;
-			
-			for(auto& msg : msgs)
-				std::cout << prefix << " * " << msg << "\n";
-		}
+		std::cout << std::setw(notw) << std::right << "\033[32mOK!\033[0m\n";
+		if(msgs.size() == 0)
+			return;
+		
+		for(auto& msg : msgs)
+			std::cout << prefix << " * " << msg << "\n";
 	}
 }

@@ -22,7 +22,11 @@ set  (UNIT_TESTS "ParticlePositionCVTests"
                  "GyrationTensorCVTests"
                  "RouseModeCVTests"
                  "CoordinationNumberCVTests"
+<<<<<<< HEAD
                  "NearestNeighborsCVTests")
+=======
+				 "NearestNeighborsCVTests")
+>>>>>>> master
 
 set (INTEGRATION_TESTS "Meta_Single_Atom_Test"
                        "Basis_ADP_Test")

@@ -20,7 +20,6 @@
 #pragma once
 
 #include "StringMethod.h"
-#include "../CVs/CollectiveVariable.h"
 #include <fstream>
 
 namespace SSAGES
@@ -32,10 +31,9 @@ namespace SSAGES
 	 *
 	 * \ingroup Methods
 	 */
-	class ElasticBand : public StringMethod
+	class ElasticBand : public StringMethod, public BuildableMPI<ElasticBand>
 	{
 	private:	
-
 		//! Number Equilibration steps, number of MD steps to
 		//! allow the system to reequilibrate before evolving.
 		unsigned int equilibrate_;
@@ -76,8 +74,8 @@ namespace SSAGES
 		 *
 		 * Constructs an instance of Elastic Band method.
 		 */
-		ElasticBand(boost::mpi::communicator& world,
-					boost::mpi::communicator& comm,
+		ElasticBand(const MPI_Comm& world,
+					const MPI_Comm& comm,
 					const std::vector<double>& centers,
 					unsigned int maxiterations,
 					unsigned int nsamples,
@@ -97,9 +95,9 @@ namespace SSAGES
 		//! Post-integration hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
+		 * \param cvmanager Collective variable manager.
 		 */
-		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
+		void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Serialize the Method
 		/*!

@@ -78,7 +78,7 @@ namespace SSAGES
         		auto f = atom->getFrc();
 
         		//TODO: Get integer type of stunt double.
-        		ids[index] = atom->getGlobalIndex();
+        		ids[index] = atom->getGlobalIndex() + 1;
         		mass[index] = atom->getMass();
 
         		pos[index][0] = p[0];

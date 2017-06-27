@@ -22,7 +22,8 @@
 
 #include "../EventListener.h"
 #include "../JSON/Serializable.h"
-#include <boost/mpi.hpp>
+#include <mxx/comm.hpp>
+#include <functional>
 
 // Forward declare.
 namespace Json {
@@ -33,69 +34,70 @@ namespace SSAGES
 {
 	//! Interface for Method implementations.
 	/*!
-	 * This class is designed to be the base class on which all Metadynamics
-	 * methods are based.
+	 * The base method class from which advanced sampling routines derive. 
+	 * A method is allowed to manipulate a simulation at three points: 
+	 * before the simulation begins (usually initialization), after each 
+	 * integration step by the simulation engine, and after the integration 
+	 * steps are complete (usually cleanup). 
 	 *
 	 * \ingroup Methods
 	 */
 	class Method : public EventListener, public Serializable
 	{
 	protected:
-		boost::mpi::communicator world_; //!< Global MPI communicator
-		boost::mpi::communicator comm_; //!< Local MPI communicator
+		mxx::comm world_; //!< Global MPI communicator
+		mxx::comm comm_; //!< Local MPI communicator
 
-		//! Number of the method iteration.
-		unsigned int iteration_;
+		//! Mask which identifies which CVs to act on.
+		std::vector<uint> cvmask_; 
 
 	public:
 		//! Constructor
 		/*!
 		 * \param frequency Frequency of sampling.
-		 * \param world MPI world communicator.
-		 * \param comm MPI local communicator.
+		 * \param world Global MPI communicator.
+		 * \param comm MPI communicator of walker.
 		 *
 		 * Frequency of sampling must be specified by all methods.
 		 */
-		Method(unsigned int frequency, 
-			boost::mpi::communicator& world, 
-			boost::mpi::communicator& comm) : 
-		EventListener(frequency), world_(world), comm_(comm),
-		iteration_(0){}
-
-		//! Set Method's iteration.
-		/*!
-		 * \param iter int value for what the method iteration should be.
-		 */
-		void SetIteration(int iter) {iteration_ = iter;}
+		Method(uint frequency, const MPI_Comm& world, const MPI_Comm& comm) : 
+		EventListener(frequency), world_(world), comm_(comm), cvmask_()
+		{}
 
 		//! Method call prior to simulation initiation.
 		/*!
 		 * \param snapshot Pointer to the simulation snapshot.
-		 * \param cvs List of CVs.
+		 * \param cvmanager Collective variable manager.
 		 *
 		 * This function will be called before the simulation is started.
 		 */
-		virtual void PreSimulation(Snapshot* snapshot, const CVList& cvs) override = 0;
+		virtual void PreSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override = 0;
 
 		//! Method call post integration.
 		/*!
 		 * \param snapshot Pointer to the simulation snapshot.
-		 * \param cvs List of CVs.
+		 * \param cvmanager Collective variable manager.
 		 *
 		 * This function will be called after each integration step.
 		 */
-		virtual void PostIntegration(Snapshot* snapshot, const CVList& cvs) override = 0;
+		virtual void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override = 0;
 
 		//! Method call post simulation.
 		/*!
 		 * \param snapshot Pointer to the simulation snapshot.
-		 * \param cvs List of CVs.
+		 * \param cvmanager Collective variable manager.
 		 *
 		 * This function will be called after the end of the simulation run.
 		 */
-		virtual void PostSimulation(Snapshot* snapshot, const CVList& cvs) override = 0;
+		virtual void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override = 0;
+		
+		//! Sets the collective variable mask.
+		void SetCVMask(const std::vector<uint>& mask)
+		{
+			cvmask_ = mask;
+		}
 
-		//! Set up the Method
+		//! Build a derived method from JSON node.
 		/*!
 		 * \param json JSON Value containing all input information.
 		 * \param world MPI global communicator.
@@ -103,16 +105,16 @@ namespace SSAGES
 		 * \param path Path for JSON path specification.
 		 * \return Pointer to the Method built. nullptr if an unknown error occurred.
 		 *
-		 * This function builds a method from a JSON node. It will return a
-		 * nullptr when an unknown error occurred, but generally it will throw
-		 * a BuildException on failure.
+		 * This function builds a registered method from a JSON node. The difference
+		 * between this function and "Build" is that this automatically determines the 
+		 * appropriate derived type based on the JSON node information.
 		 *
 		 * \note Object lifetime is the caller's responsibility.
 		 */
-		static Method* BuildMethod(const Json::Value& json,
-								boost::mpi::communicator& world, 
-								boost::mpi::communicator& comm,
-							   	const std::string& path);
+		static Method* BuildMethod(const Json::Value& json, 
+		                           const MPI_Comm& world, 
+		                           const MPI_Comm& comm, 
+		                           const std::string& path);
 
 		//! Destructor
 		virtual ~Method() 

@@ -12,6 +12,9 @@
 		},
 		"kstring" : {
 			"type" : "number"
+		},
+		"cvs" : {
+			"type" : "array"
 		}
 	},
 	"required": ["equilibration_steps", "evolution_steps", "kstring"]

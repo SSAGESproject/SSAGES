@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.8)
 
 # SAPHRON version number.
 set(SSAGES_VERSION_MAJOR "0")
-set(SSAGES_VERSION_MINOR "6")
+set(SSAGES_VERSION_MINOR "7")
 set(SSAGES_VERSION_TINY "0") 
 
 # Default type is release
@@ -22,18 +22,13 @@ find_package(MPI
 	1.6 
 	REQUIRED
 )
-find_package(Boost
-	1.55
-	REQUIRED
-	COMPONENTS mpi serialization
-)
+
 # Schema builder.
 add_subdirectory(schema)
 
 include(ExternalProject)
 include_directories(${MPI_INCLUDE_PATH})
 include_directories(${MPI_CXX_INCLUDE_PATH})
-include_directories(${Boost_INCLUDE_DIRS})
 include_directories("${PROJECT_SOURCE_DIR}/src")
 include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${PROJECT_BINARY_DIR}")
@@ -43,25 +38,27 @@ link_directories(${MPI_CXX_LIBRARIES})
 
 # General source files
 set(SOURCE
-	src/Methods/Meta.cpp
-	src/Methods/Umbrella.cpp
+	src/Methods/ABF.cpp
+  	src/Methods/BasisFunc.cpp
+	src/Methods/DirectForwardFlux.cpp
 	src/Methods/ElasticBand.cpp
 	src/Methods/FiniteTempString.cpp
-   	src/Methods/Swarm.cpp
 	src/Methods/ForwardFlux.cpp
-	src/Methods/DirectForwardFlux.cpp
-	src/Methods/ABF.cpp
-   	src/Methods/BasisFunc.cpp
-	src/Validator/RequirementLoader.cpp
-	src/JSON/jsoncpp.cpp
-	src/CVs/CollectiveVariable.cpp
+	src/Methods/Meta.cpp
 	src/Methods/Method.cpp
-	src/Observers/JSONObserver.cpp
-	src/Simulations/SimObserver.cpp
-	src/Simulations/SimObservable.cpp
+	src/Methods/StringMethod.cpp
+  	src/Methods/Swarm.cpp
+	src/Methods/Umbrella.cpp
+#	src/Constraints/Constraint.cpp
+#	src/Constraints/COPSSImage.cpp
+	src/CVs/CollectiveVariable.cpp
+#	src/Observers/JSONObserver.cpp
+	src/Validator/RequirementLoader.cpp
+#	src/Simulations/SimObserver.cpp
+#	src/Simulations/SimObservable.cpp
+	src/JSON/jsoncpp.cpp
 	src/Hook.cpp
-	src/Constraints/Constraint.cpp
-	src/Constraints/COPSSImage.cpp
+	src/ResourceHandler.cpp
 )
 
 ####################### MD ENGINES #########################
@@ -99,7 +96,7 @@ configure_file (
 # SSAGES library.
 add_library(libssages ${HOOKSRC} ${SOURCE})
 set_target_properties(libssages PROPERTIES PREFIX "")
-target_link_libraries(libssages ${MPI_CXX_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(libssages ${MPI_CXX_LIBRARIES})
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set_target_properties(libssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra -fPIC -g")
 elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
@@ -115,6 +112,7 @@ set_property(TARGET libssages PROPERTY CXX_STANDARD_REQUIRED ON)
 # SSAGES executable.
 add_executable(ssages
 	src/main.cpp
+	${DRIVERSRC}
 )
 
 # Call MD engine configuration.

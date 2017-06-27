@@ -19,17 +19,18 @@
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "ElasticBand.h"
+#include "CVs/CVManager.h"
+#include "Snapshot.h" 
 #include <math.h>
 #include <iostream>
-#include "../Drivers/DriverException.h"
 
 namespace SSAGES
 {
 	// Post-integration hook.
-	void ElasticBand::PostIntegration(Snapshot* snapshot, const CVList& cvs)
+	void ElasticBand::PostIntegration(Snapshot* snapshot, const CVManager& cvmanager)
 	{
-
 		auto& forces = snapshot->GetForces();
+		auto cvs = cvmanager.GetCVs(cvmask_);
 
 		// Apply umbrella to cvs
 		for(size_t i = 0; i < cvs.size(); ++i)

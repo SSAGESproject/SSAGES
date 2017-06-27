@@ -23,12 +23,6 @@
 
 #include "Method.h"
 #include "ForwardFlux.h"
-#include "../CVs/CollectiveVariable.h"
-#include <fstream>
-#include <random>
-#include <deque>
-#include "../FileContents.h"
-#include "../Drivers/DriverException.h"
 
 namespace SSAGES
 {
@@ -41,7 +35,6 @@ namespace SSAGES
 	class DirectForwardFlux : public ForwardFlux
 	{
 	protected:
-
         //-----------------------------------------------------------------
         // Private Variables
         //-----------------------------------------------------------------
@@ -54,9 +47,8 @@ namespace SSAGES
         // Private Functions
         //-----------------------------------------------------------------
         
-
         //! Function that checks if interfaces have been crossed (different for each FFS flavor)
-        void CheckForInterfaceCrossings(Snapshot*, const CVList&) override;
+        void CheckForInterfaceCrossings(Snapshot*, const class CVManager&) override;
 
         //! Initialize the Queue
         void InitializeQueue(Snapshot*, const CVList&) override;
@@ -70,25 +62,29 @@ namespace SSAGES
 		 *
 		 * Create instance of Forward Flux
 		 */
-		DirectForwardFlux(boost::mpi::communicator& world,
-                    boost::mpi::communicator& comm, 
-                    double ninterfaces, std::vector<double> interfaces,
-                    unsigned int N0Target, std::vector<unsigned int> M,
-                    bool initialFluxFlag, bool saveTrajectories, 
-                    unsigned int currentInterface, std::string output_directory, unsigned int frequency)
+		DirectForwardFlux(const MPI_Comm& world,
+                          const MPI_Comm& comm, 
+                          double ninterfaces, std::vector<double> interfaces,
+                          unsigned int N0Target, std::vector<unsigned int> M,
+                          bool initialFluxFlag, bool saveTrajectories, 
+                          unsigned int currentInterface, std::string output_directory, unsigned int frequency)
 		: ForwardFlux(world, comm, ninterfaces, interfaces, N0Target, M, 
 					initialFluxFlag, saveTrajectories, currentInterface, output_directory, frequency) {}
 
 		//! Post-integration hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
+         * \param cvmanager Collective variable manager.
 		 */
-		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
-
+		void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override;
+        
+		//! \copydoc Buildable::Build()
+		static DirectForwardFlux* Construct(const Json::Value& json, 
+		                                    const MPI_Comm& world,
+		                                    const MPI_Comm& comm,
+					                        const std::string& path);
 	};
 }
-
 
 /*
 File Formats:

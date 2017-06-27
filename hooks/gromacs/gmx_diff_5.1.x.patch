@@ -130,27 +130,3 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
      /* Closing TNG files can include compressing data. Therefore it is good to do that
       * before stopping the time measurements. */
      mdoutf_tng_close(outf);
-diff -ruN /gromacs-original/src/programs/mdrun/mdrun.cpp /gromacs-ssages/src/programs/mdrun/mdrun.cpp
---- /gromacs-original/src/programs/mdrun/mdrun.cpp	2017-02-11 08:50:24.182606000 -0500
-+++ /gromacs-ssages/src/programs/mdrun/mdrun.cpp	2017-02-11 09:18:09.064692600 -0500
-@@ -71,6 +71,8 @@
- 
- #include "mdrun_main.h"
- 
-+#include "GromacsHook.h"
-+
- /*! \brief Return whether either of the command-line parameters that
-  *  will trigger a multi-simulation is set */
- static bool is_multisim_option_set(int argc, const char *const argv[])
-@@ -534,6 +536,10 @@
-     ddxyz[YY] = (int)(realddxyz[YY] + 0.5);
-     ddxyz[ZZ] = (int)(realddxyz[ZZ] + 0.5);
- 
-+    // SSAGES overrides.
-+    auto& ssages = SSAGES::GromacsHook::Instance();
-+    nsteps = ssages.GetIterationTarget();
-+
-     rc = mdrunner(&hw_opt, fplog, cr, NFILE, fnm, oenv, bVerbose, bCompact,
-                   nstglobalcomm, ddxyz, dd_node_order, rdd, rconstr,
-                   dddlb_opt[0], dlb_scale, ddcsx, ddcsy, ddcsz,
-

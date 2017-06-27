@@ -25,11 +25,6 @@
 
 namespace SSAGES
 {
-	// Forward declare.
-	class Driver; 
-	class CollectiveVariable;
-	class Snapshot;
-
 	//! Base class for hooks into the simultion engines
 	/*!
 	 * \ingroup core
@@ -43,15 +38,12 @@ namespace SSAGES
 		//! Vector of event listeners.
 		std::vector<EventListener*> listeners_;
 
-		//! Vector of CVs.
-		CVList cvs_;
-
-		//! Driver running this hook
-		Driver* MDDriver_;
+		//! Collective variable manager.
+		class CVManager* cvmanager_;
 
 	protected:
 		//! Local snapshot.
-		Snapshot* snapshot_;
+		class Snapshot* snapshot_;
 
 		//! Synchronization to the simulation engine
 		/*!
@@ -74,14 +66,14 @@ namespace SSAGES
 		 * corresponding walker ID.
 		 */
 		Hook() : 
-		listeners_(0), MDDriver_(nullptr), snapshot_(nullptr)
+		listeners_(0), snapshot_(nullptr)
 		{}
 
 		//! Sets the active snapshot.
-		void SetSnapshot(Snapshot* snapshot);
+		void SetSnapshot(class Snapshot* snapshot);
 
-		//! Sets the active Driver
-		void SetMDDriver(Driver* MDDriver);
+		//! Sets the current CV manager. 
+		void SetCVManager(class CVManager* cvmanager);
 
 		//! Add a listener to the hook.
 		/*!
@@ -91,16 +83,9 @@ namespace SSAGES
 		 */
 		void AddListener(EventListener* listener);
 
-		//! Add a CollectiveVariable to the hook.
-		/*!
-		 * \param cv CollectiveVariable to be added to the hook.
-		 *
-		 * Does nothing if the CollectiveVariable is already added.
-		 */
-		void AddCV(CollectiveVariable* cv);
-
 		//! Notify observers of changes in the simulation.
 		void NotifyObservers();
+		
 		//! Pre-simulation hook
 		/*!
 		 * This should be called at the appropriate
@@ -124,7 +109,6 @@ namespace SSAGES
 		 */
 		void PostStepHook()
 		{
-			NotifyObservers();
 		}
 
 		//! Post-simulation hook.

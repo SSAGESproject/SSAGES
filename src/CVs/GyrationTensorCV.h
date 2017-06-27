@@ -21,7 +21,10 @@
 #pragma once 
 
 #include "CVs/CollectiveVariable.h"
+#include "Validator/ObjectRequirement.h"
 #include "Drivers/DriverException.h"
+#include "Snapshot.h"
+#include "schema.h"
 #include <Eigen/Eigenvalues>
 
 namespace SSAGES
@@ -45,7 +48,7 @@ namespace SSAGES
 	 *
 	 * \ingroup CVs
 	 */
-	class GyrationTensorCV : public CollectiveVariable
+	class GyrationTensorCV : public CollectiveVariable, public Buildable<GyrationTensorCV>
 	{
 	private:
 		Label atomids_; //!< IDs of the atoms used for calculation
@@ -198,6 +201,45 @@ namespace SSAGES
 
 				++j;
 			}
+		}
+
+		static GyrationTensorCV* Construct(const Json::Value& json, const std::string& path)
+		{
+			Json::ObjectRequirement validator;
+			Json::Value schema;
+			Json::Reader reader;
+
+			reader.parse(JsonSchema::GyrationTensorCV, schema); 
+			validator.Parse(schema, path); 
+
+			// Validate inputs. 
+			validator.Validate(json, path); 
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+
+			std::vector<int> atomids; 
+			for(auto& s : json["atom_ids"])
+				atomids.push_back(s.asInt());
+
+			GyrationTensor component = Rg;
+			auto comp = json["component"].asString();
+			
+			if(comp == "Rg")
+				component = Rg; 
+			else if(comp == "principal1")
+				component = principal1;
+			else if(comp == "principal2")
+				component = principal2;
+			else if(comp == "principal3")
+				component = principal3;
+			else if(comp == "asphericity")
+				component = asphericity;
+			else if(comp == "acylindricity")
+				component = acylindricity;
+			else if(comp == "shapeaniso")
+				component = shapeaniso;
+
+			return new GyrationTensorCV(atomids, component);
 		}
 
 		//! Serialize this CV for restart purposes.

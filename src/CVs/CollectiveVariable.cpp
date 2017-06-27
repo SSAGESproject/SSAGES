@@ -19,321 +19,56 @@
  * You should have received a copy of the GNU General Public License
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include "CollectiveVariable.h"
-#include "json/json.h"
-#include "schema.h"
-#include "../Drivers/DriverException.h"
-#include "../Validator/ObjectRequirement.h"
-#include "../Validator/ArrayRequirement.h"
+#include "AngleCV.h"
+#include "BoxVolumeCV.h"
+#include "CoordinationNumberCV.h"
+#include "GyrationTensorCV.h"
+#include "NearestNeighborsCV.h"
 #include "ParticleCoordinateCV.h"
 #include "ParticlePositionCV.h"
 #include "ParticleSeparationCV.h"
-#include "TorsionalCV.h"
-#include "AngleCV.h"
-#include "GyrationTensorCV.h"
-#include "RMSDCV.h"
 #include "RouseModeCV.h"
+<<<<<<< HEAD
 #include "CoordinationNumberCV.h"
 #include "NearestNeighborsCV.h"
 #include "BoxVolumeCV.h"
 
 using namespace Json;
+=======
+#include "TorsionalCV.h"
+#include "json/json.h"
+#include <stdexcept>
+>>>>>>> master
 
 namespace SSAGES
 {
-	CollectiveVariable* CollectiveVariable::BuildCV(const Json::Value &json)
+	CollectiveVariable* CollectiveVariable::BuildCV(const Json::Value &json, const std::string& path)
 	{
-		return BuildCV(json, "#/CVs");
-	}
-
-	CollectiveVariable* CollectiveVariable::BuildCV(const Json::Value &json,
-						const std::string& path)
-	{
-		ObjectRequirement validator;
-		Value schema;
-		Reader reader;
-
-		CollectiveVariable* cv = nullptr;
-
-		// Random device for seed generation. 
-		// std::random_device rd;
-		// auto maxi = std::numeric_limits<int>::max();
-		// auto seed = json.get("seed", rd() % maxi).asUInt();
-
 		// Get move type. 
-		std::string type = json.get("type", "none").asString();
+		auto type = json.get("type", "none").asString();
 
-		if(type == "ParticleCoordinate")
-		{
-			reader.parse(JsonSchema::ParticleCoordinateCV, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-
-			Label atomids;
-			for(auto& id : json["atom_ids"])
-				atomids.push_back(id.asInt());
-
-			auto indextype = json.get("dimension","x").asString();
-
-			Dimension index;
-			if(indextype == "x")
-				index = Dimension::x;
-			else if(indextype == "y")
-				index = Dimension::y;
-			else if(indextype == "z")
-				index = Dimension::z;
-			else
-				throw BuildException({"Could not obtain ParticleCoordinate dimension specified."});
-
-			auto* c = new ParticleCoordinateCV(atomids, index);
-			cv = static_cast<CollectiveVariable*>(c);
-		}
-		else if(type == "ParticlePosition")
-		{
-			reader.parse(JsonSchema::ParticlePositionCV, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-			
-			Label atomids;
-			for(auto& id : json["atom_ids"])
-				atomids.push_back(id.asInt());
-			
-			Vector3 position;
-			position[0] = json["position"][0].asDouble();
-			position[1] = json["position"][1].asDouble();
-			position[2] = json["position"][2].asDouble();
-
-			auto fixx = json["fix"][0].asBool();
-			auto fixy = json["fix"][1].asBool();
-			auto fixz = json["fix"][2].asBool();
-
-			auto* c = new ParticlePositionCV(atomids, position, fixx, fixy, fixz);
-
-			cv = static_cast<CollectiveVariable*>(c);
-		}
-		else if(type == "Torsional")
-		{
-			reader.parse(JsonSchema::TorsionalCV, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-
-			std::vector<int> atomids;
-			for(auto& s : json["atom_ids"])
-				atomids.push_back(s.asInt());
-
-			auto periodic = json.get("periodic", true).asBool();
-
-			auto* c = new TorsionalCV(atomids[0], atomids[1], atomids[2], atomids[3], periodic);
-
-			cv = static_cast<CollectiveVariable*>(c);
-		}
-		else if(type == "ParticleSeparation")
-		{
-			reader.parse(JsonSchema::ParticleSeparationCV, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-			
-			std::vector<int> group1, group2;
-			
-			for(auto& s : json["group1"])
-				group1.push_back(s.asInt());
-
-			for(auto& s : json["group2"])
-				group2.push_back(s.asInt());
-
-			ParticleSeparationCV* c;
-			if(json.isMember("dimension"))
-			{
-				auto fixx = json["dimension"][0].asBool();
-				auto fixy = json["dimension"][1].asBool();
-				auto fixz = json["dimension"][2].asBool();
-
-				c = new ParticleSeparationCV(group1, group2, fixx, fixy, fixz);
-
-			}
-			else
-			{
-				c = new ParticleSeparationCV(group1, group2);
-			}
-
-			cv = static_cast<CollectiveVariable*>(c);
-		}
-		else if(type == "Angle")
-		{
-			reader.parse(JsonSchema::AngleCV, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-			
-			std::vector<int> atomids;
-			for(auto& s : json["atom_ids"])
-				atomids.push_back(s.asInt());
-
-			auto* c = new AngleCV(atomids[0], atomids[1], atomids[2]);
-
-			cv = static_cast<CollectiveVariable*>(c);
-		}
-		else if(type == "GyrationTensor")
-		{
-			reader.parse(JsonSchema::GyrationTensorCV, schema); 
-			validator.Parse(schema, path); 
-
-			// Validate inputs. 
-			validator.Validate(json, path); 
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-
-			std::vector<int> atomids; 
-			for(auto& s : json["atom_ids"])
-				atomids.push_back(s.asInt());
-
-			GyrationTensor component = Rg;
-			auto comp = json["component"].asString();
-			
-			if(comp == "Rg")
-				component = Rg; 
-			else if(comp == "principal1")
-				component = principal1;
-			else if(comp == "principal2")
-				component = principal2;
-			else if(comp == "principal3")
-				component = principal3;
-			else if(comp == "asphericity")
-				component = asphericity;
-			else if(comp == "acylindricity")
-				component = acylindricity;
-			else if(comp == "shapeaniso")
-				component = shapeaniso;
-
-			auto* c = new GyrationTensorCV(atomids, component);
-			cv = static_cast<CollectiveVariable*>(c);
-		}
-		else if(type == "RMSD")
-		{
-			reader.parse(JsonSchema::RMSDCV, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-			
-			std::vector<int> atomids;
-			for(auto& s : json["atom ids"])
-				atomids.push_back(s.asInt());
-			auto reference = json.get("reference"," ").asString(); 
-
-			auto* c = new RMSDCV(atomids, reference, json.get("use_range", false).asBool());
-			
-			cv = static_cast<CollectiveVariable*>(c);
-		}
-		else if(type == "RouseMode")
-		{
-			reader.parse(JsonSchema::RouseModeCV, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-			
-			std::vector<Label> groups;
-			for (auto& group : json["groups"]) {
-				groups.push_back({});
-				for (auto& id : group) {
-					groups.back().push_back(id.asInt());
-				}
-			}
-			auto mode = json.get("mode",0).asInt();
-
-			auto* c = new RouseModeCV( groups, mode);
-			
-			cv = static_cast<CollectiveVariable*>(c);
-		}
-		else if(type == "CoordinationNumber")
-		{
-			reader.parse(JsonSchema::CoordinationNumberCV, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-			
-			std::vector<int> group1, group2;
-			
-			for(auto& s : json["group1"])
-				group1.push_back(s.asInt());
-
-			for(auto& s : json["group2"])
-				group2.push_back(s.asInt());
-			
-			auto* c = new CoordinationNumberCV(group1, group2, SwitchingFunction::Build(json["switching"]));
-			cv = static_cast<CollectiveVariable*>(c);
-		}
+		if(type == "Angle")
+			return AngleCV::Build(json, path);
 		else if(type == "BoxVolume")
-		{
-			reader.parse(JsonSchema::BoxVolumeCV, schema);
-			validator.Parse(schema, path);
-
-			// Validate inputs.
-			validator.Validate(json, path);
-			if(validator.HasErrors())
-				throw BuildException(validator.GetErrors());
-
-			auto* c = new BoxVolumeCV();
-			cv = static_cast<CollectiveVariable*>(c);
-		}
+			return BoxVolumeCV::Build(json, path);
+		else if(type == "CoordinationNumber")
+			return CoordinationNumberCV::Build(json, path);
+		else if(type == "GyrationTensor")
+			return GyrationTensorCV::Build(json, path);
+		else if(type == "NearestNeighbors")
+			return NearestNeighborsCV::Build(json, path);
+		else if(type == "ParticleCoordinate")
+			return ParticleCoordinateCV::Build(json, path);
+		else if(type == "ParticlePosition")
+			return ParticlePositionCV::Build(json, path);
+		else if(type == "ParticleSeparation")
+			return ParticleSeparationCV::Build(json, path);
+		else if(type == "RouseMode")
+			return RouseModeCV::Build(json, path);
+		else if(type == "Torsional")
+			return TorsionalCV::Build(json, path);
 		else
-		{
-			throw BuildException({path + ": Unknown CV type specified."+type+" is not a valid type!"});
-		}
-
-		return cv;
-	}
-
-	void CollectiveVariable::BuildCV(const Json::Value &json, 
-						  CVList &cvlist,
-						  const std::string &path)
-	{
-		ArrayRequirement validator;
-		Value schema;
-		Reader reader;
-
-		reader.parse(JsonSchema::CVs, schema);
-		validator.Parse(schema, path);
-
-		// Validate high level schema.
-		validator.Validate(json, path);
-		if(validator.HasErrors())
-			throw BuildException(validator.GetErrors());
-
-		// Loop through CVs.
-		int i = 0;
-		for(auto& m : json)
-		{
-			cvlist.push_back(BuildCV(m, path + "/" + std::to_string(i)));
-			++i;
-		}
+			throw std::invalid_argument(path + ": Unknown CV type specified.");
 	}
 }

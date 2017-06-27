@@ -18,11 +18,13 @@
  * You should have received a copy of the GNU General Public License
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #pragma once 
 
-#include "Drivers/DriverException.h"
 #include "CollectiveVariable.h"
+#include "Validator/ObjectRequirement.h"
+#include "Drivers/DriverException.h"
+#include "Snapshot.h"
+#include "schema.h"
 
 #include <array>
 #include <cmath>
@@ -30,7 +32,7 @@
 namespace SSAGES
 {
 	//! Collective variable to calculate angle.
-	class AngleCV : public CollectiveVariable
+	class AngleCV : public CollectiveVariable, public Buildable<AngleCV>
 	{
 	private:
 		//! Vector of 3 atom ID's of interest.
@@ -128,6 +130,27 @@ namespace SSAGES
 			if(iindex != -1) grad_[iindex] = gradi;	
 			if(kindex != -1) grad_[kindex] = gradk;
 			if(jindex != -1) grad_[jindex] = -gradi - gradk;
+		}
+
+		static AngleCV* Construct(const Json::Value& json, const std::string& path)
+		{
+			Json::ObjectRequirement validator;
+			Json::Value schema;
+			Json::Reader reader;
+
+			reader.parse(JsonSchema::AngleCV, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+			
+			std::vector<int> atomids;
+			for(auto& s : json["atom_ids"])
+				atomids.push_back(s.asInt());
+
+			return new AngleCV(atomids[0], atomids[1], atomids[2]);
 		}
 
 		//! Serialize this CV for restart purposes.

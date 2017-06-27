@@ -22,7 +22,6 @@
 #pragma once
 
 #include "Method.h"
-#include "../CVs/CollectiveVariable.h"	
 #include "Grids/Grid.h"
 #include <fstream>
 #include <vector>
@@ -66,7 +65,7 @@ namespace SSAGES
 	 *
 	 * \ingroup Methods
 	 */
-	class Meta : public Method
+	class Meta : public Method, public BuildableMPI<Meta>
 	{
 	private:	
 		//! Hills.
@@ -130,8 +129,8 @@ namespace SSAGES
 		 * \note The size of "widths" should be commensurate with the number of
 		 *       CV's expected.
 		 */
-		Meta(boost::mpi::communicator& world,
-			 boost::mpi::communicator& comm,
+		Meta(const MPI_Comm& world,
+			 const MPI_Comm& comm,
 			 double height, 
 			 const std::vector<double>& widths, 
 			 const std::vector<double>& lowerb,
@@ -150,23 +149,23 @@ namespace SSAGES
 		//! Pre-simulation hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
+		 * \param cvmanager Collective variable manager.
 		 */
-		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override;
+		void PreSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Post-integration hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
+		 * \param cvmanager Collective variable manager.
 		 */
-		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
+		void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Post-simulation hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvs List of CVs.
+		 * \param cvmanager Collective variable manager.
 		 */
-		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
+		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Load hills from file. 
 		/*! 
@@ -177,6 +176,12 @@ namespace SSAGES
 		 *       Meta class. 
 		 */
 		void LoadHills(const std::string& filename);
+		
+		//! \copydoc Buildable::Build()
+		static Meta* Construct(const Json::Value& json, 
+		                       const MPI_Comm& world,
+		                       const MPI_Comm& comm,
+					           const std::string& path);
 
 		//! \copydoc Serializable::Serialize()
 		/*!

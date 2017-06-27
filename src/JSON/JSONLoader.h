@@ -24,14 +24,13 @@
  * SOFTWARE. 
 */
 #pragma once 
+
 #include "json/json.h"
 #include "JSONLoaderPlugin.h"
 #include <fstream>
 #include <memory>
 #include <stdexcept>
-#include <boost/mpi.hpp>
-
-namespace mpi = boost::mpi;
+#include <mxx/bcast.hpp>
 
 namespace SSAGES
 {
@@ -66,7 +65,7 @@ namespace SSAGES
 		 * in \c plugins_ the filter defined with this plugin will be applied
 		 * to the contents loaded from the file.
 		 */
-		Json::Value LoadFile(const std::string& filename, boost::mpi::communicator& world)
+		Json::Value LoadFile(const std::string& filename, const mxx::comm& world)
 		{
 			std::string contents, path;
 			if(world.rank() == 0)
@@ -74,9 +73,9 @@ namespace SSAGES
 				contents = GetFileContents(filename.c_str());
 				path = GetFilePath(filename);
 			}
-
-			mpi::broadcast(world, contents, 0);
-			mpi::broadcast(world, path, 0);
+			
+			mxx::bcast(contents, 0, world);
+			mxx::bcast(path, 0, world);
 
 			for(auto& plugin : plugins_)
 				plugin->ApplyFilter(contents, path);
