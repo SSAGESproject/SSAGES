@@ -2,7 +2,7 @@
  * This file is part of
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
- * Copyright 2017 Hythem Sidky <hsidky@nd.edu>
+ * Copyright 2017 Michael Quevillon <mquevill@nd.edu>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,47 +28,43 @@
  
 namespace SSAGES
 {
-	class SwitchingFunction : public Serializable
+	class GaussianFunction : public Serializable
 	{
 	private: 
-		double d0_; //!< Minimum linear shift value. 
-		double r0_; //!< Cutoff distance. 
-		int n_, m_; //!< Exponents of the switching function which controll the stiffness. 
+		double mu_; //!< Center of Gaussian.
+		double sigma_; //!< Width of Gaussian 
 	public:
-		SwitchingFunction(double d0, double r0, int n, int m) : 
-		d0_(d0), r0_(r0), n_(n), m_(m) {}
+		GaussianFunction(double mu, double sigma) : 
+		mu_(mu), sigma_(sigma) {}
 
-		//! Evaluate the switching function.
+		//! Evaluate the Gaussian function.
 		/*!
 			* \param rij distance between two atoms. 
 			* \param df Reference to variable which will store the gradient.
 			* 
-			* \return value of switching function. 
+			* \return value of Gaussian function. 
 			*/
 		double Evaluate(double rij, double& df) const
 		{
-			const auto xarg = (rij - d0_)/r0_;
-			const auto xn = std::pow(xarg, n_);
-			const auto xm = std::pow(xarg, m_);
-			const auto f = (1.-xn)/(1.-xm);
+			const auto dx = (rij - mu_)/sigma_;
+			const auto f = exp( - dx*dx/2.);
+			const auto pre = - dx/sigma_;
 			
-			df = f/(d0_-rij)*(n_*xn/(1.-xn)+m_*xm/(xm-1.));
+			df = pre * f;
 			return 	f;
 		}
 
-		//! Build SwitchingFunction from JSON value. 
+		//! Build GaussianFunction from JSON value. 
 		/*!
 			* \param json JSON value node. 
 			* 
-			* \return Pointer to new SwitchingFunction.
+			* \return Pointer to new GaussianFunction.
 			*/
-		static SwitchingFunction Build(const Json::Value& json)
+		static GaussianFunction Build(const Json::Value& json)
 		{
-			return SwitchingFunction(
-						json["d0"].asDouble(), 
-						json["r0"].asDouble(), 
-						json["n"].asInt(), 
-						json["m"].asInt()
+			return GaussianFunction(
+						json["mu"].asDouble(), 
+						json["sigma"].asDouble()
 					);
 		}
 
@@ -78,39 +74,37 @@ namespace SSAGES
 			*/
 		void Serialize(Json::Value& json) const override
 		{
-			json["d0"] = d0_;
-			json["r0"] = r0_;
-			json["n"] = n_;
-			json["m"] = m_;
+			json["mu"] = mu_;
+			json["sigma"] = sigma_;
 		}
 	};
 
-	//! Collective variable on coordination number between two groups of atoms.
+	//! Collective variable on sum of Gaussian kernel applied to pairwise distances.
 	/*!
-		* Collective variable on coordination number between two groups of atoms. 
-		* To ensure a continuously differentiable function, there are various 
-		* switching functions from which to choose from. 
+		* Collective variable on sum of Gaussian kernel applied to pairwise distances.
+		* If Gaussians parameters are chosen judiciously, can emulate counting nearest
+		* neighbors. (For example, a steep Gaussian centered at contact distance should
+		* return a number close to the number of nearest neighbors.) However, this CV
+		* is a continuous function, so it may not return the exact integer value.
 		*
 		* \ingroup CVs
 		*/
-	class CoordinationNumberCV : public CollectiveVariable, public Buildable<CoordinationNumberCV>
+	class NearestNeighborsCV : public CollectiveVariable, public Buildable<NearestNeighborsCV>
 	{
 	private:
-		Label group1_; //!< IDs of the first group of atoms. 
-		Label group2_; //!< IDs of the second group of atoms. 
-		SwitchingFunction sf_; //!< Switching function used for coordination number.
+		Label group1_; //!< IDs of the (only) group of atoms. 
+		GaussianFunction gf_; //!< Gaussian function used for calculating
 
 	public:
 		//! Constructor.
 		/*!
-			* \param group1 IDs of the first group of atoms. 
-			* \param group2 IDs of the second group of atoms. 
+			* \param group1 IDs of the (only) group of atoms.
 			*
-			* Construct a CoordinationNumberCV.
+			* Construct a NearestNeighborsCV.
 			*
 			*/    
-		CoordinationNumberCV(const Label& group1, const Label& group2, SwitchingFunction&& sf) : 
-		group1_(group1), group2_(group2), sf_(sf)
+		NearestNeighborsCV(const Label& group1, GaussianFunction&& gf) : 
+		group1_(group1), gf_(gf)
 		{
 		}
 
@@ -122,42 +116,26 @@ namespace SSAGES
 		{
 			using std::to_string;
 
-			auto n1 = group1_.size(), n2 = group2_.size();
+			auto n1 = group1_.size();
 
 			// Make sure atom ID's are on at least one processor. 
-			std::vector<int> found1(n1, 0), found2(n2, 0);
+			std::vector<int> found1(n1, 0);
 			for(size_t i = 0; i < n1; ++i)
 			{
 				if(snapshot.GetLocalIndex(group1_[i]) != -1)
 					found1[i] = 1;
 			}
-			
-			for(size_t i = 0; i < n2; ++i)
-			{
-				if(snapshot.GetLocalIndex(group2_[i]) != -1)
-					found2[i] = 1;
-			}
 
 			MPI_Allreduce(MPI_IN_PLACE, found1.data(), n1, MPI_INT, MPI_SUM, snapshot.GetCommunicator());
-			MPI_Allreduce(MPI_IN_PLACE, found2.data(), n2, MPI_INT, MPI_SUM, snapshot.GetCommunicator());
 
 			unsigned ntot1 = std::accumulate(found1.begin(), found1.end(), 0, std::plus<int>());
-			unsigned ntot2 = std::accumulate(found2.begin(), found2.end(), 0, std::plus<int>());
 			if(ntot1 != n1)
 				throw BuildException({
-					"CoordinationNumberCV: Expected to find " + 
+					"NearestNeighborsCV: Expected to find " + 
 					to_string(n1) + 
 					" atoms in group 1, but only found " + 
 					to_string(ntot1) + "."
-				});			
-
-			if(ntot2 != n2)
-				throw BuildException({
-					"CoordinationNumberCV: Expected to find " + 
-					to_string(n2) + 
-					" atoms in group 2, but only found " + 
-					to_string(ntot2) + "."
-				});			
+				});
 		}
 		
 		//! Evaluate the CV.
@@ -167,9 +145,8 @@ namespace SSAGES
 		void Evaluate(const Snapshot& snapshot) override
 		{
 			// Get local atom indices.
-			std::vector<int> idx1, idx2;
+			std::vector<int> idx1;
 			snapshot.GetLocalIndices(group1_, &idx1);
-			snapshot.GetLocalIndices(group2_, &idx2);
 
 			// Get data from snapshot. 
 			auto n = snapshot.GetNumAtoms();
@@ -181,15 +158,12 @@ namespace SSAGES
 			grad_.resize(n, Vector3{0,0,0});
 			boxgrad_ = Matrix3::Zero();
 
-			// The nastiness begins. We essentially need to compute 
-			// pairwise distances between the atoms. For now, let's 
-			// gather the atomic coordinates of group2_
-			// on all relevant processors. Can be improved later. 
+			// Need to compute pairwise distances between all the atoms.
 			auto& comm = snapshot.GetCommunicator();
 			std::vector<int> pcounts(comm.size(), 0), icounts(comm.size(), 0); 
 			std::vector<int> pdispls(comm.size()+1, 0), idispls(comm.size()+1, 0); 
-			pcounts[comm.rank()] = 3*idx2.size();
-			icounts[comm.rank()] = idx2.size();
+			pcounts[comm.rank()] = 3*idx1.size();
+			icounts[comm.rank()] = idx1.size();
 
 			// Reduce counts.
 			MPI_Allreduce(MPI_IN_PLACE, pcounts.data(), pcounts.size(), MPI_INT, MPI_SUM, comm);
@@ -199,11 +173,11 @@ namespace SSAGES
 			std::partial_sum(icounts.begin(), icounts.end(), idispls.begin() + 1);
 			
 			// Fill up mass and position vectors.
-			std::vector<double> pos(3*idx2.size(), 0);
-			std::vector<int> ids(idx2.size(), 0);
-			for(size_t i = 0; i < idx2.size(); ++i)
+			std::vector<double> pos(3*idx1.size(), 0);
+			std::vector<int> ids(idx1.size(), 0);
+			for(size_t i = 0; i < idx1.size(); ++i)
 			{
-				auto& idx = idx2[i];
+				auto& idx = idx1[i];
 				auto& p = positions[idx];
 				pos[3*i+0] = p[0];
 				pos[3*i+1] = p[1];
@@ -224,38 +198,35 @@ namespace SSAGES
 			for(auto& i : idx1)
 			{
 				auto& p = positions[i];
-				for(size_t j = 0; j < group2_.size(); ++j)
+				for(auto& j : idx1)
 				{
-					auto lidx = snapshot.GetLocalIndex(gids[j]);
+					if(i != j)
+					{
+						auto& q = positions[j];
+						Vector3 rij = {p[0] - q[0], p[1] - q[1], p[2] - q[2]};
+						snapshot.ApplyMinimumImage(&rij);
+						auto r = rij.norm();
+						val_ +=  gf_.Evaluate(r, df);
 
-					// Skip identical pairs.
-					if(lidx == i)
-						continue; 
-					
-					Vector3 rij = {p[0] - gpos[3*j], p[1] - gpos[3*j+1], p[2] - gpos[3*j+2]};
-					snapshot.ApplyMinimumImage(&rij);
-					auto r = rij.norm();
-					val_ +=  sf_.Evaluate(r, df);
-
-					grad_[i] += df*rij/r;
-					boxgrad_ += df*rij/r*rij.transpose();
-
-					if(lidx != -1)
-						grad_[lidx] -= df*rij/r;
+						grad_[i] += df*rij/r;
+						boxgrad_ += df*rij/r*rij.transpose();
+					}
 				}
+				grad_[i] /= 2.0; // Correct for double counting
 			}
-			
+			val_ /= 2.0; // Correct for double counting
+
 			// Reduce val. 
 			MPI_Allreduce(MPI_IN_PLACE, &val_, 1, MPI_DOUBLE, MPI_SUM, comm);
 		}
 
-		static CoordinationNumberCV* Construct(const Json::Value& json, const std::string& path)
+		static NearestNeighborsCV* Construct(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
 			Json::Reader reader;
 
-			reader.parse(JsonSchema::CoordinationNumberCV, schema);
+			reader.parse(JsonSchema::NearestNeighborsCV, schema);
 			validator.Parse(schema, path);
 
 			// Validate inputs.
@@ -263,15 +234,12 @@ namespace SSAGES
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
 			
-			std::vector<int> group1, group2;
+			std::vector<int> group1;
 			
 			for(auto& s : json["group1"])
 				group1.push_back(s.asInt());
-
-			for(auto& s : json["group2"])
-				group2.push_back(s.asInt());
 			
-			return new CoordinationNumberCV(group1, group2, SwitchingFunction::Build(json["switching"]));
+			return new NearestNeighborsCV(group1, GaussianFunction::Build(json["gaussian"]));
 		}
 
 		//! Serialize this CV for restart purposes.
@@ -280,7 +248,7 @@ namespace SSAGES
 			*/
 		void Serialize(Json::Value& json) const override
 		{
-			json["type"] = "CoordinationNumber";
+			json["type"] = "NearestNeighbors";
 		}
 	};
 }
