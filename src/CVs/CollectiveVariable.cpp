@@ -29,17 +29,9 @@
 #include "ParticlePositionCV.h"
 #include "ParticleSeparationCV.h"
 #include "RouseModeCV.h"
-<<<<<<< HEAD
-#include "CoordinationNumberCV.h"
-#include "NearestNeighborsCV.h"
-#include "BoxVolumeCV.h"
-
-using namespace Json;
-=======
 #include "TorsionalCV.h"
 #include "json/json.h"
 #include <stdexcept>
->>>>>>> master
 
 namespace SSAGES
 {
