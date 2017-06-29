@@ -22,11 +22,13 @@
 #pragma once
 
 #include "Method.h"
+#include "../CVs/CollectiveVariable.h"
 #include <fstream>
 #include <vector>
 #include <string>
-#include "Grids/Histogram.h"
-#include "Grids/Grid.h"
+#include "../Grids/Grid.h"
+
+#include <Eigen/Dense>
 
 namespace SSAGES
 {
@@ -39,41 +41,39 @@ namespace SSAGES
 	 * Implementation of the Adaptive Biasing Force algorithm based on
 	 * \cite DARVE2008144120
 	 */
-	class ABF : public Method, public BuildableMPI<ABF>
+
+	class ABF : public Method
 	{
 	private:	
+
+		//! To store number of hits at a given CV bin.
+		/*!
+		 * A 1D vector, but will hold N-dimensional data, where N is number of
+		 * CVs. This will be size (CVbinNr1*CVbinNr2*..).
+		 */
+		Grid<int> *N_;
+
+		//! To store number of hits at a given CV bin.
+		/*!
+		 * A 1D vector, but will hold N-dimensional data, where N is number of
+		 * CVs. This will be size (CVbinNr1*CVbinNr2*..).
+		 */
+		Grid<int> *Nworld_;
+
 		//! To store running total. 
 		/*!
 		 * A 1D vector, but will hold N-dimensional data, where N is number of
 		 * CVs +1. This will be size (CVbinNr1*CVbinNr2*..)*3.
 		 */
-		//Eigen::VectorXd F_;
-		Grid<Eigen::VectorXd> *F_;
-	
+		std::vector<Grid<double>*> F_;
+
 		//! Will hold the global total, synced to every time step. 
 		/*!
 		 * A 1D vector, but will hold N-dimensional data, where N is number of
 		 * CVs +1. This will be size (CVbinNr1*CVbinNr2*..)*3.
 		 */
-		//Eigen::VectorXd Fworld_;
-		Grid<Eigen::VectorXd> *Fworld_;
+		std::vector<Grid<double>*> Fworld_;
 
-		//! To store number of hits at a given CV bin.
-		/*!
-		 * A 1D vector, but will hold N-dimensional data, where N is number of
-		 * CVs. This will be size (CVbinNr1*CVbinNr2*..).
-		 */
-		//std::vector<int> N_;
-		Histogram<int> *N_;
-
-		//! To store number of hits at a given CV bin.
-		/*!
-		 * A 1D vector, but will hold N-dimensional data, where N is number of
-		 * CVs. This will be size (CVbinNr1*CVbinNr2*..).
-		 */
-		//std::vector<int> Nworld_;
-		Histogram<int> *Nworld_;
-		
 		//! Information for a harmonic restraint to keep CV in the region of interest. 
 		/*!
 		 * This is a 2 Dimensional object set up as the following:
@@ -84,6 +84,8 @@ namespace SSAGES
 		 * Third entry of each vector holds the spring constant for that CV restraint.
 		 */
 		std::vector<std::vector<double>> restraint_;
+
+		bool restraintOverride_ = false;
 
 		//! For each CV, holds whether that CV has periodic boundaries or not.
 		std::vector<bool> isperiodic_;
@@ -99,13 +101,13 @@ namespace SSAGES
 		std::vector<std::vector<double>> periodicboundaries_;		
 
 		//! The minimum number of hits required before full biasing, bias is
-		//!F_[i]/max(N_[i],min_).
+		//!_F[i]/max(_N[i],min_).
 		int min_;
 
 		//! To hold last two iterations wdotp value for derivative
 		Eigen::VectorXd wdotp1_, wdotp2_;
 
-		//! To hold last iterations F_ value for removing bias
+		//! To hold last iterations _F value for removing bias
 		Eigen::VectorXd Fold_;
 
 		//! Get coordinates of histogram bin corresponding to given list of CVs.
@@ -114,10 +116,10 @@ namespace SSAGES
 		 *
 		 * \return Index of histogram bin.
 		 *
-		 * Function to return bin coordinate to address F_ and N_, given a vector
+		 * Function to return bin coordinate to address _F and _N, given a vector
 		 * [CV1,CV2..] values.
 		 */
-		//int histCoords(const CVList& cvs);
+		int histCoords(const CVList& cvs);
 
 		//! Mass weighing of bias enabled/disabled
 		bool massweigh_;
@@ -128,11 +130,17 @@ namespace SSAGES
 		//! Number of CVs in system
 		unsigned int dim_;
 
+		//! Output stream for walker-specific data.
+		std::ofstream walkerout_;
+
 		//! Output stream for world data.
 		std::ofstream worldout_;
 
 		//! File name for world data
 		std::string filename_;
+
+		//! The node this belongs to
+		unsigned int mpiid_;
 
 		//! Histogram details. 
 		/*!
@@ -143,7 +151,7 @@ namespace SSAGES
 		 * Second entry of each vector holds the upper bound for that CV.
 		 * Third entry of each vector holds the nr of bins for that CV dimension.
 		*/ 
-		std::vector<std::vector<double>> histdetails_;
+		//std::vector<std::vector<double>> histdetails_;
 
 		//! Integer to hold F estimate backup information
 		/*!
@@ -169,8 +177,8 @@ namespace SSAGES
 		//! Timestep of integration
 		double timestep_;
 
-		//! Iteration counter. 
-		uint iteration_;
+		//! Number of cvs
+		int ncv_ = 0;
 
 		//! Mass vector. Empty unless required.
 		Eigen::VectorXd mass_;
@@ -195,65 +203,64 @@ namespace SSAGES
 		 * \note The restraints should be outside of the range defined in
 		 *       histdetails_ by at least one bin size on each side.
 		 */ 
-		ABF(const MPI_Comm& world,
-			const MPI_Comm& comm,
-			Histogram<int> *N,
-			Histogram<int> *Nworld,
-			Grid<Eigen::VectorXd> *F,
-			Grid<Eigen::VectorXd> *Fworld,
-			std::vector<std::vector<double>> restraint,
+		ABF(boost::mpi::communicator& world,
+			boost::mpi::communicator& comm,
+			Grid<int> *N,
+			Grid<int> *Nworld,
+			std::vector<std::vector<double>> restraint,			
 			std::vector<bool> isperiodic,
 			std::vector<std::vector<double>> periodicboundaries,
 			double min,
 			bool massweigh,
 			std::string filename,
-			const std::vector<std::vector<double>>& histdetails,
 			int FBackupInterv,
 			double unitconv,
 			double timestep,
 			unsigned int frequency) :
-		Method(frequency, world, comm), N_(N), Nworld_(Nworld), F_(F), Fworld_(Fworld),  restraint_(restraint), isperiodic_(isperiodic), periodicboundaries_(periodicboundaries),
-		min_(min), wdotp1_(), wdotp2_(), Fold_(), massweigh_(massweigh),
-		biases_(), dim_(0), filename_(filename), histdetails_(histdetails), 
-		FBackupInterv_(FBackupInterv), unitconv_(unitconv), timestep_(timestep),
-		iteration_(0)
+		Method(frequency, world, comm), N_(N), Nworld_(Nworld), F_(), Fworld_(), 
+		restraint_(restraint), isperiodic_(isperiodic), periodicboundaries_(periodicboundaries),
+		 min_(min), wdotp1_(), wdotp2_(), Fold_(), massweigh_(massweigh),
+		biases_(), dim_(0), filename_(filename), mpiid_(0),  
+		FBackupInterv_(FBackupInterv), unitconv_(unitconv), timestep_(timestep)
 		{
 		}
 
 		bool boundsCheck(const std::vector<double> &CVs);
-		
+
 		//! Pre-simulation hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvmanager Collective variable manager.
+		 * \param cvs List of CVs.
 		 */
-		void PreSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
+		void PreSimulation(Snapshot* snapshot, const CVList& cvs) override;
 
 		//! Post-integration hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvmanager Collective variable manager.
+		 * \param cvs List of CVs.
 		 */
-		void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override;
+		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
 
 		//! Post-simulation hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-		 * \param cvmanager Collective variable manager.
+		 * \param cvs List of CVs.
 		 */
-		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
+		void PostSimulation(Snapshot* snapshot, const CVList& cvs) override;
 
 		//! Set biasing histogram
 		/*!
 		 * \param F Vector containing values for the running total.
 		 * \param N Vector containing number of hits for bin intervals.
 		 */
-		
-		/*void SetHistogram(const Eigen::VectorXd& F, const std::vector<int>& N)
+		void SetHistogram(const Grid<double> *F, const Grid<int> *N)
 		{
+		/*
 			F_ = F;
 			N_ = N;
-		}*/		
+		*/		
+		}
+				
 		
 		//! Set iteration of the method
 		/*!
@@ -262,16 +269,52 @@ namespace SSAGES
 		void SetIteration(const int iter)
 		{
 			iteration_ = iter;
+		}
+
+		void SetOverride(const bool restraintOverride)
+		{
+			restraintOverride_ = restraintOverride;
 		}			
-		
-		//! \copydoc Buildable::Build()
-		static ABF* Construct(const Json::Value& json, 
-		                      const MPI_Comm& world,
-		                      const MPI_Comm& comm,
-					          const std::string& path);
 
 		//! \copydoc Serializable::Serialize()
-		void Serialize(Json::Value& json) const override;
+		void Serialize(Json::Value& json) const override
+		{
+		/*
+			json["type"] = "ABF";
+
+			for(size_t i = 0; i < histdetails_.size(); ++i)
+			{
+				json["CV_lower_bounds"].append(histdetails_[i][0]);				
+				json["CV_upper_bounds"].append(histdetails_[i][1]);
+				json["CV_bins"].append(histdetails_[i][2]);
+			}
+
+			for(size_t i = 0; i < restraint_.size(); ++i)
+			{
+				json["CV_restraint_minimums"].append(restraint_[i][0]);
+				json["CV_restraint_maximums"].append(restraint_[i][1]);
+				json["CV_restraint_spring_constants"].append(restraint_[i][2]);
+			}
+
+			json["timestep"] = timestep_;
+			json["minimum_count"] = min_;
+			json["backup_frequency"] = FBackupInterv_;			
+			json["unit_conversion"] = unitconv_;
+			json["iteration"] = iteration_;
+			json["filename"] = filename_;
+			json["restraint_override"] = restraintOverride_;		
+				
+			for(int i = 0; i < F_.size(); ++i)
+				json["F"].append(F[i]);
+
+			for(size_t i = 0; i < _N.size(); ++i)
+				json["N"].append(_N[i]);
+
+
+	
+		*/
+		}
+		
 
 		//! Destructor
 		~ABF() {}
