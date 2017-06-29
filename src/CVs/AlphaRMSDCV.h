@@ -21,6 +21,10 @@
 #pragma once
 
 #include "CollectiveVariable.h"
+#include "Validator/ObjectRequirement.h"
+#include "Drivers/DriverException.h"
+#include "Snapshot.h"
+#include "schema.h"
 #include "Utility/ReadBackbone.h"
 
 namespace SSAGES
@@ -35,7 +39,7 @@ namespace SSAGES
 	 * reference "ideal" alpha helix structure.
 	 */
 
-	class AlphaRMSDCV : public CollectiveVariable
+	class AlphaRMSDCV : public CollectiveVariable, public Buildable<AlphaRMSDCV>
 	{
 	private:
 
@@ -189,6 +193,30 @@ namespace SSAGES
 					}
 				}
 			}
+		}
+
+		static AlphaRMSDCV* Construct(const Json::Value& json, const std::string& path)
+		{
+			Json::ObjectRequirement validator;
+			Json::Value schema;
+			Json::Reader reader;
+
+			reader.parse(JsonSchema::AlphaRMSDCV, schema);
+			validator.Parse(schema, path);
+
+			//Validate inputs
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+					throw BuildException(validator.GetErrors());
+
+			std::vector<int> resids;
+			for(auto& s : json["residue_ids"])
+				resids.push_back(s.asInt());
+			auto reference = json.get("reference", " ").asString();
+
+			double unitconv = json.get("length_unit", 1).asDouble();
+
+			return new AlphaRMSDCV(resids, reference, unitconv);
 		}
 
 		//! Serialize this CV for restart purposes.

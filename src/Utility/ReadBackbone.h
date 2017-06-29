@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <fstream>
+
 // Not a full PDB parser!!! Only grabs backbone atoms given residue numbers and
 // a reference PDB. This will not parse any other PDB record type other than 
 // "ATOM", and does not read any info from a PDB file past the column containing
