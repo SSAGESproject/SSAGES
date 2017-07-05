@@ -1,0 +1,19 @@
+{
+	"type" : "object", 
+	"varname" : "QboxDriver",
+	"properties" : {
+		"type" : { 
+			"type" : "string",
+			"enum" : ["LAMMPS"]
+		},
+		"MDSteps" : { 
+			"type" : "integer",
+			"minimum" : 1
+		},
+		"dt" : {
+			"type" : "number", 
+			"minimum" : 0, 
+			"exclusiveMinimum" : true
+		}
+	}
+}

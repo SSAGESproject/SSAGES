@@ -20,11 +20,14 @@
 
  #pragma once 
 
- #include "CVs/CollectiveVariable.h"
- #include "Drivers/DriverException.h"
+#include "CVs/CollectiveVariable.h"
+#include "Validator/ObjectRequirement.h"
+#include "Drivers/DriverException.h"
+#include "Snapshot.h"
+#include "schema.h"
  
- namespace SSAGES
- {
+namespace SSAGES
+{
 	class SwitchingFunction : public Serializable
 	{
 	private: 
@@ -37,33 +40,33 @@
 
 		//! Evaluate the switching function.
 		/*!
-		 * \param rij distance between two atoms. 
-		 * \param df Reference to variable which will store the gradient.
-		 * 
-		 * \return value of switching function. 
-		 */
+			* \param rij distance between two atoms. 
+			* \param df Reference to variable which will store the gradient.
+			* 
+			* \return value of switching function. 
+			*/
 		double Evaluate(double rij, double& df) const
 		{
 			const auto xarg = (rij - d0_)/r0_;
 			const auto xn = std::pow(xarg, n_);
 			const auto xm = std::pow(xarg, m_);
-			const auto f = (1-xn)/(1-xm);
+			const auto f = (1.-xn)/(1.-xm);
 			
-			df = f/(d0_-rij)*(n_*xn/(1-xn)+m_*xm/(xm-1));
+			df = f/(d0_-rij)*(n_*xn/(1.-xn)+m_*xm/(xm-1.));
 			return 	f;
 		}
 
 		//! Build SwitchingFunction from JSON value. 
 		/*!
-		 * \param json JSON value node. 
-		 * 
-		 * \return Pointer to new SwitchingFunction.
-		 */
+			* \param json JSON value node. 
+			* 
+			* \return Pointer to new SwitchingFunction.
+			*/
 		static SwitchingFunction Build(const Json::Value& json)
 		{
 			return SwitchingFunction(
-			            json["d0"].asDouble(), 
-			            json["r0"].asDouble(), 
+						json["d0"].asDouble(), 
+						json["r0"].asDouble(), 
 						json["n"].asInt(), 
 						json["m"].asInt()
 					);
@@ -71,8 +74,8 @@
 
 		//! Serialize this CV for restart purposes.
 		/*!
-		 * \param json JSON value
-		 */
+			* \param json JSON value
+			*/
 		void Serialize(Json::Value& json) const override
 		{
 			json["d0"] = d0_;
@@ -82,15 +85,15 @@
 		}
 	};
 
-    //! Collective variable on coordination number between two groups of atoms.
+	//! Collective variable on coordination number between two groups of atoms.
 	/*!
-	 * Collective variable on coordination number between two groups of atoms. 
-     * To ensure a continuously differentiable function, there are various 
-     * switching functions from which to choose from. 
-	 *
-	 * \ingroup CVs
-	 */
-	class CoordinationNumberCV : public CollectiveVariable
+		* Collective variable on coordination number between two groups of atoms. 
+		* To ensure a continuously differentiable function, there are various 
+		* switching functions from which to choose from. 
+		*
+		* \ingroup CVs
+		*/
+	class CoordinationNumberCV : public CollectiveVariable, public Buildable<CoordinationNumberCV>
 	{
 	private:
 		Label group1_; //!< IDs of the first group of atoms. 
@@ -100,12 +103,12 @@
 	public:
 		//! Constructor.
 		/*!
-		 * \param group1 IDs of the first group of atoms. 
-		 * \param group2 IDs of the second group of atoms. 
-		 *
-		 * Construct a CoordinationNumberCV.
-		 *
-		 */    
+			* \param group1 IDs of the first group of atoms. 
+			* \param group2 IDs of the second group of atoms. 
+			*
+			* Construct a CoordinationNumberCV.
+			*
+			*/    
 		CoordinationNumberCV(const Label& group1, const Label& group2, SwitchingFunction&& sf) : 
 		group1_(group1), group2_(group2), sf_(sf)
 		{
@@ -113,8 +116,8 @@
 
 		//! Initialize necessary variables.
 		/*!
-		 * \param snapshot Current simulation snapshot.
-		 */
+			* \param snapshot Current simulation snapshot.
+			*/
 		void Initialize(const Snapshot& snapshot) override
 		{
 			using std::to_string;
@@ -137,7 +140,7 @@
 
 			MPI_Allreduce(MPI_IN_PLACE, found1.data(), n1, MPI_INT, MPI_SUM, snapshot.GetCommunicator());
 			MPI_Allreduce(MPI_IN_PLACE, found2.data(), n2, MPI_INT, MPI_SUM, snapshot.GetCommunicator());
-	
+
 			unsigned ntot1 = std::accumulate(found1.begin(), found1.end(), 0, std::plus<int>());
 			unsigned ntot2 = std::accumulate(found2.begin(), found2.end(), 0, std::plus<int>());
 			if(ntot1 != n1)
@@ -159,8 +162,8 @@
 		
 		//! Evaluate the CV.
 		/*!
-		 * \param snapshot Current simulation snapshot.
-		 */
+			* \param snapshot Current simulation snapshot.
+			*/
 		void Evaluate(const Snapshot& snapshot) override
 		{
 			// Get local atom indices.
@@ -176,6 +179,7 @@
 			// Initialize gradient.
 			std::fill(grad_.begin(), grad_.end(), Vector3{0,0,0});
 			grad_.resize(n, Vector3{0,0,0});
+			boxgrad_ = Matrix3::Zero();
 
 			// The nastiness begins. We essentially need to compute 
 			// pairwise distances between the atoms. For now, let's 
@@ -222,14 +226,20 @@
 				auto& p = positions[i];
 				for(size_t j = 0; j < group2_.size(); ++j)
 				{
+					auto lidx = snapshot.GetLocalIndex(gids[j]);
+
+					// Skip identical pairs.
+					if(lidx == i)
+						continue; 
+					
 					Vector3 rij = {p[0] - gpos[3*j], p[1] - gpos[3*j+1], p[2] - gpos[3*j+2]};
-					snapshot.ApplyMinimumImage(rij);
+					snapshot.ApplyMinimumImage(&rij);
 					auto r = rij.norm();
 					val_ +=  sf_.Evaluate(r, df);
 
 					grad_[i] += df*rij/r;
+					boxgrad_ += df*rij/r*rij.transpose();
 
-					auto lidx = snapshot.GetLocalIndex(gids[j]);
 					if(lidx != -1)
 						grad_[lidx] -= df*rij/r;
 				}
@@ -238,14 +248,39 @@
 			// Reduce val. 
 			MPI_Allreduce(MPI_IN_PLACE, &val_, 1, MPI_DOUBLE, MPI_SUM, comm);
 		}
-		
+
+		static CoordinationNumberCV* Construct(const Json::Value& json, const std::string& path)
+		{
+			Json::ObjectRequirement validator;
+			Json::Value schema;
+			Json::Reader reader;
+
+			reader.parse(JsonSchema::CoordinationNumberCV, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+			
+			std::vector<int> group1, group2;
+			
+			for(auto& s : json["group1"])
+				group1.push_back(s.asInt());
+
+			for(auto& s : json["group2"])
+				group2.push_back(s.asInt());
+			
+			return new CoordinationNumberCV(group1, group2, SwitchingFunction::Build(json["switching"]));
+		}
+
 		//! Serialize this CV for restart purposes.
 		/*!
-		 * \param json JSON value
-		 */
+			* \param json JSON value
+			*/
 		void Serialize(Json::Value& json) const override
 		{
 			json["type"] = "CoordinationNumber";
 		}
 	};
- }
+}

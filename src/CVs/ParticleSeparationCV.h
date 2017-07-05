@@ -20,11 +20,12 @@
 
 #pragma once 
 
-#include <numeric>
-
 #include "CollectiveVariable.h"
-#include "Drivers/DriverException.h" 
-
+#include "Validator/ObjectRequirement.h"
+#include "Drivers/DriverException.h"
+#include "Snapshot.h"
+#include "schema.h"
+#include <numeric>
 
 namespace SSAGES
 {
@@ -35,7 +36,7 @@ namespace SSAGES
 	 *
 	 *  \ingroup CVs
 	 */
-	class  ParticleSeparationCV : public CollectiveVariable
+	class ParticleSeparationCV : public CollectiveVariable, public Buildable<ParticleSeparationCV>
 	{
 	private:
 		Label group1_; //!< Atom ID's of group 1.
@@ -138,6 +139,7 @@ namespace SSAGES
 			// Initialize gradient.
 			std::fill(grad_.begin(), grad_.end(), Vector3{0,0,0});
 			grad_.resize(n, Vector3{0,0,0});
+			boxgrad_ = Matrix3::Zero();
 
 			// Get centers of mass.
 			auto mtot1 = snapshot.TotalMass(idx1);		
@@ -152,10 +154,49 @@ namespace SSAGES
 			val_ = rij.norm();
 
 			for(auto& id : idx1)
+			{
 				grad_[id] = rij/val_*masses[id]/mtot1;
+				boxgrad_ += grad_[id]*rij.transpose();
+			}
 			
 			for(auto& id : idx2)
 				grad_[id] = -rij/val_*masses[id]/mtot2;
+		}
+		
+		static ParticleSeparationCV* Construct(const Json::Value& json, const std::string& path)
+		{
+			Json::ObjectRequirement validator;
+			Json::Value schema;
+			Json::Reader reader;
+
+			reader.parse(JsonSchema::ParticleSeparationCV, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+			
+			std::vector<int> group1, group2;
+			
+			for(auto& s : json["group1"])
+				group1.push_back(s.asInt());
+
+			for(auto& s : json["group2"])
+				group2.push_back(s.asInt());
+
+			ParticleSeparationCV* c;
+			if(json.isMember("dimension"))
+			{
+				auto fixx = json["dimension"][0].asBool();
+				auto fixy = json["dimension"][1].asBool();
+				auto fixz = json["dimension"][2].asBool();
+				c = new ParticleSeparationCV(group1, group2, fixx, fixy, fixz);
+			}
+			else
+				c = new ParticleSeparationCV(group1, group2);
+			
+			return c;
 		}
 
 		//! Serialize this CV for restart purposes.

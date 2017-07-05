@@ -20,21 +20,78 @@
  */
 
 #include "Hook.h"
-#include "Drivers/Driver.h"
+#include "Snapshot.h"
+#include "ResourceHandler.h"
+#include "CVs/CVManager.h"
 #include <algorithm>
 
 namespace SSAGES
 {
+	void Hook::PreSimulationHook()
+	{
+		snapshot_->Changed(false);
+	
+		// Initialize/evaluate CVs.
+		for(auto& cv : cvmanager_->GetCVs())
+		{
+			cv->Initialize(*snapshot_);
+			cv->Evaluate(*snapshot_);
+		}
+
+		// Call presimulation method on listeners. 
+		for(auto& listener : listeners_)
+			listener->PreSimulation(snapshot_, *cvmanager_);
+
+		// Sync snapshot to engine.
+		if(snapshot_->HasChanged())
+			SyncToEngine();
+
+		snapshot_->Changed(false);		
+	}
+
+	void Hook::PostIntegrationHook()
+	{
+		snapshot_->Changed(false);
+
+		for(auto& cv : cvmanager_->GetCVs())
+			cv->Evaluate(*snapshot_);
+
+		for(auto& listener : listeners_)
+			if(snapshot_->GetIteration() % listener->GetFrequency() == 0)
+				listener->PostIntegration(snapshot_, *cvmanager_);
+
+		if(snapshot_->HasChanged())
+			SyncToEngine();
+
+		snapshot_->Changed(false);		
+	}
+
+	void Hook::PostSimulationHook()
+	{
+		snapshot_->Changed(false);
+
+		for(auto& cv : cvmanager_->GetCVs())
+			cv->Evaluate(*snapshot_);
+		
+		for(auto& listener : listeners_)
+			listener->PostSimulation(snapshot_, *cvmanager_);
+
+		if(snapshot_->HasChanged())
+			SyncToEngine();
+
+		snapshot_->Changed(false);		
+	}
+
 	//! Sets the active snapshot.
 	void Hook::SetSnapshot(Snapshot* snapshot)
 	{
 		snapshot_ = snapshot;
 	}
 
-	//! Sets the active Driver
-	void Hook::SetMDDriver(Driver* MDDriver)
+	//! Sets the active CV manager.
+	void Hook::SetCVManager(CVManager* cvmanager)
 	{
-		MDDriver_ = MDDriver;
+		cvmanager_ = cvmanager;
 	}
 
 	//! Add a listener to the hook.
@@ -47,24 +104,5 @@ namespace SSAGES
 	{
 		if(std::find(listeners_.begin(), listeners_.end(), listener) == listeners_.end())
 			listeners_.push_back(listener);
-	}
-
-	//! Add a CollectiveVariable to the hook.
-	/*!
-	 * \param cv CollectiveVariable to be added to the hook.
-	 *
-	 * Does nothing if the CollectiveVariable is already added.
-	 */
-	void Hook::AddCV(CollectiveVariable* cv)
-	{
-		if(std::find(cvs_.begin(), cvs_.end(), cv) == cvs_.end())
-			cvs_.push_back(cv);
-	}
-
-	void Hook::NotifyObservers()
-	{
-		auto& comm = snapshot_->GetCommunicator();
-		if(comm.rank() == 0)
-			MDDriver_->NotifyObservers(SimEvent(MDDriver_, snapshot_->GetIteration()));
 	}
 }

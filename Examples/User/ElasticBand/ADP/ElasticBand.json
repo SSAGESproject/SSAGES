@@ -1,0 +1,665 @@
+{
+    "driver": [
+        {
+            "logfile": "none",
+            "MDSteps": 10000000,
+            "type": "LAMMPS",
+            "method": {
+                "flavor": "ElasticBand",
+                "evolution_steps": 200,
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "block_iterations": 20,
+                "type": "String",
+                "centers": [
+                    -2.0944,
+                    2.0944
+                ],
+                "max_iterations": 100000
+            },
+            "number processors": 1
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    -1.931,
+                    1.931
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    -1.7676,
+                    1.7676
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    -1.6043,
+                    1.6043
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    -1.4409,
+                    1.4409
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    -1.2775,
+                    1.2775
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    -1.1141,
+                    1.1141
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    -0.9507,
+                    0.9507
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    -0.7873,
+                    0.7873
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    -0.624,
+                    0.624
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    -0.4606,
+                    0.4606
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    -0.2972,
+                    0.2972
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    -0.1338,
+                    0.1338
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    0.0296,
+                    -0.0296
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    0.1929,
+                    -0.1929
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    0.3563,
+                    -0.3563
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    0.5197,
+                    -0.5197
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    0.6831,
+                    -0.6831
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    0.8465,
+                    -0.8465
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    1.0099,
+                    -1.0099
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    1.1732,
+                    -1.1732
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        },
+        {
+            "number processors": 1,
+            "logfile": "none",
+            "type": "LAMMPS",
+            "method": {
+                "evolution_steps": 200,
+                "type": "String",
+                "ksprings": [
+                    100,
+                    100
+                ],
+                "kstring": 0.1,
+                "centers": [
+                    1.3366,
+                    -1.3366
+                ],
+                "frequency": 1,
+                "equilibration_steps": 1000,
+                "time_step": 1.0,
+                "flavor": "ElasticBand",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "block_iterations": 20,
+                "max_iterations": 100000
+            },
+            "MDSteps": 10000000
+        }
+    ],
+    "CVs": [
+        {
+            "atom_ids": [
+                5,
+                7,
+                9,
+                15
+            ],
+            "periodic": true,
+            "type": "Torsional"
+        },
+        {
+            "atom_ids": [
+                7,
+                9,
+                15,
+                17
+            ],
+            "periodic": true,
+            "type": "Torsional"
+        }
+    ],
+    "inputfile": "in.ADP_Test"
+}

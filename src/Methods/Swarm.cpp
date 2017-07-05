@@ -18,7 +18,9 @@
 - * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.     
 - */
 #include "Swarm.h"
-#include "../spline.h"
+#include "CVs/CVManager.h"
+#include "Snapshot.h"
+#include "spline.h"
 #include <cmath>
 #include <iostream>
 #include <iomanip>
@@ -26,7 +28,6 @@
 #include <sstream>
 #include <algorithm>
 
-namespace mpi = boost::mpi;
 namespace SSAGES
 {
 
@@ -56,12 +57,13 @@ namespace SSAGES
         return true; //OK to move on to regular sampling
     }
 
-    void Swarm::PostIntegration(Snapshot* snapshot, const CVList& cvs)
+    void Swarm::PostIntegration(Snapshot* snapshot, const CVManager& cvmanager)
     {
-         auto& forces = snapshot->GetForces();
-         auto& positions = snapshot->GetPositions();
-         auto& velocities = snapshot->GetVelocities();
-         auto& atomids = snapshot->GetAtomIDs();
+        auto cvs = cvmanager.GetCVs(cvmask_);
+        auto& forces = snapshot->GetForces();
+        auto& positions = snapshot->GetPositions();
+        auto& velocities = snapshot->GetVelocities();
+        auto& atomids = snapshot->GetAtomIDs();
 
         if(snapshot_stored)
         {
@@ -84,7 +86,7 @@ namespace SSAGES
                 snapshot_stored = true;
             }
         }
-        MPI_Allreduce(MPI::IN_PLACE, &initialized, 1, MPI::BOOL, MPI::LAND, world_);
+        MPI_Allreduce(MPI_IN_PLACE, &initialized, 1, MPI_INT, MPI_LAND, world_);
         if(!initialized && !sampling_started)
         {//Ensure CVs are initialized well
             //Do restrained sampling, and do not harvest trajectories 
@@ -125,9 +127,9 @@ namespace SSAGES
                         positions[localindex][1] = prev_positions_[index_][i*3 + 1];
                         positions[localindex][2] = prev_positions_[index_][i*3 + 2];
 
-                        velocities[localindex][0] = prev_positions_[index_][i*3];
-                        velocities[localindex][1] = prev_positions_[index_][i*3 + 1];
-                        velocities[localindex][2] = prev_positions_[index_][i*3 + 2];
+                        velocities[localindex][0] = prev_velocities_[index_][i*3];
+                        velocities[localindex][1] = prev_velocities_[index_][i*3 + 1];
+                        velocities[localindex][2] = prev_velocities_[index_][i*3 + 2];
 
                     }
                 }
@@ -141,7 +143,7 @@ namespace SSAGES
             }
             if(iterator_ <= initialize_steps_ + restrained_steps_)
             {
-                //Do restrained sampling, and do not harvest trajectories
+                //Do restrained sampling, and do harvest trajectories
                 for(size_t i = 0; i < cvs.size(); i++)
                 {
                     if(iterator_ == 0)
@@ -191,9 +193,9 @@ namespace SSAGES
                             positions[localindex][1] = prev_positions_[index_][i*3 + 1];
                             positions[localindex][2] = prev_positions_[index_][i*3 + 2];
 
-                            velocities[localindex][0] = prev_positions_[index_][i*3];
-                            velocities[localindex][1] = prev_positions_[index_][i*3 + 1];
-                            velocities[localindex][2] = prev_positions_[index_][i*3 + 2];
+                            velocities[localindex][0] = prev_velocities_[index_][i*3];
+                            velocities[localindex][1] = prev_velocities_[index_][i*3 + 1];
+                            velocities[localindex][2] = prev_velocities_[index_][i*3 + 2];
 
                         }
                     }
@@ -227,9 +229,9 @@ namespace SSAGES
                                 positions[localindex][1] = prev_positions_[index_][i*3 + 1];
                                 positions[localindex][2] = prev_positions_[index_][i*3 + 2];
 
-                                velocities[localindex][0] = prev_positions_[index_][i*3];
-                                velocities[localindex][1] = prev_positions_[index_][i*3 + 1];
-                                velocities[localindex][2] = prev_positions_[index_][i*3 + 2];
+                                velocities[localindex][0] = prev_velocities_[index_][i*3];
+                                velocities[localindex][1] = prev_velocities_[index_][i*3 + 1];
+                                velocities[localindex][2] = prev_velocities_[index_][i*3 + 2];
 
                             }
                         }
@@ -281,5 +283,16 @@ namespace SSAGES
 		StringReparam(alphastar);
   
 	}
+
+    void Swarm::Serialize(Json::Value& json) const
+    {
+        StringMethod::Serialize(json);
+
+        json["flavor"] = "SWARM";
+        json["initial_steps"] = initialize_steps_;
+        json["harvest_length"] = harvest_length_;
+        json["number_of_trajectories"] = number_trajectories_;
+        json["swarm_length"] = swarm_length_; 
+    }
 }
 

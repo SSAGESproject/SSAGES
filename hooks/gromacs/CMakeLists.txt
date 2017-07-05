@@ -65,6 +65,7 @@ if (GROMACS_SRC)
     endforeach()
 else ()
     set (GROMACS_SRC ${CMAKE_CURRENT_BINARY_DIR}/gromacs-download-prefix/src/gromacs-download)
+    set (GROMACS_SRC ${GROMACS_SRC} PARENT_SCOPE )
 endif ()
 
 set(GRO_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}")
@@ -125,6 +126,11 @@ set(HOOKSRC
     PARENT_SCOPE
 )
 
+set(DRIVERSRC
+    hooks/gromacs/Driver.cpp
+    PARENT_SCOPE
+)
+
 set(ENABLE_GROMACS true PARENT_SCOPE)
 set(MD_ENGINE "Gromacs" PARENT_SCOPE)
 
@@ -132,8 +138,9 @@ set(MD_ENGINE "Gromacs" PARENT_SCOPE)
 function(CONFIGURE_ENGINE)
     # Build custom shared library for dependencies. 
 	add_library(ssagesgmx SHARED ${HOOKSRC} ${SOURCE})
-	target_link_libraries(ssagesgmx ${MPI_CXX_LIBRARIES} ${Boost_LIBRARIES})
+	target_link_libraries(ssagesgmx ${MPI_CXX_LIBRARIES})
     include_directories(${GROMACS_SRC}/src)
+    include_directories(hooks/gromacs/)
 
 	add_dependencies(gromacs ssagesgmx)
 

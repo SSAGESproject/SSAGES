@@ -137,12 +137,8 @@ ExternalProject_Add(
     BUILD_COMMAND $(MAKE) mpi mode=shlib 
     CCFLAGS=-I${PROJECT_SOURCE_DIR}/src  
     CCFLAGS+=-I${PROJECT_SOURCE_DIR}/include  
-    CCFLAGS+=-I${Boost_INCLUDE_DIRS}     
     CCFLAGS+=-std=c++11
     CCFLAGS+=-O3
-    CCFLAGS+=-L${Boost_LIBRARY_DIRS}      
-    LIB+=-lboost_mpi                      
-    LIB+=-lboost_serialization           
     LIB+=${CMAKE_BINARY_DIR}/libssages.a
     INSTALL_COMMAND ""
     BUILD_IN_SOURCE true
@@ -169,6 +165,11 @@ set(HOOKSRC
     PARENT_SCOPE
 )
 
+set(DRIVERSRC
+    hooks/lammps/Driver.cpp 
+    PARENT_SCOPE
+)
+
 set(MD_ENGINE "LAMMPS" PARENT_SCOPE)
 set(ENABLE_LAMMPS true PARENT_SCOPE)
 SET(LAMMPS_SRC ${LAMMPS_SRC} PARENT_SCOPE)
@@ -176,6 +177,7 @@ SET(LAMMPS_SRC ${LAMMPS_SRC} PARENT_SCOPE)
 # Function to do post library configuration.
 function(CONFIGURE_ENGINE)
     include_directories("${LAMMPS_SRC}")
+    include_directories(hooks/lammps/)
     add_dependencies(lammps libssages)
 	if (LAMMPS)
 		add_dependencies(libssages lammps-download)

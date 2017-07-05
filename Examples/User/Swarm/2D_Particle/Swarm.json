@@ -1,0 +1,709 @@
+{
+    "driver": [
+        {
+            "MDSteps": 10000000,
+            "number processors": 1,
+            "CVs": [
+                {
+                    "atom_ids": [
+                        1
+                    ],
+                    "type": "ParticleCoordinate",
+                    "dimension": "x"
+                },
+                {
+                    "atom_ids": [
+                        1
+                    ],
+                    "type": "ParticleCoordinate",
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 1000,
+                "type": "String",
+                "ksprings": [
+                    500,
+                    500
+                ],
+                "frequency": 1,
+                "number_of_trajectories": 200,
+                "swarm_length": 2,
+                "harvest_length": 10,
+                "flavor": "SWARM",
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "centers": [
+                    -0.98,
+                    -0.98
+                ],
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 1000,
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "ksprings": [
+                    500,
+                    500
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 200,
+                "swarm_length": 2,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    -0.849,
+                    -0.849
+                ],
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 1000,
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "ksprings": [
+                    500,
+                    500
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 200,
+                "swarm_length": 2,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    -0.719,
+                    -0.719
+                ],
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 1000,
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "ksprings": [
+                    500,
+                    500
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 200,
+                "swarm_length": 2,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    -0.588,
+                    -0.588
+                ],
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 1000,
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "ksprings": [
+                    500,
+                    500
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 200,
+                "swarm_length": 2,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    -0.457,
+                    -0.457
+                ],
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 1000,
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "ksprings": [
+                    500,
+                    500
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 200,
+                "swarm_length": 2,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    -0.327,
+                    -0.327
+                ],
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 1000,
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "ksprings": [
+                    500,
+                    500
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 200,
+                "swarm_length": 2,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    -0.196,
+                    -0.196
+                ],
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 1000,
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "ksprings": [
+                    500,
+                    500
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 200,
+                "swarm_length": 2,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    -0.065,
+                    -0.065
+                ],
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 1000,
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "ksprings": [
+                    500,
+                    500
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 200,
+                "swarm_length": 2,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    0.065,
+                    0.065
+                ],
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 1000,
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "ksprings": [
+                    500,
+                    500
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 200,
+                "swarm_length": 2,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    0.196,
+                    0.196
+                ],
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 1000,
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "ksprings": [
+                    500,
+                    500
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 200,
+                "swarm_length": 2,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    0.327,
+                    0.327
+                ],
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 1000,
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "ksprings": [
+                    500,
+                    500
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 200,
+                "swarm_length": 2,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    0.457,
+                    0.457
+                ],
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 1000,
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "ksprings": [
+                    500,
+                    500
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 200,
+                "swarm_length": 2,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    0.588,
+                    0.588
+                ],
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 1000,
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "ksprings": [
+                    500,
+                    500
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 200,
+                "swarm_length": 2,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    0.719,
+                    0.719
+                ],
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 1000,
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "ksprings": [
+                    500,
+                    500
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 200,
+                "swarm_length": 2,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    0.849,
+                    0.849
+                ],
+                "max_iterations": 1000
+            }
+        },
+        {
+            "number processors": 1,
+            "MDSteps": 10000000,
+            "CVs": [
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "x"
+                },
+                {
+                    "type": "ParticleCoordinate",
+                    "atom_ids": [
+                        1
+                    ],
+                    "dimension": "y"
+                }
+            ],
+            "logfile": "log",
+            "type": "LAMMPS",
+            "method": {
+                "initial_steps": 1000,
+                "tolerance": [
+                    0.0001,
+                    0.0001
+                ],
+                "ksprings": [
+                    500,
+                    500
+                ],
+                "frequency": 1,
+                "harvest_length": 10,
+                "number_of_trajectories": 200,
+                "swarm_length": 2,
+                "flavor": "SWARM",
+                "type": "String",
+                "centers": [
+                    0.98,
+                    0.98
+                ],
+                "max_iterations": 1000
+            }
+        }
+    ],
+    "inputfile": "in.LAMMPS_2DParticle"
+}

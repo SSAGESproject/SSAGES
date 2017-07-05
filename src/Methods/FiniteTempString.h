@@ -21,7 +21,6 @@
 #pragma once
 
 #include "StringMethod.h"
-#include "../CVs/CollectiveVariable.h"
 #include <fstream>
 
 namespace SSAGES
@@ -50,16 +49,13 @@ namespace SSAGES
 		unsigned int min_num_umbrella_steps_;
 
 		//! Flag to run umbrella or not during post-integration        
-        bool run_umbrella_;
+        int run_umbrella_;
 
         //! Iterator that keeps track of umbrella iterations
 		unsigned int umbrella_iter_;
 
 		//! Stores the last positions of the CVs
 		std::vector<double> prev_CVs_;
-
-        //! Stores the last step's atom IDs
-        Label prev_ids_;
 
 		//! Checks if CV is in voronoi cell
 		bool InCell(const CVList& cvs) const;
@@ -86,16 +82,16 @@ namespace SSAGES
 		 *
 		 * Constructs an instance of Finite String method.
 		 */
-		FiniteTempString(boost::mpi::communicator& world,
-					boost::mpi::communicator& comm,
-					const std::vector<double>& centers,
-					unsigned int maxiterations,
-					unsigned int blockiterations,
-					double tau,
-					const std::vector<double> cvspring,
-					double kappa,
-					unsigned int springiter,
-			 		unsigned int frequency) : 
+		FiniteTempString(const MPI_Comm& world,
+					     const MPI_Comm& comm,
+					     const std::vector<double>& centers,
+					     unsigned int maxiterations,
+					     unsigned int blockiterations,
+					     double tau,
+					     const std::vector<double> cvspring,
+					     double kappa,
+					     unsigned int springiter,
+			 		     unsigned int frequency) : 
 		StringMethod(world, comm, centers, maxiterations, cvspring, frequency),
 		kappa_(kappa), blockiterations_(blockiterations), tau_(tau), 
 		min_num_umbrella_steps_(springiter), run_umbrella_(true),
@@ -107,26 +103,14 @@ namespace SSAGES
 			//! Store velocities for starting trajectories
 			prev_velocities_.resize(1);
 
-			prev_ids_.resize(1);
+			prev_IDs_.resize(1);
 
 		}
 
 		//! Post-integration hook.
-		void PostIntegration(Snapshot* snapshot, const CVList& cvs) override;
+		void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override;
         
-		void Serialize(Json::Value& json) const override
-        {
-        	StringMethod::Serialize(json);
-
-            json["umbrella_iterations"] = min_num_umbrella_steps_;
-            json["flavor"] = "FTS";
-            json["kappa"] = kappa_;
-            json["block_iterations"] = blockiterations_;
-            json["time_step"] = tau_;
-
-            for(auto& nw : newcenters_)
-            	json["running_average"].append(nw);
-        }
+		void Serialize(Json::Value& json) const override;
 
 		//! Destructor
 		~FiniteTempString() {}

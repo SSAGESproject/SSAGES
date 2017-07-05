@@ -3,6 +3,7 @@
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
  * Copyright 2016 Joshua Moller <jmoller@uchicago.edu>
+ *           2017 Julian Helfferich <julian.helfferich@gmail.com>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,83 +19,71 @@
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "BasisFunc.h"
+#include "Validator/ObjectRequirement.h"
+#include "Drivers/DriverException.h"
+#include "CVs/CVManager.h"
+#include "Snapshot.h"
 #include <cmath>
 #include <iostream>
 #include <iomanip>
 
-namespace mpi = boost::mpi;
+using namespace Json; 
+
 namespace SSAGES
 {
 
 	// Pre-simulation hook.
-	void Basis::PreSimulation(Snapshot* snapshot, const CVList& cvs)
+	void Basis::PreSimulation(Snapshot* snapshot, const CVManager& cvmanager)
 	{
-        // Open file for writing and allocate derivatives vector
-        size_t coeff_size = 1, bin_size = 1;
-       
+        auto cvs = cvmanager.GetCVs(cvmask_);
         // For print statements and file I/O, the walker IDs are used
         mpiid_ = snapshot->GetWalkerID();
 
         // Make sure the iteration index is set correctly
         iteration_ = 0;
 
-        if(!histlocal_)
-		{
+        // There are a few error messages / checks that are in place with
+        // defining CVs and grids
+        if(hist_->GetDimension() != cvs.size())
+        {
             std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-            std::cerr<<"ERROR: Method expected a histogram but none built."<<std::endl;
+            std::cerr<<"ERROR: Histogram dimensions doesn't match number of CVS."<<std::endl;
             std::cerr<<"Exiting on node ["<<mpiid_<<"]"<<std::endl;
             std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-			world_.abort(EXIT_FAILURE);
-		}
-
-        // There are a few error messages / checks that are in place with defining CVs and grids
-        else
+            MPI_Abort(world_, EXIT_FAILURE);
+        }
+        else if(cvs.size() != polyords_.size())
         {
-            if(histlocal_->GetDimension() != cvs.size())
+            std::cout<<cvs.size()<<std::endl;
+            std::cout<<polyords_.size()<<std::endl;
+            std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
+            std::cout<<"WARNING: The number of polynomial orders is not the same"<<std::endl;
+            std::cout<<"as the number of CVs"<<std::endl;
+            std::cout<<"The simulation will take the first defined input"<<std::endl;
+            std::cout<<"as the same for all CVs. ["<<polyords_[0]<<"]"<<std::endl;
+            std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
+
+            //! Resize the polynomial vector so that it doesn't crash here
+            polyords_.resize(cvs.size());
+            //! And now reinitialize the vector
+            for(size_t i = 0; i < cvs.size(); ++i)
             {
-                std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                std::cerr<<"ERROR: Histogram dimensions doesn't match number of CVS."<<std::endl;
-                std::cerr<<"Exiting on node ["<<mpiid_<<"]"<<std::endl;
-                std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                world_.abort(EXIT_FAILURE);
-            }
-            else if(cvs.size() != polyords_.size())
-            {
-                std::cout<<cvs.size()<<std::endl;
-                std::cout<<polyords_.size()<<std::endl;
-                std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                std::cout<<"WARNING: The number of polynomial orders is not the same"<<std::endl;
-                std::cout<<"as the number of CVs"<<std::endl;
-                std::cout<<"The simulation will take the first defined input"<<std::endl;
-                std::cout<<"as the same for all CVs. ["<<polyords_[0]<<"]"<<std::endl;
-                std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-               
-                //! Resize the polynomial vector so that it doesn't crash here
-                polyords_.resize(cvs.size());
-                //! And now reinitialize the vector
-                for(size_t i = 0; i < cvs.size(); ++i)
-                {
-                    polyords_[i] = polyords_[0];
-                }
+                polyords_[i] = polyords_[0];
             }
         }
-
-        // Setting the number of bins here for simplicity
-        nbins_.resize(cvs.size());
-        for(size_t i = 0; i < cvs.size(); ++i)
-            nbins_[i] = histlocal_->GetNumPoints(i);
 
         // This is to check for non-periodic bounds. It comes into play in the update bias function
         bounds_ = true;
                  
+        size_t coeff_size = 1;
+
         for(size_t i = 0; i < cvs.size(); ++i)
         {
-            bin_size   *= nbins_[i];
             coeff_size *= polyords_[i]+1;
         }
 
 		derivatives_.resize(cvs.size());
-        unbias_.resize(bin_size,0);
+        unbias_.resize(hist_->size(),0);
         coeff_arr_.resize(coeff_size,0);
 
         std::vector<int> idx(cvs.size(), 0);
@@ -102,26 +91,10 @@ namespace SSAGES
 		Map temp_map(idx,0.0);
         
         // Initialize the mapping for the hist function
-        for(size_t i = 0; i < bin_size; ++i)
-        {
-            for(size_t j = 0; j < idx.size(); ++j)
-            {
-                if(idx[j] > 0 && idx[j] % (nbins_[j]) == 0)
-                {
-                    if(j != cvs.size() - 1)
-                    { 
-                        idx[j+1]++;
-                        idx[j] = 0;
-                    }
-                }
-                temp_map.map[j] = idx[j];
-				temp_map.value  = 0.0; 
-            } 
-            // Resize histogram vectors to correct size
-            hist_.push_back(temp_map);
-            idx[0]++;
+        for (int &val : *hist_) {
+            val = 0;
         }
- 
+
         //Initialize the mapping for the coeff function
         for(size_t i = 0; i < coeff_size; ++i)
         {
@@ -148,11 +121,10 @@ namespace SSAGES
 	}
 
 	// Post-integration hook.
-	void Basis::PostIntegration(Snapshot* snapshot, const CVList& cvs)
+	void Basis::PostIntegration(Snapshot* snapshot, const CVManager& cvmanager)
 	{
+        auto cvs = cvmanager.GetCVs(cvmask_);        
         std::vector<double> x(cvs.size(),0);
-        std::vector<int> idx(cvs.size(),0);
-        int ii = 0;
 
         /*The binned cv space is updated at every step
          *After a certain number of steps has been passed, the system updates a
@@ -163,44 +135,34 @@ namespace SSAGES
             x[i] = cvs[i]->GetValue();
         }
        
-        if(bounds_)
-        {
-            // Convert the CV value to its discretized value through the grid tool
-            idx = histlocal_->GetIndices(x);
-           
-            // Map the grid index to the form of the hist and unbias mapping
-            for(size_t i = 0; i < cvs.size(); ++i)
-            {
-                ii += (idx[i])*std::pow(nbins_[i],i);
-            } 
-
-            // The histogram is updated based on the index
-            hist_[ii].value++;
+        // The histogram is updated based on the index
+        hist_->at(x) += 1;
     
-            // Update the basis projection after a predefined number of steps
-            if(snapshot->GetIteration()  % cyclefreq_ == 0) {	
-                double beta;
-                beta = 1.0 / (snapshot->GetTemperature() * snapshot->GetKb());
+        // Update the basis projection after a predefined number of steps
+        if(snapshot->GetIteration()  % cyclefreq_ == 0) {
+            double beta;
+            beta = 1.0 / (snapshot->GetTemperature() * snapshot->GetKb());
 
-                // For systems with poorly defined temperature (ie: 1 particle) the user needs to define their own temperature. This is a hack that will be removed in future versions. 
+            // For systems with poorly defined temperature (ie: 1 particle) the
+            // user needs to define their own temperature. This is a hack that
+            // will be removed in future versions.
 
-                if(snapshot->GetTemperature() == 0)
+            if(snapshot->GetTemperature() == 0)
+            {
+                beta = temperature_;
+                if(temperature_ == 0)
                 {
-                    beta = temperature_;
-                    if(temperature_ == 0)
-                    {
-                        std::cout<<std::endl;
-                        std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                        std::cerr<<"ERROR: Input temperature needs to be defined for this simulation"<<std::endl;
-                        std::cerr<<"Exiting on node ["<<mpiid_<<"]"<<std::endl;
-                        std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
-                        exit(EXIT_FAILURE);
-                    }
+                    std::cout<<std::endl;
+                    std::cerr<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
+                    std::cerr<<"ERROR: Input temperature needs to be defined for this simulation"<<std::endl;
+                    std::cerr<<"Exiting on node ["<<mpiid_<<"]"<<std::endl;
+                    std::cout<<"::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"<<std::endl;
+                    exit(EXIT_FAILURE);
                 }
-                iteration_+= 1;
-                UpdateBias(cvs,beta);
-                std::cout<<"Node: ["<<mpiid_<<"]"<<std::setw(10)<<"\tSweep: "<<iteration_<<std::endl;
             }
+            iteration_+= 1;
+            UpdateBias(cvs,beta);
+            std::cout<<"Node: ["<<mpiid_<<"]"<<std::setw(10)<<"\tSweep: "<<iteration_<<std::endl;
         }
 
 		// This calculates the bias force based on the existing basis projection.
@@ -225,7 +187,7 @@ namespace SSAGES
 	}
 
 	// Post-simulation hook.
-	void Basis::PostSimulation(Snapshot*, const CVList&)
+	void Basis::PostSimulation(Snapshot*, const CVManager&)
 	{
 	    std::cout<<"Run has finished"<<std::endl;	
 	}
@@ -238,38 +200,39 @@ namespace SSAGES
 		for( size_t k = 0; k < cvs.size(); k++)
 		{
 			size_t ncoeff = polyords_[k]+1;
+            int nbins = hist_->GetNumPoints(k);
 
-			std::vector<double> dervs(nbins_[k]*ncoeff,0);
-			std::vector<double> vals(nbins_[k]*ncoeff,0);
-            std::vector<double> x(nbins_[k],0);
+            std::vector<double> dervs(nbins*ncoeff,0);
+            std::vector<double> vals(nbins*ncoeff,0);
+            std::vector<double> x(nbins,0);
 
             /*As the values for Legendre polynomials can be defined recursively, \
              *both the derivatives and values are defined at the same time,
              */
-			for (int i = 0; i < nbins_[k]; ++i)
+			for (int i = 0; i < nbins; ++i)
 			{
-                x[i] = 2.0*(i + 0.5)/(double)(nbins_[k]) - 1.0;
+                x[i] = (2.0*i + 1.0)/nbins - 1.0;
 				vals[i] = 1.0;
 				dervs[i] = 0.0;
 			}
 
-			for (int i = 0; i < nbins_[k]; ++i)
+			for (int i = 0; i < nbins; ++i)
 			{
-				vals[i+nbins_[k]] = x[i];
-				dervs[i+nbins_[k]] = 1.0;
+				vals[i+nbins] = x[i];
+				dervs[i+nbins] = 1.0;
 			}
 
 			for (size_t j = 2; j < ncoeff; j++)
 			{
-				for (int i = 0; i < nbins_[k]; i++)
+				for (int i = 0; i < nbins; i++)
 				{
                     //Evaluate the values of the Legendre polynomial at each bin
-					vals[i+j*nbins_[k]] = ((double) ( 2*j - 1 ) * x[i] * vals[i+(j-1)*nbins_[k]]
-					- (double) (j - 1) * vals[i+(j-2)*nbins_[k]]) / (double) (j);
+					vals[i+j*nbins] = ( ( 2.0*j - 1.0 ) * x[i] * vals[i+(j-1)*nbins]
+					- (j - 1.0) * vals[i+(j-2)*nbins] ) / j;
 
                     //Evaluate the derivatives of the Legendre polynomial at each bin
-                    dervs[i+j*nbins_[k]] = ((double) ( 2*j - 1 ) * ( vals[i+(j-1)*nbins_[k]] + x[i] * dervs[i+(j-1)*nbins_[k]] )
-                    - (double) (j - 1) * dervs[i+(j-2)*nbins_[k]]) / (double) (j);
+                    dervs[i+j*nbins] = ( ( 2.0*j - 1.0 ) * ( vals[i+(j-1)*nbins] + x[i] * dervs[i+(j-1)*nbins] )
+                    - (j - 1.0) * dervs[i+(j-2)*nbins] ) / j;
 				}
 			}
             BasisLUT TempLUT(vals,dervs);
@@ -287,28 +250,22 @@ namespace SSAGES
         double basis = 1.0;
 
         // For multiple walkers, the struct is unpacked
-        Histogram<int>::iterator it;
-        size_t id1d = 0;
-        for(it = histlocal_->begin(); it != histlocal_->end(); ++it, ++id1d) {
-            *it = (int)hist_[id1d].value;
-        }
+        Histogram<int> histlocal(*hist_);
 
         // Summed between all walkers
-        MPI_Allreduce(histlocal_->data(), histglobal_->data(), histlocal_->size(), MPI_INT, MPI_SUM, world_);
-
-        // And then it is repacked into the struct
-        id1d = 0;
-        for(it = histlocal_->begin(); it != histlocal_->end(); ++it, ++id1d) {
-            hist_[id1d].value = *it;
-        }
+        MPI_Allreduce(histlocal.data(), hist_->data(), hist_->size(), MPI_INT, MPI_SUM, world_);
 
         // Construct the biased histogram
-        for(size_t i = 0; i < hist_.size(); ++i)
+        size_t i = 0;
+        for (Histogram<int>::iterator it2 = hist_->begin(); it2 != hist_->end(); ++it2, ++i)
         {
-            auto& hist = hist_[i];
+            if (it2.isUnderOverflowBin()) {
+                --i;
+                continue;
+            }
 
             // This is to make sure that the CV projects across the entire surface
-            if(hist.value == 0) {hist.value = 1;} 
+            if (*it2 == 0) { *it2 = 1; }
            
             // The loop builds the previous basis projection for each bin of the histogram
             for(size_t k = 1; k < coeff_.size(); ++k)
@@ -317,7 +274,8 @@ namespace SSAGES
                 for(size_t l = 0; l < cvs.size(); ++l)
                 { 
                     // The previous bias is only calculated after each sweep has happened
-                    basis *= LUT_[l].values[hist.map[l] + coeff.map[l]*(nbins_[l])];
+                    int nbins = hist_->GetNumPoints(l);
+                    basis *= LUT_[l].values[it2.index(l) + coeff.map[l]*nbins];
                 }
                 bias += coeff.value*basis;
                 basis = 1.0;
@@ -326,8 +284,9 @@ namespace SSAGES
             /* The evaluation of the biased histogram which projects the histogram to the
              * current bias of CV space.
              */
-            unbias_[i] += hist.value * exp(bias) * weight_ / (double)(cyclefreq_); 
+            unbias_[i] += (*it2) * exp(bias) * weight_ / (double)(cyclefreq_);
             bias = 0.0;
+
         }
 
         // The coefficients and histograms are reset after evaluating the biased histogram values
@@ -337,13 +296,9 @@ namespace SSAGES
             coeff_[i].value = 0.0;
         }
 
-        Histogram<int>::iterator hgit = histglobal_->begin();
-        id1d = 0;
-        for(it = histlocal_->begin(); it != histlocal_->end(); ++it, hgit++) {
-                hist_[id1d].value = 0.0;
-                *it = 0;
-                *hgit = 0;
-                ++id1d;
+        // Reset histogram
+        for (int &val : *hist_) {
+            val = 0;
         }
 
         // The loop that evaluates the new coefficients by integrating the CV space
@@ -352,15 +307,21 @@ namespace SSAGES
             auto& coeff = coeff_[i];
             
             // The method uses a standard integration with trap rule weights
-            for(size_t j = 0; j < hist_.size(); ++j)
+            size_t j = 0;
+            for(Histogram<int>::iterator it2 = hist_->begin(); it2 != hist_->end(); ++it2, ++j)
             {
-                auto& hist = hist_[j];
+                if (it2.isUnderOverflowBin()) {
+                    --j;
+                    continue;
+                }
+
                 double weight = std::pow(2.0,cvs.size());
 
                 // This adds in a trap-rule type weighting which lowers error significantly at the boundaries
                 for(size_t k = 0; k < cvs.size(); ++k)
                 {
-                    if(hist.map[k] == 0 || hist.map[k] == nbins_[k]-1)
+                    if( it2.index(k) == 0 ||
+                        it2.index(k) == hist_->GetNumPoints(k)-1)
                         weight /= 2.0;
                 }
             
@@ -369,8 +330,9 @@ namespace SSAGES
                  */
                 for(size_t l = 0; l < cvs.size(); l++)
                 {
-                    basis *= LUT_[l].values[hist.map[l] + coeff.map[l]*(nbins_[l])];
-                    basis *=  1.0 / (nbins_[l])*(2 * coeff.map[l] + 1.0);
+                    int nbins = hist_->GetNumPoints(l);
+                    basis *= LUT_[l].values[it2.index(l) + coeff.map[l]*nbins] / nbins;
+                    basis *= 2.0 * coeff.map[l] + 1.0;
                 }
                 coeff.value += basis * log(unbias_[j]) * weight/std::pow(2.0,cvs.size());
                 basis = 1.0;
@@ -402,22 +364,27 @@ namespace SSAGES
      */
     void Basis::PrintBias(const CVList& cvs, const double beta)
     {
-        std::vector<double> bias(hist_.size(), 0);
+        std::vector<double> bias(hist_->size(), 0);
         std::vector<double> x(cvs.size(), 0);
         double temp = 1.0; 
-        double pos = 0;
 
         /* Since the coefficients are the only piece that needs to be
          *updated, the bias is only evaluated when printing
          */
-        for(size_t i = 0; i < hist_.size(); ++i)
+        size_t i = 0;
+        for(Histogram<int>::iterator it = hist_->begin(); it != hist_->end(); ++it, ++i)
         {
+            if (it.isUnderOverflowBin()) {
+                --i;
+                continue;
+            }
+
             for(size_t j = 1; j < coeff_.size(); ++j)
             {
                 for(size_t k = 0; k < cvs.size(); ++k)
                 {
-                    
-                    temp *=  LUT_[k].values[hist_[i].map[k] + coeff_[j].map[k] * (nbins_[k])];
+                    int nbins = hist_->GetNumPoints(k);
+                    temp *=  LUT_[k].values[it.index(k) + coeff_[j].map[k] * nbins];
                 }
                 bias[i] += coeff_[j].value*temp;
                 temp  = 1.0;
@@ -437,13 +404,18 @@ namespace SSAGES
         coeffout_ << iteration_  <<std::endl;
         basisout_ << "CV Values" << std::setw(35*cvs.size()) << "Basis Set Bias" << std::setw(35) << "PMF Estimate" << std::setw(35) << "Biased Histogram" << std::endl;
         
-        for(size_t j = 0; j < unbias_.size(); ++j)
+        size_t j = 0;
+        for(Histogram<int>::iterator it = hist_->begin(); it != hist_->end(); ++it, ++j)
         {
+            if (it.isUnderOverflowBin()) {
+                --j;
+                continue;
+            }
+
             for(size_t k = 0; k < cvs.size(); ++k)
             {
                 // Evaluate the CV values for printing purposes
-                pos = (hist_[j].map[k]+0.5)*(histlocal_->GetUpper(k) - histlocal_->GetLower(k)) * 1.0 /(double)( nbins_[k]) + histlocal_->GetLower(k);
-                basisout_ << pos << std::setw(35);
+                basisout_ << it.coordinate(k) << std::setw(35);
             }
             basisout_ << -bias[j] << std::setw(35);
             if(unbias_[j])
@@ -470,19 +442,17 @@ namespace SSAGES
 		// Reset derivatives
         std::fill(derivatives_.begin(), derivatives_.end(), 0);
         std::vector<double> x(cvs.size(),0);
-        std::vector<int> idx(cvs.size(),0);
 
         double temp = 1.0;
-        size_t ii = 0;
 
         //This is calculating the derivatives for the bias force
         for (size_t j = 0; j < cvs.size(); ++j)
         {
             x[j] = cvs[j]->GetValue();
-            double min = histlocal_->GetLower(j);
-            double max = histlocal_->GetUpper(j);
+            double min = hist_->GetLower(j);
+            double max = hist_->GetUpper(j);
 
-            if(!histlocal_->GetPeriodic(j))
+            if(!hist_->GetPeriodic(j))
             {
                 // In order to prevent the index for the histogram from going out of bounds a check is in place
                 if(x[j] > max && bounds_)
@@ -514,11 +484,6 @@ namespace SSAGES
         // Only apply soft wall potential in the event that it has left the boundaries
         if(bounds_)
         {
-            idx = histlocal_->GetIndices(x);
-
-            for(size_t i = 0; i < cvs.size(); ++i)
-                ii += (idx[i])*std::pow(nbins_[i],i);
-            
             for (size_t i = 1; i < coeff_.size(); ++i)
             {
                 for (size_t j = 0; j < cvs.size(); ++j)
@@ -526,8 +491,9 @@ namespace SSAGES
                     temp = 1.0;
                     for (size_t k = 0; k < cvs.size(); ++k)
                     {
-                        temp *= j == k ?  LUT_[k].derivs[hist_[ii].map[k] + coeff_[i].map[k]*(nbins_[k])] * 2.0 / (histlocal_->GetUpper(j) - histlocal_->GetLower(j))
-                                       :  LUT_[k].values[hist_[ii].map[k] + coeff_[i].map[k]*(nbins_[k])];
+                        int nbins = hist_->GetNumPoints(k);
+                        temp *= j == k ?  LUT_[k].derivs[hist_->GetIndices(x)[k] + coeff_[i].map[k]*nbins] * 2.0 / (hist_->GetUpper(j) - hist_->GetLower(j))
+                                       :  LUT_[k].values[hist_->GetIndices(x)[k] + coeff_[i].map[k]*nbins];
                     }
                     derivatives_[j] -= coeff_[i].value * temp;
                 }
@@ -538,10 +504,10 @@ namespace SSAGES
         for(size_t j = 0; j < cvs.size(); ++j)
         {
             // Are these used?
-            // double min = histlocal_->GetLower(j);
-            // double max = histlocal_->GetUpper(j);
+            // double min = hist_->GetLower(j);
+            // double max = hist_->GetUpper(j);
 
-            if(!histlocal_->GetPeriodic(j)) 
+            if(!hist_->GetPeriodic(j))
             {
                 if(x[j] > boundUp_[j])
                     derivatives_[j] -= restraint_[j] * (x[j] - boundUp_[j]);
@@ -550,4 +516,105 @@ namespace SSAGES
             }
         }
     }
+
+	//! \copydoc Method::Build()
+	Basis* Basis::Construct(const Json::Value& json, 
+			       		    const MPI_Comm& world,
+					        const MPI_Comm& comm,
+					        const std::string& path)
+    {
+		ObjectRequirement validator;
+		Value schema;
+		Reader reader;
+        
+		reader.parse(JsonSchema::BFSMethod, schema);
+        validator.Parse(schema, path);
+
+        //Validate Inputs
+        validator.Validate(json, path);
+        if(validator.HasErrors())
+            throw BuildException(validator.GetErrors());
+
+        std::vector<unsigned int> coefsCV(0);
+        for(auto& coefs : json["CV_coefficients"])
+            coefsCV.push_back(coefs.asInt());
+
+        std::vector<double> restrCV(0);
+        for(auto& restr : json["CV_restraint_spring_constants"])
+            restrCV.push_back(restr.asDouble());
+
+        std::vector<double> boundLow(0);
+        for(auto& bndl : json["CV_restraint_minimums"])
+            boundLow.push_back(bndl.asDouble());
+    
+        std::vector<double> boundUp(0);
+        for(auto& bndu : json["CV_restraint_maximums"])
+            boundUp.push_back(bndu.asDouble());
+
+        auto cyclefreq = json.get("cycle_frequency", 100000).asInt();
+        auto freq = json.get("frequency", 1).asInt();
+        auto wght = json.get("weight", 1.0).asDouble();
+        auto bnme = json.get("basis_filename", "").asString();
+        auto cnme = json.get("coeff_filename", "").asString();
+        auto temp = json.get("temperature", 0.0).asDouble();
+        auto tol  = json.get("tolerance", 1e-6).asDouble();
+        auto conv = json.get("convergence_exit", false).asBool();
+
+        Histogram<int> *hist = Histogram<int>::BuildHistogram(
+                                        json.get("grid", Json::Value()) );
+
+        auto* m = new Basis(world, comm, hist, coefsCV, restrCV, boundUp, boundLow,
+                            cyclefreq, freq, bnme, cnme, temp, tol, wght,
+                            conv);
+      
+        if(json.isMember("iteration"))
+            m->SetIteration(json.get("iteration",0).asInt());
+
+        if(json.isMember("coefficients") && json.isMember("bias hist"))
+        {
+            std::vector<double> coeff;
+            std::vector<double> unbias;
+
+            for(auto& c : json["coefficients"])
+                coeff.push_back(c.asDouble());
+
+            for(auto& u : json["bias hist"])
+                unbias.push_back(u.asDouble());
+
+            m->SetBasis(coeff, unbias);
+    	}
+
+		return m;
+    }
+
+    void Basis::Serialize(Json::Value& json) const
+    {
+        json["type"] = "Basis";
+        for(auto& p: polyords_)
+            json["CV_coefficients"].append(p);
+
+        for(auto& k: restraint_)
+            json["CV_restraint_spring_constants"].append(k);
+
+        for(auto& u: boundUp_)
+            json["CV_restraint_maximums"].append(u);
+
+        for(auto& l: boundLow_)
+            json["CV_restraint_minimums"].append(l);
+
+        for(auto& b: unbias_)
+            json["bias_hist"].append(b);
+
+        for(auto& c: coeff_arr_)
+            json["coefficients"].append(c);
+
+        json["tolerance"] = tol_;
+        json["convergence_exit"] = converge_exit_;
+        json["basis_filename"] = bnme_;
+        json["coeff_filename"] = cnme_;
+        json["iteration"] = iteration_;
+        json["cycle_frequency"] = cyclefreq_;
+        json["weight"] = weight_;
+        json["temperature"] = temperature_;
+	}
 }

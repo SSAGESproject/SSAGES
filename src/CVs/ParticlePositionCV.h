@@ -20,10 +20,12 @@
 
 #pragma once 
 
-#include <numeric>
-
-#include "Drivers/DriverException.h"
 #include "CollectiveVariable.h"
+#include "Validator/ObjectRequirement.h"
+#include "Drivers/DriverException.h"
+#include "Snapshot.h"
+#include "schema.h"
+#include <numeric>
 
 namespace SSAGES
 {
@@ -34,7 +36,7 @@ namespace SSAGES
 	 *
 	 * \ingroup CVs
 	 */
-	class ParticlePositionCV : public CollectiveVariable
+	class ParticlePositionCV : public CollectiveVariable, public Buildable<ParticlePositionCV>
 	{
 	private:
 		//! Vector of atom ids of interest.
@@ -130,7 +132,37 @@ namespace SSAGES
 			for(auto& id : idx)
 				grad_[id] = dx/val_*masses[id]/masstot;
 		}
-	
+		
+		static ParticlePositionCV* Construct(const Json::Value& json, const std::string& path)
+		{
+			Json::ObjectRequirement validator;
+			Json::Value schema;
+			Json::Reader reader;
+
+			reader.parse(JsonSchema::ParticlePositionCV, schema);
+			validator.Parse(schema, path);
+
+			// Validate inputs.
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+				throw BuildException(validator.GetErrors());
+			
+			Label atomids;
+			for(auto& id : json["atom_ids"])
+				atomids.push_back(id.asInt());
+			
+			Vector3 position;
+			position[0] = json["position"][0].asDouble();
+			position[1] = json["position"][1].asDouble();
+			position[2] = json["position"][2].asDouble();
+
+			auto fixx = json["fix"][0].asBool();
+			auto fixy = json["fix"][1].asBool();
+			auto fixz = json["fix"][2].asBool();
+
+			return new ParticlePositionCV(atomids, position, fixx, fixy, fixz);
+		}
+
 		//! Serialize this CV for restart purposes.
 		/*!
 		 * \param json JSON value

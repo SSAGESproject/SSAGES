@@ -18,7 +18,6 @@
 - * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.     
 - */
 #include "StringMethod.h"
-#include "../CVs/CollectiveVariable.h"
 #include <fstream>
 #include <iostream>
 
@@ -74,7 +73,7 @@ namespace SSAGES
             bool snapshot_stored;        
             
             //! Flag for whether a system is initialized at a given iteration
-            bool initialized;
+            int initialized;
 
             //! Flag for whether a system was initialized before it checked whether other systems were
             bool original_initialized; 
@@ -96,57 +95,46 @@ namespace SSAGES
              *
              * Constructs an instance of the swarm of trajectories method.
              */
-            Swarm(boost::mpi::communicator& world, 
-                    boost::mpi::communicator& comm, 
-                    const std::vector<double>& centers,
-                    unsigned int maxiterations,
-                    const std::vector<double> cvspring,
-                    unsigned int frequency,
-                    unsigned int InitialSteps, 
-                    unsigned int HarvestLength, 
-                    unsigned int NumberTrajectories, 
-                    unsigned int SwarmLength) : 
-                StringMethod(world, comm, centers, maxiterations, cvspring, frequency),                 
-                cv_drift_(), 
-                initialize_steps_(InitialSteps), 
-                harvest_length_(HarvestLength), 
-                number_trajectories_(NumberTrajectories), 
-                swarm_length_(SwarmLength)
-        {
-            cv_drift_.resize(centers_.size(), 0);
-            prev_positions_.resize(number_trajectories_);
-            prev_velocities_.resize(number_trajectories_);
-            prev_IDs_.resize(number_trajectories_);
-            //Additional initializing
-
-            index_ = 0;  
-            restrained_steps_ = harvest_length_*number_trajectories_; 
-            unrestrained_steps_ = swarm_length_*number_trajectories_;
-            sampling_started = false;
-            snapshot_stored = false;
-
-            iterator_ = 0; //Override default StringMethod.h initializing
-        }
-
-            //! Post-integration hook
-            void PostIntegration(Snapshot* snapshot, const CVList& cvs) override; 
-
-            void Serialize(Json::Value& json) const override
+            Swarm(const MPI_Comm& world, 
+                  const MPI_Comm& comm, 
+                  const std::vector<double>& centers,
+                  unsigned int maxiterations,
+                  const std::vector<double> cvspring,
+                  unsigned int frequency,
+                  unsigned int InitialSteps, 
+                  unsigned int HarvestLength, 
+                  unsigned int NumberTrajectories, 
+                  unsigned int SwarmLength) : 
+            StringMethod(world, comm, centers, maxiterations, cvspring, frequency),                 
+            cv_drift_(), 
+            initialize_steps_(InitialSteps), 
+            harvest_length_(HarvestLength), 
+            number_trajectories_(NumberTrajectories), 
+            swarm_length_(SwarmLength)
             {
-                StringMethod::Serialize(json);
+                cv_drift_.resize(centers_.size(), 0);
+                prev_positions_.resize(number_trajectories_);
+                prev_velocities_.resize(number_trajectories_);
+                prev_IDs_.resize(number_trajectories_);
+                //Additional initializing
 
-                json["flavor"] = "SWARM";
+                index_ = 0;  
+                restrained_steps_ = harvest_length_*number_trajectories_; 
+                unrestrained_steps_ = swarm_length_*number_trajectories_;
+                sampling_started = false;
+                snapshot_stored = false;
 
-                json["initial_steps"] = initialize_steps_;
-                json["harvest_length"] = harvest_length_;
-                json["number_of_trajectories"] = number_trajectories_;
-                json["swarm_length"] = swarm_length_; 
+                iterator_ = 0; //Override default StringMethod.h initializing
             }
 
+            //! Post-integration hook
+            void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override; 
+
+            void Serialize(Json::Value& json) const override;
+            
             //! Destructor
             ~Swarm()
             {
-
             }
     };
 }

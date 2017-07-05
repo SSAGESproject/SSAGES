@@ -496,6 +496,31 @@ public:
             return indices_;
         }
 
+        //! Access a specific index.
+        /*!
+         * \param d Dimension of the index.
+         * \return Index of the current bin in the specified dimension.
+         *
+         */
+        int &index(size_t d)
+        {
+            return indices()[d];
+        }
+
+        //! Check if current iterator position is under- or overflow bin.
+        /*!
+         * \return \c True if current bin is an underflow or an overflow bin.
+         */
+        bool isUnderOverflowBin() const
+        {
+            for (size_t i = 0; i < indices_.size(); ++i) {
+                if (indices_.at(i) == -1 || indices_.at(i) == hist_->GetNumPoints(i)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         //! Access coordinates.
         /*!
          * \return Center point of the current bin.
@@ -504,6 +529,17 @@ public:
         {
             return hist_->GetCoordinates(indices_);
         }
+
+        //! Access specific coordinate dimension.
+        /*!
+         * \param d Dimension of the coordinate.
+         * \return Center point of the current bin in the specified dimension.
+         */
+        double coordinate(size_t d) const
+        {
+            return coordinates()[d];
+        }
+
     private:
         //! Indices of current bin.
         std::vector<int> indices_;

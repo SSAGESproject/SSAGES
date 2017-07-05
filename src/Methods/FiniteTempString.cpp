@@ -19,14 +19,15 @@
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "FiniteTempString.h"
+#include "CVs/CVManager.h"
+#include "Snapshot.h" 
+#include "spline.h"
 #include <math.h>
 #include <iostream>
 #include <algorithm>
-#include "../spline.h"
 
 namespace SSAGES
 { 
-
 	// Check whether CV values are within their respective Voronoi cell in CV space
 	bool FiniteTempString::InCell(const CVList& cvs) const
 	{
@@ -44,8 +45,9 @@ namespace SSAGES
 	}
 
 	// Post-integration hook.
-	void FiniteTempString::PostIntegration(Snapshot* snapshot, const CVList& cvs)
+	void FiniteTempString::PostIntegration(Snapshot* snapshot, const CVManager& cvmanager)
 	{
+		auto cvs = cvmanager.GetCVs(cvmask_);
 		auto& forces = snapshot->GetForces();
         bool insidecell;
 
@@ -78,7 +80,8 @@ namespace SSAGES
         }
         insidecell = InCell(cvs); 
 
-        MPI_Allreduce(MPI::IN_PLACE, &run_umbrella_, 1, MPI::BOOL, MPI::LOR, world_); 
+        MPI_Allreduce(MPI_IN_PLACE, &run_umbrella_, 1, MPI_INT, MPI_LOR, world_);
+
 		if(run_umbrella_)
 		{ 
 			if(umbrella_iter_ == min_num_umbrella_steps_)
@@ -187,7 +190,7 @@ namespace SSAGES
                 run_umbrella_ = true;
                 reset_for_umbrella = false; 
             }
-			MPI_Allreduce(MPI::IN_PLACE, &run_umbrella_, 1, MPI::BOOL, MPI::LOR, world_);
+			MPI_Allreduce(MPI_IN_PLACE, &run_umbrella_, 1, MPI_INT, MPI_LOR, world_);
 		}
 
 		iterator_++;
@@ -214,5 +217,19 @@ namespace SSAGES
 		GatherNeighbors(&lcv0, &ucv0);
 		double alphastar = distance(centers_, lcv0);
 		StringReparam(alphastar);
+	}
+
+	void FiniteTempString::Serialize(Json::Value& json) const
+	{
+		StringMethod::Serialize(json);
+
+		json["umbrella_iterations"] = min_num_umbrella_steps_;
+		json["flavor"] = "FTS";
+		json["kappa"] = kappa_;
+		json["block_iterations"] = blockiterations_;
+		json["time_step"] = tau_;
+
+		for(auto& nw : newcenters_)
+			json["running_average"].append(nw);
 	}
 }
