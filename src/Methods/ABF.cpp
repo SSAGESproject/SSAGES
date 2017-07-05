@@ -56,7 +56,7 @@ namespace SSAGES
 		for(size_t i = 0; i < histdetails_.size(); ++i)
 		{
 			// Check if CV is in bounds for each CV.
-			if ((cvs[i]->GetValue()<histdetails_[i][0]) || (cvs[i]->GetValue()>histdetails_[i][1]))
+			if ((cvs[i]->GetValue()<histdetails_[i][0]) || (cvs[i]->GetValue()>histdetails_[i][1]) || (cvs[i]->GetValue()<restraint_[i][0]) || (cvs[i]->GetValue()>restraint_[i][1]) )
 				return -1;
 		}
 
