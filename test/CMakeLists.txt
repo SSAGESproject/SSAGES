@@ -14,14 +14,15 @@ set  (UNIT_TESTS "ParticlePositionCVTests"
                  "AngleCVTests"
                  "ReadFileTest"
                  "MockCVTests"
-				 "COMTests"
+                 "COMTests"
                  "DirectForwardFluxTests"
-				 "SwarmTest"
-				 "FTSTest"
+                 "SwarmTest"
+                 "FTSTest"
                  "StringMethodTest"
                  "GyrationTensorCVTests"
                  "RouseModeCVTests"
-                 "CoordinationNumberCVTests")
+                 "CoordinationNumberCVTests"
+                 "NearestNeighborsCVTests")
 
 set (INTEGRATION_TESTS "Meta_Single_Atom_Test"
                        "Basis_ADP_Test")

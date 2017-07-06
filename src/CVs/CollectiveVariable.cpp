@@ -24,6 +24,7 @@
 #include "BoxVolumeCV.h"
 #include "CoordinationNumberCV.h"
 #include "GyrationTensorCV.h"
+#include "NearestNeighborsCV.h"
 #include "ParticleCoordinateCV.h"
 #include "ParticlePositionCV.h"
 #include "ParticleSeparationCV.h"
@@ -47,6 +48,8 @@ namespace SSAGES
 			return CoordinationNumberCV::Build(json, path);
 		else if(type == "GyrationTensor")
 			return GyrationTensorCV::Build(json, path);
+		else if(type == "NearestNeighbors")
+			return NearestNeighborsCV::Build(json, path);
 		else if(type == "ParticleCoordinate")
 			return ParticleCoordinateCV::Build(json, path);
 		else if(type == "ParticlePosition")
