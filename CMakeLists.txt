@@ -83,6 +83,8 @@ elseif(QBOX)
 	add_subdirectory(hooks/qbox/)
 elseif(OPENMD_SRC)
 	add_subdirectory(hooks/openmd/)
+else() 
+	message( FATAL_ERROR "You cannot build SSAGES without specifying an engine." )
 endif()
 
 ################### END MD ENGINES ######################
