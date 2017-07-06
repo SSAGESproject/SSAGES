@@ -23,11 +23,10 @@ np.set_printoptions(threshold=np.inf)
 matplotlib.use('Agg')
 
 
-def intgrad2(fx,fy,nx,ny,dx,dy,intconst):
+def intgrad2(fx,fy,nx,ny,dx,dy,intconst,per1,per2):
 	
+	#fx, fy flipped here, be careful if editing.
 	rhs = np.ravel((fy,fx))
-
-	#interp(
 	
 	Af=np.zeros((4*nx*ny,3))
 	
@@ -36,8 +35,10 @@ def intgrad2(fx,fy,nx,ny,dx,dy,intconst):
 	for i in range(0,nx):
 		#Leading edge
 		Af[2*ny*i][0] = 2*ny*i/2
-		#Af[2*ny*i][1] = ny*i
-		Af[2*ny*i][1] = ny*i+(ny-1)
+		if(per2):
+			Af[2*ny*i][1] = ny*i+(ny-1)
+		else:
+			Af[2*ny*i][1] = ny*i
 		Af[2*ny*i][2] = -0.5/dx
 	
 		Af[2*ny*i+1][0] = 2*ny*i/2
@@ -60,8 +61,10 @@ def intgrad2(fx,fy,nx,ny,dx,dy,intconst):
 		Af[2*ny*(i+1)-2][2] = -0.5/dx
 	
 		Af[2*ny*(i+1)-1][0] = int((2*ny*(i+1)-2)/2)
-		#Af[2*ny*(i+1)-1][1] = ny*i+(ny-1)
-		Af[2*ny*(i+1)-1][1] = ny*i
+		if(per2):
+			Af[2*ny*(i+1)-1][1] = ny*i
+		else:
+			Af[2*ny*(i+1)-1][1] = ny*i+(ny-1)
 		Af[2*ny*(i+1)-1][2] = 0.5/dx
 	
 	
@@ -72,8 +75,11 @@ def intgrad2(fx,fy,nx,ny,dx,dy,intconst):
 	for j in range(0,ny):
 
 		Af[2*j+n][0] = 2*j/2 + n/2
-		#Af[2*j+n][1] = j
-		Af[2*j+n][1] = (nx-1)*ny+j
+		
+		if(per1):
+			Af[2*j+n][1] = (nx-1)*ny+j
+		else:
+			Af[2*j+n][1] = j
 		Af[2*j+n][2] = -0.5/dy
 	
 		Af[2*j+n+1][0] = 2*j/2 + n/2
@@ -101,8 +107,10 @@ def intgrad2(fx,fy,nx,ny,dx,dy,intconst):
 		Af[2*j+n][2] = -0.5/dy
 	
 		Af[2*j+n+1][0] = int((2*j+n)/2)
-		#Af[2*j+n+1][1] = (nx-1)*ny+j
-		Af[2*j+n+1][1] = j
+		if(per1):
+			Af[2*j+n+1][1] = j
+		else:
+			Af[2*j+n+1][1] = (nx-1)*ny+j
 		Af[2*j+n+1][2] = 0.5/dy
 
 
@@ -122,42 +130,72 @@ def intgrad2(fx,fy,nx,ny,dx,dy,intconst):
 def main(argv):
 	inputfile = ''
 	outputname = ''
+	periodic = [False,False]
+	interpolate = 500
+	scale = 1
 	try:
-		opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
+		opts, args = getopt.getopt(argv,"hi:o:p:l:n:s",["ifile=","ofile=","periodic1=","periodic2=","interpolate=","scale="])
 	except getopt.GetoptError:
-		print 'ABF_integrator.py -i <inputfile> -o <outputname>'
+		print 'ABF_integrator.py -i <inputfile> -o <outputname> --periodic1 <True/False> --periodic2 <True/False> --interpolate <integer> --scale <float>'
 		sys.exit(2)
 	for opt, arg in opts:
 		if opt == '-h':
-			print 'ABF_integrator.py -i <inputfile> -o <outputname>'
+			print 'ABF_integrator.py -i <inputfile> -o <outputname> --periodic1 <True/False> --periodic2 <True/False> --interpolate <integer> --scale <float>'
 			sys.exit()
 		elif opt in ("-i", "--ifile"):
 			inputfile = arg
-			print 'Input file is '+inputfile
 		elif opt in ("-o", "--ofile"):
 			outputname = arg
-			print 'Output name is '+outputname
+		elif opt in ("-p", "--periodic1"):
+			if arg == 'True':
+				periodic[0] = True
+			elif arg == 'False':
+				periodic[0] = False
+			elif(1):
+				print "--periodic1 option not understood. Please provide \"True\" or \"False\""
+				sys.exit()
+		elif opt in ("-l", "--periodic2"):
+			if arg == 'True':
+				periodic[1] = True
+			elif arg == 'False':
+				periodic[1] = False
+			elif(1):
+				print "--periodic2 option not understood. Please provide \"True\" or \"False\""
+				sys.exit()
+		elif opt in ("-n", "--interpolate"):
+			interpolate = int(arg)
+		elif opt in ("-s", "--scale"):
+			scale = float(arg)
 	if inputfile == '':
-		print 'Defaulting to input "F_out"'
+		print 'Defaulting to input \"F_out\"'
 		inputfile = 'F_out'
-	elif():
-		print "Input file is "+inputfile
+	elif(1):
+		print "Input file is \""+inputfile+"\""
 	if outputname == '':
-		print 'Defaulting to output name "G"'
+		print 'Defaulting to output name \"G\"'
 		outputname = 'G'
-	elif():
-		print 'Output file is '+outputname
+	elif(1):
+		print 'Output file is \"'+outputname+"\""
+	if periodic[0] == False:
+		print 'Periodicity in CV1 is set to false. You may change this by passing \"--periodic1 True\"'
+	elif(1):
+		print 'Periodicity in CV1 is set to true.'
+	if periodic[1] == False:
+		print 'Periodicity in CV2 is set to false. You may change this by passing \"--periodic2 True\"'
+	elif(1):
+		print 'Periodicity in CV2 is set to true.'
+	if interpolate == 500:
+		print 'Interpolation is set to its default value of 500. You may change this by passing \"--interpolate <integer>\" or turn it off with \"--interpolate 0\"'
+	elif interpolate == 0:
+		print 'Interpolation is turned off'
+	elif(1):
+		print 'Interpolation grid is set to '+str(interpolate)
 
-	f = open(outputname+'_integrated.txt','w')
-	#print("Please enter the inputfile in which the grid and vector component information is stored. This file should ONLY contain numbers in the following format:")
-	#print("CV1 coord    CV2 coord  ...            d(A)/d(CV1)  d(A)/d(CV2)...")
-
-	#inputfile = raw_input()
-	
+	f = open(outputname+'_integrated.txt','w')	
 
 	if not (os.path.isfile(inputfile)):
 		print'File not found.'
-		print 'Hint: usage is "ABF_integrator.py -i <inputfile> -o <outputname>"'
+		print 'Hint: usage is \"ABF_integrator.py -i <inputfile> -o <outputname> --periodic1 <True/False> --periodic2 <True/False> --interpolate <integer> --scale <float>\"'
 		exit()		
 
 	vfield = []
@@ -221,43 +259,42 @@ def main(argv):
 		if not shapeinfo[0] == (nx*ny):
 			print("np.ndim of input file (",shapeinfo[0],") does not match given CV bin dimensions of ",nx," x ",ny," = ",nx*ny)
 			exit()
+
+		boundx = [vfield[0,0],vfield[-1,0]]
+		boundy = [vfield[0,1],vfield[-1,1]]
+
 		plot1 = plt.figure()
-		plt.quiver(vfield[:,0],vfield[:,1],vfield[:,2],vfield[:,3],width = (0.0002*(vfield[nx*ny-1,0]-vfield[0,0])), headwidth=3, scale=0.4)
-		plt.axis([min(vfield[:,0]),max(vfield[:,0]),min(vfield[:,1]),max(vfield[:,1])])
+		plt.quiver(vfield[:,0],vfield[:,1],vfield[:,2],vfield[:,3],width = (0.0002*(vfield[nx*ny-1,0]-vfield[0,0])), headwidth=3)
+		plt.axis([boundx[0],boundx[1],boundy[0],boundy[1]])
 		plt.title('Gradient Field of the Free Energy')
 		plot1.savefig(outputname+'_GradientField.png')
 
-		bound = -vfield[0,0];
+		if interpolate != 0:
 
-		grid_x, grid_y = np.mgrid[-bound:bound:500j,-bound:bound:500j]
-		dx = 2*3.14/500
-		dy = dx
-	
-		nx = 500
-		ny = 500
+			grid_x, grid_y = np.mgrid[boundx[0]:boundx[1]:interpolate*1j,boundy[0]:boundy[1]:interpolate*1j]
 		
-		#print(grid_x)
-		#print(grid_y)	
-
-		fx=interp.griddata(vfield[:,0:2], vfield[:,2],(grid_x,grid_y), method='cubic')
-		fy=interp.griddata(vfield[:,0:2], vfield[:,3],(grid_x,grid_y), method='cubic')
-
-		#print(fx)
-		
-		#fx = vfield[:,2]
-		#fy = vfield[:,3]		
-
-		#dx = vfield[ny,0] - vfield[0,0]
-		#dy = vfield[1,1] - vfield[0,1]	
-
-		fhat = intgrad2(fx,fy,nx,ny,dx,dy,1)
-		fhat = fhat
-
-
-		#print fhat
+			dx = boundx[1]-boundx[0]/interpolate
+			dy = boundy[1]-boundy[0]/interpolate
 	
-		#X = vfield[:,0].reshape((nx,ny))
-		#Y = vfield[:,1].reshape((nx,ny))
+			nx = interpolate
+			ny = interpolate
+
+			fx=interp.griddata(vfield[:,0:2], vfield[:,2],(grid_x,grid_y), method='cubic')
+			fy=interp.griddata(vfield[:,0:2], vfield[:,3],(grid_x,grid_y), method='cubic')
+		else:			
+		
+			fx = vfield[:,2]
+			fy = vfield[:,3]		
+
+			dx = vfield[ny,0] - vfield[0,0]
+			dy = vfield[1,1] - vfield[0,1]
+
+			grid_x = vfield[:,0].reshape((nx,ny))
+			grid_y = vfield[:,1].reshape((nx,ny))
+		
+		fhat = intgrad2(fx,fy,nx,ny,dx,dy,1,periodic[0],periodic[1])
+		fhat = fhat*scale
+
 		zmin = min(fhat)
 		zmax = max(fhat)
 		fhat = fhat.reshape((nx,ny))
@@ -278,9 +315,8 @@ def main(argv):
 		plot3.savefig(outputname+'_EnergySurface.png')
 	
 		plot4=plt.figure()
-		CS=plt.contour(X,Y,-fhat,antialiased=True,levels=np.linspace(min(-fhat[:,0]),max(-fhat[:,0]),30))
+		CS=plt.contour(X,Y,-fhat,antialiased=True,levels=np.linspace(np.amin(-fhat),np.amax(-fhat),30))
 
-		#plt.show()
 		plot4.savefig(outputname+'_contourmap.png')
 
 	else:
