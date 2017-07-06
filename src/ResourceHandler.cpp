@@ -89,15 +89,24 @@ namespace SSAGES
 		int walkerid = wcomm.rank()/ppw;
 		auto comm = wcomm.split(walkerid);
 
+		// Build collective variables. 
+		auto* cvmanager = new CVManager();
+		int icv = 0;
+		for(auto& cv : json["CVs"])
+		{
+			// Register name with CV manager if it exists.
+			if(cv.isMember("name"))
+				CVManager::AddCVtoMap(cv["name"].asString(), icv);
+
+			// Build CV and add to manager.
+			cvmanager->AddCV(CollectiveVariable::BuildCV(cv, "#/CVs"));
+			++icv;
+		}
+
 		// Build methods. 
 		std::vector<Method*> methods; 
 		for(auto& m : json["methods"])
 			methods.push_back(Method::BuildMethod(m, world, comm, "#/methods"));
-
-		// Build collective variables. 
-		auto* cvmanager = new CVManager();
-		for(auto& cv : json["CVs"])
-			cvmanager->AddCV(CollectiveVariable::BuildCV(cv, "#/CVs"));
 		
 		auto* rh = new ResourceHandler(std::move(world), std::move(comm), walkerid, methods, cvmanager);
 		rh->inputs_ = inputs;

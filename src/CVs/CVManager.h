@@ -43,6 +43,9 @@ namespace SSAGES
 	//! List of collective variables.
 	std::vector<CollectiveVariable*> cvs_;
 
+	//! Map between CV names and ID's. 
+	static std::map<std::string, uint> cvmap_;
+
 	public:
 		CVManager() = default;
 
@@ -74,6 +77,31 @@ namespace SSAGES
 				cvs.push_back(cvs_[i]);
 			
 			return cvs;
+		}
+
+		//! Register CV name with map
+		 /*
+		  * \param name Name of CV to register. 
+		  * \param id ID to associate with name. 
+		  * 
+		  * \note If a previous name is already used, it will override the old entry.
+		  */
+		static void AddCVtoMap(const std::string& name, uint id)
+		{
+			cvmap_[name] = id;
+		}
+
+		//! Get CV id from map. 
+		 /*
+		  *	\param name Name of CV to look up.
+		  *	\return ID of CV. -1 if nonexistent.
+		  */ 
+		static int LookupCV(const std::string& name)
+		{
+			if(cvmap_.find(name) == cvmap_.end())
+				return -1;
+
+			return cvmap_.at(name);
 		}
 
 		~CVManager()

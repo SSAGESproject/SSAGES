@@ -23,6 +23,9 @@
 			"minItems" : 1,
 			"maxItems" : 1,
 			"minimum" : 0
+		}, 
+		"name" : {
+			"type" : "string"
 		}
 	},
 	"required": ["type", "groups", "mode"],

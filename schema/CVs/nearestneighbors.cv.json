@@ -32,6 +32,9 @@
 					"type" : "number"
 				}
 			}
+		}, 
+		"name" : {
+			"type" : "string"
 		}
 	},
 	"required" : ["type", "group1", "gaussian"],

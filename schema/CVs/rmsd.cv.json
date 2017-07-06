@@ -26,6 +26,9 @@
 		},
 		"use_range" : {
 			"type" : "boolean"
+		}, 
+		"name" : {
+			"type" : "string"
 		}
 	},
 	"required": ["type", "reference", "atom ids"],
