@@ -220,31 +220,49 @@ def main(argv):
 	if shapeinfo[1] == 2:
 		print "Two columns detected in input, which translates to a 1-dimensional grid of "+str(shapeinfo[0])+ "points."
 
-		A=np.zeros((vfield.shape[0],vfield.shape[0]))
-		dx = vfield[2,0]-vfield[1,0]
-	
-		A[0][vfield.shape[0]-1] = -2
-		A[0][0] = 2
-		A[vfield.shape[0]-1][vfield.shape[0]-1] = 1
-		A[vfield.shape[0]-1][vfield.shape[0]-2] = -1
-		for i in range (1,vfield.shape[0]-1):
+		if interpolate == 0:
+			A=np.zeros((vfield.shape[0],vfield.shape[0]))
+			dx = vfield[2,0]-vfield[1,0]
+			X = vfield[:,0]
+			b = vfield[:,1]
+
+		else:
+			A=np.zeros((interpolate,interpolate))
+			dx = (vfield[-1,0]-vfield[0,0])/interpolate
+			X = np.linspace(vfield[0,0],vfield[-1,0],interpolate)
+			b = np.interp(X,vfield[:,0],vfield[:,1])
+
+		for i in range (1,A.shape[0]-1):
 			A[i][i-1]=-1
 			A[i][i]=1
-		A=A/dx
-		print A
-		b = vfield[:,1]		
+	
+		if(periodic[0]):
+			A[0][-1] = -2
+			A[0][0] = 2
+			A[-1][-1] = 1
+			A[-1][-2] = -1
+		else:
+			A[0][0] = -1
+			A[0][1] = 1
+			A[-1][-1] = 1
+			A[-1][-2] = -1
+
+			A[1][1] = 1
+			A[1][0] = 0
+			b[1] = 0			
+
+		A=A/dx			
 		
 		Asurf,c,d,e = npl.lstsq(A,b)
-		print Asurf
-		Asurf = -Asurf
+		Asurf = -Asurf*scale
 		
 		dx = vfield[2,0]-vfield[1,0]
 		vfieldy = vfield[:,1]
 
-		for k in range(0,shapeinfo[0]):
-			f.write("{0:4f} {1:4f} \n".format(vfield[k,0],Asurf[k]))
+		for k in range(0,A.shape[0]):
+			f.write("{0:4f} {1:4f} \n".format(X[k],Asurf[k]))
 		minimum = min(Asurf[:])
-		plt.plot(vfield[:,0],Asurf-minimum)
+		plt.plot(X,Asurf-minimum)
 
 		#plt.show()
 		plt.savefig(outputname+'_integrated.png')
