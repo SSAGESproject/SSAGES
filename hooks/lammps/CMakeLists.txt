@@ -50,7 +50,7 @@ if (LAMMPS)
     ExternalProject_Add(
         lammps-download
         DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
-        GIT_REPOSITORY git://git.lammps.org/lammps-ro.git
+        GIT_REPOSITORY git://github.com/lammps/lammps.git
         GIT_TAG r15407
         TIMEOUT 600
         CONFIGURE_COMMAND ""
