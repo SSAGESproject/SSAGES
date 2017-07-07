@@ -17,88 +17,31 @@
  * You should have received a copy of the GNU General Public License
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #pragma once 
 
 #include "CVs/CollectiveVariable.h"
 #include "Validator/ObjectRequirement.h"
 #include "Drivers/DriverException.h"
+#include "Utility/SwitchingFunction.h"
 #include "Snapshot.h"
 #include "schema.h"
  
 namespace SSAGES
 {
-	class SwitchingFunction : public Serializable
-	{
-	private: 
-		double d0_; //!< Minimum linear shift value. 
-		double r0_; //!< Cutoff distance. 
-		int n_, m_; //!< Exponents of the switching function which controll the stiffness. 
-	public:
-		SwitchingFunction(double d0, double r0, int n, int m) : 
-		d0_(d0), r0_(r0), n_(n), m_(m) {}
-
-		//! Evaluate the switching function.
-		/*!
-			* \param rij distance between two atoms. 
-			* \param df Reference to variable which will store the gradient.
-			* 
-			* \return value of switching function. 
-			*/
-		double Evaluate(double rij, double& df) const
-		{
-			const auto xarg = (rij - d0_)/r0_;
-			const auto xn = std::pow(xarg, n_);
-			const auto xm = std::pow(xarg, m_);
-			const auto f = (1.-xn)/(1.-xm);
-			
-			df = f/(d0_-rij)*(n_*xn/(1.-xn)+m_*xm/(xm-1.));
-			return 	f;
-		}
-
-		//! Build SwitchingFunction from JSON value. 
-		/*!
-			* \param json JSON value node. 
-			* 
-			* \return Pointer to new SwitchingFunction.
-			*/
-		static SwitchingFunction Build(const Json::Value& json)
-		{
-			return SwitchingFunction(
-						json["d0"].asDouble(), 
-						json["r0"].asDouble(), 
-						json["n"].asInt(), 
-						json["m"].asInt()
-					);
-		}
-
-		//! Serialize this CV for restart purposes.
-		/*!
-			* \param json JSON value
-			*/
-		void Serialize(Json::Value& json) const override
-		{
-			json["d0"] = d0_;
-			json["r0"] = r0_;
-			json["n"] = n_;
-			json["m"] = m_;
-		}
-	};
-
 	//! Collective variable on coordination number between two groups of atoms.
 	/*!
-		* Collective variable on coordination number between two groups of atoms. 
-		* To ensure a continuously differentiable function, there are various 
-		* switching functions from which to choose from. 
-		*
-		* \ingroup CVs
-		*/
+	 * Collective variable on coordination number between two groups of atoms. 
+	 * To ensure a continuously differentiable function, there are various 
+	 * switching functions from which to choose from. 
+	 *
+	 * \ingroup CVs
+	 */
 	class CoordinationNumberCV : public CollectiveVariable, public Buildable<CoordinationNumberCV>
 	{
 	private:
 		Label group1_; //!< IDs of the first group of atoms. 
 		Label group2_; //!< IDs of the second group of atoms. 
-		SwitchingFunction sf_; //!< Switching function used for coordination number.
+		SwitchingFunction* sf_; //!< Switching function used for coordination number.
 
 	public:
 		//! Constructor.
@@ -109,7 +52,7 @@ namespace SSAGES
 			* Construct a CoordinationNumberCV.
 			*
 			*/    
-		CoordinationNumberCV(const Label& group1, const Label& group2, SwitchingFunction&& sf) : 
+		CoordinationNumberCV(const Label& group1, const Label& group2, SwitchingFunction* sf) : 
 		group1_(group1), group2_(group2), sf_(sf)
 		{
 		}
@@ -233,7 +176,7 @@ namespace SSAGES
 					Vector3 rij = pi - pj;
 					snapshot.ApplyMinimumImage(&rij);
 					auto r = rij.norm();
-					val_ +=  sf_.Evaluate(r, df);
+					val_ +=  sf_->Evaluate(r, df);
 
 					// Get local indices and sum gradients.
 					auto lid1 = snapshot.GetLocalIndex(t1);
@@ -283,6 +226,11 @@ namespace SSAGES
 		void Serialize(Json::Value& json) const override
 		{
 			json["type"] = "CoordinationNumber";
+		}
+
+		~CoordinationNumberCV()
+		{
+			delete sf_;
 		}
 	};
 }

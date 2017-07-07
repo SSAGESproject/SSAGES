@@ -13,8 +13,8 @@ class CoordinationNumberCVTest : public ::testing::Test{
 protected:
     virtual void SetUp()
     {
-        cv1 = new CoordinationNumberCV({1, 2, 3}, {4}, SwitchingFunction(0, 1.5, 12, 24));
-        cv2 = new CoordinationNumberCV({4}, {1, 2, 3}, SwitchingFunction(0, 1.5, 12, 24));
+        cv1 = new CoordinationNumberCV({1, 2, 3}, {4}, new RationalSF(0, 1.5, 12, 24));
+        cv2 = new CoordinationNumberCV({4}, {1, 2, 3}, new RationalSF(0, 1.5, 12, 24));
 
         snapshot = new Snapshot(comm, 0);
         Matrix3 H; 

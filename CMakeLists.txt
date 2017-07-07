@@ -57,6 +57,7 @@ set(SOURCE
 #	src/Simulations/SimObserver.cpp
 #	src/Simulations/SimObservable.cpp
 	src/JSON/jsoncpp.cpp
+	src/Utility/SwitchingFunction.cpp
 	src/Hook.cpp
 	src/ResourceHandler.cpp
 )
