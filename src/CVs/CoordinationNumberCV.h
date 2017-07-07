@@ -175,78 +175,80 @@ namespace SSAGES
 			auto n = snapshot.GetNumAtoms();
 			auto& atomids = snapshot.GetAtomIDs();
 			auto& positions = snapshot.GetPositions();
+			auto& comm = snapshot.GetCommunicator();
 
 			// Initialize gradient.
 			std::fill(grad_.begin(), grad_.end(), Vector3{0,0,0});
 			grad_.resize(n, Vector3{0,0,0});
 			boxgrad_ = Matrix3::Zero();
 
-			// The nastiness begins. We essentially need to compute 
-			// pairwise distances between the atoms. For now, let's 
-			// gather the atomic coordinates of group2_
-			// on all relevant processors. Can be improved later. 
-			auto& comm = snapshot.GetCommunicator();
-			std::vector<int> pcounts(comm.size(), 0), icounts(comm.size(), 0); 
-			std::vector<int> pdispls(comm.size()+1, 0), idispls(comm.size()+1, 0); 
-			pcounts[comm.rank()] = 3*idx2.size();
-			icounts[comm.rank()] = idx2.size();
-
-			// Reduce counts.
-			MPI_Allreduce(MPI_IN_PLACE, pcounts.data(), pcounts.size(), MPI_INT, MPI_SUM, comm);
-			MPI_Allreduce(MPI_IN_PLACE, icounts.data(), icounts.size(), MPI_INT, MPI_SUM, comm);
-
-			std::partial_sum(pcounts.begin(), pcounts.end(), pdispls.begin() + 1);
-			std::partial_sum(icounts.begin(), icounts.end(), idispls.begin() + 1);
-			
-			// Fill up mass and position vectors.
-			std::vector<double> pos(3*idx2.size(), 0);
-			std::vector<int> ids(idx2.size(), 0);
-			for(size_t i = 0; i < idx2.size(); ++i)
+			// Fill eigen matrix with coordinate data. 
+			std::vector<double> pos1(3*idx1.size()), pos2(3*idx2.size());
+			std::vector<int> id1(idx1.size()), id2(idx2.size()); 
+			for(size_t i = 0; i < idx1.size(); ++i)
 			{
-				auto& idx = idx2[i];
-				auto& p = positions[idx];
-				pos[3*i+0] = p[0];
-				pos[3*i+1] = p[1];
-				pos[3*i+2] = p[2];
-				ids[i] = atomids[idx];
+				pos1[3*i+0] = positions[idx1[i]][0]; 
+				pos1[3*i+1] = positions[idx1[i]][1]; 
+				pos1[3*i+2] = positions[idx1[i]][2];
+
+				id1[i] = atomids[idx1[i]];
 			}
 
-			// Create receiving vectors.
-			std::vector<double> gpos(pdispls.back(), 0);
-			std::vector<int> gids(idispls.back(), 0);
-			
-			// Gather data.
-			MPI_Allgatherv(pos.data(), pos.size(), MPI_DOUBLE, gpos.data(), pcounts.data(), pdispls.data(), MPI_DOUBLE, comm);
-			MPI_Allgatherv(ids.data(), ids.size(), MPI_INT, gids.data(), icounts.data(), idispls.data(), MPI_INT, comm);
+			for(size_t i = 0; i < idx2.size(); ++i)
+			{
+				pos2[3*i+0] = positions[idx2[i]][0]; 
+				pos2[3*i+1] = positions[idx2[i]][1]; 
+				pos2[3*i+2] = positions[idx2[i]][2];
+
+				id2[i] = atomids[idx2[i]];
+			}
+
+			// Gather across all procs. 
+			pos1 = mxx::allgatherv(pos1.data(), pos1.size(), comm);
+			pos2 = mxx::allgatherv(pos2.data(), pos2.size(), comm);
+			id1 = mxx::allgatherv(id1.data(), id1.size(), comm);
+			id2 = mxx::allgatherv(id2.data(), id2.size(), comm);
+
+			// Create Eigen map for ease of use.
+			using Map = Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, 3, Eigen::RowMajor>>;
+			Map gpos1(pos1.data(), group1_.size(), 3), gpos2(pos2.data(), group2_.size(), 3);
 
 			val_ = 0;
 			double df = 0.;
-			for(auto& i : idx1)
+			// Compute gradient and value.
+			for(size_t i = 0; i < group1_.size(); ++i)
 			{
-				auto& p = positions[i];
+				auto t1 = id1[i];
+				const auto& pi = gpos1.row(i);
 				for(size_t j = 0; j < group2_.size(); ++j)
 				{
-					auto lidx = snapshot.GetLocalIndex(gids[j]);
+					auto t2 = id2[j];
+					const auto& pj = gpos2.row(j);
 
-					// Skip identical pairs.
-					if(lidx == i)
-						continue; 
+					// Skip identical pairs. 
+					if(t1 == t2)
+						continue;
 					
-					Vector3 rij = {p[0] - gpos[3*j], p[1] - gpos[3*j+1], p[2] - gpos[3*j+2]};
+					// Compute distance and switching function. 
+					Vector3 rij = pi - pj;
 					snapshot.ApplyMinimumImage(&rij);
 					auto r = rij.norm();
 					val_ +=  sf_.Evaluate(r, df);
 
-					grad_[i] += df*rij/r;
-					boxgrad_ += df*rij/r*rij.transpose();
+					// Get local indices and sum gradients.
+					auto lid1 = snapshot.GetLocalIndex(t1);
+					if(lid1 != -1)
+						grad_[lid1] += df*rij/r;
+					
+					auto lid2 = snapshot.GetLocalIndex(t2);
+					if(lid2 != -1)
+						grad_[lid2] -= df*rij/r;
 
-					if(lidx != -1)
-						grad_[lidx] -= df*rij/r;
+					// Only sum box gradient on a single proc. 
+					if(comm.rank() == 0)
+						boxgrad_ += df*rij/r*rij.transpose();
 				}
 			}
-			
-			// Reduce val. 
-			MPI_Allreduce(MPI_IN_PLACE, &val_, 1, MPI_DOUBLE, MPI_SUM, comm);
 		}
 
 		static CoordinationNumberCV* Construct(const Json::Value& json, const std::string& path)

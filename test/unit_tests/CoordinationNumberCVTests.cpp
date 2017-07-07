@@ -106,23 +106,31 @@ TEST_F(CoordinationNumberCVTest, DefaultBehavior)
     auto& grad1 = cv1->GetGradient(); 
     // NOTE: Gradient checks are only valid for single processor
     // but value checks for 2. This needs to be adjusted later. 
-    // The gradients ARE correct for 2 cores, but the global/local
-    // indices don't match... to be fixed later.
-    EXPECT_NEAR(grad1[0][0], 0.5130418964267503, eps);
-    EXPECT_NEAR(grad1[0][1], -0.5130418964267503, eps);
-    EXPECT_NEAR(grad1[0][2], 0.5130418964267503, eps);
+    if(comm.size() == 1)
+    {
+        EXPECT_NEAR(grad1[0][0], 0.5130418964267503, eps);
+        EXPECT_NEAR(grad1[0][1], -0.5130418964267503, eps);
+        EXPECT_NEAR(grad1[0][2], 0.5130418964267503, eps);
 
-    EXPECT_NEAR(grad1[1][0], 0.0014447794902723533, eps);
-    EXPECT_NEAR(grad1[1][1], 0, eps);
-    EXPECT_NEAR(grad1[1][2], -0.0014447794902723533, eps);
+        EXPECT_NEAR(grad1[1][0], 0.0014447794902723533, eps);
+        EXPECT_NEAR(grad1[1][1], 0, eps);
+        EXPECT_NEAR(grad1[1][2], -0.0014447794902723533, eps);
 
-    EXPECT_NEAR(grad1[2][0], 0, eps);
-    EXPECT_NEAR(grad1[2][1], -0.09107879745469, eps);
-    EXPECT_NEAR(grad1[2][2], 0, eps);
+        EXPECT_NEAR(grad1[2][0], 0, eps);
+        EXPECT_NEAR(grad1[2][1], -0.09107879745469, eps);
+        EXPECT_NEAR(grad1[2][2], 0, eps);
 
-    EXPECT_NEAR(grad1[3][0], -0.51448667591702268, eps);
-    EXPECT_NEAR(grad1[3][1], 0.60412069388144074, eps);
-    EXPECT_NEAR(grad1[3][2], -0.51159711693647802, eps);
+        EXPECT_NEAR(grad1[3][0], -0.51448667591702268, eps);
+        EXPECT_NEAR(grad1[3][1], 0.60412069388144074, eps);
+        EXPECT_NEAR(grad1[3][2], -0.51159711693647802, eps);
+    }
+
+    // Gradient should sum to zero.
+    double sum = 0.; 
+    for(auto& v : grad1)
+        sum += v.array().sum();
+    sum = mxx::allreduce(sum, std::plus<double>(), comm);
+    EXPECT_NEAR(sum, 0, eps);
 
     // CV2 should match CV1.
     cv2->Initialize(*snapshot);
@@ -131,18 +139,30 @@ TEST_F(CoordinationNumberCVTest, DefaultBehavior)
     EXPECT_NEAR(cv2->GetValue(), cv1->GetValue(), eps);
 
     auto& grad2 = cv2->GetGradient();
+    sum = 0.; 
+    for(auto& v : grad2)
+        sum += v.array().sum();
+    sum = mxx::allreduce(sum, std::plus<double>(), comm);
+    EXPECT_NEAR(sum, 0, eps);
 
-    EXPECT_NEAR(grad2[0][0], grad1[0][0], eps);
-    EXPECT_NEAR(grad2[0][1], grad1[0][1], eps);
-    EXPECT_NEAR(grad2[0][2], grad1[0][2], eps);
+    if(comm.size() == 1)
+    {
+        EXPECT_NEAR(grad2[0][0], grad1[0][0], eps);
+        EXPECT_NEAR(grad2[0][1], grad1[0][1], eps);
+        EXPECT_NEAR(grad2[0][2], grad1[0][2], eps);
 
-    EXPECT_NEAR(grad2[1][0], grad1[1][0], eps);
-    EXPECT_NEAR(grad2[1][1], grad1[1][1], eps);
-    EXPECT_NEAR(grad2[1][2], grad1[1][2], eps);
+        EXPECT_NEAR(grad2[1][0], grad1[1][0], eps);
+        EXPECT_NEAR(grad2[1][1], grad1[1][1], eps);
+        EXPECT_NEAR(grad2[1][2], grad1[1][2], eps);
 
-    EXPECT_NEAR(grad2[2][0], grad1[2][0], eps);
-    EXPECT_NEAR(grad2[2][1], grad1[2][1], eps);
-    EXPECT_NEAR(grad2[2][2], grad1[2][2], eps);
+        EXPECT_NEAR(grad2[2][0], grad1[2][0], eps);
+        EXPECT_NEAR(grad2[2][1], grad1[2][1], eps);
+        EXPECT_NEAR(grad2[2][2], grad1[2][2], eps);
+
+        EXPECT_NEAR(grad2[3][0], grad1[3][0], eps);
+        EXPECT_NEAR(grad2[3][1], grad1[3][1], eps);
+        EXPECT_NEAR(grad2[3][2], grad1[3][2], eps);
+    }
 }
 
 int main(int argc, char *argv[])
