@@ -206,19 +206,23 @@ def main(argv):
 				break
 			elif not (line.strip()==""):
 				vfield.append(map(float,line.split()))
-
 	
-	headerinfo = [int(i) for i in headerinfo]
 	vfield = np.flipud(np.asarray(vfield))
 	shapeinfo = vfield.shape
-	if (headerinfo[0] == shapeinfo[0]) and (headerinfo[-1]*2 == shapeinfo[1]):
-		print "Columns reported and header information internally consistent. Continuing with analysis."
-	else:
-		print "WARNING! Header information does not match column information."
+	headerfound = 0
+	try:
+		headerinfo = [int(i) for i in headerinfo]
+		headerfound = 1
+		if (headerinfo[0] == shapeinfo[0]) and (headerinfo[-1]*2 == shapeinfo[1]):
+			print "Columns reported and header information internally consistent. Continuing with analysis."
+		else:
+			print "WARNING! Header information does not match column information. Continuing with analysis, but there may be errors."
+	except NameError:
+		print "Header not found. Proceeding with analysis, but the file read in is likely not created by ABF directly. Proceed with caution."
 
 
 	if shapeinfo[1] == 2:
-		print "Two columns detected in input, which translates to a 1-dimensional grid of "+str(shapeinfo[0])+ "points."
+		print "Two columns detected in input, which translates to a 1-dimensional grid of "+str(shapeinfo[0])+ " points."
 
 		if interpolate == 0:
 			A=np.zeros((vfield.shape[0],vfield.shape[0]))
@@ -270,13 +274,21 @@ def main(argv):
 	
 	elif shapeinfo[1] == 4:
 		print "Four columns detected in input, which translates to a 2-dimensional grid of "+str(shapeinfo[0])+" points."
-		print "CV1 number of bins is "+str(headerinfo[1])
-		nx = headerinfo[1]
-		print"CV2 number of bins is "+str(headerinfo[2])
-		ny = headerinfo[2]
+		if(headerfound):
+			print "CV1 number of bins is "+str(headerinfo[1])
+			nx = headerinfo[1]
+			print"CV2 number of bins is "+str(headerinfo[2])
+			ny = headerinfo[2]
+		
+		else:
+			print "Since header is missing, cannot read in CV dimensions."
+			nx = input("Please enter CV1 number of bins:")
+			ny = input("Please enter CV2 number of bins:")	
+
 		if not shapeinfo[0] == (nx*ny):
 			print("np.ndim of input file (",shapeinfo[0],") does not match given CV bin dimensions of ",nx," x ",ny," = ",nx*ny)
 			exit()
+		
 
 		boundx = [vfield[0,0],vfield[-1,0]]
 		boundy = [vfield[0,1],vfield[-1,1]]
