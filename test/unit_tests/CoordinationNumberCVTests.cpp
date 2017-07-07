@@ -1,7 +1,8 @@
 #include "../src/CVs/CoordinationNumberCV.h"
 #include "../src/Snapshot.h"
 #include "gtest/gtest.h"
-#include <boost/mpi.hpp>
+#include <mxx/env.hpp>
+#include <mxx/comm.hpp>
 
 using namespace SSAGES;
 
@@ -93,7 +94,7 @@ protected:
 
     Snapshot* snapshot; 
     CoordinationNumberCV *cv1, *cv2;
-    boost::mpi::communicator comm;
+    mxx::comm comm;
 };
 
 TEST_F(CoordinationNumberCVTest, DefaultBehavior)
@@ -147,7 +148,7 @@ TEST_F(CoordinationNumberCVTest, DefaultBehavior)
 int main(int argc, char *argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
-    boost::mpi::environment env(argc,argv);
+    mxx::env env(argc,argv);
     int ret = RUN_ALL_TESTS();
     return ret;
 }

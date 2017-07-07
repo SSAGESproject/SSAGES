@@ -1,7 +1,8 @@
-#include "../src/CVs/MockCV.h"
-#include "../src/Snapshot.h"
+#include "CVs/MockCV.h"
+#include "Snapshot.h"
 #include "gtest/gtest.h"
-#include <boost/mpi.hpp>
+#include <mxx/env.hpp>
+#include <mxx/comm.hpp>
 
 using namespace SSAGES;
 
@@ -48,7 +49,7 @@ protected:
     MockCV* mocktest2;
 
     // Initialize atoms and CV.
-    boost::mpi::communicator comm;
+    mxx::comm comm;
 
     Snapshot* snapshot1;
 
@@ -83,4 +84,12 @@ TEST_F(MockCVTest, DefaultBehavior)
     EXPECT_NEAR(bounds[1], 10.1, 1E-8);
     EXPECT_NEAR(bounds2[0], 6.3, 1E-8);
     EXPECT_NEAR(bounds2[1], 11.2, 1E-8);
+}
+
+int main(int argc, char *argv[])
+{
+    ::testing::InitGoogleTest(&argc, argv);
+    mxx::env env(argc,argv);
+    int ret = RUN_ALL_TESTS();
+    return ret;
 }

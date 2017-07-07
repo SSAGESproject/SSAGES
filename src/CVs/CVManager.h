@@ -60,6 +60,17 @@ namespace SSAGES
 				cvs_.push_back(cv);
 		}
 
+		//! Clears CVs from CV manager. 
+		/*
+		 * \note This destroys all CVs stored in the CV manager!
+		 */ 
+		void ClearCVs()
+		{
+			for(auto& cv : cvs_)
+            	delete cv;
+			cvs_.clear();
+		}
+
 		//! Get CV iterator. 
 		 /* 
 		  * \param mask Vector mask which contains the indices of

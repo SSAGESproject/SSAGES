@@ -1,11 +1,12 @@
 #include "gtest/gtest.h"
-#include <boost/mpi.hpp>
-
-#include "../src/Snapshot.h"
+#include <mxx/env.hpp>
+#include <mxx/comm.hpp>
+#include "Snapshot.h"
 #define private public
 #define protected public
-#include "../src/Methods/ABF.h"
-#include "../src/CVs/MockCV.h"
+#include "CVs/CVManager.h"
+#include "Methods/ABF.h"
+#include "CVs/MockCV.h"
 
 using namespace SSAGES;
 
@@ -26,9 +27,9 @@ protected:
 		CV2 = new MockCV(0.5,{0,1,0},-2,2); // In bounds.
 		CV3 = new MockCV(-2,{0,0,1},-2,2); // Out of bounds.
 
-		cvlist.push_back(CV1);
-		cvlist.push_back(CV2);
-		cvlist.push_back(CV3);	
+		cvmanager.AddCV(CV1);
+		cvmanager.AddCV(CV2);
+		cvmanager.AddCV(CV3);
 
 		// Set up three timepoints.
 		snapshot1 = new Snapshot(comm, 0);
@@ -108,7 +109,7 @@ protected:
 		std::vector<std::vector<double>> restraint;
 		std::vector<bool> isperiodic;
 		std::vector<std::vector<double>> periodicboundaries;
-		for(size_t i=0; i<cvlist.size(); ++i)
+		for(size_t i=0; i < 3; ++i)
 		{
 			std::vector<double> temp1 = {-1, 1, 2};
 			std::vector<double> temp2 = {-1.5, 1.5, 10};
@@ -139,15 +140,11 @@ protected:
 		delete snapshot2;
 		delete snapshot3;
 
-		delete CV1;
-		delete CV2;
-		delete CV3;
-
 		delete Method;
 	}
 
-	boost::mpi::communicator world;
-	boost::mpi::communicator comm;
+	mxx::comm world;
+	mxx::comm comm;
 
 	Snapshot* snapshot1;
 	Snapshot* snapshot2;
@@ -159,7 +156,7 @@ protected:
 
 	ABF* Method;	
 
-	CVList cvlist;
+	CVManager cvmanager;
 };
 
 TEST_F(ABFTest,Initialization)
@@ -170,12 +167,10 @@ TEST_F(ABFTest,Initialization)
 	CV3->MockCV::Initialize(*snapshot1);
 
 	// Initialize Method.
-	Method->ABF::PreSimulation(snapshot1, cvlist);
+	Method->ABF::PreSimulation(snapshot1, cvmanager);
 
 	// Test dimensionality is correct.
-	EXPECT_TRUE(Method->ncv_ == 3);
-	int dim = Method->ncv_;
-
+	int dim = 3;
 	// Check for correct initialization.
 	EXPECT_TRUE(Method->_N.size() == 8);
 	EXPECT_TRUE(Method->_F.size() == 24);
@@ -188,11 +183,10 @@ TEST_F(ABFTest,Initialization)
 		EXPECT_TRUE(Method->_F[dim*i+1] == 0);
 		EXPECT_TRUE(Method->_F[dim*i+2] == 0);
 	}
-
 }
 TEST_F(ABFTest,Getters_Setters)
 {
-	Method->ABF::PreSimulation(snapshot1, cvlist);
+	Method->ABF::PreSimulation(snapshot1, cvmanager);
 
 	// Check Setters
 	Eigen::VectorXd F(2);
@@ -211,11 +205,11 @@ TEST_F(ABFTest,CV_outofboundscheck)
 	CV3->MockCV::Initialize(*snapshot1);
 
 	// Initialize Method.
-	Method->ABF::PreSimulation(snapshot1, cvlist);
-	int dim = Method->ncv_;
+	Method->ABF::PreSimulation(snapshot1, cvmanager);
+	int dim = 3;
 	
 	// Take one MD step.
-	Method->ABF::PostIntegration(snapshot1, cvlist);
+	Method->ABF::PostIntegration(snapshot1, cvmanager);
 
 	// Test whether bound checking works. There should be no hits as 3rd CV was out of bounds.
 	for(size_t i = 0; i < (Method->_N).size() ; ++i)
@@ -241,18 +235,18 @@ TEST_F(ABFTest,MD_steps_inboundscheck)
 	CV3->MockCV::Initialize(*snapshot1);
 
 	// Initialize Method.
-	Method->ABF::PreSimulation(snapshot1, cvlist);
-	int dim = Method->ncv_;	
+	Method->ABF::PreSimulation(snapshot1, cvmanager);
+	int dim = 3;	
 	
 	// Take an MD step (Out of bounds).
-	Method->ABF::PostIntegration(snapshot1, cvlist);
+	Method->ABF::PostIntegration(snapshot1, cvmanager);
 
 	// Put CVs in bound.
 	CV3->val_ = -1;
 
 	// Take two more MD steps (in bounds).
-	Method->ABF::PostIntegration(snapshot2, cvlist);
-	Method->ABF::PostIntegration(snapshot3, cvlist);
+	Method->ABF::PostIntegration(snapshot2, cvmanager);
+	Method->ABF::PostIntegration(snapshot3, cvmanager);
 
 	// Check that hits are recorded correctly
 	EXPECT_TRUE(Method->_N[2] == 2);
@@ -275,7 +269,7 @@ TEST_F(ABFTest,MD_steps_inboundscheck)
 int main(int argc, char *argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
-     boost::mpi::environment env(argc,argv);
+    mxx::env env(argc,argv);
     int ret = RUN_ALL_TESTS();
 
     return ret;
