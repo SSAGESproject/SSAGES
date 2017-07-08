@@ -1,0 +1,4 @@
+.. _cvs:
+
+Collective Variables
+====================

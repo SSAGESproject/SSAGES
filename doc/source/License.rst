@@ -3,7 +3,7 @@
 Copyright
 =========
 
-SSAGES Copyright 2016 University of Chicago, University of Notre Dame. All Rights Reserved. 
+SSAGES Copyright 2017 University of Chicago, University of Notre Dame. All Rights Reserved. 
 
 License information
 ===================
@@ -19,18 +19,3 @@ This means you are free to share and adapt the documentation as long as you give
 credit to the original authors and release your derivative work under the same
 license. The full license can be found `here
 <https://creativecommons.org/licenses/by-sa/4.0/legalcode>`_.
-
-Contributors to the documentation (in alphabetical order):
-
-* Cody Bezik
-* Yamil J. Colón
-* Grant Garner
-* Ashley Guo
-* Julian Helfferich
-* Joshua Lequieu
-* Jiyuan Li
-* Joshua Moller
-* Hadi Ramezani-Dakhel
-* Ben Sikora
-* Emre Sevgen
-* Hythem Sidky
