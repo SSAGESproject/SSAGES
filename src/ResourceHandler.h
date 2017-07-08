@@ -49,6 +49,9 @@ namespace SSAGES
 		//! Walker ID for specific driver. 
 		uint walkerid_; 
 
+		//! Number of walkers.
+		uint nwalkers_;
+
 		//! Snapshot of system state (pointer). 
 		class Snapshot* snapshot_;
 
@@ -107,6 +110,11 @@ namespace SSAGES
 		uint GetWalkerID() const
 		{
 			return walkerid_;
+		}
+
+		uint GetNumWalkers() const 
+		{
+			return nwalkers_;
 		}
 
 		void ConfigureHook(class Hook* hook);
