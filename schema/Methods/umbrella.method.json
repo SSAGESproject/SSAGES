@@ -42,19 +42,19 @@
 			"type" : "integer",
 			"minimum" : 1
 		},
-		"file name" :{
+		"file_name" :{
 			"type" : "string"
 		},
 		"iteration" : {
 			"type" : "integer"
 		},
-		"log every" : {
+		"log_every" : {
 			"type" : "integer"
 		},
 		"cvs" : {
 			"type" : "array"
 		}
 	},
-	"required": ["type", "ksprings", "file name"],
+	"required": ["type", "ksprings", "file_name"],
 	"additionalProperties": false
 }

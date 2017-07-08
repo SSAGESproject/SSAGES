@@ -130,7 +130,7 @@ namespace SSAGES
 
 		auto freq = json.get("frequency", 1).asInt();
 
-		auto name = json.get("file name","none").asString();
+		auto name = json.get("file_name","none").asString();
 
 		Umbrella* m = nullptr;
 		if(timesteps == 0)
@@ -138,8 +138,8 @@ namespace SSAGES
 		else
 			m = new Umbrella(world, comm, ksprings, centers0, centers1, timesteps, name, freq);
 
-		if(json.isMember("log every"))
-			m->SetLogStep(json.get("log every",0).asInt());
+		if(json.isMember("log_every"))
+			m->SetLogStep(json.get("log_every",0).asInt());
 		
 		return m;
 	}
@@ -166,8 +166,8 @@ namespace SSAGES
 				json["centers"].append(c);
 		}
 
-		json["file name"] = filename_;
-		json["log every"] = logevery_;
+		json["file_name"] = filename_;
+		json["log_every"] = logevery_;
 	}
 
 
