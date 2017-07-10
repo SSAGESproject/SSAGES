@@ -20,10 +20,14 @@
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "CollectiveVariable.h"
+#include "AlphaRMSDCV.h"
 #include "AngleCV.h"
+#include "AntiBetaRMSDCV.h"
 #include "BoxVolumeCV.h"
 #include "CoordinationNumberCV.h"
 #include "GyrationTensorCV.h"
+#include "NearestNeighborsCV.h"
+#include "ParallelBetaRMSDCV.h"
 #include "ParticleCoordinateCV.h"
 #include "ParticlePositionCV.h"
 #include "ParticleSeparationCV.h"
@@ -47,6 +51,8 @@ namespace SSAGES
 			return CoordinationNumberCV::Build(json, path);
 		else if(type == "GyrationTensor")
 			return GyrationTensorCV::Build(json, path);
+		else if(type == "NearestNeighbors")
+			return NearestNeighborsCV::Build(json, path);
 		else if(type == "ParticleCoordinate")
 			return ParticleCoordinateCV::Build(json, path);
 		else if(type == "ParticlePosition")
@@ -57,6 +63,12 @@ namespace SSAGES
 			return RouseModeCV::Build(json, path);
 		else if(type == "Torsional")
 			return TorsionalCV::Build(json, path);
+		else if (type == "AlphaRMSD")
+			return AlphaRMSDCV::Build(json, path);
+		else if (type == "ParallelBetaRMSD")
+			return ParallelBetaRMSDCV::Build(json, path);
+		else if (type == "AntiBetaRMSD")
+			return AntiBetaRMSDCV::Build(json, path);
 		else
 			throw std::invalid_argument(path + ": Unknown CV type specified.");
 	}

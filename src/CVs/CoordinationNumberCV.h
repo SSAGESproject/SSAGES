@@ -18,7 +18,7 @@
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
 
- #pragma once 
+#pragma once 
 
 #include "CVs/CollectiveVariable.h"
 #include "Validator/ObjectRequirement.h"
