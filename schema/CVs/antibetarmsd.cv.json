@@ -2,7 +2,7 @@
 	"type" : "object",
 	"varname" : "AntiBetaRMSDCV",
 	"properties" : {
-		"type" : { 
+		"type" : {
 			"type" : "string",
 			"enum" : ["AntiBetaRMSD"]
 		},
@@ -18,6 +18,9 @@
 		},
 		"mode" : {
 			"type" : "integer"
+		},
+		"name" :{
+			"type" : "string"
 		}
 	},
 	"required": ["type", "reference", "residue_ids", "mode"],
