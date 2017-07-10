@@ -211,7 +211,7 @@ namespace SSAGES
 			std::vector<int> resids;
 			for(auto& s : json["residue_ids"])
 				resids.push_back(s.asInt());
-			auto reference = json.get("reference", " ").asString();
+			auto reference = json["reference"].asString();
 
 			double unitconv = json.get("length_unit", 1).asDouble();
 
