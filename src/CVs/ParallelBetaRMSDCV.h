@@ -26,6 +26,7 @@
 #include "Snapshot.h"
 #include "schema.h"
 #include "Utility/ReadBackbone.h"
+#include <stdexcept>
 
 namespace SSAGES
 {
@@ -74,18 +75,15 @@ namespace SSAGES
 		resids_(resids), refpdb_(refpdb), unitconv_(unitconv), mode_(mode)
 		{
 			if(resids_.size() != 2 ){
-				std::cout << "ParallelBetaRMSDCV: Input must designate range of residues with 2 residue numbers." << std::endl;
-				exit(0);
+				throw std::invalid_argument("ParallelBetaRMSDCV: Input must designate range of residues with 2 residue numbers.");
 			}
 
 			resids_.clear();
 
 			if(resids[0] >= resids[1]){
-				std::cout << "ParallelBetaRMSDCV: Input must list lower residue index first: please reverse residue range." << std::endl;
-				exit(0);
+				throw std::invalid_argument("ParallelBetaRMSDCV: Input must list lower residue index first: please reverse residue range.");
 			} else if(resids[1] - resids[0] < 5) {
-				std::cout << "ParallelBetaRMSDCV: Residue range must span at least 6 residues for secondary structure calculation." << std::endl;
-				exit(0);
+				throw std::invalid_argument("ParallelBetaRMSDCV: Residue range must span at least 6 residues for secondary structure calculation.");
 			}
 
 			std::cout << "ParallelBetaRMSDCV: Calculating parallel beta sheet character from residue " << resids[0] << " to " << resids[1]  << "." << std::endl;
