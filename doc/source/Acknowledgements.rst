@@ -22,7 +22,7 @@ Project Leads
 * Hythem Sidky
 
 Core Development
------------------------
+----------------
 
 * Julian Helfferich
 * Hythem Sidky
@@ -64,7 +64,7 @@ Documentation
 * Hythem Sidky
 
 Engine Adapters
-------------
+---------------
 
 * Emre Sevgen
 * Hythem Sidky

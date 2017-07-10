@@ -23,14 +23,8 @@
 
 #include "Drivers/DriverException.h"
 #include "GridBase.h"
-#include "JSON/Serializable.h"
 #include "schema.h"
 #include "Validator/ObjectRequirement.h"
-
-// Forward declare.
-namespace Json {
-    class Value;
-}
 
 namespace SSAGES
 {
@@ -221,15 +215,6 @@ public:
         Histogram<T>* hist = new Histogram(number_points, lower, upper, isPeriodic);
 
         return hist;
-    }
-
-    //! \copydoc Serializable::Serialize()
-    /*!
-     * \warning Serialization not yet implemented.
-     */
-    void Serialize(Json::Value& json) const override
-    {
-
     }
 
     //! Custom Iterator
