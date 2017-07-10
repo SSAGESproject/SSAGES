@@ -22,7 +22,8 @@ set  (UNIT_TESTS "ParticlePositionCVTests"
                  "GyrationTensorCVTests"
                  "RouseModeCVTests"
                  "CoordinationNumberCVTests"
-                 "NearestNeighborsCVTests")
+                 "NearestNeighborsCVTests"
+                 "GridTests")
 
 set (INTEGRATION_TESTS "Meta_Single_Atom_Test"
                        "Basis_ADP_Test")

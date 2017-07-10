@@ -1,5 +1,7 @@
 #include "../src/Snapshot.h"
 #include "gtest/gtest.h"
+#include <mxx/env.hpp>
+#include <mxx/comm.hpp>
 
 using namespace SSAGES;
 
@@ -9,7 +11,7 @@ constexpr double eps = 1e-10;
 class COMTest : public ::testing::Test
 {
 protected:
-	boost::mpi::communicator comm;
+	mxx::comm comm;
 
     // Snapshots.
 	std::shared_ptr<Snapshot> cubic;
@@ -93,7 +95,7 @@ TEST_F(COMTest, ZeroCOMTest)
 int main(int argc, char *argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
-     boost::mpi::environment env(argc,argv);
+    mxx::env env(argc, argv);
     int ret = RUN_ALL_TESTS();
 
     return ret;

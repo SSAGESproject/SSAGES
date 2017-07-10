@@ -57,6 +57,7 @@ set(SOURCE
 #	src/Simulations/SimObserver.cpp
 #	src/Simulations/SimObservable.cpp
 	src/JSON/jsoncpp.cpp
+	src/Utility/SwitchingFunction.cpp
 	src/Hook.cpp
 	src/ResourceHandler.cpp
 )
@@ -83,6 +84,8 @@ elseif(QBOX)
 	add_subdirectory(hooks/qbox/)
 elseif(OPENMD_SRC)
 	add_subdirectory(hooks/openmd/)
+else() 
+	message( FATAL_ERROR "You cannot build SSAGES without specifying an engine." )
 endif()
 
 ################### END MD ENGINES ######################

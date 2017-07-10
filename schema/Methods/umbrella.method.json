@@ -42,19 +42,34 @@
 			"type" : "integer",
 			"minimum" : 1
 		},
-		"file_name" :{
-			"type" : "string"
+		"output_file" :{
+			"oneOf" : [
+				{
+					"type" : "string"
+				}, 
+				{
+					"type" : "array", 
+					"minItems" : 1, 
+					"items" : {
+						"type" : "string"
+					}
+				}
+			]
 		},
 		"iteration" : {
 			"type" : "integer"
 		},
-		"log_every" : {
-			"type" : "integer"
+		"output_frequency" : {
+			"type" : "integer",
+			"minimum" : 1
 		},
 		"cvs" : {
 			"type" : "array"
+		},
+		"append" : {
+			"type" : "boolean"
 		}
 	},
-	"required": ["type", "ksprings", "file_name"],
+	"required": ["type", "ksprings", "output_file"],
 	"additionalProperties": false
 }

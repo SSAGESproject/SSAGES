@@ -34,8 +34,8 @@ namespace SSAGES
 	ResourceHandler::ResourceHandler(
 		mxx::comm&& world, mxx::comm&& comm, uint walkerid,
 		const std::vector<Method*>& methods, CVManager* cvmanager) : 
-	world_(std::move(world)), comm_(std::move(comm)), walkerid_(walkerid), methods_(methods), 
-	cvmanager_(cvmanager), hook_(nullptr), inputs_(0)
+	world_(std::move(world)), comm_(std::move(comm)), walkerid_(walkerid), nwalkers_(1), 
+	methods_(methods), cvmanager_(cvmanager), hook_(nullptr), inputs_(0)
 	{
 		snapshot_ = new Snapshot(comm_, walkerid);
 	}
@@ -89,18 +89,28 @@ namespace SSAGES
 		int walkerid = wcomm.rank()/ppw;
 		auto comm = wcomm.split(walkerid);
 
+		// Build collective variables. 
+		auto* cvmanager = new CVManager();
+		int icv = 0;
+		for(auto& cv : json["CVs"])
+		{
+			// Register name with CV manager if it exists.
+			if(cv.isMember("name"))
+				CVManager::AddCVtoMap(cv["name"].asString(), icv);
+
+			// Build CV and add to manager.
+			cvmanager->AddCV(CollectiveVariable::BuildCV(cv, "#/CVs"));
+			++icv;
+		}
+
 		// Build methods. 
 		std::vector<Method*> methods; 
 		for(auto& m : json["methods"])
 			methods.push_back(Method::BuildMethod(m, world, comm, "#/methods"));
-
-		// Build collective variables. 
-		auto* cvmanager = new CVManager();
-		for(auto& cv : json["CVs"])
-			cvmanager->AddCV(CollectiveVariable::BuildCV(cv, "#/CVs"));
 		
 		auto* rh = new ResourceHandler(std::move(world), std::move(comm), walkerid, methods, cvmanager);
 		rh->inputs_ = inputs;
+		rh->nwalkers_ = nwalkers;
 		return rh;
 	}
 	

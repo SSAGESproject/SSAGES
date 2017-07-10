@@ -1,9 +1,10 @@
-#include "../src/CVs/RMSDCV.h"
-#include "../src/Snapshot.h"
+#include "gtest/gtest.h"
+#include "CVs/RMSDCV.h"
+#include "Snapshot.h"
 #include <iostream>
 #include <fstream>
-#include "gtest/gtest.h"
-#include <boost/mpi.hpp>
+#include <mxx/env.hpp>
+#include <mxx/comm.hpp>
 
 using namespace SSAGES;
 
@@ -84,7 +85,7 @@ protected:
     RMSDCV *normal_RMSD;
     RMSDCV *no_range_RMSD;
 
-    boost::mpi::communicator comm;
+    mxx::comm comm;
 
     Snapshot *snapshot1;
 };
@@ -113,6 +114,7 @@ TEST_F(RMSDCVTest, BadRange)
 int main(int argc, char *argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
+    mxx::env env(argc,argv);
     int ret = RUN_ALL_TESTS();
     return ret;
 }

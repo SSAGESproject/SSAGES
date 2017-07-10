@@ -1,6 +1,7 @@
 # List of supported versions of Gromacs
 set (SUPPORTED_GROMACS_VERSIONS "5.1.2"
-                                "5.1.3")
+                                "5.1.3"
+                                "2016.3")
 
 set(DGMX_BUILD_OWN_FFTW OFF CACHE BOOL "Let Gromacs build its own libfftw.")
 
@@ -43,6 +44,8 @@ if (GROMACS_SRC)
     # Set the appropriate patch.
     if(GROMACS_VERSION MATCHES "^5.1.[0-9]+$")
         set(GMX_PATCH "gmx_diff_5.1.x.patch")
+    elseif(GROMACS_VERSION MATCHES "^2016.3$")
+        set(GMX_PATCH "gmx_diff_2016.3.patch")
     else()
         message(WARNING "\nWARNING: Could not find Gromacs version specific patch. "
                            "Attempting to use generic one.")

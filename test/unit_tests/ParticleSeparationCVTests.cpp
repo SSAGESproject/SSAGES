@@ -3,7 +3,8 @@
 #include <iostream>
 #include <fstream>
 #include "gtest/gtest.h"
-#include <boost/mpi.hpp>
+#include <mxx/env.hpp>
+#include <mxx/comm.hpp>
 
 using namespace SSAGES;
 
@@ -84,7 +85,7 @@ protected:
 
     ParticleSeparationCV *COMDist, *COMDistXY;
 
-    boost::mpi::communicator comm;
+    mxx::comm comm;
 
     Snapshot *snapshot1;
 };
@@ -108,7 +109,7 @@ TEST_F(ParticleSeparationCVTests, compareCOMDistXY)
 int main(int argc, char *argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
-    boost::mpi::environment env(argc,argv);
+    mxx::env env(argc,argv);
     int ret = RUN_ALL_TESTS();
     return ret;
 }

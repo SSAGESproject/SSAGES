@@ -46,6 +46,9 @@
 					"type" : "integer"
 				}
 			}
+		}, 
+		"name" : {
+			"type" : "string"
 		}
 	},
 	"required" : ["type", "group1", "group2", "switching"],

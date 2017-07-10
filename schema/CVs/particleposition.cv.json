@@ -37,6 +37,9 @@
 			"items" : {
 				"type" : "number"
 			}
+		}, 
+		"name" : {
+			"type" : "string"
 		}
 	},
 	"required" : ["type", "atom_ids", "position", "fix"],

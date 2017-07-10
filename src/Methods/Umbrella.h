@@ -44,14 +44,17 @@ namespace SSAGES
 		//! Amount of time over which to scale centers.
 		int time_;
 
-		//! File name
+		//! Output filename.
 		std::string filename_;
 
-		//! Log every n time steps
-		int logevery_;
+		//! Frequency of outputting data.
+		int outfreq_;
 
 		//! Output stream for umbrella data.
 		std::ofstream umbrella_;
+
+		//! Append to output files?
+		bool append_; 
 
 		double GetCurrentCenter(int iteration, unsigned i)
 		{
@@ -90,7 +93,7 @@ namespace SSAGES
 				 std::string name,
 				 unsigned int frequency) : 
 		Method(frequency, world, comm), kspring_(kspring), centers0_(centers),
-		centers1_(centers), time_(0), filename_(name), logevery_(1)
+		centers1_(centers), time_(0), filename_(name), outfreq_(1), append_(false)
 		{
 		}
 
@@ -118,7 +121,7 @@ namespace SSAGES
 				 std::string name,
 				 unsigned int frequency) : 
 		Method(frequency, world, comm), kspring_(kspring), centers0_(centers0),
-		centers1_(centers1), time_(timesteps), filename_(name), logevery_(1)
+		centers1_(centers1), time_(timesteps), filename_(name), outfreq_(1)
 		{
 		}
 
@@ -143,13 +146,22 @@ namespace SSAGES
 		 */
 		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
-		//! Set how often to log
+		//! Set output frequency.
 		/*!
-		 * \param iter New value for logging interval.
+		 * \param iter New value for output frequency.
 		 */
-		void SetLogStep(const int iter)
+		void SetOutputFrequency(int outfreq)
 		{
-			logevery_ = iter;
+			outfreq_ = outfreq;
+		}
+
+		//! Set append mode. 
+		/*!
+		 * \param append Whether to enable or disable append mode. 
+		 */
+		void SetAppend(bool append)
+		{
+			append_ = append;
 		}
 
 		//! \copydoc Buildable::Build()

@@ -41,11 +41,16 @@ centers (required)
 ksprings (required)
 	Array of spring constants for each CV 
 
-file name (required)
-	Output file name for umbrella sampling data
+output_file (required)
+	Output file name for umbrella sampling data. This can be a string or 
+	an array of strings for multiple walkers.
 
-log every (optional)
+output_frequency (optional)
 	Frequency of writing to output file (default: 1)
+
+append (optional)
+	Boolean value which will cause umbrella sampling to either append to 
+	an existing file or override it entirely. 
 
 The umbrella sampling method can also be run with time dependent centers. 
 This is equivalent to the "steered MD" method. To do so, omit `"centers"` 

@@ -3,7 +3,7 @@
 Getting Started
 ===============
 
-Pre-Reqisites
+Prerequisites
 -------------
 
 Before you try to build SSAGES, make sure that you have the following packages
@@ -14,8 +14,6 @@ installed:
 +============+==================+===================================+
 | `openmpi`_ | 1.8 or higher    | openmpi-common, libopenmpi-dev    |
 +------------+------------------+-----------------------------------+
-| `boost`_   | 1.58 or higher   | libboost-dev                      |
-+------------+------------------+-----------------------------------+
 | `gcc`_     | 4.9 or higher    | gcc-4.9                           |
 +------------+------------------+-----------------------------------+
 | `cmake`_   | 2.8 or higher    | cmake                             |
@@ -24,7 +22,6 @@ installed:
 +------------+------------------+-----------------------------------+
 
 .. _openmpi: https://www.open-mpi.org/
-.. _boost: http://www.boost.org/
 .. _gcc: https://gcc.gnu.org/
 .. _cmake: https://cmake.org/
 .. _python: https://www.python.org/
@@ -38,20 +35,23 @@ as it allows you to easily stay up-to-date with the latest version.
 
 To clone the git repository, call
 
-```
-git clone https://github.com/MICCoM/SSAGES-public.git
-```
+.. code-block:: bash
+
+    git clone https://github.com/MICCoM/SSAGES-public.git
 
 Build SSAGES
 ------------
 
-SSAGES currently works with two simulation engines: LAMMPS and Gromacs (we are
-striving to add more simulation engines soon). To build SSAGES with LAMMPS,
-you can use
+SSAGES supports a number of simulation engines including LAMMPS and Gromacs.
+It is possible to have SSAGES auto-download the source codes for LAMMPS and Gromacs.
+This is done by providing the option ``-DLAMMPS=YES`` for LAMMPS and ``-DGROMACS=YES`` for 
+Gromacs to Cmake. However, in many cases it will be necessary to build SSAGES using 
+your local copy of the MD engine source code. For example, if you have modified it 
+to fit a special need LAMMPS or Gromacs does not support natively.
 
 .. code-block:: bash
 
-    mkdir build/\n`
+    mkdir build/
     cd build/
     cmake .. -DLAMMPS=YES
     make
@@ -60,12 +60,12 @@ or
 
 .. code-block:: bash
 
-    mkdir build/\n`
+    mkdir build/
     cd build/
     cmake .. -DGROMACS=YES
     make
 
-This set of commands will automatically download LAMMPS and build it together
+This set of commands will automatically download LAMMPS/Gromacs and build it together
 with SSAGES. Alternatively, you can :ref:`build SSAGES using a local copy of the
 MD engine source code <build_ssages_with_local_md_source>`.
 
@@ -94,10 +94,10 @@ For example:
 
 .. code-block:: bash
     
-    mpiexec -np 6 ./ssages Test.json
+    mpiexec -np 6 ./ssages input.json
 
-Where the `-np` flag dictates the total number of processors you need and Test.json
-is the input file. For specific examples please see the :ref:`Tutorials <tutorials>`.
+Where the `-np` flag dictates the total number of processors you need and input.json
+is the input file. For a description of the input file click :ref:`here <inputfiles>`.
 
 More information on how to run SSAGES with a specific simulation engine can be found
 here:

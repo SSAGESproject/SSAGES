@@ -42,7 +42,9 @@ Contents:
 
    Introduction
    Getting Started
-   Tutorials
+   Input Files
+   Engines
+   Collective Variables
    Advanced Sampling Methods
    Write your own Methods and CVs
    Contribute to SSAGES

@@ -1,14 +1,14 @@
 #include "gtest/gtest.h"
-#include <boost/mpi.hpp>
-
-#include "../src/Snapshot.h"
-
+#include <mxx/env.hpp>
+#include <mxx/comm.hpp>
+#include "Snapshot.h"
 
 #define private public
 #define protected public 
 
-#include "../src/Methods/FiniteTempString.h"
-#include "../src/CVs/MockCV.h"
+#include "CVs/CVManager.h"
+#include "Methods/FiniteTempString.h"
+#include "CVs/MockCV.h"
 
 using namespace SSAGES;
 
@@ -28,8 +28,8 @@ protected:
 		CV1 = new MockCV(-0.5,{1,0,0},-2,2); 
 		CV2 = new MockCV(-0.5,{0,1,0},-2,2);
 
-		cvlist.push_back(CV1);
-		cvlist.push_back(CV2);
+		cvmanager.AddCV(CV1);
+		cvmanager.AddCV(CV2);
 
         mpiid = world.rank();
 
@@ -56,14 +56,11 @@ protected:
 
 	virtual void TearDown() 
 	{
-		delete CV1;
-		delete CV2;
-
 		delete FTS_Method;
 	}
 
-    boost::mpi::communicator world;
-    boost::mpi::communicator comm = world.split(world.rank() < 4 ? world.rank() : 5);
+    mxx::comm world;
+    mxx::comm comm = world.split(world.rank() < 4 ? world.rank() : 5);
     
     unsigned int mpiid;
 	std::vector<double> centers_;
@@ -73,7 +70,7 @@ protected:
 	MockCV* CV1;
 	MockCV* CV2;
 
-	CVList cvlist;
+	CVManager cvmanager;
     
 	FiniteTempString* FTS_Method;
 };
@@ -92,9 +89,9 @@ TEST_F(FTSTest,dummytest)
 	/* Test FTS_Method->InCell(cvlist)
 	 * Check if current CVs is within current Voronoi cell, as defined by centers in worldstring_ */
 	if(mpiid == 0){
-		EXPECT_TRUE(FTS_Method->InCell(cvlist)) << "ERROR: CVs are within cell but InCell() returns false";
+		EXPECT_TRUE(FTS_Method->InCell(cvmanager.GetCVs())) << "ERROR: CVs are within cell but InCell() returns false";
 	} else {
-		EXPECT_FALSE(FTS_Method->InCell(cvlist)) << "ERROR: CVs are out of cell but InCell() returns true";
+		EXPECT_FALSE(FTS_Method->InCell(cvmanager.GetCVs())) << "ERROR: CVs are out of cell but InCell() returns true";
 	}
 
 	/* Test FTS_Method->StringUpdate()

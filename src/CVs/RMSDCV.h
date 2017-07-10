@@ -21,6 +21,7 @@
 
 #pragma once 
 
+#include "Snapshot.h"
 #include "CollectiveVariable.h"
 #include "../Utility/ReadFile.h"
 #include <array>

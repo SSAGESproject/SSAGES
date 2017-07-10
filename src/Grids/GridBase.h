@@ -35,7 +35,7 @@ namespace SSAGES
  * \ingroup Core
  */
 template<typename T>
-class GridBase : public Serializable
+class GridBase
 {
 protected:
     //! Internal storage of the data
@@ -650,16 +650,6 @@ public:
     {
         return at(x);
     }
-
-    //! \copydoc Serializable::Serialize()
-    /*!
-     * \warning Serialization not yet implemented.
-     */
-    virtual void Serialize(Json::Value& json) const override
-    {
-
-    }
-
 };
 
 } // End namespace SSAGES
