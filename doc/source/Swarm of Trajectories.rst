@@ -90,10 +90,10 @@ schema (for parameters common to all string methods) as well as the
 Observer schema (for restarts). The options unique to Swarm are:
 
 initial_steps
-   For each iteration of the method, this is the number of steps to spend
-doing restrained sampling and not harvesting trajectories. This time is
-important to ensure the underlying molecular system’s CV values are
-close to the string CV values.
+    For each iteration of the method, this is the number of steps to spend
+    doing restrained sampling and not harvesting trajectories. This time is
+    important to ensure the underlying molecular system’s CV values are
+    close to the string CV values.
 
 harvest_length
    After the initial restraining is finished, a trajectory is harvested for later use in launching an unrestrained trajectory every so often - harvest length specifies how often this will be done. Harvest length multiplied by number of trajectories (see below) will determine overall how many more steps will be taken under restrained sampling.
@@ -107,48 +107,34 @@ swarm_length
 From the String schema, the options are:
 
 type
-   This parameter identifies that a String-type method is being used, and
-thus should be set to “String”
+    This parameter identifies that a String-type method is being used, and
+    thus should be set to “String”
 
 flavor
-   This parameter identifies the specific kind of string-type method
-being used; for swarm, it should be set to “Swarm”.
+    This parameter identifies the specific kind of string-type method
+    being used; for swarm, it should be set to “Swarm”.
 
 centers
-   For each driver, the initial values of each CV should be specified as
-a list under “centers”. In this way, the initial string is defined.
+    For each driver, the initial values of each CV should be specified as
+    a list under “centers”. In this way, the initial string is defined.
 
 tolerance
-   This is a tolerance threshold that can be set to trigger the end of
-the method; it is a percentage by which, if no node CV changes by this
-percentage, the method will end. It must be specified as an array with
-one entry for each CV desired.
+    This is a tolerance threshold that can be set to trigger the end of
+    the method; it is a percentage by which, if no node CV changes by this
+    percentage, the method will end. It must be specified as an array with
+    one entry for each CV desired.
 
 max_iterations
-   A complementary stopping criterion can be specified; the method will
-stop if it undergoes this many iterations of the string method.
+    A complementary stopping criterion can be specified; the method will
+    stop if it undergoes this many iterations of the string method.
 
 ksprings
-   A unique spring constant must be defined for each CV; its purpose is
-described above.
+    A unique spring constant must be defined for each CV; its purpose is
+    described above.
 
 frequency
-   The frequency of each integration step. This should almost always be
-set to 1.
-
-From the Observer schema, the options are:
-
-type
-   This can currently only be set to “JSON”; specifies to write out JSON
-type restart files.
-
-file name
-   This is a prefix which will be attached to the various restart files
-that will be written out.
-
-frequency
-   This specifies how often a restart file is written out, in terms of MD
-steps taken.
+    The frequency of each integration step. This should almost always be
+    set to 1.
 
 .. _Swarm_tutorial:
 
