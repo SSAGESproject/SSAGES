@@ -98,6 +98,7 @@ namespace SSAGES
 			atomids_ = ReadBackbone::GetPdbBackbone(refpdb_, resids_);
 
 			// reference 'ideal' alpha helix structure, in nanometers
+			// Reference structure taken from values used in Plumed 2.2.0
 			refalpha_.push_back(unitconv_ * Vector3{ .0733,  .0519,  .5298 }); // N
 			refalpha_.push_back(unitconv_ * Vector3{ .1763,  .0810,  .4301 }); // CA
 			refalpha_.push_back(unitconv_ * Vector3{ .3166,  .0543,  .4881 }); // CB

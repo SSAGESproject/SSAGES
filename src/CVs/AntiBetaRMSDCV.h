@@ -99,6 +99,7 @@ namespace SSAGES
 			atomids_ = ReadBackbone::GetPdbBackbone(refpdb_, resids_);
 
 			// reference 'ideal' antiparallel beta sheet structure in nanometers
+			// Reference structure taken from values used in Plumed 2.2.0
 			refalpha_.push_back(unitconv_ * Vector3{ .2263, -.3795,  .1722}); // N    i
 			refalpha_.push_back(unitconv_ * Vector3{ .2493, -.2426,  .2263}); // CA
 			refalpha_.push_back(unitconv_ * Vector3{ .3847, -.1838,  .1761}); // CB
