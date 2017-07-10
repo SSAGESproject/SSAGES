@@ -9,7 +9,7 @@ or work in progress. The table below summarizes the main features that
 vary between supported engines. 
 
 +----------+---------------------+--------------+----------------+
-| Engine   | Supported versions  | Multi-walker | NPT ensemble   |
+| Engine   | Supported versions  | Multi-walker | NPT virial     |
 +==========+=====================+==============+================+
 | LAMMPS   |    2010 or newer    |    yes       |   yes          |
 +----------+---------------------+--------------+----------------+ 
@@ -17,7 +17,7 @@ vary between supported engines.
 +----------+---------------------+--------------+----------------+
 | OpenMD   |      2.4, 2.5       |    no        |   no           |
 +----------+---------------------+--------------+----------------+
-| Qbox     |   1.60 or newer     |    no        |   no           |
+| Qbox     |   1.60 or newer     |    yes       |   no           |
 +----------+---------------------+--------------+----------------+
 
 Special instructions on how to use SSAGES with a particular engine are
