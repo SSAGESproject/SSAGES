@@ -48,7 +48,7 @@ namespace SSAGES
 	 *
 	 * \ingroup CVs
 	 */
-	class GyrationTensorCV : public CollectiveVariable, public Buildable<GyrationTensorCV>
+	class GyrationTensorCV : public CollectiveVariable
 	{
 	private:
 		Label atomids_; //!< IDs of the atoms used for calculation
@@ -203,7 +203,7 @@ namespace SSAGES
 			}
 		}
 
-		static GyrationTensorCV* Construct(const Json::Value& json, const std::string& path)
+		static GyrationTensorCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
@@ -241,46 +241,5 @@ namespace SSAGES
 
 			return new GyrationTensorCV(atomids, component);
 		}
-
-		//! Serialize this CV for restart purposes.
-		/*!
-		 * \param json JSON value
-		 */
-		virtual void Serialize(Json::Value& json) const override
-		{
-			json["type"] = "GyrationTensor"; 
-
-			for(auto& id : atomids_)
-				json["atom_ids"].append(id);
-
-			for(auto& bound: bounds_)
-				json["bounds"].append(bound);
-
-			switch(component_)
-			{
-				case Rg:
-					json["component"] = "Rg";
-					break;
-				case principal1:
-					json["component"] = "principal1"; 
-					break;
-				case principal2:
-					json["component"] = "principal2";
-					break;
-				case principal3:
-					json["component"] = "principal3";
-					break;
-				case asphericity:
-					json["component"] = "asphericity"; 
-					break;
-				case acylindricity:
-					json["component"] = "acylindricity";
-					break;
-				case shapeaniso:
-					json["component"] = "shapeaniso";
-					break;
-			}
-		}
-
 	};
 }

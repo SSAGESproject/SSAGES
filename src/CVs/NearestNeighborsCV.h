@@ -28,7 +28,7 @@
  
 namespace SSAGES
 {
-	class GaussianFunction : public Serializable
+	class GaussianFunction
 	{
 	private: 
 		double mu_; //!< Center of Gaussian.
@@ -66,16 +66,6 @@ namespace SSAGES
 						json["mu"].asDouble(), 
 						json["sigma"].asDouble()
 					);
-		}
-
-		//! Serialize this CV for restart purposes.
-		/*!
-			* \param json JSON value
-			*/
-		void Serialize(Json::Value& json) const override
-		{
-			json["mu"] = mu_;
-			json["sigma"] = sigma_;
 		}
 	};
 
@@ -220,7 +210,7 @@ namespace SSAGES
 			MPI_Allreduce(MPI_IN_PLACE, &val_, 1, MPI_DOUBLE, MPI_SUM, comm);
 		}
 
-		static NearestNeighborsCV* Construct(const Json::Value& json, const std::string& path)
+		static NearestNeighborsCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
@@ -240,15 +230,6 @@ namespace SSAGES
 				group1.push_back(s.asInt());
 			
 			return new NearestNeighborsCV(group1, GaussianFunction::Build(json["gaussian"]));
-		}
-
-		//! Serialize this CV for restart purposes.
-		/*!
-			* \param json JSON value
-			*/
-		void Serialize(Json::Value& json) const override
-		{
-			json["type"] = "NearestNeighbors";
 		}
 	};
 }

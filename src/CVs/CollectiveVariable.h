@@ -21,9 +21,9 @@
 
 #pragma once
 
-#include "../JSON/Serializable.h"
 #include "types.h"
 #include <vector>
+#include <map>
 
 // Forward declare.
 namespace Json {
@@ -36,7 +36,7 @@ namespace SSAGES
 	/*!
 	 * \ingroup CVs
 	 */
-	class CollectiveVariable: public Serializable
+	class CollectiveVariable
 	{
 	protected:
 		//! Gradient vector dCv/dxi.

@@ -71,15 +71,5 @@ namespace SSAGES
 		{
 
 		}
-
-		//! Serialize this CV for restart purposes.
-		/*!
-		 * \param json JSON value
-		 */
-		void Serialize(Json::Value& json) const override
-		{
-
-		}
-
 	};
 }

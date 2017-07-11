@@ -40,7 +40,7 @@ namespace SSAGES
 	 * reference "ideal" alpha helix structure.
 	 */
 
-	class AlphaRMSDCV : public CollectiveVariable, public Buildable<AlphaRMSDCV>
+	class AlphaRMSDCV : public CollectiveVariable
 	{
 	private:
 
@@ -194,7 +194,7 @@ namespace SSAGES
 			}
 		}
 
-		static AlphaRMSDCV* Construct(const Json::Value& json, const std::string& path)
+		static AlphaRMSDCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
@@ -216,19 +216,6 @@ namespace SSAGES
 			double unitconv = json.get("length_unit", 1).asDouble();
 
 			return new AlphaRMSDCV(resids, reference, unitconv);
-		}
-
-		//! Serialize this CV for restart purposes.
-		/*!
-		 * \param json JSON value
-		 */
-		virtual void Serialize(Json::Value& json) const override
-		{
-			json["type"] = "AlphaRMSD";
-			json["reference"] = refpdb_;
-			for(size_t i=0; i < resids_.size(); ++i)
-				json["residue_ids"].append(resids_[i]);
-			json["length_unit"] = unitconv_;
 		}
 	};
 }

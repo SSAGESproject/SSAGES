@@ -36,7 +36,7 @@ namespace SSAGES
 	 *  a collection of atoms comprising the i'th bead in the N-bead polymer chain
 	 *  \ingroup CVs
 	 */
-	class RouseModeCV : public CollectiveVariable, public Buildable<RouseModeCV>
+	class RouseModeCV : public CollectiveVariable
 	{
 	private:
 		std::vector<Label>     groups_; // vector of groups of indices to define the particle groups
@@ -187,7 +187,7 @@ namespace SSAGES
 
 		}
 
-		static RouseModeCV* Construct(const Json::Value& json, const std::string& path)
+		static RouseModeCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
@@ -211,21 +211,6 @@ namespace SSAGES
 
 			auto mode = json.get("mode",0).asInt();
 			return new RouseModeCV( groups, mode);	
-		}
-
-		//! Serialize this CV for restart purposes.
-		/*!
-		 * \param json JSON value
-		 */
-		void Serialize(Json::Value& json) const override
-		{
-			json["type"] = "RouseMode";
-			for (int i = 0; i < (int) groups_.size(); ++i) {
-				for (int j = 0; j< (int) groups_[i].size(); ++j) {
-					json["groups"][i][j] = groups_[i][j];
-				}
-			}
-			json["mode"] = p_;
 		}
 	};
 }
