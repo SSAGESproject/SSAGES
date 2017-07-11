@@ -48,7 +48,7 @@ namespace SSAGES
 		 * CVs +1. This will be size (CVbinNr1*CVbinNr2*..)*3.
 		 */
 		//Eigen::VectorXd F_;
-		Grid<Eigen::VectorXd> *F_;
+		std::vector<Grid<double>*> F_;
 	
 		//! Will hold the global total, synced to every time step. 
 		/*!
@@ -56,7 +56,7 @@ namespace SSAGES
 		 * CVs +1. This will be size (CVbinNr1*CVbinNr2*..)*3.
 		 */
 		//Eigen::VectorXd Fworld_;
-		Grid<Eigen::VectorXd> *Fworld_;
+		std::vector<Grid<double>*> Fworld_;
 
 		//! To store number of hits at a given CV bin.
 		/*!
@@ -212,8 +212,8 @@ namespace SSAGES
 			const MPI_Comm& comm,
 			Grid<int> *N,
 			Grid<int> *Nworld,
-			Grid<Eigen::VectorXd> *F,
-			Grid<Eigen::VectorXd> *Fworld,
+			std::vector<Grid<double>*> F,
+			std::vector<Grid<double>*> Fworld,
 			std::vector<std::vector<double>> restraint,
 			std::vector<bool> isperiodic,
 			std::vector<std::vector<double>> periodicboundaries,

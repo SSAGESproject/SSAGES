@@ -113,13 +113,6 @@ namespace SSAGES
 		
 		// Size and initialize Fworld_ and Nworld_		
 		auto nel = 1;
-		for(auto& point : (*F_)){
-			point.setZero(dim_);
-			}
-			
-		for(auto& point : (*Fworld_)){
-			point.setZero(dim_);
-			}
 
 		// Initialize biases.
 		biases_.resize(snapshot->GetPositions().size(), Vector3{0, 0, 0});
@@ -140,6 +133,7 @@ namespace SSAGES
 	 */
 	void ABF::PostIntegration(Snapshot* snapshot, const CVManager& cvmanager)
 	{
+		
 		++iteration_;
 
 		// Gather information.
@@ -148,7 +142,6 @@ namespace SSAGES
 		auto& mass = snapshot->GetMasses();
 		auto& forces = snapshot->GetForces();
 		auto n = snapshot->GetNumAtoms();
-		
 		
 
 		//! Coord holds where we are in CV space in current timestep.
@@ -200,21 +193,22 @@ namespace SSAGES
 		// If we are in bounds, sum force into running total.
 		if(boundsCheck(cvVals))
 		{
-			F_->at(cvVals) += dwdotpdt;
+			for(size_t i=0; i<dim_; ++i)
+				F_[i]->at(cvVals) += dwdotpdt[i];
 			N_->at(cvVals)++;				
 		}
 		
-		// Reduce data across processors.					
-		MPI_Allreduce(F_->data(), Fworld_->data(), (F_->size())*dim_, MPI_DOUBLE, MPI_SUM, world_);	
+		// Reduce data across processors.
+		for(size_t i=0; i<dim_; ++i)				
+			MPI_Allreduce(F_[i]->data(), Fworld_[i]->data(), (F_[i]->size()), MPI_DOUBLE, MPI_SUM, world_);	
 		MPI_Allreduce(N_->data(), Nworld_->data(), N_->size(), MPI_INT, MPI_SUM, world_);
-		
 
 		// If we are in bounds, store the old summed force.
 		if(boundsCheck(cvVals))
 		{
-			Fold_ = Fworld_->at(cvVals)/std::max(min_, Nworld_->at(cvVals));
+			for(size_t i=0; i < dim_; ++i)
+				Fold_[i] = Fworld_[i]->at(cvVals)/std::max(min_, Nworld_->at(cvVals));
 		}
-		
 	
 		// Update finite difference time derivatives.
 		wdotp2_ = wdotp1_;
@@ -223,10 +217,10 @@ namespace SSAGES
 		// Write out data to file.
 		if(iteration_ % FBackupInterv_ == 0)
 			WriteData();
-		
+
 		// Calculate the bias from averaged F at current CV coordinates
 		CalcBiasForce(snapshot, cvs, cvVals);		
-		
+
 		// Update the forces in snapshot by adding in the force bias from each
 		// CV to each atom based on the gradient of the CV.
 		for (size_t j = 0; j < forces.size(); ++j)
@@ -253,7 +247,7 @@ namespace SSAGES
 			{
 				auto& grad = cvs[i]->GetGradient();
 				for(size_t j = 0; j < biases_.size(); ++j)
-					biases_[j] -= (Fworld_->at(cvVals))[i]*grad[j]/std::max(min_,Nworld_->at(cvVals));
+					biases_[j] -= (Fworld_[i]->at(cvVals))*grad[j]/std::max(min_,Nworld_->at(cvVals));
 			}
 		}
 		else
@@ -334,7 +328,7 @@ namespace SSAGES
 			}
 			for(size_t j = 0; j < dim_; ++j)
 			{
-				worldout_ <<  std::setw(10) << (Fworld_->at(tempcoord))[j]/std::max(Nworld_->at(tempcoord),min_)<< " ";
+				worldout_ <<  std::setw(10) << (Fworld_[j]->at(tempcoord))/std::max(Nworld_->at(tempcoord),min_)<< " ";
 			}
 			worldout_ << std::endl;
 			
@@ -357,6 +351,7 @@ namespace SSAGES
 		return true;
 	}
 
+	/*
 	void ABF::printFworld()
 	{
 		Fworldout_.open(Fworld_filename_);
@@ -366,6 +361,7 @@ namespace SSAGES
 		}
 		Fworldout_.close();
 	}
+	*/
 
 	ABF* ABF::Construct(const Value& json, 
 		                const MPI_Comm& world,
@@ -470,13 +466,16 @@ namespace SSAGES
 		auto Nworld_filename_ = json.get("N_world_filename", "N_world").asString();
 		
 		Grid<int> *N;
-		Grid<Eigen::VectorXd> *F;
+		std::vector<Grid<double>*> F(minsCV.size());
 
-		N= new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);		
-		F= new Grid<Eigen::VectorXd>(binsCV, minsCV, maxsCV, isperiodic);
+		N= new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);
+		for(auto& grid : F)
+		{
+			grid= new Grid<double>(binsCV, minsCV, maxsCV, isperiodic);
+		}
 
 		Grid<int> *Nworld;
-		Grid<Eigen::VectorXd> *Fworld;
+		std::vector<Grid<double>*> Fworld(minsCV.size());
 		
 		//Nworld= new Grid<uint>(binsCV, minsCV, maxsCV, isperiodic);
 		//Fworld= new Grid<Eigen::VectorXd>(binsCV, minsCV, maxsCV, isperiodic);
@@ -489,7 +488,10 @@ namespace SSAGES
 		//else
 		//{
 			Nworld= new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);
-			Fworld= new Grid<Eigen::VectorXd>(binsCV, minsCV, maxsCV, isperiodic);
+			for(auto& grid : Fworld)
+			{
+				grid= new Grid<double>(binsCV, minsCV, maxsCV, isperiodic);
+			}
 		//}
 	 
 		
