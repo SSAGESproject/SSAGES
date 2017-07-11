@@ -21,6 +21,7 @@
 #include "Driver.h"
 #include "ResourceHandler.h"
 #include "OpenMDHook.h"
+#include "json/json.h"
 
 #include "config.h"
 #include EXTRA_CONFIG

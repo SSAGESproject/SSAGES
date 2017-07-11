@@ -17,6 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <mxx/comm.hpp>
 #include "CVs/CVManager.h"
 #include "Drivers/DriverException.h"
 #include "Validator/ObjectRequirement.h"
@@ -25,7 +26,6 @@
 #include "Snapshot.h"
 #include "Hook.h"
 #include "schema.h"
-#include <mxx/comm.hpp>
 
 using namespace Json;
 
@@ -112,11 +112,6 @@ namespace SSAGES
 		rh->inputs_ = inputs;
 		rh->nwalkers_ = nwalkers;
 		return rh;
-	}
-	
-	void ResourceHandler::Serialize(Value& json) const
-	{
-
 	}
 
 	ResourceHandler::~ResourceHandler()

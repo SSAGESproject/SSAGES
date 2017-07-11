@@ -19,13 +19,17 @@
  */
 #pragma once 
 
-#include "JSON/Serializable.h"
-#include <mpi.h>
 #include <mxx/comm.hpp>
 #include <vector>
 
+// Forward declare.
+namespace Json {
+	class Value;
+}
+
 namespace SSAGES
 {
+
 	//! Class that handles SSAGES resources for a simulation.
 	/*!
 	 * 
@@ -37,7 +41,7 @@ namespace SSAGES
 	 * Each simulation engine must implement a driver which calls this 
 	 * resource handler and passes it the appropriate hook. 
 	 */
-	class ResourceHandler : public Serializable
+	class ResourceHandler
 	{
 	private: 
 		//! MPI communicator containing all processors. 
@@ -128,9 +132,6 @@ namespace SSAGES
 		 * \note Object lifetime is caller's responsibility!
 		 */
 		static ResourceHandler* Build(const Json::Value& json, const MPI_Comm& world);
-
-        //! \copydoc Serializable::Serialize()
-		void Serialize(Json::Value& json) const override;
 
 		//! Destructor.
 		~ResourceHandler();

@@ -79,7 +79,7 @@ namespace SSAGES
 		*
 		* \ingroup CVs
 		*/
-	class NearestNeighborsCV : public CollectiveVariable, public Buildable<NearestNeighborsCV>
+	class NearestNeighborsCV : public CollectiveVariable
 	{
 	private:
 		Label group1_; //!< IDs of the (only) group of atoms. 
