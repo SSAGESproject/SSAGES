@@ -22,7 +22,6 @@
 
 #include "../EventListener.h"
 #include <mxx/comm.hpp>
-#include <functional>
 
 // Forward declare.
 namespace Json {

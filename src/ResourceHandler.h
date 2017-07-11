@@ -62,6 +62,9 @@ namespace SSAGES
 		//! Vector of advanced sampling methods. 
 		std::vector<class Method*> methods_;
 
+		//! CV logger. 
+		class Logger* logger_; 
+
 		//! Collective variable manager. 
 		class CVManager* cvmanager_;
 

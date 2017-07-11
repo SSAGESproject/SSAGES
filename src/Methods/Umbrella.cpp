@@ -158,8 +158,11 @@ namespace SSAGES
 		//TODO walker id should be obtainable in method as
 		//     opposed to calculated like this. 
 		uint wid = mxx::comm(world).rank()/mxx::comm(comm).size(); 
+		bool ismulti = mxx::comm(world).size() > mxx::comm(comm).size(); 
 		if(json["output_file"].isArray())
 			name = json["output_file"][wid].asString(); 
+		else if(ismulti)
+			throw std::invalid_argument(path + ": Multi-walker simulations require a separate output file for each.");
 		else
 			name = json["output_file"].asString();
 
