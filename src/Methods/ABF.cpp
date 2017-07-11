@@ -380,13 +380,32 @@ namespace SSAGES
 		if(validator.HasErrors())
 			throw BuildException(validator.GetErrors());
 
+		uint wid = mxx::comm(world).rank()/mxx::comm(comm).size(); 
+
+		//bool multiwalkerinput = false;
+
 		std::vector<double> minsCV;
 		for(auto& mins : json["CV_lower_bounds"])
-			minsCV.push_back(mins.asDouble());
+			if(mins.isArray())
+				{
+				throw BuildException({"Separate inputs for multi-walker not fully implemented. Please use global entries for CV ranges"});
+				//multiwalkerinput = true;
+				//for(auto& bound : mins)
+				//	minsCV.push_back(bound.asDouble());
+				}
+			else
+				minsCV.push_back(mins.asDouble());
+			
 		
 		std::vector<double> maxsCV;
 		for(auto& maxs : json["CV_upper_bounds"])
-			maxsCV.push_back(maxs.asDouble());
+			/*if(maxs.isArray())
+				{
+				for(auto& bound : maxs)
+					maxsCV.push_back(bound.asDouble());
+				}*/
+			//else
+				maxsCV.push_back(maxs.asDouble());
 
 		std::vector<int> binsCV;
 		for(auto& bins : json["CV_bins"])
@@ -394,11 +413,23 @@ namespace SSAGES
 
 		std::vector<double> minsrestCV;
 		for(auto& mins : json["CV_restraint_minimums"])
-			minsrestCV.push_back(mins.asDouble());
+			/*if(mins.isArray())
+				{
+				for(auto& bound : mins)
+					minsrestCV.push_back(bound.asDouble());
+				}*/
+			//else
+				minsrestCV.push_back(mins.asDouble());
 		
 		std::vector<double> maxsrestCV;
 		for(auto& maxs : json["CV_restraint_maximums"])
-			maxsrestCV.push_back(maxs.asDouble());
+			/*if(maxs.isArray())
+				{
+				for(auto& bound : maxs)
+					maxsrestCV.push_back(bound.asDouble());
+				}*/
+			//else
+				maxsrestCV.push_back(maxs.asDouble());
 
 		std::vector<double> springkrestCV;
 		for(auto& bins : json["CV_restraint_spring_constants"])
@@ -416,13 +447,13 @@ namespace SSAGES
 		for(auto& maxsperCV : json["CV_periodic_boundary_upper_bounds"])
 			maxperboundaryCV.push_back(maxsperCV.asDouble());
 
-		if(!(minsCV.size() == maxsCV.size() && 
-			 maxsCV.size() == binsCV.size() &&
-			 binsCV.size() == minsrestCV.size() &&
-			 minsrestCV.size() == maxsrestCV.size() &&
-			 maxsrestCV.size() == springkrestCV.size() &&
-			 springkrestCV.size() == isperiodic.size()))			
-			throw BuildException({"CV lower bounds, upper bounds, bins, restrain minimums, restrains maximums, spring constants and periodicity info must all have the size == number of CVs defined."});
+
+		if(!((	 minsCV.size() == maxsCV.size() && 
+			 maxsCV.size() == minsrestCV.size() &&
+			 minsrestCV.size() == maxsrestCV.size()) &&
+			(binsCV.size() == springkrestCV.size() &&
+			 springkrestCV.size() == isperiodic.size())))		
+			throw BuildException({"CV lower bounds, upper bounds, restrain minimums, restrains maximums must match in size. Bins, spring constants and periodicity info must match in size."});
 
 		bool anyperiodic=false;
 		for(size_t i = 0; i<isperiodic.size(); ++i)
@@ -433,6 +464,8 @@ namespace SSAGES
 				     minperboundaryCV.size() == maxperboundaryCV.size()))
 					throw BuildException({"If any CV is defined as periodic, please define the full upper and lower bound vectors. They should both have the same number of entries as CV lower bounds, upper bounds... Entries corresponding to non-periodic CVs will not be used."});
 			}
+
+		int dim = binsCV.size();
 				
 		auto FBackupInterv = json.get("backupF_requency", 1000).asInt();
 		auto unitconv = json.get("unit_conversion", 0).asDouble();
@@ -447,35 +480,80 @@ namespace SSAGES
 		std::vector<double> temp2(3);
 		std::vector<double> temp3(2);
 
-		for(size_t i=0; i<minsCV.size(); ++i)
-		{
-			temp1 = {minsCV[i], maxsCV[i], binsCV[i]};
-			temp2 = {minsrestCV[i], maxsrestCV[i], springkrestCV[i]};
-			histdetails.push_back(temp1);
-			restraint.push_back(temp2);
-			if(anyperiodic)
-			{
-				temp3 = {minperboundaryCV[i], maxperboundaryCV[i]};
-				periodicboundaries.push_back(temp3);
-			}
-		}
-
 		auto freq = json.get("frequency", 1).asInt();
 		auto filename = json.get("filename", "F_out").asString();
 		auto Fworld_filename_ = json.get("F_world_filename", "F_world").asString();
 		auto Nworld_filename_ = json.get("N_world_filename", "N_world").asString();
-		
+
 		Grid<int> *N;
-		std::vector<Grid<double>*> F(minsCV.size());
-
-		N= new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);
-		for(auto& grid : F)
-		{
-			grid= new Grid<double>(binsCV, minsCV, maxsCV, isperiodic);
-		}
-
 		Grid<int> *Nworld;
-		std::vector<Grid<double>*> Fworld(minsCV.size());
+		std::vector<Grid<double>*> F(dim);
+		std::vector<Grid<double>*> Fworld(dim);
+
+		/*if(multiwalkerinput)
+		{
+			for(size_t i=0; i<dim; ++i)
+			{
+				temp1 = {minsCV[i+wid*dim], maxsCV[i+wid*dim], binsCV[i]};
+				temp2 = {minsrestCV[i+wid*dim], maxsrestCV[i+wid*dim], springkrestCV[i]};
+				histdetails.push_back(temp1);
+				restraint.push_back(temp2);
+				if(anyperiodic)
+				{
+					temp3 = {minperboundaryCV[i], maxperboundaryCV[i]};
+					periodicboundaries.push_back(temp3);
+				}
+			}
+			for(size_t i=0; i<dim; ++i)
+			{
+				minsCVperwalker[i] = histdetails[i][0];
+				maxsCVperwalker[i] = histdetails[i][1];
+			}
+
+			N= new Grid<int>(binsCV, minsCVperwalker, maxsCVperwalker, isperiodic);
+			Nworld= new Grid<int>(binsCV, minsCVperwalker, maxsCVperwalker, isperiodic);
+			
+			for(auto& grid : F)
+			{
+				grid= new Grid<double>(binsCV, minsCVperwalker, maxsCVperwalker, isperiodic);
+			}
+			for(auto& grid : Fworld)
+			{
+				grid= new Grid<double>(binsCV, minsCVperwalker, maxsCVperwalker, isperiodic);
+			}
+			
+		}
+		*/
+		//else
+		//{
+
+			for(size_t i=0; i<dim; ++i) 
+		
+			N= new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);
+			Nworld= new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);
+			
+			for(auto& grid : F)
+			{
+				grid= new Grid<double>(binsCV, minsCV, maxsCV, isperiodic);
+			}
+			for(auto& grid : Fworld)
+			{
+				grid= new Grid<double>(binsCV, minsCV, maxsCV, isperiodic);
+			}
+
+			for(size_t i=0; i<dim; ++i)
+			{
+				temp1 = {minsCV[i], maxsCV[i], binsCV[i]};
+				temp2 = {minsrestCV[i], maxsrestCV[i], springkrestCV[i]};
+				histdetails.push_back(temp1);
+				restraint.push_back(temp2);
+				if(anyperiodic)
+				{
+					temp3 = {minperboundaryCV[i], maxperboundaryCV[i]};
+					periodicboundaries.push_back(temp3);
+				}
+			}
+		//}
 		
 		//Nworld= new Grid<uint>(binsCV, minsCV, maxsCV, isperiodic);
 		//Fworld= new Grid<Eigen::VectorXd>(binsCV, minsCV, maxsCV, isperiodic);
@@ -487,31 +565,13 @@ namespace SSAGES
 		//}
 		//else
 		//{
-			Nworld= new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);
-			for(auto& grid : Fworld)
-			{
-				grid= new Grid<double>(binsCV, minsCV, maxsCV, isperiodic);
-			}
+
+
 		//}
 	 
 		
 		auto* m = new ABF(world, comm, N, Nworld, F, Fworld, restraint, isperiodic, periodicboundaries, min, massweigh, filename, histdetails, FBackupInterv, unitconv, timestep, freq);
 
-		/*if(json.isMember("F") && json.isMember("N"))
-		{
-			Eigen::VectorXd F;
-			std::vector<int> N;
-			F.resize(json["F"].size());
-			for(int i = 0; i < (int)json["F"].size(); ++i)
-				F[i] = json["F"][i].asDouble();
-
-			for(auto& n : json["N"])
-				N.push_back(n.asInt());
-
-			m->SetHistogram(F,N);
-		
-		}
-		*/
 
 		if(json.isMember("iteration"))
 			m->SetIteration(json.get("iteration",0).asInt());
