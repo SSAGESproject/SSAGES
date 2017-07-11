@@ -34,65 +34,7 @@ using namespace Json;
 // J. Chem. Phys. (2008)
 namespace SSAGES
 {
-	// Function to return histogram coordinates, given CV values. Returns -1 if any CV value is outside bounds.
-	// Regardless of number of CVs, the histogram is a one dimensional object.
-	// Therefore, this function works in two parts:
-	// 1) Mapping from CV coordinates to an N dimensional fictitious object where N is the number of CVs.
-	// -> This fictitious object is (Number of CV bins) large in each dimension.
-	// -> Example: If you have two CVs, X and Y, and you bin X into three bins and Y into five bins, the fictitious object is a 2 dimensional 3x5 matrix. 
-	
-	// 2) Mapping from N dimensions to one dimension.
-	// -> Simply constructed by writing out all members of the fictitious object in a line. This is a vector of length equal to the product of number of bins in each dimension.
-	// -> For the above example, this is 3.5 = 15 members. First 5 members are Y = [1 2 3 4 5] bins with X = 1. Next 5 members are Y = [1 2 3 4 5] with X = 2 ....
-	/*int ABF::histCoords(const CVList& cvs)
-	{
-		// Histogram details: This is a 2 Dimensional object set up as the following:
-		// Histdetails is a vector of three vectors, each of those three vectors are (Number of CVs) long.
-		// First of these vectors hold the lower bound for the CVs in order.
-		// Second vector holds the upper bound for the CVs in order.
-		// Third vector holds number of histogram bins for the CVs in order.
-	
-		// The first mapping starts here.
-		for(size_t i = 0; i < histdetails_.size(); ++i)
-		{
-			// Check if CV is in bounds for each CV.
-			if ((cvs[i]->GetValue()<histdetails_[i][0]) || (cvs[i]->GetValue()>histdetails_[i][1]))
-				return -1;
-		}
 
-		// This vector holds the CV coordinates in the fictitious object.
-		std::vector<int> coords(cvs.size());
-		
-		// Loop over each CV dimension.
-		for(size_t i = 0; i < histdetails_.size(); ++i)
-		{
-			// Loop over all bins in each CV dimensions
-			for(int j = 0; j < histdetails_[i][2] ; ++j)
-			{
-				if((histdetails_[i][0] + j*((histdetails_[i][1]-histdetails_[i][0])/histdetails_[i][2]) < cvs[i]->GetValue()) && 
-				   (histdetails_[i][0] + (j+1)*((histdetails_[i][1]-histdetails_[i][0])/histdetails_[i][2]) > cvs[i]->GetValue()))
-				{
-					coords[i] = j;
-				}
-			}
-		} //First mapping ends here. 
-
-		// Second mapping starts here.
-		int finalcoord = 0;
-		int indexer = 1;
-		// Loop over each CV dimension.
-		for(size_t i = 0; i < histdetails_.size(); ++i)
-		{
-			indexer = 1;
-			for(size_t j = i+1; j < histdetails_.size(); ++j)
-				indexer = indexer*histdetails_[j][2];
-
-			finalcoord += coords[i]*indexer;
-		}
-
-		return finalcoord;			
-	}
-	*/
 	// Pre-simulation hook.
 	void ABF::PreSimulation(Snapshot* snapshot, const CVManager& cvmanager)
 	{
@@ -218,7 +160,8 @@ namespace SSAGES
 		if(iteration_ % FBackupInterv_ == 0)
 			WriteData();
 
-		// Calculate the bias from averaged F at current CV coordinates
+		// Calculate the bias from averaged F at current CV coordinates.
+		// Or apply harmonic restraints to return CVs back in bounds.
 		CalcBiasForce(snapshot, cvs, cvVals);		
 
 		// Update the forces in snapshot by adding in the force bias from each
@@ -240,7 +183,7 @@ namespace SSAGES
 		for(auto& b : biases_)
 			b.setZero();
 		
-		// Compute bias if within bounds
+		// Compute bias if within bounds.
 		if(boundsCheck(cvVals))
 		{
 			for(int i = 0; i < dim_; ++i)
@@ -250,6 +193,7 @@ namespace SSAGES
 					biases_[j] -= (Fworld_[i]->at(cvVals))*grad[j]/std::max(min_,Nworld_->at(cvVals));
 			}
 		}
+		// Otherwise, apply harmonic restraint if enabled.
 		else
 		{
 			for(int i = 0; i < dim_; ++i)
@@ -286,23 +230,28 @@ namespace SSAGES
 		}
 	}
 
+	// Write out the average generalized force.
+	// Also write out Fworld and Nworld backups for restarts.
 	void ABF::WriteData()
 	{
+		// Only one processor should be performing I/O.
 		if(world_.rank() != 0)
 			return;
 
+		// Backup Fworld and Nworld.
 		Nworld_->WriteToFile(Nworld_filename_);
 		for(size_t i = 0 ; i < dim_; ++i)
 		{
 			Fworld_[i]->WriteToFile(Fworld_filename_+std::to_string(i));
 		}
-			
-		int gridPoints = 1;
-			
+		
+
+		// Average the generalized force for each bin and print it out.	
+		int gridPoints = 1;			
 		for(size_t i = 0 ; i < dim_; ++i)
 			gridPoints = gridPoints * N_->GetNumPoints(i);
 
-		worldout_.open(filename_, std::ofstream::app);
+		worldout_.open(filename_);
 		worldout_ << std::endl;
 		worldout_ << "Iteration: " << iteration_ << std::endl;			
 		worldout_ << "Printing out the current Adaptive Biasing Vector Field." << std::endl;
@@ -345,6 +294,7 @@ namespace SSAGES
 		worldout_.close();
 	}
 	
+	// Checks whether walker is within CV bounds.
 	bool ABF::boundsCheck(const std::vector<double> &CVs)
 	{
 		for(size_t i = 0; i < dim_ ; ++i)
@@ -357,17 +307,6 @@ namespace SSAGES
 		return true;
 	}
 
-	/*
-	void ABF::printFworld()
-	{
-		Fworldout_.open(Fworld_filename_);
-		for(auto& point : (*F_))
-		{
-			Fworldout_ << point << std::endl;
-		}
-		Fworldout_.close();
-	}
-	*/
 
 	ABF* ABF::Construct(const Value& json, 
 		                const MPI_Comm& world,
@@ -390,6 +329,7 @@ namespace SSAGES
 
 		//bool multiwalkerinput = false;
 
+		// Obtain lower bound for each CV.
 		std::vector<double> minsCV;
 		for(auto& mins : json["CV_lower_bounds"])
 			if(mins.isArray())
@@ -402,7 +342,7 @@ namespace SSAGES
 			else
 				minsCV.push_back(mins.asDouble());
 			
-		
+		// Obtain upper bound for each CV.
 		std::vector<double> maxsCV;
 		for(auto& maxs : json["CV_upper_bounds"])
 			/*if(maxs.isArray())
@@ -413,10 +353,12 @@ namespace SSAGES
 			//else
 				maxsCV.push_back(maxs.asDouble());
 
+		// Obtain number of bins for each CV dimension.
 		std::vector<int> binsCV;
 		for(auto& bins : json["CV_bins"])
 			binsCV.push_back(bins.asInt());
 
+		// Obtain lower bounds for restraints for each CV.
 		std::vector<double> minsrestCV;
 		for(auto& mins : json["CV_restraint_minimums"])
 			/*if(mins.isArray())
@@ -426,7 +368,8 @@ namespace SSAGES
 				}*/
 			//else
 				minsrestCV.push_back(mins.asDouble());
-		
+
+		// Obtain upper bounds for restraints for each CV.		
 		std::vector<double> maxsrestCV;
 		for(auto& maxs : json["CV_restraint_maximums"])
 			/*if(maxs.isArray())
@@ -436,24 +379,28 @@ namespace SSAGES
 				}*/
 			//else
 				maxsrestCV.push_back(maxs.asDouble());
-
+		
+		// Obtain harmonic spring constant for restraints for each CV.
 		std::vector<double> springkrestCV;
 		for(auto& bins : json["CV_restraint_spring_constants"])
 			springkrestCV.push_back(bins.asDouble());
 
+		// Obtain periodicity information for restraints for each CV for the purpose of correctly applying restraints through periodic boundaries.
 		std::vector<bool> isperiodic;
 		for(auto& isperCV : json["CV_isperiodic"])
 			isperiodic.push_back(isperCV.asBool());
-
+		
+		// Obtain lower periodic boundary for each CV.
 		std::vector<double> minperboundaryCV;
 		for(auto& minsperCV : json["CV_periodic_boundary_lower_bounds"])
 			minperboundaryCV.push_back(minsperCV.asDouble());
 
+		// Obtain upper periodic boundary for each CV.
 		std::vector<double> maxperboundaryCV;
 		for(auto& maxsperCV : json["CV_periodic_boundary_upper_bounds"])
 			maxperboundaryCV.push_back(maxsperCV.asDouble());
 
-
+		// Verify inputs are all correct lengths.
 		if(!((	 minsCV.size() == maxsCV.size() && 
 			 maxsCV.size() == minsrestCV.size() &&
 			 minsrestCV.size() == maxsrestCV.size()) &&
@@ -461,6 +408,7 @@ namespace SSAGES
 			 springkrestCV.size() == isperiodic.size())))		
 			throw BuildException({"CV lower bounds, upper bounds, restrain minimums, restrains maximums must match in size. Bins, spring constants and periodicity info must match in size."});
 
+		// Verify that all periodicity information is provided if CVs are periodic.
 		bool anyperiodic=false;
 		for(size_t i = 0; i<isperiodic.size(); ++i)
 			if(isperiodic[i])
@@ -472,11 +420,12 @@ namespace SSAGES
 			}
 
 		int dim = binsCV.size();
-				
+		
+		// Read in JSON info.
 		auto FBackupInterv = json.get("backupF_requency", 1000).asInt();
 		auto unitconv = json.get("unit_conversion", 0).asDouble();
-		auto timestep = json.get("timestep",2).asDouble();
-		auto min = json.get("minimum_count",100).asDouble();
+		auto timestep = json.get("timestep", 2).asDouble();
+		auto min = json.get("minimum_count", 200).asDouble();
 		auto massweigh = json.get("mass_weighing",false).asBool();			
 
 		std::vector<std::vector<double>> histdetails;
@@ -491,11 +440,13 @@ namespace SSAGES
 		auto Nworld_filename = json.get("Nworld_filename", "Nworld").asString();
 		auto Fworld_filename = json.get("Fworld_filename", "Fworld_cv").asString();
 
+		// Generate the grids based on JSON.
 		Grid<int> *N;
 		Grid<int> *Nworld;
 		std::vector<Grid<double>*> F(dim);
 		std::vector<Grid<double>*> Fworld(dim);
 
+		// This feature is disabled for now.
 		/*if(multiwalkerinput)
 		{
 			for(size_t i=0; i<dim; ++i)
@@ -532,7 +483,8 @@ namespace SSAGES
 		*/
 		//else
 		//{
-
+		
+		// Appropriately size the grids.
 			for(size_t i=0; i<dim; ++i) 
 		
 			N= new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);
@@ -560,7 +512,8 @@ namespace SSAGES
 				}
 			}
 		//}
-	
+
+		// Check if previously saved grids exist. If so, check that data match and load grids.
 		if(std::ifstream(Nworld_filename) && std::ifstream(Fworld_filename+std::to_string(0)) && wid == 0)
 		{
 			std::cout << "Attempting to load data from a previous run of ABF." << std::endl;

@@ -42,36 +42,34 @@ namespace SSAGES
 	class ABF : public Method, public BuildableMPI<ABF>
 	{
 	private:	
-		//! To store running total. 
+		//! To store running total of the local walker. 
 		/*!
-		 * A 1D vector, but will hold N-dimensional data, where N is number of
-		 * CVs +1. This will be size (CVbinNr1*CVbinNr2*..)*3.
+		 * This is a grid that holds dF/dCVx where x is 
+		 * one of the CVs. For N CVs, there will be N grids,
+		 * and thus this vector will be N long.
 		 */
-		//Eigen::VectorXd F_;
 		std::vector<Grid<double>*> F_;
 	
-		//! Will hold the global total, synced to every time step. 
+		//! Will hold the global total, synced across walkers at every time step. 
 		/*!
-		 * A 1D vector, but will hold N-dimensional data, where N is number of
-		 * CVs +1. This will be size (CVbinNr1*CVbinNr2*..)*3.
+		 * This is a grid that holds dF/dCVx where x is 
+		 * one of the CVs. For N CVs, there will be N grids,
+		 * and thus this vector will be N long. Global version.
 		 */
-		//Eigen::VectorXd Fworld_;
 		std::vector<Grid<double>*> Fworld_;
 
-		//! To store number of hits at a given CV bin.
+		//! To store number of local hits at a given CV bin.
 		/*!
-		 * A 1D vector, but will hold N-dimensional data, where N is number of
-		 * CVs. This will be size (CVbinNr1*CVbinNr2*..).
+		 * Stores the number of times each bin was visited
+		 * in CV space.
 		 */
-		//std::vector<int> N_;
 		Grid<int> *N_;
 
-		//! To store number of hits at a given CV bin.
+		//! To store number of global hits at a given CV bin.
 		/*!
-		 * A 1D vector, but will hold N-dimensional data, where N is number of
-		 * CVs. This will be size (CVbinNr1*CVbinNr2*..).
+		 * Stores the number of times each bin was visited
+		 * in CV space. Global version.
 		 */
-		//std::vector<int> Nworld_;
 		Grid<int> *Nworld_;
 		
 		//! Information for a harmonic restraint to keep CV in the region of interest. 
@@ -99,7 +97,7 @@ namespace SSAGES
 		std::vector<std::vector<double>> periodicboundaries_;		
 
 		//! The minimum number of hits required before full biasing, bias is
-		//!F_[i]/max(N_[i],min_).
+		//! F_[i]/max(N_[i],min_).
 		int min_;
 
 		//! To hold last two iterations wdotp value for derivative
@@ -108,24 +106,13 @@ namespace SSAGES
 		//! To hold last iterations F_ value for removing bias
 		Eigen::VectorXd Fold_;
 
-		//! Get coordinates of histogram bin corresponding to given list of CVs.
-		/*!
-		 * \param cvs List of CVs.
-		 *
-		 * \return Index of histogram bin.
-		 *
-		 * Function to return bin coordinate to address F_ and N_, given a vector
-		 * [CV1,CV2..] values.
-		 */
-		//int histCoords(const CVList& cvs);
-
 		//! Mass weighing of bias enabled/disabled
 		bool massweigh_;
 
-		//! Biases.	
+		//! Biases applied to atoms each timestep.	
 		std::vector<Vector3> biases_;
 
-		//! Number of CVs in system
+		//! Number of CVs in system.
 		unsigned int dim_;
 
 		//! Output stream for F/N world data.
@@ -137,13 +124,14 @@ namespace SSAGES
 		//! Output stream for Nworld data.
 		std::ofstream Nworldout_;
 
-		//! File name for world data
+		//! File name for world data. 
+		//! Principal output of the method.
 		std::string filename_;
 
-		//! Nworld print out filename
+		//! Nworld print out filename, for restarts.
 		std::string Nworld_filename_;
 
-		//! Fworld print out filename
+		//! Fworld print out filename, for restarts.
 		std::string Fworld_filename_;
 
 		//! Histogram details. 
@@ -186,6 +174,9 @@ namespace SSAGES
 
 		//! Mass vector. Empty unless required.
 		Eigen::VectorXd mass_;
+
+		//! Checks whether the local walker is within CV bounds.
+		bool boundsCheck(const std::vector<double> &CVs);
 		
 
 	public: 
@@ -235,11 +226,6 @@ namespace SSAGES
 		iteration_(0)
 		{
 		}
-
-		bool boundsCheck(const std::vector<double> &CVs);
-		void printFworld();
-
-		//bool checkForPreviousFile(const char *filename);
 		
 		//! Pre-simulation hook.
 		/*!
