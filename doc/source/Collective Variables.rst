@@ -3,7 +3,7 @@
 Collective Variables
 ====================
 
-Collective variables (CVs) are aribtrary differentiable functions of the 3N Cartesian 
+Collective variables (CVs) are arbitrary differentiable functions of the 3N Cartesian 
 coordinates of the atoms in a simulation. They usually represent some chemically 
 meaningful pathway along which advanced sampling can be performed. Listed below 
 are the collective variables currently supported in SSAGES. In addition to 
@@ -14,7 +14,7 @@ which can be used to reference the CV from a method or other supported location.
 
 	"name" : "mycvname"
 
-Specified names for CVs must be unique. It is possible to ommit a name and reference 
+Specified names for CVs must be unique. It is possible to omit a name and reference 
 a CV by its index as well. 
 
 Angle
