@@ -213,6 +213,8 @@ vectors. An example for N=2 is:
 Tutorial
 ^^^^^^^^
 
+Alanine Dipeptide
+
 For LAMMPS (must be built with RIGID and MOLECULE packages)
 To build RIGID and MOLECULE: 
 
@@ -265,13 +267,13 @@ Required:
 
 .. code-block:: bash
 
-    ./ssages ABF_AlaDP_1walker.json
+    ./ssages ABF_ADP_1walker.json
 
 For 2 walkers, do:
 
 .. code-block:: bash
 
-    mpirun -np 2 ./ssages ABF_AlaDP_2walkers.json
+    mpirun -np 2 ./ssages ABF_ADP_2walkers.json
 
 These will run using the pre-prepared input files in .tpr format. If you wish to
 prepare the input files yourself using GROMACS tools (if compiled with -DGROMACS=YES):
@@ -297,7 +299,99 @@ outputs given in the examples folders:
 
     python ABF_integrator.py --periodic1 True --periodic2 True --interpolate 200
 
-3) This will output a contour map, a gradient field and a heatmap. Compare these to the sample outputs.	
+3) This will output a contour map, a gradient field and a heatmap. Compare these to the sample outputs.
+
+
+
+
+Sodium Chloride
+
+For LAMMPS (must be built with KSPACE and MOLECULE packages)
+To build RIGID and MOLECULE: 
+
+1) Go to LAMMPS src folder (/build/hooks/lammps/lammps-download-prefix/src/lammps-download/src/ for -DLAMMPS=YES)
+2) Do:
+
+.. code-block:: bash
+
+   make yes-KSPACE
+   make yes-MOLECULE
+
+3) Go to your build folder and make.
+
+Find the following input files in Examples/User/ABF/Example_NaCl/ABF_NaCl_LAMMPS_Example:
+
+* ``in.NaCl_ADP_example(0-1)`` (2 files)
+* ``data.spce``
+* ``ADP_NaCl_1walker.json``
+* ``ADP_NaCl_2walkers.json``
+
+1) Put the contents of ABF_NaCl_LAMMPS_Example folder in your ssages build folder
+2) For a single walker example, do:
+
+.. code-block:: bash
+
+    ./ssages ADP_NaCl_1walker.json.json
+    
+For 2 walkers, do:
+
+.. code-block:: bash
+
+    mpirun -np 2 ./ssages ADP_NaCl_2walkers.json
+
+For GROMACS:
+
+Optional:
+
+* ``NaCl.gro``
+* ``topol.top``
+* ``npt.mdp``
+
+Required:
+
+* ``example_NaCl(0-1).tpr`` (2 files)
+* ``ADP_NaCl_1walker.json``
+* ``ADP_NaCl_2walkers.json``
+
+1) Put the contents of ABF_NaCl_Gromacs_Example in your ssages build folder
+2) For a single walker example, do:
+
+.. code-block:: bash
+
+    ./ssages ABF_NaCl_1walker.json
+
+For 2 walkers, do:
+
+.. code-block:: bash
+
+    mpirun -np 2 ./ssages ABF_NaCl_2walkers.json
+
+These will run using the pre-prepared input files in .tpr format. If you wish to
+prepare the input files yourself using GROMACS tools (if compiled with -DGROMACS=YES):
+
+.. code-block:: bash
+
+    /build/hooks/gromacs/gromacs/bin/gmx_mpi grompp -f npt.mdp -p topol.top -c NaCl.gro -o example_NaCl0.tpr
+    /build/hooks/gromacs/gromacs/bin/gmx_mpi grompp -f npt.mdp -p topol.top -c NaCl.gro -o example_NaCl1.tpr
+
+Be sure to change the seed in .mdp files for random velocity generation, 
+so walkers can explore different places on the free energy surface.
+
+Multiple walkers initiated from different seeds will
+explore different regions and will all contribute to the same adaptive force.
+
+After the run is finished, you can check that your output matches the sample
+outputs given in the examples folders:
+
+1) Copy ABF_integrator.py (requires numpy, scipy and matplotlib) into your build folder.
+2) Run the integrator:
+
+.. code-block:: bash
+
+    python ABF_integrator.py
+
+3) This will output a Potential of Mean Force graph. Compare this to the sample output.
+
 
 Developers
 ^^^^^^^^^^

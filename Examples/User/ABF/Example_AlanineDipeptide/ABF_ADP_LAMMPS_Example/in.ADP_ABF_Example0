@@ -13,7 +13,6 @@ pair_modify     mix arithmetic
 kspace_style    none 
 read_data       example.input   
 
-#RESTART
 
 velocity all create 300 3
 
