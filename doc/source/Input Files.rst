@@ -207,6 +207,23 @@ This is useful if a user is interested in performing advanced sampling on a syst
 some restraint, typically applied via an umbrella. Each method can selectively operate on a 
 subset of CVs by referencing them either by name or index as shown above. 
 
+Logger
+~~~~~~
+
+.. code-block:: javascript 
+
+	"logger" : {
+		"frequency" : 100, 
+		"output_file" : "cvs.dat",
+		"cvs" : [0, 3]
+	}
+
+The logger is useful in tracking the evolution of the CVs over the course of an advanced 
+sampling calculation. Logging CVs can allow for post-simulation reweighting, or indicate 
+if there are sampling problems in the system being studied. The frequency of logging the 
+CVs can be specified and each walker in a multi-walker simulation will have a separate output 
+file. A user can choose to selectively log individual CVs as well.
+
 Putting It All Together 
 ~~~~~~~~~~~~~~~~~~~~~~~
 
