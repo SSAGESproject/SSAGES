@@ -24,7 +24,6 @@
 #include <memory>
 #include <mxx/comm.hpp>
 #include "types.h"
-#include "JSON/Serializable.h"
 
 namespace SSAGES
 {
@@ -41,7 +40,7 @@ namespace SSAGES
 	 * This contains information on the particle positions, velocities, etc...
 	 * and additional information on the state of the system.
 	 */
-	class Snapshot : public Serializable
+	class Snapshot
 	{
 	private:
 		//! Local snapshot (walker) communicator.
@@ -733,39 +732,6 @@ namespace SSAGES
 			return IDs;
 		}
 
-
-		//! Serialize the Snapshot
-		/*!
-		 * \param json Json value to write serialized state to
-		 */
-		void Serialize(Json::Value& json) const override
-		{
-			json["walker id"] = wid_;
-			json["id"] = ID_;
-
-			for(unsigned int i = 0; i < atomids_.size(); i++)
-			{
-				json["Atom"][i]["ID"] = atomids_[i];
-				json["Atom"][i]["type"] = types_[i];
-				json["Atom"][i]["mass"] = masses_[i];
-				for(int j = 0; j<3; j++)
-				{
-					json["Atom"][i]["positions"][j] = positions_[i][j];
-					json["Atom"][i]["velocities"][j] = velocities_[i][j];
-					json["Atom"][i]["forces"][j] = forces_[i][j];
-				}
-			}
-			
-			json["iteration"] = iteration_; 
-			json["temperature"] = temperature_; 
-			json["energy"] = energy_;
-			json["kb"] = kb_;
-
-			for(int i = 0; i < 3; ++i)
-				for(int j = 0; j < 3; ++j)
-					json["hmat"][i][j] = H_(i,j);
-		}
-		
 		//! Destructor
 		~Snapshot(){}
 	};

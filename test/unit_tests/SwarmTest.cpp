@@ -1,14 +1,14 @@
 #include "gtest/gtest.h"
-#include <boost/mpi.hpp>
+#include <mxx/env.hpp>
+#include <mxx/comm.hpp>
 
-#include "../src/Snapshot.h"
-
+#include "Snapshot.h"
 
 #define private public
 #define protected public 
 
-#include "../src/Methods/Swarm.h"
-#include "../src/CVs/MockCV.h"
+#include "Methods/Swarm.h"
+#include "CVs/MockCV.h"
 
 using namespace SSAGES;
 
@@ -66,8 +66,8 @@ protected:
         delete Swarm_Method;
 	}
 
-    boost::mpi::communicator world;
-    boost::mpi::communicator comm = world.split(world.rank() < 3 ? world.rank() : 4);
+    mxx::comm world;
+    mxx::comm comm = world.split(world.rank() < 3 ? world.rank() : 4);
     
     unsigned int mpiid;
     std::vector<std::vector<double>> worldstring;
@@ -147,7 +147,6 @@ int main(int argc, char *argv[])
     MPI_Init(&argc, &argv);
     result = RUN_ALL_TESTS();
     MPI_Finalize();
-
 
     return result;
 }

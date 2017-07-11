@@ -1,7 +1,8 @@
 #include "../src/CVs/ParticlePositionCV.h"
 #include "../src/Snapshot.h"
 #include "gtest/gtest.h"
-#include <boost/mpi.hpp>
+#include <mxx/env.hpp>
+#include <mxx/comm.hpp>
 
 using namespace SSAGES;
 
@@ -80,7 +81,7 @@ protected:
     ParticlePositionCV *fullyConstrained;
     ParticlePositionCV *illegalAtomID;
 
-    boost::mpi::communicator comm;
+    mxx::comm comm;
 
     Snapshot *snapshot1;
     Snapshot *snapshot2;
@@ -273,7 +274,7 @@ TEST_F(ParticlePositionCVTest, SerializeTest) {
 int main(int argc, char *argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
-    boost::mpi::environment env(argc,argv);
+    mxx::env env(argc,argv);
     int ret = RUN_ALL_TESTS();
     return ret;
 }

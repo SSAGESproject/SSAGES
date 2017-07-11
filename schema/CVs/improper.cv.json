@@ -16,6 +16,9 @@
 		},
 		"periodic" : {
 			"type" : "boolean"
+		}, 
+		"name" : {
+			"type" : "string"
 		}
 	},
 	"required": ["type", "atom ids"],

@@ -1,12 +1,14 @@
 #include "gtest/gtest.h"
-#include <boost/mpi.hpp>
+#include <mxx/env.hpp>
+#include <mxx/comm.hpp>
 
 #define private public
 #define protected public
-#include "../src/Snapshot.h"
-#include "../src/Methods/ForwardFlux.h"
-#include "../src/Methods/DirectForwardFlux.h"
-#include "../src/CVs/MockCV.h"
+#include "CVs/CVManager.h"
+#include "Snapshot.h"
+#include "Methods/ForwardFlux.h"
+#include "Methods/DirectForwardFlux.h"
+#include "CVs/MockCV.h"
 
 using namespace SSAGES;
 
@@ -23,7 +25,7 @@ protected:
 		// Set up dummy CVs.
         // gradient isn't used in FFS so I set it to zero
 		CV1 = new MockCV(-1,{0,0,0},-2,2); // In bounds.
-		cvlist.push_back(CV1);
+		cvmanager.AddCV(CV1);
 
 		// Set up three timepoints.
 		snapshot1 = new Snapshot(comm, 0);
@@ -103,16 +105,13 @@ protected:
 		//delete snapshot2;
 		//delete snapshot3;
 
-		delete CV1;
-		//delete CV3;
-
 		delete MethodA;
 		delete MethodB;
 
 	}
 
-	boost::mpi::communicator world;
-	boost::mpi::communicator comm;
+	mxx::comm world;
+	mxx::comm comm;
 
 	Snapshot* snapshot1;
 	//Snapshot* snapshot2;
@@ -129,7 +128,8 @@ protected:
 	DirectForwardFlux* MethodA;	
 	DirectForwardFlux* MethodB;	
 
-	CVList cvlist;
+	CVManager cvmanager;
+    CVList cvlist;
 };
 
 TEST_F(ForwardFluxTest,FFSConfigID)
@@ -341,6 +341,7 @@ TEST_F(ForwardFluxTest,PopQueueMPI)
     }
     else if (mpirank == 2) shouldpop_local = true;
 
+    cvlist = cvmanager.GetCVs();
     MethodA->PopQueueMPI(snapshot1, cvlist, shouldpop_local);
     
     //make sure everyone has the correct ffsID
@@ -465,13 +466,13 @@ TEST_F(ForwardFluxTest,CheckForInterfaceCrossings)
     if (mpirank == 2) MethodA->_cvvalue_previous = -0.5; //will do neither
     
     //set cv's then run a step
-    cvlist.clear();
+    cvmanager.ClearCVs();
     //interface 3 is at zero
-    if (mpirank == 0) cvlist.push_back(new MockCV(0.1,{0,0,0},-2,2)); //should succeed
-    if (mpirank == 1) cvlist.push_back(new MockCV(-0.9,{0,0,0},-2,2)); //should do neither
-    if (mpirank == 2) cvlist.push_back(new MockCV(-0.5,{0,0,0},-2,2)); //snould do neither
+    if (mpirank == 0) cvmanager.AddCV(new MockCV(0.1,{0,0,0},-2,2)); //should succeed
+    if (mpirank == 1) cvmanager.AddCV(new MockCV(-0.9,{0,0,0},-2,2)); //should do neither
+    if (mpirank == 2) cvmanager.AddCV(new MockCV(-0.5,{0,0,0},-2,2)); //snould do neither
 
-    MethodA->CheckForInterfaceCrossings(snapshot1,cvlist);
+    MethodA->CheckForInterfaceCrossings(snapshot1,cvmanager);
     
     //check everyones successes and attempts count
     EXPECT_NEAR(MethodA->_current_interface,2,eps);    //interface is same
@@ -508,12 +509,12 @@ TEST_F(ForwardFluxTest,CheckForInterfaceCrossings)
     if (mpirank == 1) MethodA->_cvvalue_previous = -0.9; //will fail
     if (mpirank == 2) MethodA->_cvvalue_previous = -0.5; //will do neither
     //now set current cv
-    cvlist.clear();
-    if (mpirank == 0) cvlist.push_back(new MockCV(0.1,{0,0,0},-2,2)); //should succeed
-    if (mpirank == 1) cvlist.push_back(new MockCV(-1.1,{0,0,0},-2,2)); //should fail
-    if (mpirank == 2) cvlist.push_back(new MockCV(-0.5,{0,0,0},-2,2)); //snould do neither
+    cvmanager.ClearCVs();
+    if (mpirank == 0) cvmanager.AddCV(new MockCV(0.1,{0,0,0},-2,2)); //should succeed
+    if (mpirank == 1) cvmanager.AddCV(new MockCV(-1.1,{0,0,0},-2,2)); //should fail
+    if (mpirank == 2) cvmanager.AddCV(new MockCV(-0.5,{0,0,0},-2,2)); //snould do neither
 
-    MethodA->CheckForInterfaceCrossings(snapshot1,cvlist);
+    MethodA->CheckForInterfaceCrossings(snapshot1,cvmanager);
     
 
     //check everyones successes and attempts count
@@ -550,12 +551,12 @@ TEST_F(ForwardFluxTest,CheckForInterfaceCrossings)
     if (mpirank == 1) MethodA->_cvvalue_previous = -0.1; //is zombie, but I'll have it succeed, just to make sure its ignored
     if (mpirank == 2) MethodA->_cvvalue_previous = -0.1; //will succeed
     //now set current cv
-    cvlist.clear();
-    if (mpirank == 0) cvlist.push_back(new MockCV(-1.1,{0,0,0},-2,2)); //should fail
-    if (mpirank == 1) cvlist.push_back(new MockCV( 0.1,{0,0,0},-2,2)); //should do nothing
-    if (mpirank == 2) cvlist.push_back(new MockCV( 0.1,{0,0,0},-2,2)); //snould succeed
+    cvmanager.ClearCVs();
+    if (mpirank == 0) cvmanager.AddCV(new MockCV(-1.1,{0,0,0},-2,2)); //should fail
+    if (mpirank == 1) cvmanager.AddCV(new MockCV( 0.1,{0,0,0},-2,2)); //should do nothing
+    if (mpirank == 2) cvmanager.AddCV(new MockCV( 0.1,{0,0,0},-2,2)); //snould succeed
 
-    MethodA->CheckForInterfaceCrossings(snapshot1,cvlist);
+    MethodA->CheckForInterfaceCrossings(snapshot1,cvmanager);
     current_interface = MethodA->_current_interface; //need to store in local var
  
     //check everyones successes and attempts count
@@ -591,7 +592,7 @@ TEST_F(ForwardFluxTest,CheckForInterfaceCrossings)
 int main(int argc, char *argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
-     boost::mpi::environment env(argc,argv);
+    mxx::env env(argc,argv);
     int ret = RUN_ALL_TESTS();
 
     return ret;

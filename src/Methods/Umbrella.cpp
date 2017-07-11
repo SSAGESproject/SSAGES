@@ -30,10 +30,28 @@ using namespace Json;
 
 namespace SSAGES
 {
-	void Umbrella::PreSimulation(Snapshot* /* snapshot */, const CVManager& /* cvs */)
+	void Umbrella::PreSimulation(Snapshot* /* snapshot */, const CVManager& cvmanager)
 	{
 		if(comm_.rank() == 0)
-		 	umbrella_.open(filename_.c_str(), std::ofstream::out | std::ofstream::app);
+		{
+			if(append_)
+		 		umbrella_.open(filename_.c_str(), std::ofstream::out | std::ofstream::app);
+			else
+			{
+				// Write out header.
+				umbrella_.open(filename_.c_str(), std::ofstream::out);
+				umbrella_ << "#"; 
+				umbrella_ << "Iteration "; 
+
+				auto cvs = cvmanager.GetCVs(cvmask_); 
+				for(size_t i = 0; i < cvs.size(); ++i)
+					umbrella_ << "cv_" + std::to_string(i) << " ";
+
+				for(size_t i = 0; i < cvs.size() - 1; ++i)
+					umbrella_ << "center_" + std::to_string(i) << " ";  
+				umbrella_ << "center_" + std::to_string(cvs.size() - 1) << std::endl;
+			}
+		}
 	}
 
 	void Umbrella::PostIntegration(Snapshot* snapshot, const CVManager& cvmanager)
@@ -52,7 +70,7 @@ namespace SSAGES
 			auto& boxgrad = cv->GetBoxGradient();
 			// Compute dV/dCV.
 			auto center = GetCurrentCenter(snapshot->GetIteration(), i);
-			auto D = kspring_[i]*(cv->GetDifference(center));
+			auto D = kspring_[i]*cv->GetDifference(center);
 
 			// Update forces.
 			for(size_t j = 0; j < forces.size(); ++j)
@@ -62,7 +80,7 @@ namespace SSAGES
 			virial += D*boxgrad;
 		}
 
-		if(snapshot->GetIteration() % logevery_ == 0)
+		if(snapshot->GetIteration() % outfreq_ == 0)
 			PrintUmbrella(cvs, snapshot->GetIteration());
 	}
 
@@ -79,14 +97,20 @@ namespace SSAGES
 			umbrella_.precision(8);
 			umbrella_ << iteration << " ";
 
-			for(size_t i = 0; i < cvs.size(); i++)
-				umbrella_ << GetCurrentCenter(iteration, i) << " " << cvs[i]->GetValue() << " "; 
+			// Print out CV values first.
+			for(auto& cv : cvs)
+				umbrella_ << cv->GetValue() << " ";
+			
+			// Print out target (center) of each CV. 
+			for(size_t i = 0; i < cvs.size() - 1; ++i)
+				umbrella_ << GetCurrentCenter(iteration, i) << " "; 
+			umbrella_ << GetCurrentCenter(iteration, cvs.size() - 1);
 
 			umbrella_ << std::endl;
 		}
 	}
 
-	Umbrella* Umbrella::Construct(const Json::Value& json, 
+	Umbrella* Umbrella::Build(const Json::Value& json, 
 			    		          const MPI_Comm& world,
 					              const MPI_Comm& comm,
 					              const std::string& path)
@@ -129,8 +153,18 @@ namespace SSAGES
 			throw BuildException({"Need to define a spring for every center or a center for every spring!"});
 
 		auto freq = json.get("frequency", 1).asInt();
+		std::string name = "umbrella.dat";
 
-		auto name = json.get("file_name","none").asString();
+		//TODO walker id should be obtainable in method as
+		//     opposed to calculated like this. 
+		uint wid = mxx::comm(world).rank()/mxx::comm(comm).size(); 
+		bool ismulti = mxx::comm(world).size() > mxx::comm(comm).size(); 
+		if(json["output_file"].isArray())
+			name = json["output_file"][wid].asString(); 
+		else if(ismulti)
+			throw std::invalid_argument(path + ": Multi-walker simulations require a separate output file for each.");
+		else
+			name = json["output_file"].asString();
 
 		Umbrella* m = nullptr;
 		if(timesteps == 0)
@@ -138,37 +172,9 @@ namespace SSAGES
 		else
 			m = new Umbrella(world, comm, ksprings, centers0, centers1, timesteps, name, freq);
 
-		if(json.isMember("log_every"))
-			m->SetLogStep(json.get("log_every",0).asInt());
+		m->SetOutputFrequency(json.get("output_frequency",0).asInt());
+		m->SetAppend(json.get("append", false).asBool());
 		
 		return m;
 	}
-
-	void Umbrella::Serialize(Value& json) const
-	{
-		json["type"] = "Umbrella";
-		for(auto& k : kspring_)
-			json["ksprings"].append(k);
-
-		if(time_ != 0 )
-		{
-			for(auto& c : centers0_)
-				json["centers0"].append(c);
-			
-			for(auto& c : centers1_)
-				json["centers1"].append(c);
-
-			json["timesteps"] = time_;
-		}
-		else
-		{			
-			for(auto& c : centers0_)
-				json["centers"].append(c);
-		}
-
-		json["file_name"] = filename_;
-		json["log_every"] = logevery_;
-	}
-
-
 }

@@ -13,6 +13,9 @@
 			"items" : {
 				"type" : "number"
 			}
+		}, 
+		"name" : {
+			"type" : "string"
 		}
     },
     "required" : ["type"],

@@ -329,7 +329,7 @@ namespace SSAGES
 		worldout_.close();
 	}
 
-	ABF* ABF::Construct(const Value& json, 
+	ABF* ABF::Build(const Value& json, 
 		                const MPI_Comm& world,
 		                const MPI_Comm& comm,
 			            const std::string& path)
@@ -448,39 +448,6 @@ namespace SSAGES
 			m->SetIteration(json.get("iteration",0).asInt());
 
 		return m;
-	}
-
-	void ABF::Serialize(Value& json) const
-	{
-		json["type"] = "ABF";
-		for(size_t i = 0; i < histdetails_.size(); ++i)
-		{
-			json["CV_lower_bounds"].append(histdetails_[i][0]);				
-			json["CV_upper_bounds"].append(histdetails_[i][1]);
-			json["CV_bins"].append(histdetails_[i][2]);
-		}
-
-		for(size_t i = 0; i < restraint_.size(); ++i)
-		{
-			json["CV_restraint_minimums"].append(restraint_[i][0]);
-			json["CV_restraint_maximums"].append(restraint_[i][1]);
-			json["CV_restraint_spring_constants"].append(restraint_[i][2]);
-		}
-
-		json["timestep"] = timestep_;
-		json["minimum_count"] = min_;
-		json["backup_frequency"] = FBackupInterv_;			
-		json["unit_conversion"] = unitconv_;
-		json["iteration"] = iteration_;
-		json["filename"] = filename_;		
-			
-		for(int i = 0; i < _F.size(); ++i)
-			json["F"].append(_F[i]);
-
-		for(size_t i = 0; i < _N.size(); ++i)
-			json["N"].append(_N[i]);
-
-	
 	}
 }
 

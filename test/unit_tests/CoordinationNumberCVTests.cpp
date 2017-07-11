@@ -1,7 +1,8 @@
 #include "../src/CVs/CoordinationNumberCV.h"
 #include "../src/Snapshot.h"
 #include "gtest/gtest.h"
-#include <boost/mpi.hpp>
+#include <mxx/env.hpp>
+#include <mxx/comm.hpp>
 
 using namespace SSAGES;
 
@@ -12,8 +13,8 @@ class CoordinationNumberCVTest : public ::testing::Test{
 protected:
     virtual void SetUp()
     {
-        cv1 = new CoordinationNumberCV({1, 2, 3}, {4}, SwitchingFunction(0, 1.5, 12, 24));
-        cv2 = new CoordinationNumberCV({4}, {1, 2, 3}, SwitchingFunction(0, 1.5, 12, 24));
+        cv1 = new CoordinationNumberCV({1, 2, 3}, {4}, new RationalSF(0, 1.5, 12, 24));
+        cv2 = new CoordinationNumberCV({4}, {1, 2, 3}, new RationalSF(0, 1.5, 12, 24));
 
         snapshot = new Snapshot(comm, 0);
         Matrix3 H; 
@@ -93,7 +94,7 @@ protected:
 
     Snapshot* snapshot; 
     CoordinationNumberCV *cv1, *cv2;
-    boost::mpi::communicator comm;
+    mxx::comm comm;
 };
 
 TEST_F(CoordinationNumberCVTest, DefaultBehavior)
@@ -105,23 +106,31 @@ TEST_F(CoordinationNumberCVTest, DefaultBehavior)
     auto& grad1 = cv1->GetGradient(); 
     // NOTE: Gradient checks are only valid for single processor
     // but value checks for 2. This needs to be adjusted later. 
-    // The gradients ARE correct for 2 cores, but the global/local
-    // indices don't match... to be fixed later.
-    EXPECT_NEAR(grad1[0][0], 0.5130418964267503, eps);
-    EXPECT_NEAR(grad1[0][1], -0.5130418964267503, eps);
-    EXPECT_NEAR(grad1[0][2], 0.5130418964267503, eps);
+    if(comm.size() == 1)
+    {
+        EXPECT_NEAR(grad1[0][0], 0.5130418964267503, eps);
+        EXPECT_NEAR(grad1[0][1], -0.5130418964267503, eps);
+        EXPECT_NEAR(grad1[0][2], 0.5130418964267503, eps);
 
-    EXPECT_NEAR(grad1[1][0], 0.0014447794902723533, eps);
-    EXPECT_NEAR(grad1[1][1], 0, eps);
-    EXPECT_NEAR(grad1[1][2], -0.0014447794902723533, eps);
+        EXPECT_NEAR(grad1[1][0], 0.0014447794902723533, eps);
+        EXPECT_NEAR(grad1[1][1], 0, eps);
+        EXPECT_NEAR(grad1[1][2], -0.0014447794902723533, eps);
 
-    EXPECT_NEAR(grad1[2][0], 0, eps);
-    EXPECT_NEAR(grad1[2][1], -0.09107879745469, eps);
-    EXPECT_NEAR(grad1[2][2], 0, eps);
+        EXPECT_NEAR(grad1[2][0], 0, eps);
+        EXPECT_NEAR(grad1[2][1], -0.09107879745469, eps);
+        EXPECT_NEAR(grad1[2][2], 0, eps);
 
-    EXPECT_NEAR(grad1[3][0], -0.51448667591702268, eps);
-    EXPECT_NEAR(grad1[3][1], 0.60412069388144074, eps);
-    EXPECT_NEAR(grad1[3][2], -0.51159711693647802, eps);
+        EXPECT_NEAR(grad1[3][0], -0.51448667591702268, eps);
+        EXPECT_NEAR(grad1[3][1], 0.60412069388144074, eps);
+        EXPECT_NEAR(grad1[3][2], -0.51159711693647802, eps);
+    }
+
+    // Gradient should sum to zero.
+    double sum = 0.; 
+    for(auto& v : grad1)
+        sum += v.array().sum();
+    sum = mxx::allreduce(sum, std::plus<double>(), comm);
+    EXPECT_NEAR(sum, 0, eps);
 
     // CV2 should match CV1.
     cv2->Initialize(*snapshot);
@@ -130,24 +139,36 @@ TEST_F(CoordinationNumberCVTest, DefaultBehavior)
     EXPECT_NEAR(cv2->GetValue(), cv1->GetValue(), eps);
 
     auto& grad2 = cv2->GetGradient();
+    sum = 0.; 
+    for(auto& v : grad2)
+        sum += v.array().sum();
+    sum = mxx::allreduce(sum, std::plus<double>(), comm);
+    EXPECT_NEAR(sum, 0, eps);
 
-    EXPECT_NEAR(grad2[0][0], grad1[0][0], eps);
-    EXPECT_NEAR(grad2[0][1], grad1[0][1], eps);
-    EXPECT_NEAR(grad2[0][2], grad1[0][2], eps);
+    if(comm.size() == 1)
+    {
+        EXPECT_NEAR(grad2[0][0], grad1[0][0], eps);
+        EXPECT_NEAR(grad2[0][1], grad1[0][1], eps);
+        EXPECT_NEAR(grad2[0][2], grad1[0][2], eps);
 
-    EXPECT_NEAR(grad2[1][0], grad1[1][0], eps);
-    EXPECT_NEAR(grad2[1][1], grad1[1][1], eps);
-    EXPECT_NEAR(grad2[1][2], grad1[1][2], eps);
+        EXPECT_NEAR(grad2[1][0], grad1[1][0], eps);
+        EXPECT_NEAR(grad2[1][1], grad1[1][1], eps);
+        EXPECT_NEAR(grad2[1][2], grad1[1][2], eps);
 
-    EXPECT_NEAR(grad2[2][0], grad1[2][0], eps);
-    EXPECT_NEAR(grad2[2][1], grad1[2][1], eps);
-    EXPECT_NEAR(grad2[2][2], grad1[2][2], eps);
+        EXPECT_NEAR(grad2[2][0], grad1[2][0], eps);
+        EXPECT_NEAR(grad2[2][1], grad1[2][1], eps);
+        EXPECT_NEAR(grad2[2][2], grad1[2][2], eps);
+
+        EXPECT_NEAR(grad2[3][0], grad1[3][0], eps);
+        EXPECT_NEAR(grad2[3][1], grad1[3][1], eps);
+        EXPECT_NEAR(grad2[3][2], grad1[3][2], eps);
+    }
 }
 
 int main(int argc, char *argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
-    boost::mpi::environment env(argc,argv);
+    mxx::env env(argc,argv);
     int ret = RUN_ALL_TESTS();
     return ret;
 }

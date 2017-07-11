@@ -19,13 +19,17 @@
  */
 #pragma once 
 
-#include "JSON/Serializable.h"
-#include <mpi.h>
 #include <mxx/comm.hpp>
 #include <vector>
 
+// Forward declare.
+namespace Json {
+	class Value;
+}
+
 namespace SSAGES
 {
+
 	//! Class that handles SSAGES resources for a simulation.
 	/*!
 	 * 
@@ -37,7 +41,7 @@ namespace SSAGES
 	 * Each simulation engine must implement a driver which calls this 
 	 * resource handler and passes it the appropriate hook. 
 	 */
-	class ResourceHandler : public Serializable
+	class ResourceHandler
 	{
 	private: 
 		//! MPI communicator containing all processors. 
@@ -49,11 +53,17 @@ namespace SSAGES
 		//! Walker ID for specific driver. 
 		uint walkerid_; 
 
+		//! Number of walkers.
+		uint nwalkers_;
+
 		//! Snapshot of system state (pointer). 
 		class Snapshot* snapshot_;
 
 		//! Vector of advanced sampling methods. 
 		std::vector<class Method*> methods_;
+
+		//! CV logger. 
+		class Logger* logger_; 
 
 		//! Collective variable manager. 
 		class CVManager* cvmanager_;
@@ -109,6 +119,11 @@ namespace SSAGES
 			return walkerid_;
 		}
 
+		uint GetNumWalkers() const 
+		{
+			return nwalkers_;
+		}
+
 		void ConfigureHook(class Hook* hook);
 
 		//! Build a new ResourceHandler from JSON. 
@@ -120,9 +135,6 @@ namespace SSAGES
 		 * \note Object lifetime is caller's responsibility!
 		 */
 		static ResourceHandler* Build(const Json::Value& json, const MPI_Comm& world);
-
-        //! \copydoc Serializable::Serialize()
-		void Serialize(Json::Value& json) const override;
 
 		//! Destructor.
 		~ResourceHandler();

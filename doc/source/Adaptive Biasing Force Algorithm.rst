@@ -121,9 +121,9 @@ backup_frequency
 unit_conversion
     *double*.
         Unit conversion from d(momentum)/d(time) to force for the simulation. 
-    For LAMMPS using units real, this is 2390.06
-    (gram.angstrom/mole.femtosecond^2 -> kcal/mole.angstrom)
-    For GROMACS, this is 1.
+        For LAMMPS using units real, this is 2390.06
+        (gram.angstrom/mole.femtosecond^2 -> kcal/mole.angstrom)
+        For GROMACS, this is 1.
 
 frequency
     *1*.
@@ -268,7 +268,8 @@ prepare the input files yourself using GROMACS tools:
 Be sure to change the seed in .mdp files for random velocity generation, 
 so walkers can explore different places on the free energy surface.
 
-Developer
-^^^^^^^^^
+Developers
+^^^^^^^^^^
 
 Emre Sevgen
+Hythem Sidky

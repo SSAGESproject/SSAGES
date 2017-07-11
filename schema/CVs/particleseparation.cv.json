@@ -37,6 +37,9 @@
 			"items" : {
 				"type" : "boolean"
 			}
+		}, 
+		"name" : {
+			"type" : "string"
 		}
 	},
 	"required": ["type", "group1", "group2"],

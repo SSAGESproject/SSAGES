@@ -518,7 +518,7 @@ namespace SSAGES
     }
 
 	//! \copydoc Method::Build()
-	Basis* Basis::Construct(const Json::Value& json, 
+	Basis* Basis::Build(const Json::Value& json, 
 			       		    const MPI_Comm& world,
 					        const MPI_Comm& comm,
 					        const std::string& path)
@@ -586,35 +586,4 @@ namespace SSAGES
 
 		return m;
     }
-
-    void Basis::Serialize(Json::Value& json) const
-    {
-        json["type"] = "Basis";
-        for(auto& p: polyords_)
-            json["CV_coefficients"].append(p);
-
-        for(auto& k: restraint_)
-            json["CV_restraint_spring_constants"].append(k);
-
-        for(auto& u: boundUp_)
-            json["CV_restraint_maximums"].append(u);
-
-        for(auto& l: boundLow_)
-            json["CV_restraint_minimums"].append(l);
-
-        for(auto& b: unbias_)
-            json["bias_hist"].append(b);
-
-        for(auto& c: coeff_arr_)
-            json["coefficients"].append(c);
-
-        json["tolerance"] = tol_;
-        json["convergence_exit"] = converge_exit_;
-        json["basis_filename"] = bnme_;
-        json["coeff_filename"] = cnme_;
-        json["iteration"] = iteration_;
-        json["cycle_frequency"] = cyclefreq_;
-        json["weight"] = weight_;
-        json["temperature"] = temperature_;
-	}
 }

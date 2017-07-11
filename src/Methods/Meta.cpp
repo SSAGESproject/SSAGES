@@ -329,7 +329,7 @@ namespace SSAGES
 		}
 	}
 
-	Meta* Meta::Construct(const Json::Value& json, 
+	Meta* Meta::Build(const Json::Value& json, 
 		                  const MPI_Comm& world,
 		                  const MPI_Comm& comm,
 					      const std::string& path)

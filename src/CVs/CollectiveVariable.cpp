@@ -21,6 +21,7 @@
  */
 #include "CollectiveVariable.h"
 #include "AlphaRMSDCV.h"
+#include "CVManager.h"
 #include "AngleCV.h"
 #include "AntiBetaRMSDCV.h"
 #include "BoxVolumeCV.h"
@@ -40,7 +41,7 @@ namespace SSAGES
 {
 	CollectiveVariable* CollectiveVariable::BuildCV(const Json::Value &json, const std::string& path)
 	{
-		// Get move type. 
+		// Get CV type. 
 		auto type = json.get("type", "none").asString();
 
 		if(type == "Angle")
@@ -72,4 +73,6 @@ namespace SSAGES
 		else
 			throw std::invalid_argument(path + ": Unknown CV type specified.");
 	}
+
+	std::map<std::string, uint> CVManager::cvmap_ = {};
 }

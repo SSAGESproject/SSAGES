@@ -40,7 +40,7 @@ namespace SSAGES
 	 * reference "ideal" parallel beta sheet structure.
 	 */
 
-	class ParallelBetaRMSDCV : public CollectiveVariable, public Buildable<ParallelBetaRMSDCV>
+	class ParallelBetaRMSDCV : public CollectiveVariable
 	{
 	private:
 
@@ -206,7 +206,7 @@ namespace SSAGES
 			}
 		}
 
-		static ParallelBetaRMSDCV* Construct(const Json::Value& json, const std::string& path)
+		static ParallelBetaRMSDCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
@@ -230,18 +230,6 @@ namespace SSAGES
 			int mode = json.get("mode", 0).asInt();
 
 			return new ParallelBetaRMSDCV(resids, reference, unitconv, mode);
-		}
-		//! Serialize this CV for restart purposes.
-		/*!
-		 * \param json JSON value
-		 */
-		virtual void Serialize(Json::Value& json) const override
-		{
-			json["type"] = "ParallelBetaRMSD";
-			json["reference"] = refpdb_;
-			for(size_t i=0; i < resids_.size(); ++i)
-				json["residue_ids"].append(resids_[i]);
-			json["length_unit"] = unitconv_;
 		}
 	};
 }

@@ -211,26 +211,8 @@ namespace SSAGES
         }
     }
 
-    void StringMethod::Serialize(Json::Value& json) const
-    {
-        json["type"] = "String";
-
-        for(size_t i = 0; i < centers_.size(); i++)
-            json["centers"].append(centers_[i]);
-
-        for(auto& t : tol_)
-            json["tolerance"].append(t);
-
-        json["max_iterations"] = maxiterator_;
-
-        for(auto& s : cvspring_)
-            json["ksprings"].append(s);
-
-        json["iteration"] = iteration_; 
-    }
-
 	//! \copydoc Buildable::Build()
-	StringMethod* StringMethod::Construct(const Value& json, 
+	StringMethod* StringMethod::Build(const Value& json, 
 		                                  const MPI_Comm& world,
 		                                  const MPI_Comm& comm,
 					                      const std::string& path)

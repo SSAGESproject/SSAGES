@@ -1,12 +1,13 @@
 #include "gtest/gtest.h"
-#include <boost/mpi.hpp>
+#include <mxx/env.hpp>
+#include <mxx/comm.hpp>
 
 #define private public
 #define protected public 
 
-#include "../src/Methods/FiniteTempString.h"
-#include "../src/Methods/Swarm.h"
-#include "../src/CVs/MockCV.h"
+#include "Methods/FiniteTempString.h"
+#include "Methods/Swarm.h"
+#include "CVs/MockCV.h"
 
 using namespace SSAGES;
 
@@ -68,8 +69,8 @@ class StringMethodTest : public ::testing::Test
             delete FTS_Method;
 		}
 
-		boost::mpi::communicator world;
-		boost::mpi::communicator comm = world.split(world.rank() < 3 ? world.rank() : 4);
+		mxx::comm world;
+		mxx::comm comm = world.split(world.rank() < 3 ? world.rank() : 4);
         
         std::vector<double> vec1, vec2, centers_, cvspring_;
 		std::vector<std::vector<double>> worldstring;
