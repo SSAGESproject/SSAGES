@@ -12,24 +12,18 @@ root = {}
 with open('Template_Input.json') as f:
 	root = json.load(f)
 
-#Number of processors/string nodes (make sure this matches everywhere)
+# Number of nodes to use on string
 num = 22
 
-#Start and end location of CVs 1, 2, etc...
+# Generate values for CV centers for each node
+# Start and end location of CVs 1, 2, etc...
 centers_1 = np.linspace(-1.5, 0.25, num)
 centers_2 = np.linspace(2.0, -2.0, num)
 
-# Add on the requested number of objects -1 because we are appending
-for i in range(0,num - 1):
-	root['driver'].append(copy.deepcopy(root['driver'][0]))
-
 for i in range(num):
-	# Change the log file name so each driver uses a different log file
-	#root['driver'][i]['logfile'] = "none"
-
-	# Change the node's location
-        root['driver'][i]['method']['centers'][0] = round(centers_1[i], 3)
-        root['driver'][i]['method']['centers'][1] = round(centers_2[i], 3)
+    x1 = round(centers_1[i], 3)
+    x2 = round(centers_2[i], 3)
+    root['methods'][0]['centers'].append([x1, x2])
 
 # Convert python dictionary into JSON file
 with open('FTS.json', 'w') as f:

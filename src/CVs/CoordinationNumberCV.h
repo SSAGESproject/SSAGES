@@ -36,7 +36,7 @@ namespace SSAGES
 	 *
 	 * \ingroup CVs
 	 */
-	class CoordinationNumberCV : public CollectiveVariable, public Buildable<CoordinationNumberCV>
+	class CoordinationNumberCV : public CollectiveVariable
 	{
 	private:
 		Label group1_; //!< IDs of the first group of atoms. 
@@ -194,7 +194,7 @@ namespace SSAGES
 			}
 		}
 
-		static CoordinationNumberCV* Construct(const Json::Value& json, const std::string& path)
+		static CoordinationNumberCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
@@ -217,15 +217,6 @@ namespace SSAGES
 				group2.push_back(s.asInt());
 			
 			return new CoordinationNumberCV(group1, group2, SwitchingFunction::Build(json["switching"]));
-		}
-
-		//! Serialize this CV for restart purposes.
-		/*!
-			* \param json JSON value
-			*/
-		void Serialize(Json::Value& json) const override
-		{
-			json["type"] = "CoordinationNumber";
 		}
 
 		~CoordinationNumberCV()

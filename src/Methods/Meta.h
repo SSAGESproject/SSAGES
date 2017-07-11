@@ -65,7 +65,7 @@ namespace SSAGES
 	 *
 	 * \ingroup Methods
 	 */
-	class Meta : public Method, public BuildableMPI<Meta>
+	class Meta : public Method
 	{
 	private:	
 		//! Hills.
@@ -178,23 +178,10 @@ namespace SSAGES
 		void LoadHills(const std::string& filename);
 		
 		//! \copydoc Buildable::Build()
-		static Meta* Construct(const Json::Value& json, 
+		static Meta* Build(const Json::Value& json, 
 		                       const MPI_Comm& world,
 		                       const MPI_Comm& comm,
 					           const std::string& path);
-
-		//! \copydoc Serializable::Serialize()
-		/*!
-		 * \warning Serialization not implemented yet!
-		 */
-		void Serialize(Json::Value& json) const override
-		{
-			json["type"] = "Metadynamics"; 
-			for(auto& w : widths_)
-				json["widths"].append(w);
-			json["height"] = height_;
-			json["hill_frequency"] = hillfreq_;
-		}
 
 		//! Destructor.
 		~Meta() {}

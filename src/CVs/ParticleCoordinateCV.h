@@ -37,7 +37,7 @@ namespace SSAGES
 	 *
 	 * \ingroup CVs
 	 */
-	class ParticleCoordinateCV : public CollectiveVariable, public Buildable<ParticleCoordinateCV>
+	class ParticleCoordinateCV : public CollectiveVariable
 	{
 	private:
 		//! IDs of atoms of interest. 
@@ -164,7 +164,7 @@ namespace SSAGES
 			return val_ - Location;
 		}
 
-		static ParticleCoordinateCV* Construct(const Json::Value& json, const std::string& path)
+		static ParticleCoordinateCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
@@ -196,33 +196,5 @@ namespace SSAGES
 
 			return new ParticleCoordinateCV(atomids, index);
 		}
-
-		//! Serialize this CV for restart purposes.
-		/*!
-		 * \param json JSON value
-		 */
-		void Serialize(Json::Value& json) const override
-		{
-			json["type"] = "ParticleCoordinate";			
-			switch(dim_)
-			{
-				case Dimension::x:
-					json["dimension"] = "x";
-					break;
-				case Dimension::y:
-					json["dimension"] = "y";
-					break;
-				case Dimension::z:
-					json["dimension"] = "z";
-					break;
-			}
-			
-			for(auto& id : atomids_)
-				json["atom_ids"].append(id);
-
-			for(auto& bound : bounds_)
-				json["bounds"].append(bound);
-		}
-
 	 };
 }

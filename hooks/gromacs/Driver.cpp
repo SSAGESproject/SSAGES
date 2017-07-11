@@ -21,6 +21,7 @@
 #include "Driver.h"
 #include "GromacsHook.h"
 #include "ResourceHandler.h"
+#include "json/json.h"
 #include "gmxpre.h"
 #include "gromacs/commandline/cmdlinemodulemanager.h"
 #include "programs/mdrun/mdrun_main.h"

@@ -17,15 +17,16 @@
  * You should have received a copy of the GNU General Public License
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <mxx/comm.hpp>
 #include "CVs/CVManager.h"
 #include "Drivers/DriverException.h"
+#include "Loggers/Logger.h"
 #include "Validator/ObjectRequirement.h"
 #include "Methods/Method.h"
 #include "ResourceHandler.h"
 #include "Snapshot.h"
 #include "Hook.h"
 #include "schema.h"
-#include <mxx/comm.hpp>
 
 using namespace Json;
 
@@ -46,6 +47,7 @@ namespace SSAGES
 		hook->SetCVManager(cvmanager_);
 		for(auto& m : methods_)
 			hook->AddListener(m);
+		if(logger_ != nullptr) hook->AddListener(logger_);
 		hook_ = hook;
 	}
 
@@ -108,15 +110,16 @@ namespace SSAGES
 		for(auto& m : json["methods"])
 			methods.push_back(Method::BuildMethod(m, world, comm, "#/methods"));
 		
+		// Build logger. 
+		Logger* l = nullptr; 
+		if(json.isMember("logger"))
+			l = Logger::Build(json["logger"], world, comm, "#/logger");
+
 		auto* rh = new ResourceHandler(std::move(world), std::move(comm), walkerid, methods, cvmanager);
 		rh->inputs_ = inputs;
 		rh->nwalkers_ = nwalkers;
+		rh->logger_ = l;
 		return rh;
-	}
-	
-	void ResourceHandler::Serialize(Value& json) const
-	{
-
 	}
 
 	ResourceHandler::~ResourceHandler()

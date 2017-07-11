@@ -79,7 +79,7 @@ namespace SSAGES
 		void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override;
         
 		//! \copydoc Buildable::Build()
-		static DirectForwardFlux* Construct(const Json::Value& json, 
+		static DirectForwardFlux* Build(const Json::Value& json, 
 		                                    const MPI_Comm& world,
 		                                    const MPI_Comm& comm,
 					                        const std::string& path);

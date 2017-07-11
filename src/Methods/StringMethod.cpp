@@ -211,26 +211,8 @@ namespace SSAGES
         }
     }
 
-    void StringMethod::Serialize(Json::Value& json) const
-    {
-        json["type"] = "String";
-
-        for(size_t i = 0; i < centers_.size(); i++)
-            json["centers"].append(centers_[i]);
-
-        for(auto& t : tol_)
-            json["tolerance"].append(t);
-
-        json["max_iterations"] = maxiterator_;
-
-        for(auto& s : cvspring_)
-            json["ksprings"].append(s);
-
-        json["iteration"] = iteration_; 
-    }
-
 	//! \copydoc Buildable::Build()
-	StringMethod* StringMethod::Construct(const Value& json, 
+	StringMethod* StringMethod::Build(const Value& json, 
 		                                  const MPI_Comm& world,
 		                                  const MPI_Comm& comm,
 					                      const std::string& path)
@@ -249,8 +231,9 @@ namespace SSAGES
 		if(validator.HasErrors())
 			throw BuildException(validator.GetErrors());
 
+		unsigned int wid = mxx::comm(world).rank()/mxx::comm(comm).size();
 		std::vector<double> centers;
-		for(auto& s : json["centers"])
+		for(auto& s : json["centers"][wid])
 			centers.push_back(s.asDouble());
 
 		auto maxiterator = json.get("max_iterations", 0).asInt();

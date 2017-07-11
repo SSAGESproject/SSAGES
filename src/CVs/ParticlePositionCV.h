@@ -36,7 +36,7 @@ namespace SSAGES
 	 *
 	 * \ingroup CVs
 	 */
-	class ParticlePositionCV : public CollectiveVariable, public Buildable<ParticlePositionCV>
+	class ParticlePositionCV : public CollectiveVariable
 	{
 	private:
 		//! Vector of atom ids of interest.
@@ -133,7 +133,7 @@ namespace SSAGES
 				grad_[id] = dx/val_*masses[id]/masstot;
 		}
 		
-		static ParticlePositionCV* Construct(const Json::Value& json, const std::string& path)
+		static ParticlePositionCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
@@ -161,24 +161,6 @@ namespace SSAGES
 			auto fixz = json["fix"][2].asBool();
 
 			return new ParticlePositionCV(atomids, position, fixx, fixy, fixz);
-		}
-
-		//! Serialize this CV for restart purposes.
-		/*!
-		 * \param json JSON value
-		 */
-		void Serialize(Json::Value& json) const override
-		{
-			json["type"] = "ParticlePosition";
-			json["fix"][0] = fix_[0];
-			json["fix"][1] = fix_[1];
-			json["fix"][2] = fix_[2];
-			
-			for(auto& id : atomids_)
-				json["atom_ids"].append(id);
-
-			for(auto& bound : bounds_)
-				json["bounds"].append(bound);			
 		}
 	};
 }

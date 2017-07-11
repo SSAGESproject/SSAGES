@@ -39,7 +39,7 @@ namespace SSAGES
 	 * Implementation of the Adaptive Biasing Force algorithm based on
 	 * \cite DARVE2008144120
 	 */
-	class ABF : public Method, public BuildableMPI<ABF>
+	class ABF : public Method
 	{
 	private:	
 		//! To store running total of the local walker. 
@@ -272,13 +272,10 @@ namespace SSAGES
 		}			
 		
 		//! \copydoc Buildable::Build()
-		static ABF* Construct(const Json::Value& json, 
+		static ABF* Build(const Json::Value& json, 
 		                      const MPI_Comm& world,
 		                      const MPI_Comm& comm,
 					          const std::string& path);
-
-		//! \copydoc Serializable::Serialize()
-		void Serialize(Json::Value& json) const override;
 
 		//! Destructor
 		~ABF() {}

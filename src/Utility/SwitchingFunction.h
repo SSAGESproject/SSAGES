@@ -20,7 +20,7 @@
 #pragma once 
 
 #include <cmath>
-#include "JSON/Serializable.h"
+#include "json/json.h"
 
 namespace SSAGES
 {
@@ -33,7 +33,7 @@ namespace SSAGES
 	 * 
 	 * \ingroup Core
 	 */
-	class SwitchingFunction : public Serializable
+	class SwitchingFunction
 	{
 	public:
 
@@ -53,12 +53,6 @@ namespace SSAGES
 		 * \return Pointer to new SwitchingFunction.
 		 */
 		static SwitchingFunction* Build(const Json::Value& json);
-
-		//! Serialize this CV for restart purposes.
-		/*!
-		 * \param json JSON value
-		 */
-		virtual void Serialize(Json::Value& json) const override = 0;
 	};
 
 	class RationalSF : public SwitchingFunction
@@ -104,18 +98,6 @@ namespace SSAGES
 						json["n"].asInt(), 
 						json["m"].asInt()
 					);
-		}
-
-		//! Serialize this CV for restart purposes.
-		/*!
-		 * \param json JSON value
-		 */
-		void Serialize(Json::Value& json) const override
-		{
-			json["d0"] = d0_;
-			json["r0"] = r0_;
-			json["n"] = n_;
-			json["m"] = m_;
 		}
 	};
 }

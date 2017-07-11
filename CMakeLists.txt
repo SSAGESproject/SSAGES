@@ -52,10 +52,8 @@ set(SOURCE
 #	src/Constraints/Constraint.cpp
 #	src/Constraints/COPSSImage.cpp
 	src/CVs/CollectiveVariable.cpp
-#	src/Observers/JSONObserver.cpp
+	src/Loggers/Logger.cpp
 	src/Validator/RequirementLoader.cpp
-#	src/Simulations/SimObserver.cpp
-#	src/Simulations/SimObservable.cpp
 	src/JSON/jsoncpp.cpp
 	src/Utility/SwitchingFunction.cpp
 	src/Hook.cpp
