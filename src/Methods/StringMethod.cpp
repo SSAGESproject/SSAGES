@@ -249,10 +249,6 @@ namespace SSAGES
 		if(validator.HasErrors())
 			throw BuildException(validator.GetErrors());
 
-		//std::vector<double> centers;
-		//for(auto& s : json["centers"])
-		//	centers.push_back(s.asDouble());
-
 		unsigned int wid = mxx::comm(world).rank()/mxx::comm(comm).size();
 		std::vector<double> centers;
 		for(auto& s : json["centers"][wid])
