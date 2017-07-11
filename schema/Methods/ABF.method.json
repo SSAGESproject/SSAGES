@@ -89,6 +89,14 @@
 		"filename" : {
 			"type" : "string"
 		},
+
+		"Fworld_filename" : {
+			"type" : "string"
+		},
+
+		"Nworld_filename" : {
+			"type" : "string"
+		},
 		
 		"backup_frequency" : {
 			"type" : "integer",
@@ -98,22 +106,6 @@
 		"unit_conversion" : {
 			"type" : "number",
 			"minimum" : 0
-		},
-
-		"F" : {
-			"type" : "array",
-			"minItems" : 1,
-			"items" : {
-				"type" : "number"
-			}
-		},
-		
-		"N" : {
-			"type" : "array",
-			"minItems" : 1,
-			"items" : {
-				"type" : "integer"
-			}
 		},
 
 		"iteration" : {

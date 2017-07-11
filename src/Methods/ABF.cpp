@@ -26,6 +26,7 @@
 #include "schema.h"
 #include <algorithm>
 #include <fstream>
+#include <iostream>
 
 using namespace Json;
 // "Adaptive biasing force method for scalar and vector free energy calculations"
@@ -354,7 +355,17 @@ namespace SSAGES
 			}
 		}
 		return true;
-	} 
+	}
+
+	void ABF::printFworld()
+	{
+		Fworldout_.open(Fworld_filename_);
+		for(auto& point : (*F_))
+		{
+			Fworldout_ << point << std::endl;
+		}
+		Fworldout_.close();
+	}
 
 	ABF* ABF::Construct(const Value& json, 
 		                const MPI_Comm& world,
@@ -455,19 +466,32 @@ namespace SSAGES
 
 		auto freq = json.get("frequency", 1).asInt();
 		auto filename = json.get("filename", "F_out").asString();
+		auto Fworld_filename_ = json.get("F_world_filename", "F_world").asString();
+		auto Nworld_filename_ = json.get("N_world_filename", "N_world").asString();
 		
-		Histogram<int> *N;
-		Histogram<int> *Nworld;
-		
+		Grid<int> *N;
 		Grid<Eigen::VectorXd> *F;
-		Grid<Eigen::VectorXd> *Fworld;
 
-		
-		N= new Histogram<int>(binsCV, minsCV, maxsCV, isperiodic);
-		Nworld= new Histogram<int>(binsCV, minsCV, maxsCV, isperiodic);
-		
+		N= new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);		
 		F= new Grid<Eigen::VectorXd>(binsCV, minsCV, maxsCV, isperiodic);
-		Fworld= new Grid<Eigen::VectorXd>(binsCV, minsCV, maxsCV, isperiodic);		 
+
+		Grid<int> *Nworld;
+		Grid<Eigen::VectorXd> *Fworld;
+		
+		//Nworld= new Grid<uint>(binsCV, minsCV, maxsCV, isperiodic);
+		//Fworld= new Grid<Eigen::VectorXd>(binsCV, minsCV, maxsCV, isperiodic);
+	
+		//if(std::ifstream(N_world_filename) && std::ifstream(F_world_filename))
+		//{
+		//	Nworld->LoadFromFile(Nworld_filename);
+		//	Fworld->LoadFromFile(Fworld_filename);
+		//}
+		//else
+		//{
+			Nworld= new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);
+			Fworld= new Grid<Eigen::VectorXd>(binsCV, minsCV, maxsCV, isperiodic);
+		//}
+	 
 		
 		auto* m = new ABF(world, comm, N, Nworld, F, Fworld, restraint, isperiodic, periodicboundaries, min, massweigh, filename, histdetails, FBackupInterv, unitconv, timestep, freq);
 

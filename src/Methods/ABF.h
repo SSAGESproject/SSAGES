@@ -25,8 +25,8 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include "Grids/Histogram.h"
 #include "Grids/Grid.h"
+
 
 namespace SSAGES
 {
@@ -64,7 +64,7 @@ namespace SSAGES
 		 * CVs. This will be size (CVbinNr1*CVbinNr2*..).
 		 */
 		//std::vector<int> N_;
-		Histogram<int> *N_;
+		Grid<int> *N_;
 
 		//! To store number of hits at a given CV bin.
 		/*!
@@ -72,7 +72,7 @@ namespace SSAGES
 		 * CVs. This will be size (CVbinNr1*CVbinNr2*..).
 		 */
 		//std::vector<int> Nworld_;
-		Histogram<int> *Nworld_;
+		Grid<int> *Nworld_;
 		
 		//! Information for a harmonic restraint to keep CV in the region of interest. 
 		/*!
@@ -128,11 +128,23 @@ namespace SSAGES
 		//! Number of CVs in system
 		unsigned int dim_;
 
-		//! Output stream for world data.
+		//! Output stream for F/N world data.
 		std::ofstream worldout_;
+
+		//! Output stream for Fworld data.
+		std::ofstream Fworldout_;
+
+		//! Output stream for Nworld data.
+		std::ofstream Nworldout_;
 
 		//! File name for world data
 		std::string filename_;
+
+		//! Nworld print out filename
+		std::string Nworld_filename_;
+
+		//! Fworld print out filename
+		std::string Fworld_filename_;
 
 		//! Histogram details. 
 		/*!
@@ -174,6 +186,7 @@ namespace SSAGES
 
 		//! Mass vector. Empty unless required.
 		Eigen::VectorXd mass_;
+		
 
 	public: 
 		//! Constructor 
@@ -197,8 +210,8 @@ namespace SSAGES
 		 */ 
 		ABF(const MPI_Comm& world,
 			const MPI_Comm& comm,
-			Histogram<int> *N,
-			Histogram<int> *Nworld,
+			Grid<int> *N,
+			Grid<int> *Nworld,
 			Grid<Eigen::VectorXd> *F,
 			Grid<Eigen::VectorXd> *Fworld,
 			std::vector<std::vector<double>> restraint,
@@ -221,6 +234,9 @@ namespace SSAGES
 		}
 
 		bool boundsCheck(const std::vector<double> &CVs);
+		void printFworld();
+
+		//bool checkForPreviousFile(const char *filename);
 		
 		//! Pre-simulation hook.
 		/*!
