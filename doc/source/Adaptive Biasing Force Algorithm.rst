@@ -213,9 +213,20 @@ vectors. An example for N=2 is:
 Tutorial
 ^^^^^^^^
 
-Find the following input files in Examples/User/ABF/Example_AlanineDipeptide:
+For LAMMPS (must be built with RIGID and MOLECULE packages)
+To build RIGID and MOLECULE: 
 
-For LAMMPS (must be built with RIGID package):
+1) Go to LAMMPS src folder (/build/hooks/lammps/lammps-download-prefix/src/lammps-download/src/ for -DLAMMPS=YES)
+2) Do:
+
+.. code-block:: bash
+
+   make yes-RIGID
+   make yes-MOLECULE
+
+3) Go to your build folder and make.
+
+Find the following input files in Examples/User/ABF/Example_AlanineDipeptide:
 
 * ``in.ADP_ABF_Example(0-1)`` (2 files)
 * ``example.input``

@@ -1,7 +1,7 @@
 {
 	"logfile" : "node-1",
-	"walkers" : 1,
-	"input" : "in.ADP_ABF_Example0",
+	"walkers" : 2,
+	"input" : ["in.ADP_ABF_Example0","in.ADP_ABF_Example1"],
 	"CVs": [
                 {
                     "periodic": true,
