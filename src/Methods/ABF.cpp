@@ -290,6 +290,12 @@ namespace SSAGES
 	{
 		if(world_.rank() != 0)
 			return;
+
+		Nworld_->WriteToFile(Nworld_filename_);
+		for(size_t i = 0 ; i < dim_; ++i)
+		{
+			Fworld_[i]->WriteToFile(Fworld_filename_+std::to_string(i));
+		}
 			
 		int gridPoints = 1;
 			
@@ -482,8 +488,8 @@ namespace SSAGES
 
 		auto freq = json.get("frequency", 1).asInt();
 		auto filename = json.get("filename", "F_out").asString();
-		auto Fworld_filename_ = json.get("F_world_filename", "F_world").asString();
-		auto Nworld_filename_ = json.get("N_world_filename", "N_world").asString();
+		auto Nworld_filename = json.get("Nworld_filename", "Nworld").asString();
+		auto Fworld_filename = json.get("Fworld_filename", "Fworld_cv").asString();
 
 		Grid<int> *N;
 		Grid<int> *Nworld;
@@ -558,19 +564,19 @@ namespace SSAGES
 		//Nworld= new Grid<uint>(binsCV, minsCV, maxsCV, isperiodic);
 		//Fworld= new Grid<Eigen::VectorXd>(binsCV, minsCV, maxsCV, isperiodic);
 	
-		//if(std::ifstream(N_world_filename) && std::ifstream(F_world_filename))
-		//{
-		//	Nworld->LoadFromFile(Nworld_filename);
-		//	Fworld->LoadFromFile(Fworld_filename);
-		//}
-		//else
-		//{
-
-
-		//}
+		if(std::ifstream(Nworld_filename) && std::ifstream(Fworld_filename+std::to_string(0)) && wid == 0)
+		{
+			std::cout << "Attempting to load data from a previous run of ABF." << std::endl;
+			N->LoadFromFile(Nworld_filename);
+			for(size_t i=0; i<dim; ++i)
+				if(std::ifstream(Fworld_filename+std::to_string(i)))
+					F[i]->LoadFromFile(Fworld_filename+std::to_string(i));
+				else
+					throw BuildException({"Some, but not all Fworld outputs were found. Please check that these are appropriate inputs, or clean the working directory of other Fworld and Nworld inputs."});
+		}
 	 
 		
-		auto* m = new ABF(world, comm, N, Nworld, F, Fworld, restraint, isperiodic, periodicboundaries, min, massweigh, filename, histdetails, FBackupInterv, unitconv, timestep, freq);
+		auto* m = new ABF(world, comm, N, Nworld, F, Fworld, restraint, isperiodic, periodicboundaries, min, massweigh, filename, Nworld_filename, Fworld_filename, histdetails, FBackupInterv, unitconv, timestep, freq);
 
 
 		if(json.isMember("iteration"))

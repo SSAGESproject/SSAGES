@@ -220,6 +220,8 @@ namespace SSAGES
 			double min,
 			bool massweigh,
 			std::string filename,
+			std::string Nworld_filename,
+			std::string Fworld_filename,
 			const std::vector<std::vector<double>>& histdetails,
 			int FBackupInterv,
 			double unitconv,
@@ -227,7 +229,8 @@ namespace SSAGES
 			unsigned int frequency) :
 		Method(frequency, world, comm), N_(N), Nworld_(Nworld), F_(F), Fworld_(Fworld),  restraint_(restraint), isperiodic_(isperiodic), periodicboundaries_(periodicboundaries),
 		min_(min), wdotp1_(), wdotp2_(), Fold_(), massweigh_(massweigh),
-		biases_(), dim_(0), filename_(filename), histdetails_(histdetails), 
+		biases_(), dim_(0), filename_(filename), Nworld_filename_(Nworld_filename), Fworld_filename_(Fworld_filename),
+		histdetails_(histdetails), 
 		FBackupInterv_(FBackupInterv), unitconv_(unitconv), timestep_(timestep),
 		iteration_(0)
 		{
