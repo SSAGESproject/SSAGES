@@ -100,8 +100,11 @@ namespace SSAGES
 		//! F_[i]/max(N_[i],min_).
 		int min_;
 
-		//! To hold last two iterations wdotp value for derivative
-		Eigen::VectorXd wdotp1_, wdotp2_;
+		//! To hold last iteration wdotp value for numerical derivative.
+		Eigen::VectorXd wdotp1_;
+
+		//! To hold second to last iteration wdotp value for numerical derivative.
+		Eigen::VectorXd wdotp2_;
 
 		//! To hold last iterations F_ value for removing bias
 		Eigen::VectorXd Fold_;
@@ -155,6 +158,11 @@ namespace SSAGES
 		double unitconv_;
 
 		//! Computes the bias force.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 * \param cvs Details of CVs.
+		 * \param cvVals Current values of CVs.
+		 */
 		void CalcBiasForce(const Snapshot* snapshot, const CVList& cvs, const std::vector<double> &cvVals);
 		
 		//! Writes out data to file.
@@ -170,6 +178,11 @@ namespace SSAGES
 		Eigen::VectorXd mass_;
 
 		//! Checks whether the local walker is within CV bounds.
+		/*!
+		 * \param CVs Current values of CVs.
+		 * \return Whether the walker is in bounds or not.
+		 */
+
 		bool boundsCheck(const std::vector<double> &CVs);
 		
 
@@ -178,15 +191,22 @@ namespace SSAGES
 		/*!
 		 * \param world MPI global communicator.
 		 * \param comm MPI local communicator.
-		 * \param histdetails Minimum, maximum and number of bins for each CV.
+		 * \param N Local CV histogram.
+		 * \param Nworld Global CV histogram.
+		 * \param F Vector of grids holding local raw generalized force totals per bin per CV.
+		 * \param Fworld Vector of grids holding global raw generalized force totals per bin per CV.
 		 * \param restraint Minimum, maximum and spring constant for CV restraints.
-		 * \param timestep Simulation time step.
+		 * \param isperiodic Vector of bools that holds whether each CV is periodic or not.
+		 * \param periodicboundaries Periodic boundaries of each CV.
 		 * \param min Minimum number of hist in a histogram bin before biasing is applied.
+		 * \param massweigh Turn mass weighing on/off.
 		 * \param filename Name for output file.
-		 * \param printdetails Set up what information to print and frequency of printing.
-		 * \param FBackupInterv Set how often the adaptive force histogram is saved.
+		 * \param Nworld_filename Name to read/write CV histogram.
+		 * \param Fworld_filename Name to read/write raw generalized force histograms.
+		 * \param histdetails Minimum, maximum and number of bins for each CV.
+		 * \param FBackupInterv Set how often the adaptive force histograms are backed up.
 		 * \param unitconv Unit conversion from d(momentum)/d(time) to force.
-		 * \param Orthogonalization Flag to turn on or off Gram-Schmidt Orthogonalization.
+		 * \param timestep Simulation time step.
 		 * \param frequency Frequency with which this method is invoked.
 		 *
 		 * Constructs an instance of Adaptive Biasing Force method.
