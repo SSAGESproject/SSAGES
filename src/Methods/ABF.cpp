@@ -560,9 +560,6 @@ namespace SSAGES
 				}
 			}
 		//}
-		
-		//Nworld= new Grid<uint>(binsCV, minsCV, maxsCV, isperiodic);
-		//Fworld= new Grid<Eigen::VectorXd>(binsCV, minsCV, maxsCV, isperiodic);
 	
 		if(std::ifstream(Nworld_filename) && std::ifstream(Fworld_filename+std::to_string(0)) && wid == 0)
 		{
@@ -588,7 +585,7 @@ namespace SSAGES
 
 	void ABF::Serialize(Value& json) const
 	{
-		/*json["type"] = "ABF";
+		json["type"] = "ABF";
 		for(size_t i = 0; i < histdetails_.size(); ++i)
 		{
 			json["CV_lower_bounds"].append(histdetails_[i][0]);				
@@ -602,22 +599,24 @@ namespace SSAGES
 			json["CV_restraint_maximums"].append(restraint_[i][1]);
 			json["CV_restraint_spring_constants"].append(restraint_[i][2]);
 		}
+		for(size_t i = 0; i < dim_ ; ++i)
+		{
+			json["CV_isperiodic"].append(isperiodic_[i]);
+			json["CV_periodic_boundary_lower_bounds"].append(periodicboundaries_[i][0]);
+			json["CV_periodic_boundary_upper_bounds"].append(periodicboundaries_[i][1]);
+		}
 
 		json["timestep"] = timestep_;
 		json["minimum_count"] = min_;
-		json["backupF_requency"] = FBackupInterv_;			
+		json["filename"] = filename_;
+		json["Fworld_filename"] = Fworld_filename_;
+		json["Nworld_filename"] = Nworld_filename_;
+		json["backup_frequency"] = FBackupInterv_;			
 		json["unit_conversion"] = unitconv_;
 		json["iteration"] = iteration_;
-		json["filename"] = filename_;		
-			
-		for(int i = 0; i < F_->size(); ++i)
-			for(int j = 0; j < F_[i].size(); ++j)
-				json["F"].append(F_[i][j]);
-
-		for(size_t i = 0; i < N_->size(); ++i)
-			json["N"].append(N_[i]);
-
-		*/
+		json["mass_weighing"] = massweigh_;
+		//json["cvs"] = 
+		
 	}
 }
 

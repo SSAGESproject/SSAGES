@@ -260,19 +260,7 @@ namespace SSAGES
 		 * \param snapshot Current simulation snapshot.
 		 * \param cvmanager Collective variable manager.
 		 */
-		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
-
-		//! Set biasing histogram
-		/*!
-		 * \param F Vector containing values for the running total.
-		 * \param N Vector containing number of hits for bin intervals.
-		 */
-		
-		/*void SetHistogram(const Eigen::VectorXd& F, const std::vector<int>& N)
-		{
-			F_ = F;
-			N_ = N;
-		}*/		
+		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;			
 		
 		//! Set iteration of the method
 		/*!
