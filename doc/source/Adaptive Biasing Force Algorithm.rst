@@ -222,18 +222,18 @@ For LAMMPS (must be built with RIGID package):
 * ``ADP_ABF_1walker.json``
 * ``ADP_ABF_2walkers.json``
 
-1) Put the ABF_ADP_LAMMPS_Example folder in your ssages build folder
+1) Put the contents of ABF_ADP_LAMMPS_Example folder in your ssages build folder
 2) For a single walker example, do:
 
 .. code-block:: bash
 
-    ./ssages ./ABF_ADP_LAMMPS_Example/ADP_ABF_1walker.json.json
+    ./ssages ADP_ABF_1walker.json.json
     
 For 2 walkers, do:
 
 .. code-block:: bash
 
-    mpirun -np 2 ./ssages ./ABF_ADP_LAMMPS_Example/ADP_ABF_2walkers.json
+    mpirun -np 2 ./ssages ADP_ABF_2walkers.json
 
 For GROMACS:
 
@@ -249,26 +249,26 @@ Required:
 * ``ADP_ABF_1walker.json``
 * ``ADP_ABF_2walkers.json``
 
-1) Put the ABF_ADP_Gromacs_Example in your ssages build folder
+1) Put the contents of ABF_ADP_Gromacs_Example in your ssages build folder
 2) For a single walker example, do:
 
 .. code-block:: bash
 
-    ./ssages ./ABF_ADP_Gromacs_Example/ABF_AlaDP_1walker.json
+    ./ssages ABF_AlaDP_1walker.json
 
 For 2 walkers, do:
 
 .. code-block:: bash
 
-    mpirun -np 2 ./ssages ./ABF_ADP_Gromacs_Example/ABF_AlaDP_2walkers.json
+    mpirun -np 2 ./ssages ABF_AlaDP_2walkers.json
 
 These will run using the pre-prepared input files in .tpr format. If you wish to
 prepare the input files yourself using GROMACS tools (if compiled with -DGROMACS=YES):
 
 .. code-block:: bash
 
-    /build/hooks/gromacs/gromacs/bin/gmx_mpi grompp -f nvt.mdp -p topol.top -c adp.gro -o example0.tpr
-    /build/hooks/gromacs/gromacs/bin/gmx_mpi grompp -f nvt.mdp -p topol.top -c adp.gro -o example1.tpr
+    /build/hooks/gromacs/gromacs/bin/gmx_mpi grompp -f nvt.mdp -p topol.top -c adp.gro -o example_adp0.tpr
+    /build/hooks/gromacs/gromacs/bin/gmx_mpi grompp -f nvt.mdp -p topol.top -c adp.gro -o example_adp1.tpr
 
 Be sure to change the seed in .mdp files for random velocity generation, 
 so walkers can explore different places on the free energy surface.

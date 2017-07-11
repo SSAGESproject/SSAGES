@@ -118,12 +118,6 @@ namespace SSAGES
 		//! Output stream for F/N world data.
 		std::ofstream worldout_;
 
-		//! Output stream for Fworld data.
-		std::ofstream Fworldout_;
-
-		//! Output stream for Nworld data.
-		std::ofstream Nworldout_;
-
 		//! File name for world data. 
 		//! Principal output of the method.
 		std::string filename_;
