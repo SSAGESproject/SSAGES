@@ -32,7 +32,7 @@ namespace SSAGES
 	 *
 	 * \ingroup Methods
 	 */
-	class Umbrella : public Method, public BuildableMPI<Umbrella>
+	class Umbrella : public Method
 	{
 	private:
 		//! Vector of spring constants.
@@ -165,15 +165,9 @@ namespace SSAGES
 		}
 
 		//! \copydoc Buildable::Build()
-		static Umbrella* Construct(const Json::Value& json, 
+		static Umbrella* Build(const Json::Value& json, 
 		                           const MPI_Comm& world,
 		                           const MPI_Comm& comm,
 					               const std::string& path);
-
-		//! \copydoc Serializable::Serialize()
-		/*!
-		 * \warning The serialization is not implemented yet.
-		 */
-		void Serialize(Json::Value& json) const override;
 	};
 }

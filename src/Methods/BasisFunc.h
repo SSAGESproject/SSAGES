@@ -86,7 +86,7 @@ namespace SSAGES
      * Implementation of the Basis Function Sampling Method based on
      * \cite WHITMER2014190602.
      */
-	class Basis : public Method, public BuildableMPI<Basis>
+	class Basis : public Method
 	{
 	private:	
         
@@ -309,16 +309,10 @@ namespace SSAGES
         }
 
 		//! \copydoc Buildable::Build()
-		static Basis* Construct(const Json::Value& json, 
+		static Basis* Build(const Json::Value& json, 
 		                        const MPI_Comm& world,
 		                        const MPI_Comm& comm,
 					            const std::string& path);
-
-        //! \copydoc Serializable::Serialize()
-        /*!
-         * \warning Serialization is not implemented yet!
-         */
-		void Serialize(Json::Value& json) const override;
 
         //! Destructor.
         ~Basis()

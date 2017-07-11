@@ -21,7 +21,6 @@
 #pragma once
 
 #include "../EventListener.h"
-#include "../JSON/Serializable.h"
 #include <mxx/comm.hpp>
 #include <functional>
 
@@ -42,7 +41,7 @@ namespace SSAGES
 	 *
 	 * \ingroup Methods
 	 */
-	class Method : public EventListener, public Serializable
+	class Method : public EventListener
 	{
 	protected:
 		mxx::comm world_; //!< Global MPI communicator
