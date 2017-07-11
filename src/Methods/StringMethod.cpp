@@ -255,7 +255,7 @@ namespace SSAGES
 
 		unsigned int wid = mxx::comm(world).rank()/mxx::comm(comm).size();
 		std::vector<double> centers;
-		for(auto& s : json["centers"][wid]){
+		for(auto& s : json["centers"][wid])
 			centers.push_back(s.asDouble());
 
 		auto maxiterator = json.get("max_iterations", 0).asInt();
