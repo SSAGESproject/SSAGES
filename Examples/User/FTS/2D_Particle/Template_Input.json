@@ -1,42 +1,31 @@
 {
-	"inputfile" : "in.LAMMPS_2DParticle",
-	"driver" : [
+	"input" : "in.LAMMPS_2DParticle",
+	"walkers" : 16,
+	"CVs" : [
 		{
-			"number processors" : 1,
-			"type" : "LAMMPS",
-			"MDSteps" : 10000000,
-			"logfile" : "log",
-			"CVs" : [
-				{
-					"type" : "ParticleCoordinate",
-					"atom_ids" : [
-						1
-					],
-					"dimension" : "x"
-				},
-				{
-					"type": "ParticleCoordinate",
-					"atom_ids" : [
-						1
-					],
-                    "dimension" : "y"
-				}
-			],
-			"method" : {
-				"type" : "String",
-				"centers" : [
-						-1.39,
-                        1.31
-				],
-				"block_iterations": 50,
-				"max_iterations" : 1000,
-				"time_step" : 0.1,
-				"frequency" : 1,
-				"ksprings" : [750,750],
-				"umbrella_iterations" : 2000,
-				"flavor" : "FTS",
-				"kappa" : 0.1
-			}
+			"type" : "ParticleCoordinate",
+			"atom_ids" : [1],
+			"dimension" : "x"
+		},
+		{
+			"type": "ParticleCoordinate",
+			"atom_ids" : [1],
+            "dimension" : "y"
+		}
+	],
+	"methods" : [
+		{
+			"type" : "String",
+			"flavor" : "FTS",
+			"centers" : [],
+			"max_iterations" : 1000,
+			"ksprings" : [750,750],
+			"frequency" : 1,
+			"cvs" : [0,1],
+			"block_iterations" : 50,
+			"time_step" : 0.1,
+			"kappa" : 0.1,
+			"umbrella_iterations" : 2000
 		}
 	]
 }
