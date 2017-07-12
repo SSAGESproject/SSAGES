@@ -211,7 +211,7 @@ namespace SSAGES
         }
     }
 
-	//! \copydoc Buildable::Build()
+	//! \copydoc Method::BuildMethod()
 	StringMethod* StringMethod::Build(const Value& json, 
 		                                  const MPI_Comm& world,
 		                                  const MPI_Comm& comm,

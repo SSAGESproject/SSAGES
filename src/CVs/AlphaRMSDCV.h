@@ -44,20 +44,19 @@ namespace SSAGES
 	{
 	private:
 
-		//!< Residue IDs for secondary structure calculation
+		//! Residue IDs for secondary structure calculation
 		std::vector<int> resids_;
 
-		//!< Atom IDs for secondary structure calculation: backbone of resids_
-		//std::vector<int> atomids_;
+		//! Atom IDs for secondary structure calculation: backbone of resids_
 		std::vector< std::vector<std::string> > atomids_;
 
-		//!< Name of pdb reference for system
+		//! Name of pdb reference for system
 		std::string refpdb_;
 
-		//!< Coordinates for reference structure
+		//! Coordinates for reference structure
 		std::vector<Vector3> refalpha_;
 
-		//!< Length unit conversion: convert 1 nm to your internal MD units (ex. if using angstroms use 10)
+		//! Length unit conversion: convert 1 nm to your internal MD units (ex. if using angstroms use 10)
 		double unitconv_;
 
 	public:
@@ -65,10 +64,12 @@ namespace SSAGES
 		/*!
 		 * \param resids IDs of residues for calculating secondary structure
 		 * \param refpdb String of pdb filename with atom and residue indices.
+		 * \param unitconv Conversion for internal MD length unit: 1 nm is equal to unitconv internal units
 		 *
-		 * Construct an AlphaRMSD CV -- description.
+		 * Construct an AlphaRMSD CV -- calculates alpha helix character by
+		 * summing pairwise RMSD to an ideal helix structure for all possible
+		 * 6 residue segments.
 		 *
-		 * \todo Bounds needs to be an input and periodic boundary conditions ?
 		 */
 		AlphaRMSDCV(std::vector<int> resids, std::string refpdb, double unitconv) :
 		resids_(resids), refpdb_(refpdb), unitconv_(unitconv)
@@ -92,7 +93,10 @@ namespace SSAGES
 			}
 		}
 
-		// Initialize variables
+		//! Initialize necessary variables.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 */
 		void Initialize(const Snapshot& snapshot) override
 		{
 			atomids_ = ReadBackbone::GetPdbBackbone(refpdb_, resids_);
@@ -131,7 +135,10 @@ namespace SSAGES
 			refalpha_.push_back(unitconv_ * Vector3{-.1916, -.0296, -.5673 }); // O
 		}
 
-		// Evaluate the CV
+		//! Evaluate the CV.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 */
 		void Evaluate(const Snapshot& snapshot) override
 		{
 			// need atom positions for all atoms in atomids_
@@ -194,6 +201,7 @@ namespace SSAGES
 			}
 		}
 
+		//! \copydoc CollectiveVariable::BuildCV()
 		static AlphaRMSDCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;
