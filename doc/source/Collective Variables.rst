@@ -463,7 +463,288 @@ Property ``type`` must be set to string ``"Torsional"``.
 Property ``atom_ids`` must be an array of 4 integers containing the atom IDs which 
 form the dihedral. 
 
+Alpha Helix RMSD
+----------------
 
+Example
+^^^^^^^
+
+.. code-block:: javascript
+
+	{
+            "type" : "AlphaRMSD",
+            "residue_ids" : [3, 21],
+            "reference" : "reference_structure.pdb",
+            "unitconv" : 10
+	}
+
+Description
+^^^^^^^^^^^
+
+This CV calculates alpha helix character by comparision to an "ideal" alpha
+helix structure composed of 6 amino acids. This is computed by performing a
+summation over all possible sequences of 6 consecutive amino acids in the
+segment of interest:
+
+.. math::
+
+	\xi = \sum_i \frac{1 - \left(\frac{r_i}{0.1\text{ nm}}\right)^8}{1 - (\frac{r_i}{0.1\text{ nm}})^{12}}
+
+where :math:`r_i` is the pairwise RMSD calculated between the backbone atoms in
+the 6 amino acid sequence and the ideal reference structure. 5 backbone atoms
+are used for each amino acid, so each pairwise RMSD is calculated between two
+sets of 30 atoms. In the case of glycine, the HA1 atom is used in place of CB
+backbone atom.
+
+.. note::
+
+	Note that this CV is basically a summation of a switching function; in the
+	future the user will be able to choose custom parameters for the switching
+	function.
+
+
+Options & Parameters
+^^^^^^^^^^^^^^^^^^^^
+
+Required
+~~~~~~~~
+
+.. code-block:: javascript
+
+	"type"
+
+Property ``type`` must be set to string ``"AlphaRMSD"``.
+
+.. code-block:: javascript
+
+	"residue_ids"
+
+Property ``residue_ids`` must be an array of two integers designating the range
+of amino acids for which to calculate the CV. The indices of the amino acids
+must match those from the reference structure provided in the property
+``reference``. The smaller index must be listed first, and the range must span
+at least 6 amino acids.
+
+.. code-block:: javascript
+
+    "reference"
+
+Property ``reference`` must be a string containing the name of a reference pdb
+structure. This reference pdb structure is used along with the residue range
+defined in ``residue_ids`` to check for alpha helix character. For now, all
+residues in the system must be numbered in increasing order, even if they belong
+to separate chains. For example, if your system has two chains of 20 amino acids
+each, the first amino acid in the second chain should be numbered 21. 
+
+Optional
+~~~~~~~~
+
+.. code-block:: javascript
+
+    "unitconv"
+
+Property ``unitconv`` must be numeric. This factor is used to reconcile the
+internal MD units for your engine and the units used in the ideal alpha helix
+reference structure. If your engine uses units of nanometers, this
+can be ignored. Otherwise, ``unitconv`` must be set to the equivalent number of
+length units in your MD engine equal to 1 nm. For example, if your default unit
+length is in angstroms, ``unitconv`` will be set to 10. 
+
+Anti Beta RMSD
+----------------
+
+Example
+^^^^^^^
+
+.. code-block:: javascript
+
+	{
+            "type" : "AntiBetaRMSD",
+            "residue_ids" : [3, 21],
+            "reference" : "reference_structure.pdb",
+            "unitconv" : 10,
+            "mode" : 0
+	}
+
+Description
+^^^^^^^^^^^
+
+This CV calculates anti beta-sheet character by comparision to an "ideal" anti
+beta-sheet structure composed of 6 amino acids. This is computed by performing a
+summation over all possible sequences of 6 amino acids, consisting of two
+segments of 3 consecutive amino acids each, in the region of interest.
+
+.. math::
+
+	\xi = \sum_i \frac{1 - \left(\frac{r_i}{0.1\text{ nm}}\right)^8}{1 - (\frac{r_i}{0.1\text{ nm}})^{12}}
+
+where :math:`r_i` is the pairwise RMSD calculated between the backbone atoms in
+the 6 amino acid sequence and the ideal reference structure. 5 backbone atoms
+are used for each amino acid, so each pairwise RMSD is calculated between two
+sets of 30 atoms. In the case of glycine, the HA1 atom is used in place of CB
+backbone atom.
+
+.. note::
+
+	Note that this CV is basically a summation of a switching function; in the
+	future the user will be able to choose custom parameters for the switching
+	function.
+
+
+Options & Parameters
+^^^^^^^^^^^^^^^^^^^^
+
+Required
+~~~~~~~~
+
+.. code-block:: javascript
+
+	"type"
+
+Property ``type`` must be set to string ``"AntiBetaRMSD"``.
+
+.. code-block:: javascript
+
+	"residue_ids"
+
+Property ``residue_ids`` must be an array of two integers designating the range
+of amino acids for which to calculate the CV. The indices of the amino acids
+must match those from the reference structure provided in the property
+``reference``. The smaller index must be listed first, and the range must span
+at least 6 amino acids.
+
+.. code-block:: javascript
+
+    "reference"
+
+Property ``reference`` must be a string containing the name of a reference pdb
+structure. This reference pdb structure is used along with the residue range
+defined in ``residue_ids`` to check for anti beta-sheet character. For now, all
+residues in the system must be numbered in increasing order, even if they belong
+to separate chains. For example, if your system has two chains of 20 amino acids
+each, the first amino acid in the second chain should be numbered 21. 
+
+Optional
+~~~~~~~~
+
+.. code-block:: javascript
+
+    "unitconv"
+
+Property ``unitconv`` must be numeric. This factor is used to reconcile the
+internal MD units for your engine and the units used in the ideal anti
+beta-sheet reference structure. If your engine uses units of nanometers, this
+can be ignored. Otherwise, ``unitconv`` must be set to the equivalent number of
+length units in your MD engine equal to 1 nm. For example, if your default unit
+length is in angstroms, ``unitconv`` will be set to 10. 
+
+.. code-block:: javascript
+
+    "mode"
+
+Property ``mode`` is an integer specifying whether to calculate beta-sheets
+formed only between residues on the same chain (intra) or only between residues
+on separate chains (inter). If ``mode`` is set to 0, both modes will be used.
+A value of 1 selects for the intra mode; a value of 2 selects for inter mode.
+
+
+Parallel Beta RMSD
+------------------
+
+Example
+^^^^^^^
+
+.. code-block:: javascript
+
+	{
+            "type" : "ParallelBetaRMSD",
+            "residue_ids" : [3, 21],
+            "reference" : "reference_structure.pdb",
+            "unitconv" : 10,
+            "mode" : 0
+	}
+
+Description
+^^^^^^^^^^^
+
+This CV calculates anti beta-sheet character by comparision to an "ideal"
+parallel beta-sheet structure composed of 6 amino acids. This is computed by 
+performing a summation over all possible sequences of 6 amino acids, consisting
+of two segments of 3 consecutive amino acids each, in the region of interest.
+
+.. math::
+
+	\xi = \sum_i \frac{1 - \left(\frac{r_i}{0.1\text{ nm}}\right)^8}{1 - (\frac{r_i}{0.1\text{ nm}})^{12}}
+
+where :math:`r_i` is the pairwise RMSD calculated between the backbone atoms in
+the 6 amino acid sequence and the ideal reference structure. 5 backbone atoms
+are used for each amino acid, so each pairwise RMSD is calculated between two
+sets of 30 atoms. In the case of glycine, the HA1 atom is used in place of CB
+backbone atom.
+
+.. note::
+
+	Note that this CV is basically a summation of a switching function; in the
+	future the user will be able to choose custom parameters for the switching
+	function.
+
+
+Options & Parameters
+^^^^^^^^^^^^^^^^^^^^
+
+Required
+~~~~~~~~
+
+.. code-block:: javascript
+
+	"type"
+
+Property ``type`` must be set to string ``"ParallelBetaRMSD"``.
+
+.. code-block:: javascript
+
+	"residue_ids"
+
+Property ``residue_ids`` must be an array of two integers designating the range
+of amino acids for which to calculate the CV. The indices of the amino acids
+must match those from the reference structure provided in the property
+``reference``. The smaller index must be listed first, and the range must span
+at least 6 amino acids.
+
+.. code-block:: javascript
+
+    "reference"
+
+Property ``reference`` must be a string containing the name of a reference pdb
+structure. This reference pdb structure is used along with the residue range
+defined in ``residue_ids`` to check for parallel beta-sheet character. For now,
+all residues in the system must be numbered in increasing order, even if they 
+belong to separate chains. For example, if your system has two chains of 20 
+amino acids each, the first amino acid in the second chain should be numbered 
+21. 
+
+Optional
+~~~~~~~~
+
+.. code-block:: javascript
+
+    "unitconv"
+
+Property ``unitconv`` must be numeric. This factor is used to reconcile the
+internal MD units for your engine and the units used in the ideal parallel
+beta-sheet reference structure. If your engine uses units of nanometers, this
+can be ignored. Otherwise, ``unitconv`` must be set to the equivalent number of
+length units in your MD engine equal to 1 nm. For example, if your default unit
+length is in angstroms, ``unitconv`` will be set to 10. 
+
+.. code-block:: javascript
+
+    "mode"
+
+Property ``mode`` is an integer specifying whether to calculate beta-sheets
+formed only between residues on the same chain (intra) or only between residues
+on separate chains (inter). If ``mode`` is set to 0, both modes will be used.
+A value of 1 selects for the intra mode; a value of 2 selects for inter mode.
 
 
 

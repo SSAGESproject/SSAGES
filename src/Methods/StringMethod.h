@@ -208,7 +208,7 @@ namespace SSAGES
 		//! Communicate neighbor lists over MPI
         void SetSendRecvNeighbors();
 
-		//! \copydoc Buildable::Build()
+		//! \copydoc Method::BuildMethod()
 		static StringMethod* Build(const Json::Value& json, 
 		                               const MPI_Comm& world,
 		                               const MPI_Comm& comm,
