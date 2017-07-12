@@ -1,0 +1,36 @@
+{
+	"logfile" : "node-1",
+	"walkers" : 2,
+	"input" : ["in.Langevin_BFS_example0", "in.Langevin_BFS_example1"],
+    "CVs" : [
+        {
+            "type" : "ParticleCoordinate",
+            "atom_ids" : [ 1 ],
+            "dimension" : "x"
+        },
+        {
+            "type" : "ParticleCoordinate",
+            "atom_ids" : [ 1 ],
+            "dimension" : "y"
+        }
+    ],
+    "methods" : [{
+        "type" : "Basis",
+        "cvs" : [0,1],
+        "cycle_frequency" : 100000,
+        "frequency" : 1,
+        "temperature" : 1.0,
+        "weight" : 1.0,
+        "grid" : {
+            "lower" : [-2.0, -2.0],
+            "upper" : [2.0, 2.0],
+            "number_points" : [100, 100],
+            "periodic" : [true, true]
+        },
+        "basis_filename" : "langevin_2d_example",
+        "coeff_filename" : "langevin_2d_example",
+        "tolerance" : 1e-6,
+        "convergence_exit" : false,
+        "CV_coefficients" : [ 25, 25 ]
+    }]
+}
