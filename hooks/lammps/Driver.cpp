@@ -19,13 +19,12 @@
  */
 #include "Driver.h"
 #include "Hook.h"
-#include "Drivers/DriverException.h"
 #include "ResourceHandler.h"
 #include "input.h"
 #include "modify.h"
 #include "fix.h"
-#include <iostream>
 #include <fstream>
+#include <stdexcept>
 
 using namespace LAMMPS_NS;
 
@@ -35,24 +34,31 @@ namespace SSAGES
     {
         lammps_ = new LAMMPS(0, NULL, rh_->GetLocalComm());
 
-        // Execute file. 
-        std::ifstream file(rh_->GetInput());
+        Hook* hook;
+        int fid = -1;
         std::string line;
+        std::ifstream file(rh_->GetInput());
+        
+        // Execute file. 
         while(std::getline(file, line))
         {
             lammps_->input->one(line.c_str());
-            if(line.find("ssages") != std::string::npos)
+            
+            // Only look for fix if it wasn't previously found.
+            if(fid < 0)
             {
-                auto fid = lammps_->modify->find_fix("ssages");
-                if(fid < 0)
-                    throw BuildException({"Found SSAGES reference but could find fix!"});
-                
-                Hook* hook;
-                if(!(hook = dynamic_cast<Hook*>(lammps_->modify->fix[fid])))
-                    throw BuildException({"Unable to dynamic cast hook on node " + std::to_string(rh_->GetWalkerID())});
-                rh_->ConfigureHook(hook);
+                fid = lammps_->modify->find_fix("ssages");
+                if(fid >= 0)
+                {
+                    if(!(hook = dynamic_cast<Hook*>(lammps_->modify->fix[fid])))
+                        throw std::runtime_error("Unable to dynamic cast hook on node " + std::to_string(rh_->GetWalkerID()));
+                    rh_->ConfigureHook(hook);
+                }
             }
-        }   
+        }
+        
+        // If we reach the end with no SSAGES fix then throw error.
+        if(fid < 0) throw std::runtime_error("Could not find SSAGES fix.");
     }
 
     Driver* Driver::Build(const Json::Value& json, const MPI_Comm& world)

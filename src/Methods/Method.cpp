@@ -28,6 +28,7 @@
 #include "json/json.h"
 #include "Drivers/DriverException.h"
 #include "Validator/ObjectRequirement.h"
+#include "CVs/CVManager.h"
 #include <stdexcept>
 
 using namespace Json;
@@ -68,7 +69,21 @@ namespace SSAGES
 		// Load cv mask. 
 		std::vector<uint> cvmask; 
 		for(auto& v : json["cvs"])
-			cvmask.push_back(v.asUInt());
+		{
+			if(v.isString())
+			{
+				auto id = CVManager::LookupCV(v.asString());
+				if(id == -1)
+					throw std::invalid_argument(path + ": CV mask name \"" + v.asString() + "\" does not exist.");
+				
+				cvmask.push_back(CVManager::LookupCV(v.asString()));
+			}
+			else if(v.isIntegral() && v.asInt() >= 0)
+				cvmask.push_back(v.asUInt());
+			else
+				throw std::invalid_argument(path + ": CV mask must contain strings or unsigned integers.");
+
+		}
 		
 		method->SetCVMask(cvmask);
 		return method;

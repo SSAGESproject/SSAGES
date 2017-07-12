@@ -40,27 +40,27 @@ namespace SSAGES
 	 * reference "ideal" antiparallel beta sheet structure.
 	 */
 
-	class AntiBetaRMSDCV : public CollectiveVariable, public Buildable<AntiBetaRMSDCV>
+	class AntiBetaRMSDCV : public CollectiveVariable
 	{
 	private:
 
-		//!< Residue IDs for secondary structure calculation
+		//! Residue IDs for secondary structure calculation
 		std::vector<int> resids_;
 
-		//!< Atom IDs for secondary structure calculation: backbone of resids_
+		//! Atom IDs for secondary structure calculation: backbone of resids_
 		//std::vector<int> atomids_;
 		std::vector< std::vector<std::string> > atomids_;
 
-		//!< Name of pdb reference for system
+		//! Name of pdb reference for system
 		std::string refpdb_;
 
-		//!< Coordinates for reference structure
+		//! Coordinates for reference structure
 		std::vector<Vector3> refalpha_;
 
-		//!< Length unit conversion: convert 1 nm to your internal MD units (ex. if using angstroms use 10)
+		//! Length unit conversion: convert 1 nm to your internal MD units (ex. if using angstroms use 10)
 		double unitconv_;
 
-		//!< mode
+		//! Specify whether to calculate beta sheet character in intra or inter mode: 0 for either, 1 for inter, 2 for intra
 		int mode_;
 
 	public:
@@ -68,8 +68,12 @@ namespace SSAGES
 		/*!
 		 * \param resids IDs of residues for calculating secondary structure
 		 * \param refpdb String of pdb filename with atom and residue indices.
+		 * \param unitconv Conversion for internal MD length unit: 1 nm is equal to unitconv internal units
+		 * \param mode Specification for inter/intra mode for beta sheet character
 		 *
-		 * \todo Bounds needs to be an input and periodic boundary conditions ?
+		 * Construct an AntibetaRMSD CV -- calculates anti-beta sheet character
+		 * by summing pairwise RMSD to an ideal anti-beta sheet structure for
+		 * all possible 6 residue segments.
 		 */
 		AntiBetaRMSDCV(std::vector<int> resids, std::string refpdb, double unitconv, int mode) :
 		resids_(resids), refpdb_(refpdb), unitconv_(unitconv), mode_(mode)
@@ -93,7 +97,10 @@ namespace SSAGES
 			}
 		}
 
-		// Initialize variables
+		//! Initialize necessary variables.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 */
 		void Initialize(const Snapshot& snapshot) override
 		{
 			atomids_ = ReadBackbone::GetPdbBackbone(refpdb_, resids_);
@@ -132,7 +139,10 @@ namespace SSAGES
 			refalpha_.push_back(unitconv_ * Vector3{ .1899, -.4545, -.1102}); // O
 		}
 
-		// Evaluate the CV
+		//! Evaluate the CV.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 */
 		void Evaluate(const Snapshot& snapshot) override
 		{
 			// need atom positions for all atoms in atomids_
@@ -206,7 +216,8 @@ namespace SSAGES
 			}
 		}
 
-		static AntiBetaRMSDCV* Construct(const Json::Value& json, const std::string& path)
+		//! \copydoc CollectiveVariable::BuildCV()
+		static AntiBetaRMSDCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
@@ -230,18 +241,6 @@ namespace SSAGES
 			int mode = json.get("mode", 0).asInt();
 
 			return new AntiBetaRMSDCV(resids, reference, unitconv, mode);
-		}
-		//! Serialize this CV for restart purposes.
-		/*!
-		 * \param json JSON value
-		 */
-		virtual void Serialize(Json::Value& json) const override
-		{
-			json["type"] = "AntiBetaRMSD";
-			json["reference"] = refpdb_;
-			for(size_t i=0; i < resids_.size(); ++i)
-				json["residue_ids"].append(resids_[i]);
-			json["length_unit"] = unitconv_;
 		}
 	};
 }

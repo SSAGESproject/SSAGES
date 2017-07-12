@@ -20,7 +20,11 @@
 #pragma once 
 
 #include <mpi.h>
-#include "JSON/Serializable.h"
+
+// Forward declare.
+namespace Json {
+    class Value;
+}
 
 namespace SSAGES
 {

@@ -1,17 +1,12 @@
 {
-    "inputfile" : "ABF_ADP_LAMMPS_Example/in.ADP_ABF_Example",
-    "driver" : [        
-        {
-            "number processors" : 1,
-            "type" : "LAMMPS",
-            "MDSteps" : 500000,
-            "logfile" : "node-1"
-		}],
+	"logfile" : "node-1",
+	"walkers" : 1,
+	"input" : "in.ADP_ABF_Example0",
 	"CVs": [
                 {
                     "periodic": true,
                     "type": "Torsional",
-                    "atom ids": [
+                    "atom_ids": [
                         5,
                         7,
                         9,
@@ -21,7 +16,7 @@
                 {
                     "periodic": true,
                     "type": "Torsional",
-                    "atom ids": [
+                    "atom_ids": [
                         7,
                         9,
                         15,
@@ -29,24 +24,23 @@
                     ]
                 }
             ],
-            "method" : {
+            "methods" : [{
                 "type" : "ABF",
-  		"CV_lower_bounds" : [-3.13, -3.13],
-                "CV_upper_bounds" : [3.13,3.13],
-		"CV_bins" : [61,61],
+		"cvs" : [0,1],
+  		"CV_lower_bounds" : [-3.14, -3.14],
+                "CV_upper_bounds" : [3.14,3.14],
+		"CV_bins" : [21,21],
   		"CV_restraint_minimums" : [-5,-5],
                 "CV_restraint_maximums" : [5,5],
 		"CV_restraint_spring_constants" : [0,0],
-		"CV_isperiodic" : [true,true],
-		"CV_periodic_boundary_lower_bounds": [-3.14,-3.14],
-		"CV_periodic_boundary_upper_bounds": [3.14,3.14],
+		"CV_isperiodic" : [false,false],
 		"timestep" : 2,
 		"minimum_count" : 50,
 		"filename" : "F_out",
-		"backup_frequency" : 10000,
+		"backup_frequency" : 1000,
 		"unit_conversion" : 2390.06,
 		"frequency" : 1
-            }
-        }
-    ]
+            }]
 }
+    
+

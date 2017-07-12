@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
 #include "gtest/gtest.h"
-#include <boost/mpi.hpp>
 #include "../src/Utility/ReadFile.h"
 
 using namespace SSAGES;

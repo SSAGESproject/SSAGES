@@ -20,10 +20,10 @@
 
 #pragma once 
 
-#include "CollectiveVariable.h"
-
 #include <array>
 #include <cmath>
+#include "CollectiveVariable.h"
+#include "Snapshot.h"
 
 namespace SSAGES
 {
@@ -71,15 +71,5 @@ namespace SSAGES
 		{
 
 		}
-
-		//! Serialize this CV for restart purposes.
-		/*!
-		 * \param json JSON value
-		 */
-		void Serialize(Json::Value& json) const override
-		{
-
-		}
-
 	};
 }

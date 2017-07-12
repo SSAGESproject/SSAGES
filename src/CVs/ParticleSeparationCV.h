@@ -36,7 +36,7 @@ namespace SSAGES
 	 *
 	 *  \ingroup CVs
 	 */
-	class ParticleSeparationCV : public CollectiveVariable, public Buildable<ParticleSeparationCV>
+	class ParticleSeparationCV : public CollectiveVariable
 	{
 	private:
 		Label group1_; //!< Atom ID's of group 1.
@@ -163,7 +163,7 @@ namespace SSAGES
 				grad_[id] = -rij/val_*masses[id]/mtot2;
 		}
 		
-		static ParticleSeparationCV* Construct(const Json::Value& json, const std::string& path)
+		static ParticleSeparationCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
@@ -197,28 +197,6 @@ namespace SSAGES
 				c = new ParticleSeparationCV(group1, group2);
 			
 			return c;
-		}
-
-		//! Serialize this CV for restart purposes.
-		/*!
-		 * \param json JSON value
-		 */
-		void Serialize(Json::Value& json) const override
-		{
-			json["type"] = "ParticleSeparation";
-			
-			for(auto& id : group1_)
-				json["group1"].append(id);
-
-			for(auto& id : group2_)
-				json["group2"].append(id);
-
-			for(auto& bound : bounds_)
-				json["bounds"].append(bound);
-
-			json["dimension"][0] = dim_[0];
-			json["dimension"][1] = dim_[1];
-			json["dimension"][2] = dim_[2];
 		}
 	};
 }

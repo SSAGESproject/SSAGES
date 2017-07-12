@@ -283,16 +283,5 @@ namespace SSAGES
 		StringReparam(alphastar);
   
 	}
-
-    void Swarm::Serialize(Json::Value& json) const
-    {
-        StringMethod::Serialize(json);
-
-        json["flavor"] = "SWARM";
-        json["initial_steps"] = initialize_steps_;
-        json["harvest_length"] = harvest_length_;
-        json["number_of_trajectories"] = number_trajectories_;
-        json["swarm_length"] = swarm_length_; 
-    }
 }
 

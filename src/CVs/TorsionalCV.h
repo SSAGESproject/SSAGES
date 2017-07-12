@@ -39,7 +39,7 @@ namespace SSAGES
 	 *
 	 * \ingroup CVs
 	 */
-	class TorsionalCV : public CollectiveVariable, public Buildable<TorsionalCV>
+	class TorsionalCV : public CollectiveVariable
 	{
 	private:
 		//! Vector of 4 atom ID's of interest.
@@ -225,7 +225,7 @@ namespace SSAGES
             return val_;
 		}
 
-		static TorsionalCV* Construct(const Json::Value& json, const std::string& path)
+		static TorsionalCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
@@ -245,22 +245,6 @@ namespace SSAGES
 
 			auto periodic = json.get("periodic", true).asBool();
 			return new TorsionalCV(atomids[0], atomids[1], atomids[2], atomids[3], periodic);
-		}
-
-		//! Serialize this CV for restart purposes.
-		/*!
-		 * \param json JSON value
-		 */
-		void Serialize(Json::Value& json) const override
-		{
-			json["type"] = "Torsional";
-			json["periodic"] = periodic_;
-			
-			for(auto& id : atomids_)
-				json["atom_ids"].append(id);
-
-			for(auto& bound : bounds_)
-				json["bounds"].append(bound);	
 		}
 	};
 }

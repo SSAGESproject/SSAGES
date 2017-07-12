@@ -1,7 +1,8 @@
 #include "../src/CVs/TorsionalCV.h"
 #include "../src/Snapshot.h"
 #include "gtest/gtest.h"
-#include <boost/mpi.hpp>
+#include <mxx/env.hpp>
+#include <mxx/comm.hpp>
 
 using namespace SSAGES;
 
@@ -76,7 +77,7 @@ protected:
     TorsionalCV* tortest3;
 
     // Initialize atoms and CV.
-    boost::mpi::communicator comm;
+    mxx::comm comm;
 
     Snapshot* snapshot1;
 
@@ -126,7 +127,7 @@ TEST_F(TorsionalCVTest, DefaultBehavior)
 int main(int argc, char *argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
-    boost::mpi::environment env(argc,argv);
+    mxx::env env(argc,argv);
     int ret = RUN_ALL_TESTS();
     return ret;
 }

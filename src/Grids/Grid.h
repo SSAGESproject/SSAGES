@@ -20,17 +20,13 @@
 #pragma once
 
 #include <exception>
+#include <fstream>
+#include <istream>
 
 #include "Drivers/DriverException.h"
 #include "GridBase.h"
-#include "JSON/Serializable.h"
 #include "schema.h"
 #include "Validator/ObjectRequirement.h"
-
-// Forward declare.
-namespace Json {
-    class Value;
-}
 
 namespace SSAGES
 {
@@ -207,15 +203,6 @@ public:
         return grid;
     }
 
-    //! \copydoc Serializable::Serialize()
-    /*!
-     * \warning Serialization not yet implemented.
-     */
-    void Serialize(Json::Value& json) const override
-    {
-
-    }
-
     //! Custom Iterator
     /*!
      * This iterator is designed of travesing through a grid. The starting point
@@ -284,6 +271,17 @@ public:
          * \param hist Pointer to the grid to iterate over.
          */
         GridIterator(const std::vector<int> &indices, Grid<T> *grid)
+            : indices_(indices), grid_(grid)
+        {
+        }
+
+        //! Const constructor
+        /*!
+         * \param indices Bin indices specifying the current position of the
+         *                iterator.
+         * \param hist Pointer to the grid to iterate over.
+         */
+        GridIterator(const std::vector<int> &indices, const Grid<T> *grid)
             : indices_(indices), grid_(grid)
         {
         }
@@ -554,7 +552,7 @@ public:
      * The first grid point is defined as the grid point with index 0 in all
      * dimensions.
      */
-    typename std::vector<T>::const_iterator begin() const
+    const_iterator begin() const
     {
         std::vector<int> indices(GridBase<T>::GetDimension(), 0);
 
@@ -567,7 +565,7 @@ public:
      *
      * The last valid grid point has index num_points - 1 in all dimensions.
      */
-    typename std::vector<T>::const_iterator end() const
+    const_iterator end() const
     {
         std::vector<int> indices(GridBase<T>::GetDimension());
         for (size_t i = 0; i < indices.size(); ++i) {
@@ -576,6 +574,155 @@ public:
 
         iterator it(indices, this);
         return ++it;
+    }
+
+    //! Write grid out to file.
+    /*!
+     * \param filename Name of the output file. 
+     */
+    void WriteToFile(const std::string& file)
+    {
+        std::ofstream output(file.c_str(), std::ofstream::out);
+
+        // Print out header.
+        output << "#! type grid\n";
+        output << "#! dim  " << GridBase<T>::dimension_ << "\n"; 
+        output << "#! count "; 
+        for(auto& c : GridBase<T>::numPoints_) 
+            output << c << " "; 
+        output << "\n";
+        output << "#! lower "; 
+        for(auto& l : GridBase<T>::edges_.first)
+            output << l << " "; 
+        output << "\n"; 
+        output << "#! upper "; 
+        for(auto& u : GridBase<T>::edges_.second)
+            output << u << " "; 
+        output << "\n"; 
+        output << "#! periodic "; 
+        for(auto p : GridBase<T>::isPeriodic_)
+            output << p << " "; 
+        output << "\n";
+
+        for(auto it = this->begin(); it != this->end(); ++it)
+        {
+            auto coords = it.coordinates(); 
+            for(auto& c : coords)
+                output << std::setprecision(8) << std::fixed << c << " "; 
+            output.unsetf(std::ios_base::fixed);
+            output << std::setprecision(16) << *it << "\n";
+        }
+
+        output.close();
+    }
+
+    //! Builds a grid from file.
+    /*!
+     * \param filename Filename containing grid data.
+     * \return Pointer to the newly built grid.
+     *
+     * This function builds a grid from a text data file. 
+     */
+    void LoadFromFile(const std::string& filename)
+    {
+        std::ifstream file(filename);
+        std::string line, buff; 
+
+        // Skip type for now. 
+        std::getline(file, line); 
+
+        // Get dimension.
+        {
+            int dim = 0;
+            std::getline(file, line);
+            std::istringstream iss(line);
+            iss >> buff >> buff >> dim; 
+            if(dim != GridBase<T>::dimension_)
+                throw std::invalid_argument(filename + 
+                    ": Expected dimension " + std::to_string(GridBase<T>::dimension_) + 
+                    " but got " + std::to_string(dim) + " instead.");
+        }
+
+        // Get size. 
+        {
+            std::getline(file, line); 
+            std::istringstream iss(line);
+            int count = 0;
+            auto counts = GridBase<T>::numPoints_;
+            iss >> buff >> buff;
+            for(int i = 0; iss >> count; ++i)
+            {
+                if(count != counts[i])
+                    throw std::invalid_argument(filename + 
+                    ": Expected count " + std::to_string(counts[i]) + 
+                    " on dimension " + std::to_string(i) + " but got " + 
+                    std::to_string(count) + " instead.");
+            }
+        }
+
+        // Get lower bounds. 
+        {
+            std::getline(file, line); 
+            std::istringstream iss(line);
+            double lower = 0; 
+            auto lowers = GridBase<T>::edges_.first; 
+            iss >> buff >> buff;
+            for(int i = 0; iss >> lower; ++i)
+            {
+                if(std::abs(lower - lowers[i]) > 1e-8)
+                    throw std::invalid_argument(filename + 
+                    ": Expected lower " + std::to_string(lowers[i]) + 
+                    " on dimension " + std::to_string(i) + " but got " + 
+                    std::to_string(lower) + " instead.");
+            }
+        }
+
+        // Get upper bounds. 
+        {
+            std::getline(file, line); 
+            std::istringstream iss(line);
+            double upper = 0; 
+            auto uppers = GridBase<T>::edges_.second; 
+            iss >> buff >> buff;
+            for(int i = 0; iss >> upper; ++i)
+            {
+                if(std::abs(upper - uppers[i]) > 1e-8)
+                    throw std::invalid_argument(filename + 
+                    ": Expected upper " + std::to_string(uppers[i]) + 
+                    " on dimension " + std::to_string(i) + " but got " + 
+                    std::to_string(upper) + " instead.");
+            }
+        }
+
+        // Get periodic. 
+        {
+            std::getline(file, line); 
+            std::istringstream iss(line);
+            bool periodic; 
+            auto periodics = GridBase<T>::isPeriodic_; 
+            iss >> buff >> buff;
+            for(int i = 0; iss >> periodic; ++i)
+            {
+                if(periodic != periodics[i])
+                    throw std::invalid_argument(filename + 
+                    ": Expected periodic " + std::to_string(periodics[i]) + 
+                    " on dimension " + std::to_string(i) + " but got " + 
+                    std::to_string(periodic) + " instead.");
+            }
+        }
+
+        // Finally load data.
+        for(auto& d : GridBase<T>::data_)
+        {
+            std::getline(file, line);
+            std::istringstream iss(line);
+            
+            // Skip coordinates.
+            for(int i = 0; i < GridBase<T>::dimension_; ++i) 
+                iss >> buff;
+            
+            iss >> d;
+        }
     }
 };
 

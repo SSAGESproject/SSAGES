@@ -1,5 +1,7 @@
-#include "../src/Snapshot.h"
+#include "Snapshot.h"
 #include "gtest/gtest.h"
+#include <mxx/env.hpp>
+#include <mxx/comm.hpp>
 
 using namespace SSAGES;
 
@@ -9,7 +11,7 @@ const double eps = 1e-10;
 class SnapshotTest : public ::testing::Test 
 {
 protected:
-    boost::mpi::communicator comm;
+    mxx::comm comm;
 	
     // Snapshots.
 	std::shared_ptr<Snapshot> cubic, orthorhombic, monoclinic, triclinic; 
@@ -293,4 +295,12 @@ TEST_F(SnapshotTest, OriginCubicBoxTest)
 	EXPECT_NEAR(result2[0], 0.7, eps);
 	EXPECT_NEAR(result2[1], 0.6, eps);
 	EXPECT_NEAR(result2[2], 1.0, eps);
+}
+
+int main(int argc, char *argv[])
+{
+    ::testing::InitGoogleTest(&argc, argv);
+    mxx::env env(argc,argv);
+    int ret = RUN_ALL_TESTS();
+    return ret;
 }

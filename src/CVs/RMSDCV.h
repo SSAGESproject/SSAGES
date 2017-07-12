@@ -21,6 +21,7 @@
 
 #pragma once 
 
+#include "Snapshot.h"
 #include "CollectiveVariable.h"
 #include "../Utility/ReadFile.h"
 #include <array>
@@ -290,20 +291,6 @@ namespace SSAGES
 				grad_[i][1] = (u_coord[1] - trans[1])/((atomids_.size())*val_);
 				grad_[i][2] = (u_coord[2] - trans[2])/((atomids_.size())*val_);
 			}
-		}
-
-		//! Serialize this CV for restart purposes.
-		/*!
-		 * \param json JSON value
-		 */
-		virtual void Serialize(Json::Value& json) const override
-		{
-			json["type"] = "RMSD";
-			json["reference"] = molecule_;
-			for(size_t i=0; i < atomids_.size(); ++i)
-				json["atom ids"].append(atomids_[i]);
-			for(size_t i = 0; i < bounds_.size(); ++i)
-				json["bounds"].append(bounds_[i]);
 		}
 	};
 }

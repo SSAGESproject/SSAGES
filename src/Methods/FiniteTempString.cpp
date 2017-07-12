@@ -218,18 +218,4 @@ namespace SSAGES
 		double alphastar = distance(centers_, lcv0);
 		StringReparam(alphastar);
 	}
-
-	void FiniteTempString::Serialize(Json::Value& json) const
-	{
-		StringMethod::Serialize(json);
-
-		json["umbrella_iterations"] = min_num_umbrella_steps_;
-		json["flavor"] = "FTS";
-		json["kappa"] = kappa_;
-		json["block_iterations"] = blockiterations_;
-		json["time_step"] = tau_;
-
-		for(auto& nw : newcenters_)
-			json["running_average"].append(nw);
-	}
 }

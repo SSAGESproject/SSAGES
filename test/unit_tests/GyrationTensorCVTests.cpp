@@ -1,7 +1,8 @@
 #include "CVs/GyrationTensorCV.h"
 #include "Snapshot.h"
 #include "gtest/gtest.h"
-#include <boost/mpi.hpp>
+#include <mxx/env.hpp>
+#include <mxx/comm.hpp>
 
 using namespace SSAGES; 
 
@@ -57,7 +58,7 @@ protected:
 	}
 
 	GyrationTensorCV* cv; 
-	boost::mpi::communicator comm;
+	mxx::comm comm;
 	Snapshot* snapshot1;
 };
 
@@ -82,7 +83,7 @@ TEST_F(GyrationTensorCVTests, CompareRg)
 int main(int argc, char *argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
-    boost::mpi::environment env(argc,argv);
+    mxx::env env(argc,argv);
     int ret = RUN_ALL_TESTS();
     return ret;
 }

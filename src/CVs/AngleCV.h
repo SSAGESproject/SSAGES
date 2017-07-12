@@ -32,7 +32,7 @@
 namespace SSAGES
 {
 	//! Collective variable to calculate angle.
-	class AngleCV : public CollectiveVariable, public Buildable<AngleCV>
+	class AngleCV : public CollectiveVariable
 	{
 	private:
 		//! Vector of 3 atom ID's of interest.
@@ -132,7 +132,7 @@ namespace SSAGES
 			if(jindex != -1) grad_[jindex] = -gradi - gradk;
 		}
 
-		static AngleCV* Construct(const Json::Value& json, const std::string& path)
+		static AngleCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
@@ -152,21 +152,5 @@ namespace SSAGES
 
 			return new AngleCV(atomids[0], atomids[1], atomids[2]);
 		}
-
-		//! Serialize this CV for restart purposes.
-		/*!
-		 * \param json JSON value
-		 */
-		void Serialize(Json::Value& json) const override
-		{
-			json["type"] = "Angle";
-
-			for(auto& id : atomids_)
-				json["atom_ids"].append(id);
-
-			for(auto& bound : bounds_)
-				json["bounds"].append(bound);
-		}
-
 	};
 }

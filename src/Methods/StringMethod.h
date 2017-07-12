@@ -35,7 +35,7 @@ namespace SSAGES
 	 * Implementation of a multi-walker finite string
 	 * method with hard wall voronoi cells and running block averages.
 	 */
-	class StringMethod : public Method, public BuildableMPI<StringMethod>
+	class StringMethod : public Method
 	{
 	protected:	
 		
@@ -208,14 +208,11 @@ namespace SSAGES
 		//! Communicate neighbor lists over MPI
         void SetSendRecvNeighbors();
 
-		//! \copydoc Buildable::Build()
-		static StringMethod* Construct(const Json::Value& json, 
+		//! \copydoc Method::BuildMethod()
+		static StringMethod* Build(const Json::Value& json, 
 		                               const MPI_Comm& world,
 		                               const MPI_Comm& comm,
 					                   const std::string& path);
-
-		//! \copydoc Serializable::Serialize()
-		void Serialize(Json::Value& json) const override;
 
 		//! Destructor
 		virtual ~StringMethod() {}

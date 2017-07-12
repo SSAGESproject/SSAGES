@@ -626,7 +626,7 @@ namespace SSAGES
     }	
 
 	//! \copydoc Buildable::Build()
-	ForwardFlux* ForwardFlux::Construct(const Json::Value& json, 
+	ForwardFlux* ForwardFlux::Build(const Json::Value& json, 
 						                const MPI_Comm& world,
 								        const MPI_Comm& comm,
 								        const std::string& path)
@@ -672,11 +672,5 @@ namespace SSAGES
 			throw BuildException({"Unknow flavor of forward flux. The options are \"DirectForwardFlux\""});
 		}
 	}
-
-	void ForwardFlux::Serialize(Json::Value& json) const
-	{
-		//Needed to run
-		json["type"] = "ForwardFlux";
-    }
 }
 

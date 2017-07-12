@@ -31,7 +31,7 @@ namespace SSAGES
 	 *
 	 * \ingroup Methods
 	 */
-	class ElasticBand : public StringMethod, public BuildableMPI<ElasticBand>
+	class ElasticBand : public StringMethod
 	{
 	private:	
 		//! Number Equilibration steps, number of MD steps to
@@ -98,15 +98,6 @@ namespace SSAGES
 		 * \param cvmanager Collective variable manager.
 		 */
 		void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override;
-
-		//! Serialize the Method
-		/*!
-		 * \warning Serialization not implemented yet!
-		 */
-		void Serialize(Json::Value& /* json */) const override
-		{
-
-		}
 
 		//! Destructor.
 		~ElasticBand() {}

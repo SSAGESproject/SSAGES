@@ -1,0 +1,36 @@
+{
+	"type" : "object",
+	"varname" : "Logger",
+	"properties" : {
+		"frequency" : {
+			"type" : "integer",
+			"minimum" : 1
+		},
+		"output_file" :{
+			"oneOf" : [
+				{
+					"type" : "string"
+				}, 
+				{
+					"type" : "array", 
+					"minItems" : 1, 
+					"items" : {
+						"type" : "string"
+					}
+				}
+			]
+		},
+		"output_frequency" : {
+			"type" : "integer",
+			"minimum" : 1
+		},
+		"cvs" : {
+			"type" : "array"
+		},
+		"append" : {
+			"type" : "boolean"
+		}
+	},
+	"required": ["output_file"],
+	"additionalProperties": false
+}

@@ -2,7 +2,7 @@
 	"type" : "object",
 	"varname" : "AlphaRMSDCV",
 	"properties" : {
-		"type" : { 
+		"type" : {
 			"type" : "string",
 			"enum" : ["AlphaRMSD"]
 		},
@@ -15,6 +15,9 @@
 			"items" : {
 				"type" : "integer"
 			}
+		},
+		"name" : {
+			"type" : "string"
 		}
 	},
 	"required": ["type", "reference", "residue_ids"],

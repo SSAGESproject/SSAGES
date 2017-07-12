@@ -66,6 +66,10 @@ The following parameters need to be set under `"method"` in the JSON input file:
 
 The following options are available as FTS inputs: 
 
+cvs
+    Array of integers, selecting which CVs this method will operate on. Index
+    starts from 0.
+
 centers (required)
     Array containing this image's coordinates in CV space 
 
@@ -113,9 +117,9 @@ Tutorial
 Two examples for running FTS can be found in the ``Examples/User/FTS``
 directory. This tutorial will go through running FTS on a 2D single particle
 system, using LAMMPS as the MD engine. The necessary files are found in
-``Examples/User/FTS/Langevin``, which should contain the following: 
+``Examples/User/FTS/2D_Particle``, which should contain the following: 
 
-``in.LAMMPS_Meta_Test``
+``in.LAMMPS_2DParticle``
     LAMMPS input file; sets up 1 particle on a 2D surface with two Gaussian
     wells of different depths (at :math:`(-0.98, -0.98)` and at
     :math:`(0.98, 0.98)`) and one Gaussian barrier at the origin. 
@@ -137,10 +141,12 @@ create a JSON input file for FTS. Run this script
     python Input_Generator.py
     
 to create a file called ``FTS.json``. A string with 16 images is initalized on
-the 2D surface, evenly spaced on a straight line from :math:`(-0.7, -0.5)` to
-:math:`(0.7, 1.0)`. If you take a look at ``FTS.json``, you will see that the
-information in the template file has been replicated for each of the 16 nodes
-on the string, but with the value of "centers" changed.
+the 2D surface, evenly spaced on a straight line from :math:`(-0.98, -0.68)` to
+:math:`(0.98, 1.28)`. If you take a look at ``FTS.json``, you will see that the
+location of each image along the string has been appended to the "centers"
+field. These center locations are listed from one end of the string to the
+other; the first center listed corresponds to one end of the string, and the 
+final center listed corresponds to the opposite end of the string.
 
 Once ``FTS.json`` has been generated, we can run the example with the following
 command: 
@@ -151,8 +157,8 @@ command:
 
 As SSAGES runs, a series of output files are generated: 
 
-``log-MPI_ID-x``
-    LAMMPS output for each of the 16 nodes on the string.
+``log.lammps``
+    Output from LAMMPS.
 
 ``node-00xx.log``
     FTS output for each of the 16 nodes on the string. The first column contains
@@ -169,7 +175,7 @@ string using gnuplot with the command
 
 .. code-block:: bash
 
-    plot "< tail -n 1 node*" u 3:6+
+    plot "< tail -n 1 node*" u 3:5
     
 The following image shows the initial string in blue, compared with the final
 string plotted in green: 

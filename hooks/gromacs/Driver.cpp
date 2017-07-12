@@ -21,6 +21,7 @@
 #include "Driver.h"
 #include "GromacsHook.h"
 #include "ResourceHandler.h"
+#include "json/json.h"
 #include "gmxpre.h"
 #include "gromacs/commandline/cmdlinemodulemanager.h"
 #include "programs/mdrun/mdrun_main.h"
@@ -29,15 +30,21 @@ namespace SSAGES
 {
 	void Driver::Run()
 	{
-		int argc = args_.size() + 1;
+		int argc = args_.size() + 1 + ((rh_->GetNumWalkers() > 1) ? 2 : 0);
 		char **argv = new char*[argc];
 		for(int i = 0; i < argc; ++i)
 			argv[i] = new char[128];
 		
 		sprintf(argv[0], "ssages");
 		for(size_t i = 0; i < args_.size(); ++i)
-			sprintf(argv[i+1], args_[i].c_str());
+			strcpy(argv[i+1], args_[i].c_str());
 		
+		if(rh_->GetNumWalkers() > 1)
+		{
+			sprintf(argv[args_.size()+1], "-multi");
+			sprintf(argv[args_.size()+2], "%i", (int)rh_->GetNumWalkers());
+		}
+
 		std::cout << std::endl;
 		gmx::CommandLineModuleManager::runAsMainCMain(argc, argv, &gmx_mdrun);
 	}
