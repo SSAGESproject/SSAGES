@@ -4,11 +4,19 @@
 	"properties" : {
 		"type" : { 
 			"type" : "string",
-			"enum" : ["Basis"]
+			"enum" : ["BFSMethod"]
 		},
 		"grid" : {
 			"type" : "object"
 		},
+        "basis_functions" : {
+            "type" : "array",
+            "minItems" : 1,
+            "items" : {
+                "type" : "string",
+                "enum" : ["Legendre","Chebyshev","Fourier","Laguerre","Hermite"]
+            }
+        },
 		"cycle_frequency" : {
 			"type" : "integer",
 			"minimum" : 1
@@ -32,13 +40,6 @@
             "minItems" : 1,
             "items" : {
                 "type" : "number"
-            }
-        },
-        "CV_coefficients" : {
-            "type" : "array",
-            "minItems" : 1,
-            "items" : {
-                "type" : "integer"
             }
         },
         "CV_restraint_spring_constants" : {
@@ -87,6 +88,6 @@
 			"type" : "array"
 		}
 	},
-	"required": ["type", "grid", "CV_coefficients", "cycle_frequency"],
+	"required": ["type", "grid", "basis_functions", "cycle_frequency"],
 	"additionalProperties": false
 }

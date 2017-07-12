@@ -53,8 +53,8 @@ namespace SSAGES
 		Method* method = nullptr;
 		if(json["type"] == "ABF")
 			method = ABF::Build(json, world, comm, path);
-		else if(json["type"] == "Basis")
-			method = Basis::Build(json, world, comm, path);
+		else if(json["type"] == "BFSMethod")
+			method = BFS::Build(json, world, comm, path);
 		else if(json["type"] == "ForwardFlux")
 			method = ForwardFlux::Build(json, world, comm, path);
 		else if(json["type"] == "Metadynamics")

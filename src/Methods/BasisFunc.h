@@ -21,64 +21,13 @@
 #pragma once
 
 #include "Method.h"
+#include "Basis.h"
 #include "Grids/Histogram.h"
 #include <fstream>
 #include <vector>
 
 namespace SSAGES
-{
-
-    //! Map for histogram and coefficients.
-    /*!
-     * A clean mapping structure for both the histogram and the coefficients.
-     * All vectors are written as 1D with a row major mapping. In order to make
-     * iterating easier, the mapping of the 1D vectors are written here.
-     */
-    struct Map
-    {
-        //! The coefficient value
-        double value;
-
-        //! The mapping in an array of integers
-        std::vector<int> map;
-
-        //! Constructor
-        /*!
-         * \param map The mapping in an array of integers.
-         * \param value The coefficient value.
-         */
-        Map(const std::vector<int>& map,
-            double value) :
-            value(value), map(map)
-        {}
-    };
-
-    //! Look-up table for basis functions.
-	/*!
-     * The structure that holds the Look-up table for the basis function. To
-     * prevent repeated calculations, both the derivatives and values of the
-     * Legendre polynomials is stored here. More will be added in future
-     * versions.
-     */
-	struct BasisLUT
-	{
-		//! The values of the basis sets
-		std::vector<double> values;
-
-		//! The values of the derivatives of the basis sets
-		std::vector<double> derivs;
-
-        //! Constructor.
-        /*!
-         * \param values The values of the basis sets.
-         * \param derivs The values of the derivatives of the basis sets.
-         */
-		BasisLUT(const std::vector<double>& values,
-			const std::vector<double>& derivs) :
-			values(values), derivs(derivs)
-		{}
-	};
-		
+{		
     //! Basis Function Sampling Algorithm
     /*!
      * \ingroup Methods
@@ -86,7 +35,7 @@ namespace SSAGES
      * Implementation of the Basis Function Sampling Method based on
      * \cite WHITMER2014190602.
      */
-	class Basis : public Method
+	class BFS : public Method
 	{
 	private:	
         
@@ -94,14 +43,26 @@ namespace SSAGES
         /*!
          * Histogram is stored locally.
          */
-        Histogram<int> *hist_;
+        Grid<uint> *h_;
 
-        //! Globally located coefficient values.
-		/*!
-         * As coefficients are updated at the same time, the coefficients
-         * should only be defined globally.
+        //! Stored bias potential
+        /*!
+         * The sum of basis functions that adds up to the bias potential of the surface
          */
-		std::vector<Map> coeff_;
+        Grid<double> *b_;
+
+        //! Stored gradients
+        /*!
+         * The gradients corresponding to each point on the grid
+         */
+        Grid<std::vector<double>> *f_;
+
+        //! The basis evaluator class
+        /*!
+         * A class which holds the basis functions and updates the coefficients
+         * at each cycle
+         */
+        BasisEvaluator evaluator_;
 
         //! The biased histogram of states.
         /*!
@@ -113,19 +74,6 @@ namespace SSAGES
 
         //! The coefficient array for restart runs
         std::vector<double> coeff_arr_;
-
-        //! The Basis set lookup table, also defined globally
-		std::vector<BasisLUT> LUT_;
-
-        //! Derivatives of the bias potential
-        /*!
-         * The derivatives of the bias potential imposed on the system.
-         * They are evaluated by using the lookup table.
-         */
-		std::vector<double> derivatives_;
-
-        //! The order of the basis polynomials
-        std::vector<unsigned int> polyords_;
 
         //! Spring constants for restrained system.
         /*!
@@ -172,18 +120,11 @@ namespace SSAGES
         //! A check to see if you want the system to end when it reaches the convergence criteria.
         bool converge_exit_;
 
-		//! Updates the bias projection of the PMF.
-        /*!
-         * \param cvs List of collective variables.
-         * \param beta Temperature equivalent.
-         */
-		void UpdateBias(const CVList& cvs, const double);
+        //! The functions which calculates the updated bias and coefficients and then stores them
+        void UpdateBias(const CVList& cvs, const double beta);
 
-		//! Computes the bias force.
-        /*!
-         * \param cvs List of collective variables.
-         */
-		void CalcBiasForce(const CVList& cvs);
+        //! A function which checks to see if the CVs are still in bounds
+        void InBounds(const CVList& cvs);
 
 		//! Prints the current bias to a defined file from the JSON.
         /*!
@@ -192,24 +133,12 @@ namespace SSAGES
          */
 		void PrintBias(const CVList& cvs, const double beta);
 
-        //! Initializes the look up tables for polynomials
-        /*!
-         * \param cvs List of collective variables.
-         */
-        void BasisInit(const CVList& cvs);
-
 		//! Output stream for basis projection data.
 		std::ofstream basisout_;
-
-        //! Output stream for coefficients (for reading purposes)
-        std::ofstream coeffout_;
 
         //! The option to name both the basis and coefficient files will be given
         //! Basis filename 
         std::string bnme_;
-
-        //! Coefficient filename
-        std::string cnme_;
 
         //! Iteration counter. 
         uint iteration_;
@@ -237,27 +166,28 @@ namespace SSAGES
          * updated once every cyclefreq_. For now, only the Legendre polynomial
          * is implemented. Others will be added later.
          */
-		Basis(const MPI_Comm& world,
+		BFS(const MPI_Comm& world,
 			  const MPI_Comm& comm,
-              Histogram<int> *hist,
-			  const std::vector<unsigned int>& polyord,
+              Grid<uint> *h,
+              Grid<std::vector<double>> *f,
+              Grid<double> *b,
+              const std::vector<BasisFunction>& functions,
               const std::vector<double>& restraint,
               const std::vector<double>& boundUp,
               const std::vector<double>& boundLow,
               unsigned int cyclefreq,
 			  unsigned int frequency,
               const std::string bnme,
-              const std::string cnme,
               const double temperature,
               const double tol,
               const double weight,
               bool converge) :
-		Method(frequency, world, comm), hist_(hist),
-        coeff_(), unbias_(), coeff_arr_(), LUT_(), derivatives_(), polyords_(polyord),
+		Method(frequency, world, comm), 
+        h_(h),  b_(b), f_(f), unbias_(), coeff_arr_(), evaluator_(functions),
         restraint_(restraint), boundUp_(boundUp), boundLow_(boundLow),
         cyclefreq_(cyclefreq), mpiid_(0), weight_(weight),
         temperature_(temperature), tol_(tol),
-        converge_exit_(converge), bnme_(bnme), cnme_(cnme), iteration_(0)
+        converge_exit_(converge), bnme_(bnme), iteration_(0)
 		{
 		}
 
@@ -309,15 +239,17 @@ namespace SSAGES
         }
 
 		//! \copydoc Buildable::Build()
-		static Basis* Build(const Json::Value& json, 
+		static BFS* Build(const Json::Value& json, 
 		                        const MPI_Comm& world,
 		                        const MPI_Comm& comm,
 					            const std::string& path);
 
         //! Destructor.
-        ~Basis()
+        ~BFS()
         {
-            delete hist_;
+            delete h_;
+            delete f_;
+            delete b_;
         }
 	};
 }
