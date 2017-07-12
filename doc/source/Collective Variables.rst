@@ -414,9 +414,68 @@ of the distance vector to include in the calculation.
 Polymer Rouse Modes
 -------------------
 
-.. warning:: 
+Example
+^^^^^^^
 
-	This needs to be filled in
+.. code-block:: javascript
+
+    {
+        "type": "RouseMode",
+        "mode": 1,
+        "groups":  [
+                    [ 1, 2, 3, 4, 5],
+                    [ 6, 7, 8, 9,10],
+                    [11,12,13,14,15],
+                    [16,17,18,19,20],
+                    [21,22,23,24,25],
+                    [26,27,28,29,30],
+                    [31,32,33,34,35],
+                    [36,37,38,39,40],
+                    [41,42,43,44,45],
+                    [46,47,48,49,50]
+                   ]
+    }
+
+Description
+^^^^^^^^^^^
+
+This CV calculates the magnitude of a given Rouse mode for a set of atoms as
+
+.. math::
+
+    X_p = \sqrt{\mathbf{X}_p\cdot\mathbf{X}_p},
+
+with the :math: `p` th Rouse mode defined as
+
+.. math::
+
+    \mathbf{X}_p = \sqrt{\frac{c_p}{N}}\sum_{i=1}^N \mathbf{R}_i \cos \Bigl[\frac{p\pi}{N}\bigl(i-\frac{1}{2}\bigr) \Bigr],
+
+where :math: `N` is the number of groups or beads comprising the polymer, :math: `\mathbf{R}_i` is the center-of-mass of the :math: `i` th bead, and :math: `c_p` is a constant equal to 1 for :math: `p=0` and equal to 2 for :math: `p=1,\cdots,N-1`.
+
+Options & Parameters
+^^^^^^^^^^^^^^^^^^^^
+
+Required
+^^^^^^^^
+
+.. code-block:: javascript
+
+    "type"
+
+Property ``mode`` must be set to string ``"RouseMode"``.
+
+.. code-block:: javascript
+
+    "groups"
+
+Property ``groups`` is an array of arrays containing the atom IDs (as integers) that comprise the discretized polymer beads. The number of groups provided implicitly defines :math: `N`, the number of polymer beads.
+
+.. code-block:: javascript
+
+    "mode"
+
+Property ``mode`` is an integer indicating the index of the desired Rouse mode. Valid values range from 0 up to one less than the number of groups, or `0,\cdots, N-1`. 
 
 Torsional Angle
 ---------------
