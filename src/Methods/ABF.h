@@ -25,6 +25,8 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include "Grids/Grid.h"
+
 
 namespace SSAGES
 {
@@ -40,34 +42,36 @@ namespace SSAGES
 	class ABF : public Method
 	{
 	private:	
-		//! To store running total. 
+		//! To store running total of the local walker. 
 		/*!
-		 * A 1D vector, but will hold N-dimensional data, where N is number of
-		 * CVs +1. This will be size (CVbinNr1*CVbinNr2*..)*3.
+		 * This is a grid that holds dF/dCVx where x is 
+		 * one of the CVs. For N CVs, there will be N grids,
+		 * and thus this vector will be N long.
 		 */
-		Eigen::VectorXd _F;
-
-		//! Will hold the global total, synced to every time step. 
+		std::vector<Grid<double>*> F_;
+	
+		//! Will hold the global total, synced across walkers at every time step. 
 		/*!
-		 * A 1D vector, but will hold N-dimensional data, where N is number of
-		 * CVs +1. This will be size (CVbinNr1*CVbinNr2*..)*3.
+		 * This is a grid that holds dF/dCVx where x is 
+		 * one of the CVs. For N CVs, there will be N grids,
+		 * and thus this vector will be N long. Global version.
 		 */
-		Eigen::VectorXd Fworld_;
+		std::vector<Grid<double>*> Fworld_;
 
-		//! To store number of hits at a given CV bin.
+		//! To store number of local hits at a given CV bin.
 		/*!
-		 * A 1D vector, but will hold N-dimensional data, where N is number of
-		 * CVs. This will be size (CVbinNr1*CVbinNr2*..).
+		 * Stores the number of times each bin was visited
+		 * in CV space.
 		 */
-		std::vector<int> _N;
+		Grid<int> *N_;
 
-		//! To store number of hits at a given CV bin.
+		//! To store number of global hits at a given CV bin.
 		/*!
-		 * A 1D vector, but will hold N-dimensional data, where N is number of
-		 * CVs. This will be size (CVbinNr1*CVbinNr2*..).
+		 * Stores the number of times each bin was visited
+		 * in CV space. Global version.
 		 */
-		std::vector<int> Nworld_;
-
+		Grid<int> *Nworld_;
+		
 		//! Information for a harmonic restraint to keep CV in the region of interest. 
 		/*!
 		 * This is a 2 Dimensional object set up as the following:
@@ -93,40 +97,39 @@ namespace SSAGES
 		std::vector<std::vector<double>> periodicboundaries_;		
 
 		//! The minimum number of hits required before full biasing, bias is
-		//!_F[i]/max(_N[i],min_).
+		//! F_[i]/max(N_[i],min_).
 		int min_;
 
-		//! To hold last two iterations wdotp value for derivative
-		Eigen::VectorXd wdotp1_, wdotp2_;
+		//! To hold last iteration wdotp value for numerical derivative.
+		Eigen::VectorXd wdotp1_;
 
-		//! To hold last iterations _F value for removing bias
+		//! To hold second to last iteration wdotp value for numerical derivative.
+		Eigen::VectorXd wdotp2_;
+
+		//! To hold last iterations F_ value for removing bias
 		Eigen::VectorXd Fold_;
-
-		//! Get coordinates of histogram bin corresponding to given list of CVs.
-		/*!
-		 * \param cvs List of CVs.
-		 *
-		 * \return Index of histogram bin.
-		 *
-		 * Function to return bin coordinate to address _F and _N, given a vector
-		 * [CV1,CV2..] values.
-		 */
-		int histCoords(const CVList& cvs);
 
 		//! Mass weighing of bias enabled/disabled
 		bool massweigh_;
 
-		//! Biases.	
+		//! Biases applied to atoms each timestep.	
 		std::vector<Vector3> biases_;
 
-		//! Number of CVs in system
+		//! Number of CVs in system.
 		unsigned int dim_;
 
-		//! Output stream for world data.
+		//! Output stream for F/N world data.
 		std::ofstream worldout_;
 
-		//! File name for world data
+		//! File name for world data. 
+		//! Principal output of the method.
 		std::string filename_;
+
+		//! Nworld print out filename, for restarts.
+		std::string Nworld_filename_;
+
+		//! Fworld print out filename, for restarts.
+		std::string Fworld_filename_;
 
 		//! Histogram details. 
 		/*!
@@ -155,7 +158,12 @@ namespace SSAGES
 		double unitconv_;
 
 		//! Computes the bias force.
-		void CalcBiasForce(const Snapshot* snapshot, const CVList& cvs, int coord);
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 * \param cvs Details of CVs.
+		 * \param cvVals Current values of CVs.
+		 */
+		void CalcBiasForce(const Snapshot* snapshot, const CVList& cvs, const std::vector<double> &cvVals);
 		
 		//! Writes out data to file.
 		void WriteData();
@@ -169,20 +177,36 @@ namespace SSAGES
 		//! Mass vector. Empty unless required.
 		Eigen::VectorXd mass_;
 
+		//! Checks whether the local walker is within CV bounds.
+		/*!
+		 * \param CVs Current values of CVs.
+		 * \return Whether the walker is in bounds or not.
+		 */
+
+		bool boundsCheck(const std::vector<double> &CVs);
+		
+
 	public: 
 		//! Constructor 
 		/*!
 		 * \param world MPI global communicator.
 		 * \param comm MPI local communicator.
-		 * \param histdetails Minimum, maximum and number of bins for each CV.
+		 * \param N Local CV histogram.
+		 * \param Nworld Global CV histogram.
+		 * \param F Vector of grids holding local raw generalized force totals per bin per CV.
+		 * \param Fworld Vector of grids holding global raw generalized force totals per bin per CV.
 		 * \param restraint Minimum, maximum and spring constant for CV restraints.
-		 * \param timestep Simulation time step.
+		 * \param isperiodic Vector of bools that holds whether each CV is periodic or not.
+		 * \param periodicboundaries Periodic boundaries of each CV.
 		 * \param min Minimum number of hist in a histogram bin before biasing is applied.
+		 * \param massweigh Turn mass weighing on/off.
 		 * \param filename Name for output file.
-		 * \param printdetails Set up what information to print and frequency of printing.
-		 * \param FBackupInterv Set how often the adaptive force histogram is saved.
+		 * \param Nworld_filename Name to read/write CV histogram.
+		 * \param Fworld_filename Name to read/write raw generalized force histograms.
+		 * \param histdetails Minimum, maximum and number of bins for each CV.
+		 * \param FBackupInterv Set how often the adaptive force histograms are backed up.
 		 * \param unitconv Unit conversion from d(momentum)/d(time) to force.
-		 * \param Orthogonalization Flag to turn on or off Gram-Schmidt Orthogonalization.
+		 * \param timestep Simulation time step.
 		 * \param frequency Frequency with which this method is invoked.
 		 *
 		 * Constructs an instance of Adaptive Biasing Force method.
@@ -191,26 +215,32 @@ namespace SSAGES
 		 */ 
 		ABF(const MPI_Comm& world,
 			const MPI_Comm& comm,
+			Grid<int> *N,
+			Grid<int> *Nworld,
+			std::vector<Grid<double>*> F,
+			std::vector<Grid<double>*> Fworld,
 			std::vector<std::vector<double>> restraint,
 			std::vector<bool> isperiodic,
 			std::vector<std::vector<double>> periodicboundaries,
 			double min,
 			bool massweigh,
 			std::string filename,
+			std::string Nworld_filename,
+			std::string Fworld_filename,
 			const std::vector<std::vector<double>>& histdetails,
 			int FBackupInterv,
 			double unitconv,
 			double timestep,
 			unsigned int frequency) :
-		Method(frequency, world, comm), _F(), Fworld_(), _N(0), Nworld_(0),
-		restraint_(restraint), isperiodic_(isperiodic), periodicboundaries_(periodicboundaries),
+		Method(frequency, world, comm), N_(N), Nworld_(Nworld), F_(F), Fworld_(Fworld),  restraint_(restraint), isperiodic_(isperiodic), periodicboundaries_(periodicboundaries),
 		min_(min), wdotp1_(), wdotp2_(), Fold_(), massweigh_(massweigh),
-		biases_(), dim_(0), filename_(filename), histdetails_(histdetails), 
+		biases_(), dim_(0), filename_(filename), Nworld_filename_(Nworld_filename), Fworld_filename_(Fworld_filename),
+		histdetails_(histdetails), 
 		FBackupInterv_(FBackupInterv), unitconv_(unitconv), timestep_(timestep),
 		iteration_(0)
 		{
 		}
-
+		
 		//! Pre-simulation hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
@@ -230,18 +260,7 @@ namespace SSAGES
 		 * \param snapshot Current simulation snapshot.
 		 * \param cvmanager Collective variable manager.
 		 */
-		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
-
-		//! Set biasing histogram
-		/*!
-		 * \param F Vector containing values for the running total.
-		 * \param N Vector containing number of hits for bin intervals.
-		 */
-		void SetHistogram(const Eigen::VectorXd& F, const std::vector<int>& N)
-		{
-			_F = F;
-			_N = N;
-		}		
+		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;			
 		
 		//! Set iteration of the method
 		/*!

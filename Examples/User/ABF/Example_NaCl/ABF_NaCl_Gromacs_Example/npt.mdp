@@ -1,6 +1,6 @@
 ; Run parameters
 integrator	= md		; leap-frog integrator
-nsteps		= 500000		; 2 * 50000 = 100 ps
+nsteps		= 200000		; 2 * 50000 = 100 ps
 dt		    = 0.002		; 2 fs
 ; Output control
 nstxout		= 10000		; save coordinates every 1.0 ps
@@ -28,11 +28,16 @@ tcoupl		= V-rescale	            ; modified Berendsen thermostat
 tc-grps		= System				; two coupling groups - more accurate
 tau_t		= 0.1			        ; time constant, in ps
 ref_t		= 298.15			        ; reference temperature, one for each group, in K
-compressibility     = 4.5e-5	            ; isothermal compressibility of water, bar^-1
+; Pressure coupling
+pcoupl		= Berendsen
+pcoupltype	= isotropic
+tau_p		= 0.5
+ref_p		= 0.98692326
+compressibility	= 4.5e-5
 ; Periodic boundary conditions
 pbc		= xyz		; 3-D PBC
 ; Dispersion correction
 DispCorr	= EnerPres	; account for cut-off vdW scheme
 ; Velocity generation
 gen_vel		= yes		; Velocity generation is off
-gen_seed	= 2568
+gen_seed	= 5

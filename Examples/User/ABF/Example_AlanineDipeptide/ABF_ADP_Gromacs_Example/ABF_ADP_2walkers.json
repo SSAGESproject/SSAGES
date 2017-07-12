@@ -1,7 +1,7 @@
 {
 	"logfile" : "node-1",
-	"walkers" : 1,
-	"input" : "in.ADP_ABF_Example0",
+	"walkers" : 2,
+	"args" : ["-v","-deffnm","example_adp"],
 	"CVs": [
                 {
                     "periodic": true,
@@ -34,11 +34,11 @@
                 "CV_restraint_maximums" : [5,5],
 		"CV_restraint_spring_constants" : [0,0],
 		"CV_isperiodic" : [false,false],
-		"timestep" : 2,
+		"timestep" : 0.002,
 		"minimum_count" : 50,
 		"filename" : "F_out",
 		"backup_frequency" : 1000,
-		"unit_conversion" : 2390.06,
+		"unit_conversion" : 1,
 		"frequency" : 1
             }]
 }

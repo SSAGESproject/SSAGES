@@ -1,0 +1,31 @@
+{
+	"logfile" : "node-1",
+	"walkers" : 2,
+	"args" : ["-v","-deffnm","example_NaCl"],
+	"CVs":   [
+                {
+                    "type" : "ParticleSeparation",
+                    "group1" : [4495],
+                    "group2" : [4496]
+                }
+            ],
+            "methods" : [{
+                "type" : "ABF",
+		"cvs" : [0],
+  		"CV_lower_bounds" : [0.24],
+                "CV_upper_bounds" : [0.8],
+		"CV_bins" : [40],
+  		"CV_restraint_minimums" : [0.22],
+                "CV_restraint_maximums" : [0.82],
+		"CV_restraint_spring_constants" : [1000],
+		"CV_isperiodic" : [false],
+		"timestep" : 0.002,
+		"minimum_count" : 200,
+		"filename" : "F_out",
+		"backup_frequency" : 1000,
+		"unit_conversion" : 1,
+		"frequency" : 1
+            }]
+}
+    
+
