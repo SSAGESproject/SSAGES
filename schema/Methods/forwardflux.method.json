@@ -52,6 +52,6 @@
 			"type" : "array"
 		}
 	},
-	"required": [],
+	"required": ["type", "flavor", "nInterfaces", "interfaces", "computeInitialFlux"],
 	"additionalProperties": false
 }
