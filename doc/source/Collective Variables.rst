@@ -98,125 +98,8 @@ Required
 
 Property ``type`` must be set to string ``"BoxVolume"``.
 
-
-Coordination Number
--------------------
-
-Example 
-^^^^^^^
-
-.. code-block:: javascript 
-	
-	{
-		"type" : "CoordinationNumber", 
-		"group1" : [1],
-		"group2" : [2, 5, 8, 12, 15, 18, 22], 
-		"switching" : {
-			"type" : "rational", 
-			"d0" : 0,
-			"r0" : 3.2,
-			"n" : 12, 
-			"m" : 24
-		}
-	}
-
-Description 
-^^^^^^^^^^^
-
-This CV calculates the coordination number between two sets of atoms, 
-
-.. math::
-
-	\xi = \sum_{i \in A}\sum_{j \in B}{s_{ij}}
-
-where :math:`s_{ij}` is unity if atoms :math:`i` and :math:`j` are in contact, and zero 
-otherwise. This discrete function is made continuous through the use of a switching function
-which can be set in the CV properties. 
-
-
-Options & Parameters
-^^^^^^^^^^^^^^^^^^^^
-
-Required
-~~~~~~~~
-
-.. code-block:: javascript 
-	
-	"type"
-
-Property ``type`` must be set to string ``"CoordinationNumber"``.
-
-.. code-block:: javascript 
-	
-	"group1"
-
-Property ``group1`` must be an array of integers containing the atom IDs in the first set. 
-
-
-.. code-block:: javascript 
-	
-	"group2"
-
-Property ``group2`` must be an array of integers containing the atom IDs in the second set.
-
-.. note:: 
-
-	Atoms can exist in both ``group1`` and ``group2`` simultaneously. Contacts are automatically 
-	skipped if :math:`i = j`.
-
-.. code-block:: javascript 
-	
-	"switching"
-
-Property ``switching`` must be an object defining the type of switching function and 
-its associated properties.
-
-Switching Functions
-~~~~~~~~~~~~~~~~~~~
-
-Rational 
-********
-The rational switching function is defined as: 
-
-.. math::
-
-	s_{ij} = \frac{1-\left(\frac{r_{ij} - d_0}{r_0}\right)^n}{1-\left(\frac{r_{ij} - d_0}{r_0}\right)^m}.
-
-Properties
-++++++++++
-
-.. code-block:: javascript 
-	
-	"type"
-
-Property ``type`` must be set to string ``"rational"``.
-
-.. code-block:: javascript 
-	
-	"d0"
-
-Property ``d0`` is required and must be numeric. 
-
-.. code-block:: javascript 
-	
-	"r0"
-
-Property ``r0`` is required and must be numeric. 
-
-.. code-block:: javascript 
-	
-	"n"
-
-Property ``n`` is required and must be an integer. 
-
-.. code-block:: javascript 
-	
-	"m"
-
-Property ``m`` is required and must be an integer. 
-
 Gyration Tensor
--------------------
+---------------
 
 Example 
 ^^^^^^^
@@ -301,14 +184,6 @@ Property ``component`` must be a string defining the gyration tensor component o
 Valid options are ``"Rg"``, ``"principal1"``, ``"principal2"``, ``"principal3"``, ``"asphericity"``, 
 ``"acylindricity"``, or ``"shapeaniso"``.
 
-Nearest Neighbors
-------------------
-
-.. warning:: 
-
-	This needs to be filled in
-
-
 Particle Coordinate
 -------------------
 
@@ -356,6 +231,141 @@ Property ``atom_ids`` must be an array of integers containing the atom IDs which
 	"dimension" 
 
 Property ``dimension`` must be a string defining the Cartesian component of interest ``"x"``, ``"y"``, or ``"z"``.
+
+Pairwise
+--------
+
+Example
+^^^^^^^
+
+.. code-block:: javascript 
+	
+	{
+		"type" : "PairwiseCV", 
+		"group1" : [1, 5],
+		"group1" : [2, 3, 4, 6, 7, 8],
+		"kernel" : {
+			"type" : "gaussian",
+			"mu" : 1.0,
+			"sigma" : 0.2
+		}
+	}
+
+Description 
+^^^^^^^^^^^
+
+This CV calculates a variety of pairwise properties. The functions (kernels) used are continous analogs for otherwise discontinuous CVs. If parameters are chosen judiciously, these kernels can be used in place of some standard, discontinuous CVs. A Gaussian kernel can emulate a count of nearest neighbors; a switching function kernel can emulate a coordination number.
+
+.. math::
+
+	\xi = \sum_{i \in A}\sum_{i \in B}{f_{ij}}
+
+where :math:`f_{ij}` is a pairwise function for atoms :math:`i` and :math:`j`. are at a distance of the center of the Gaussian, :math:`r_{ij}=\mu`, and decreases to zero as the distance deviates away from :math:`\mu`.
+
+
+Options & Parameters
+^^^^^^^^^^^^^^^^^^^^
+
+Required
+~~~~~~~~
+
+.. code-block:: javascript 
+	
+	"type"
+
+Property ``type`` must be set to string ``"Pairwise"``.
+
+.. code-block:: javascript 
+	
+	"group1"
+
+Property ``group1`` must be an array of integers containing the atom IDs in the first set.
+
+.. code-block:: javascript 
+	
+	"group2"
+
+Property ``group2`` must be an array of integers containing the atom IDs in the second set.
+
+.. note:: 
+
+	Atoms can exist in both ``group1`` and ``group2`` simultaneously. Contacts are automatically 
+	skipped if :math:`i = j`.
+
+.. code-block:: javascript 
+	
+	"kernel"
+
+Property ``kernel`` must be an object defining the properties of the pairwise kernel function and its associated properties.
+
+Pairwise Kernels
+~~~~~~~~~~~~~~~~
+
+Gaussian Function
+*****************
+
+The Gaussian function is defined as:
+
+.. math::
+
+	g_{ij} = e^{\frac{\left(r_{ij} - \mu\right)^2}{2 sigma^2}}.
+
+Properties
+++++++++++
+
+.. code-block:: javascript
+	
+	"mu"
+
+Property ``mu`` is required and must be numeric.
+
+.. code-block:: javascript 
+	
+	"sigma"
+
+Property ``sigma`` is required and must be numeric.
+
+Rational Switching Function
+***************************
+
+The rational switching function is defined as: 
+
+.. math::
+
+	s_{ij} = \frac{1-\left(\frac{r_{ij} - d_0}{r_0}\right)^n}{1-\left(\frac{r_{ij} - d_0}{r_0}\right)^m}.
+
+Properties
+++++++++++
+
+.. code-block:: javascript 
+	
+	"type"
+
+Property ``type`` must be set to string ``"rational"``.
+
+.. code-block:: javascript 
+	
+	"d0"
+
+Property ``d0`` is required and must be numeric. 
+
+.. code-block:: javascript 
+	
+	"r0"
+
+Property ``r0`` is required and must be numeric. 
+
+.. code-block:: javascript 
+	
+	"n"
+
+Property ``n`` is required and must be an integer. 
+
+.. code-block:: javascript 
+	
+	"m"
+
+Property ``m`` is required and must be an integer. 
 
 Particle Position
 -------------------
