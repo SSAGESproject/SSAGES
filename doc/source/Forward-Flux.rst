@@ -61,7 +61,7 @@ Several protocols of forward flux method have been adopted in the literature to
 4) optimize overall efficiency of the method. The following are the widely-used
    variants of forward flux sampling method:
 
-* Direct FFS (DFFS)
+* Direct FFS (DFFS) (currently implemented in SSAGES)
 * Branched Growth FFS (BGFFS)
 * Rosenbluth-like FFS (RBFFS)
 * Restricted Branched Growth FFS (RBGFFS)
@@ -198,16 +198,17 @@ file. Here we describe the parameters and the options that should be set in
 ``Template_Input.json`` file in order to successfully generate an input file and
 run a DFFS simulation.
 
-Input and parameters related to "driver"
+Input and parameters related to "walkers"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-type 
-    + Type: string
-    + Default:  “LAMMPS”
-    + Functionality:  Defines the preferred MD engine to run the actual
-      simulation. You are encouraged to read the documentation page of the
-      corresponding MD package to learn about the input files and different options
-      available to that package.   
+input
+    + Type: array of strings
+    + Default: []
+    + Functionality: Specifies the name of the engine-specific input files. The
+      user is encouraged to refer to the documentation page of the corresponding
+      MD package to learn about various input options as well as the structure
+      and format of the input files suitable for their MD engine.
+      NOTE: For GROMACS, you won't need to specify this parameter; instead you'll need to pass the base name of your .tpr files to "args" (please see the examples folder for details)
 
 number processors
     + Type: integer
@@ -215,22 +216,6 @@ number processors
     + Functionality:  Sets the number of processors that individual walkers
       use to run the simulation. In the current version of SSAGES, this should be set 
       to 1.
-
-inputfile
-    + Type: string
-    + Default: ""
-    + Functionality: Specifies the name of the engine-specific input file. The
-      user is encouraged to refer to the documentation page of the corresponding
-      MD package to learn about various input options as well as the structure
-      and format of the input files suitable for their MD engine.
-
-MDSteps
-    + Type: integer
-    + Default: 10000000
-    + Functionality:  Sets the maximum number of MD steps allowed for a FFS
-      simulation on a given walker. We recommend defining a large number here to
-      ensure that the simulation is completed before reaching that many steps.
-      SSAGES will exit upon completion of the FFS simulation.
 
 logfile
     + Type: string
@@ -322,31 +307,27 @@ Tutorial
 
 This tutorial will walk you step by step through the user example provided with
 the SSAGES source code that runs the forward flux method on a Langevin particle 
-in a two-dimensional potential energy surface using LAMMPS. First, be sure you
-have compiled SSAGES with LAMMPS. Then, navigate to the ``SSAGES/Examples/User/ForwardFlux``
+in a two-dimensional potential energy surface using LAMMPS. This example shows how to prepare a multi-walker simulation (here we use 2 walkers). First, be sure you have compiled SSAGES with LAMMPS. Then, navigate to the ``SSAGES/Examples/User/ForwardFlux/LAMMPS/Langevin``
 subdirectory.  Now, take a moment to observe the ``in.LAMMPS_FF_Test_1d`` file to familiarize
 yourself with the system being simulated.  
 
 The next two files of interest are the ``Template_Input.json`` input file and the
-``FF_Input_Generator.py`` script.  Both of these files can be modified in your
-text editor of choice to customize the inputs, but for this tutorial, simply
-observe them and leave them be. FF_Template.json contains all the information
-necessary to fully specify one driver; FF_Input_Generator.py copies this
-information a number of times specified within the FF_Input_Generator.py script (for this tutorial,
-2 times). Issue the following command to generate the JSON input file:
+``FF_Input_Generator.py`` script.  These files are provided to help you setup sophisticated simulations. Both of these files can be modified in your
+text editor of choice to customize your input files, but for this tutorial, simply
+observe them and leave them be. FF_Template.json contains all information necessary to fully specify a walker; FF_Input_Generator.py uses the information in this file and generates a new JSON along with necessary lammps input files. Issue the following command to generate the files:
 
 .. code-block:: bash
 
     python FF_Input_Generator.py
 
-You will produce a file called ``Input-2proc.json`` along with "in.LAMMPS_FF_Test_1d-0"
-and "in.LAMMPS_FF_Test_1d-1". You can also open this file to verify for yourself that
+You will produce a file called ``Input-2walkers.json`` along with "in.LAMMPS_FF_Test_1d-0"
+and "in.LAMMPS_FF_Test_1d-1". You can also open these files to verify for yourself that
 the script did what it was supposed to do.  Now, with your JSON input and your SSAGES binary,
 you have everything you need to perform a simulation.  Simply run:
 
 .. code-block:: bash
 
-    mpiexec -np 2 ./ssages Input-2proc.json
+    mpiexec -np 2 ./ssages Input-2walkers.json
 
 This should run a quick FFS calculation and generate the necessary output.
 
