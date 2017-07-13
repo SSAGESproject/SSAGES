@@ -36,7 +36,8 @@
 			"flavor" : "ElasticBand",
 			"equilibration_steps" : 1000,
 			"evolution_steps" : 200,
-			"kstring" : 0.1
+			"kstring" : 0.1,
+			"cvs" : [0,1]
 		}
 	]
 }

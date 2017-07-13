@@ -36,6 +36,10 @@
                 100
             ],
             "kstring": 0.1,
+            "cvs": [
+                0,
+                1
+            ],
             "frequency": 1,
             "equilibration_steps": 1000,
             "time_step": 1.0,

@@ -26,7 +26,8 @@
 			"frequency" : 1,
 			"ksprings" : [150, 150],
 			"tolerance" : [0.0001, 0.0001],
-			"flavor" : "ElasticBand"
+			"flavor" : "ElasticBand",
+			"cvs" : [0,1]
 		}
 	]
 }
