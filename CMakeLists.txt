@@ -55,7 +55,7 @@ set(SOURCE
 	src/Loggers/Logger.cpp
 	src/Validator/RequirementLoader.cpp
 	src/JSON/jsoncpp.cpp
-	src/Utility/SwitchingFunction.cpp
+	src/Utility/PairwiseKernel.cpp
 	src/Hook.cpp
 	src/ResourceHandler.cpp
 )

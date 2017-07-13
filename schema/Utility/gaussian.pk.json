@@ -1,0 +1,18 @@
+{
+	"type" : "object",
+	"varname" : "GaussianPK",
+	"properties" : {
+		"type" : {
+			"type" : "string",
+			"enum" : ["gaussian"]
+		},
+		"mu" : {
+			"type" : "number"
+		},
+		"sigma" : {
+			"type" : "number"
+		}
+	},
+	"required" : ["type", "mu", "sigma"],
+	"additionalProperties" : false
+}
