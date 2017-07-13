@@ -1,4 +1,19 @@
 {
+    "input": [
+        "in.LAMMPS_FF_Test_1d-0",
+        "in.LAMMPS_FF_Test_1d-1"
+    ],
+    "logfile": "log",
+    "CVs": [
+        {
+            "atom_ids": [
+                1
+            ],
+            "type": "ParticleCoordinate",
+            "dimension": "x"
+        }
+    ],
+    "walkers": 2,
     "methods": [
         {
             "currentInterface": 0,
@@ -24,21 +39,5 @@
             "type": "ForwardFlux",
             "N0Target": 100
         }
-    ],
-    "number processors": 1,
-    "CVs": [
-        {
-            "atom_ids": [
-                1
-            ],
-            "type": "ParticleCoordinate",
-            "dimension": "x"
-        }
-    ],
-    "walkers": 2,
-    "input": [
-        "in.LAMMPS_FF_Test_1d-0",
-        "in.LAMMPS_FF_Test_1d-1"
-    ],
-    "logfile": "log"
+    ]
 }

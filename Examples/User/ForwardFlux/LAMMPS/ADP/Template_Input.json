@@ -1,7 +1,6 @@
 {
 	"input" : [],
 	"logfile" : "log",
-	"number processors" : 1,
 	"walkers": 2,
 	"CVs" : [
 		{

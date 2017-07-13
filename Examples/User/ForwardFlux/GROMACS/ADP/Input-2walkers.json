@@ -1,4 +1,23 @@
 {
+    "logfile": "log",
+    "args": [
+        "-v",
+        "-deffnm",
+        "adp"
+    ],
+    "CVs": [
+        {
+            "atom_ids": [
+                5,
+                7,
+                9,
+                15
+            ],
+            "periodic": true,
+            "type": "Torsional"
+        }
+    ],
+    "walkers": 2,
     "methods": [
         {
             "currentInterface": 0,
@@ -24,25 +43,5 @@
             "type": "ForwardFlux",
             "N0Target": 100
         }
-    ],
-    "number processors": 1,
-    "args": [
-        "-v",
-        "-deffnm",
-        "adp"
-    ],
-    "CVs": [
-        {
-            "atom_ids": [
-                5,
-                7,
-                9,
-                15
-            ],
-            "periodic": true,
-            "type": "Torsional"
-        }
-    ],
-    "walkers": 2,
-    "logfile": "log"
+    ]
 }

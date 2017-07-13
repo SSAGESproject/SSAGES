@@ -1,7 +1,6 @@
 {
 	"input" : ["in.LAMMPS_FF_Test_1d"],
 	"logfile" : "log",
-	"number processors" : 1,
 	"walkers": 2,
 	"CVs" : [
 		{

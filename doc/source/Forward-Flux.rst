@@ -210,13 +210,6 @@ input
       and format of the input files suitable for their MD engine.
       NOTE: For GROMACS, you won't need to specify this parameter; instead you'll need to pass the base name of your .tpr files to "args" (please see the examples folder for details)
 
-number processors
-    + Type: integer
-    + Default: 1
-    + Functionality:  Sets the number of processors that individual walkers
-      use to run the simulation. In the current version of SSAGES, this should be set 
-      to 1.
-
 logfile
     + Type: string
     + Default: “log”
