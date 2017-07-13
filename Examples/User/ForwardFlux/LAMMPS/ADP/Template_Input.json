@@ -1,35 +1,32 @@
 {
-	"driver" : [
+	"input" : [],
+	"logfile" : "log",
+	"number processors" : 1,
+	"walkers": 2,
+	"CVs" : [
 		{
-			"inputfile" : "in.ADP_Test",
-			"number processors" : 1,
-			"type" : "LAMMPS",
-			"MDSteps" : 10000000,
-			"logfile" : "log",
-			"CVs" : [
-				{
-					"type" : "Torsional",
-					"atom_ids" : [
-						5,
-						7,
-						9,
-						15
-					],
-					"periodic" : true 
-				}
-            ],
-			"method" : {
-				"type" : "ForwardFlux",
-				"flavor" : "DirectForwardFlux",
-				"nInterfaces" : 5,
-				"interfaces" : [],
-				"N0Target" : 100,
-				"trials" : [],
-				"computeInitialFlux" : true,
-				"saveTrajectories" : true,
-				"currentInterface" : 0,
-				"outputDirectoryName" : "FFSoutput"
-			}
+			"type" : "Torsional",
+			"periodic" : true,
+			"atom_ids" : [
+				5,
+				7,
+				9,
+				15
+			]
+		}
+    ],
+	"methods" : [
+		{
+			"type" : "ForwardFlux",
+			"flavor" : "DirectForwardFlux",
+			"currentInterface" : 0,
+			"trials" : [],
+			"interfaces" : [],
+			"nInterfaces" : 5,
+			"computeInitialFlux" : true,
+			"N0Target" : 100,
+			"outputDirectoryName" : "FFSoutput",
+			"saveTrajectories" : true
 		}
 	]
 }
