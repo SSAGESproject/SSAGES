@@ -57,6 +57,7 @@ Documentation
 
 * Cody Bezik
 * Yamil J. Colón
+* Ashley Guo
 * Julian Helfferich
 * Joshua Moller
 * Hadi Ramezani-Dakhel

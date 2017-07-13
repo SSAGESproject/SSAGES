@@ -1,49 +1,42 @@
 {
-	"inputfile" : "in.ADP_Test",
-	"driver" : [
+	"input" : "in.ADP_Test",
+	"walkers" : 22,
+	"CVs" : [
 		{
-			"number processors" : 1,
-			"type" : "LAMMPS",
-			"MDSteps" : 100000000,
-			"logfile" : "log",
-			"CVs" : [
-				{
-					"type" : "Torsional",
-					"atom_ids" : [
-						5,
-						7,
-						9,
-						15
-					],
-					"periodic" : true 
-				},
-				{
-					"type": "Torsional",
-					"atom_ids" : [
-						7,
-						9,
-						15,
-						17
-					],
-					"periodic" : true
-				}
+			"type" : "Torsional",
+			"atom_ids" : [
+				5,
+				7,
+				9,
+				15
 			],
-			"method" : {
-				"type" : "String",
-				"centers" : [
-						-1.39,
-                        1.31
-				],
-				"max_iterations" : 100000,
-				"frequency" : 1,
-				"ksprings" : [100,100],
-				"tolerance" : [0.001, 0.001],
-				"flavor" : "SWARM",
-                "initial_steps" : 10000,
-				"harvest_length" : 10,
-				"number_of_trajectories" : 100,
-                "swarm_length" : 20
-			}
+			"periodic" : true 
+		},
+		{
+			"type": "Torsional",
+			"atom_ids" : [
+				7,
+				9,
+				15,
+				17
+			],
+			"periodic" : true
+		}
+	],
+	"methods" : [
+		{
+			"type" : "String",
+			"centers" : [],
+			"max_iterations" : 1000,
+			"frequency" : 1,
+			"ksprings" : [100,100],
+			"tolerance" : [0.001, 0.001],
+			"flavor" : "SWARM",
+        	"initial_steps" : 10000,
+			"harvest_length" : 10,
+			"number_of_trajectories" : 100,
+        	"swarm_length" : 20,
+			"cvs" : [0,1]
 		}
 	]
 }

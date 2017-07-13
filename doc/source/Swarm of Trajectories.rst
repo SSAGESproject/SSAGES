@@ -115,8 +115,11 @@ flavor
     being used; for swarm, it should be set to “Swarm”.
 
 centers
-    For each driver, the initial values of each CV should be specified as
-    a list under “centers”. In this way, the initial string is defined.
+    The initial values of each CV for each image on the string are specified
+    under "centers", which is an array of size equal to the total number of
+    images, with each entry consisting of an array with size equal to the
+    number of CVs used for the string method. In this way, the initial string
+    is defined.
 
 tolerance
     This is a tolerance threshold that can be set to trigger the end of
@@ -164,7 +167,7 @@ text editor of choice to customize the inputs, but for this tutorial, simply
 observe them and leave them be.  ``Template_Input.json`` contains all the
 information necessary to fully specify one driver; ``Input_Generator.py`` copies
 this information a number of times specified within the script (for this
-tutorial, 12 times) while also linearly interpolating through the start and end
+tutorial, 22 times) while also linearly interpolating through the start and end
 states defined in the script and substituting the correct values into the
 "centers" portion of the method definition.  Execute this script as follows:
 
@@ -179,10 +182,10 @@ a simulation.  Simply run:
 
 .. code-block:: bash
 
-    mpiexec -np 12 ./ssages Swarm.json
+    mpiexec -np 22 ./ssages Swarm.json
 
 Soon, the simulation will produce a ``node-X.log`` file for each driver, where
-X is the number specifying the driver (in this case, 0-11 for our 12 drivers).
+X is the number specifying the driver (in this case, 0-21 for our 22 drivers).
 Each one will report the following information, in order: the node number, the
 iteration number, and for each CV, the current value of the string CV as well as
 the current value of the CV calculated from the molecular system.  
@@ -199,7 +202,7 @@ goes beyond the scope of this tutorial.  Thus, simply execute:
 
 .. code-block:: bash
 
-    python plotter.py 12 none
+    python plotter.py 22 none
 
 And in a moment you should have a graph of your converged string.  Thus concludes
 this tutorial.
