@@ -422,7 +422,7 @@ namespace SSAGES
 		int dim = binsCV.size();
 		
 		// Read in JSON info.
-		auto FBackupInterv = json.get("backupF_requency", 1000).asInt();
+		auto FBackupInterv = json.get("output_frequency", 1000).asInt();
 		auto unitconv = json.get("unit_conversion", 0).asDouble();
 		auto timestep = json.get("timestep", 2).asDouble();
 		auto min = json.get("minimum_count", 200).asDouble();
@@ -436,9 +436,9 @@ namespace SSAGES
 		std::vector<double> temp3(2);
 
 		auto freq = json.get("frequency", 1).asInt();
-		auto filename = json.get("filename", "F_out").asString();
-		auto Nworld_filename = json.get("Nworld_filename", "Nworld").asString();
-		auto Fworld_filename = json.get("Fworld_filename", "Fworld_cv").asString();
+		auto filename = json.get("output_file", "F_out").asString();
+		auto Nworld_filename = json.get("Nworld_output_file", "Nworld").asString();
+		auto Fworld_filename = json.get("Fworld_output_file", "Fworld_cv").asString();
 
 		// Generate the grids based on JSON.
 		Grid<int> *N;
