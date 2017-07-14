@@ -126,39 +126,105 @@ namespace SSAGES
 		validator.Validate(json, path);
 		if(validator.HasErrors())
 			throw BuildException(validator.GetErrors());
+		
+		//TODO walker id should be obtainable in method as
+		//     opposed to calculated like this. 
+		uint wid = mxx::comm(world).rank()/mxx::comm(comm).size(); 
+		bool ismulti = mxx::comm(world).size() > mxx::comm(comm).size();
+		uint wcount = mxx::comm(world).size() / mxx::comm(comm).size();
 
-		std::vector<double> ksprings;
+		std::vector<std::vector<double>> ksprings;
 		for(auto& s : json["ksprings"])
-			ksprings.push_back(s.asDouble());
+		{
+			std::vector<double> kspring;
+			if(s.isArray())
+				for(auto& k : s)
+					kspring.push_back(k.asDouble());
+			else
+				kspring.push_back(s.asDouble());
+			
+			ksprings.push_back(kspring);
+		}
 
-		std::vector<double> centers0, centers1;
-		auto timesteps = json.get("timesteps", 0).asInt();
+		std::vector<std::vector<double>> centers0, centers1;
 		if(json.isMember("centers"))
 		{
 			for(auto& s : json["centers"])
-				centers0.push_back(s.asDouble());
+			{
+				std::vector<double> center;
+				if(s.isArray())
+					for(auto& k : s)
+						center.push_back(k.asDouble());
+				else
+					center.push_back(s.asDouble());
+				
+				centers0.push_back(center);
+			}
 		}
 		else if(json.isMember("centers0") && json.isMember("centers1") && json.isMember("timesteps"))
 		{
 			for(auto& s : json["centers0"])
-				centers0.push_back(s.asDouble());
+			{			
+				std::vector<double> center;
+				if(s.isArray())
+					for(auto& k : s)
+						center.push_back(k.asDouble());
+				else
+					center.push_back(s.asDouble());
+				
+				centers0.push_back(center);
+			}
 
 			for(auto& s : json["centers1"])
-				centers1.push_back(s.asDouble());
+			{			
+				std::vector<double> center;
+				if(s.isArray())
+					for(auto& k : s)
+						center.push_back(k.asDouble());
+				else
+					center.push_back(s.asDouble());
+				
+				centers1.push_back(center);
+			}
 		}
 		else
 			throw BuildException({"Either \"centers\" or \"timesteps\", \"centers0\" and \"centers1\" must be defined for umbrella."});
 
-		if(ksprings.size() != centers0.size())
+		if(ksprings[0].size() != centers0[0].size())
 			throw BuildException({"Need to define a spring for every center or a center for every spring!"});
+		
+		// If only one set of center/ksprings are specified. Fill it up for multi.
+		if(ismulti)
+		{
+			if(ksprings.size() == 1)
+				for(size_t i = 1; i < wcount; ++i)
+					ksprings.push_back(ksprings[0]);
+			else if(ksprings.size() != wcount)
+				throw std::invalid_argument(path + ": Multi-walker simulations requires that the number of \"ksprings\" match the number of walkers.");
+			if(centers0.size() == 1)
+				for(size_t i = 1; i < wcount; ++i)
+					centers0.push_back(centers0[0]);
+			else if(centers0.size() != wcount)
+				throw std::invalid_argument(path + ": Multi-walker simulations requires that the number of \"centers\"/\"centers0\" match the number of walkers.");
+			if(centers1.size() == 1)
+				for(size_t i = 1; i < wcount; ++i)
+					centers1.push_back(centers1[0]);
+			else if(centers1.size()) // centers1 is optional.
+				throw std::invalid_argument(path + ": Multi-walker simulations requires that the number of \"centers1\" match the number of walkers.");
+		}
 
 		auto freq = json.get("frequency", 1).asInt();
-		std::string name = "umbrella.dat";
 
-		//TODO walker id should be obtainable in method as
-		//     opposed to calculated like this. 
-		uint wid = mxx::comm(world).rank()/mxx::comm(comm).size(); 
-		bool ismulti = mxx::comm(world).size() > mxx::comm(comm).size(); 
+		uint timesteps = 0; 
+		if(json.isMember("timesteps"))
+		{
+			if(json["timesteps"].isArray())
+				timesteps = json["timesteps"][wid].asUInt();
+			else
+				timesteps = json["timesteps"].asUInt();
+		}
+
+		std::string name = "umbrella.dat"; 
 		if(json["output_file"].isArray())
 			name = json["output_file"][wid].asString(); 
 		else if(ismulti)
@@ -168,9 +234,9 @@ namespace SSAGES
 
 		Umbrella* m = nullptr;
 		if(timesteps == 0)
-			m = new Umbrella(world, comm, ksprings, centers0, name, freq);
+			m = new Umbrella(world, comm, ksprings[wid], centers0[wid], name, freq);
 		else
-			m = new Umbrella(world, comm, ksprings, centers0, centers1, timesteps, name, freq);
+			m = new Umbrella(world, comm, ksprings[wid], centers0[wid], centers1[wid], timesteps, name, freq);
 
 		m->SetOutputFrequency(json.get("output_frequency",0).asInt());
 		m->SetAppend(json.get("append", false).asBool());
