@@ -92,5 +92,5 @@ timestep 0.001
 thermo_style custom step temp ke pe etotal c_xx c_yy c_ffx c_ffy c_ffxa c_ffya c_ee press
 
 #For the sync to engine to work correctly need to set thermo 1 for now
-thermo 1
-
+thermo 10000
+run 10000000

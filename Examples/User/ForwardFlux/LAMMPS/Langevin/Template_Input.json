@@ -1,6 +1,5 @@
 {
 	"input" : ["in.LAMMPS_FF_Test_1d"],
-	"logfile" : "log",
 	"walkers": 2,
 	"CVs" : [
 		{

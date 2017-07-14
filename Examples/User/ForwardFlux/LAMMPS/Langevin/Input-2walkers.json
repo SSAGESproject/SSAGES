@@ -3,7 +3,6 @@
         "in.LAMMPS_FF_Test_1d-0",
         "in.LAMMPS_FF_Test_1d-1"
     ],
-    "logfile": "log",
     "CVs": [
         {
             "atom_ids": [

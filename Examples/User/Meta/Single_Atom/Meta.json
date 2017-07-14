@@ -1,5 +1,6 @@
 {
-    "inputfile" : "in.LAMMPS_Meta_Test",
+    "input" : "in.LAMMPS_Meta_Test",
+    "walkers" : 1,
     "CVs" : [
         {
             "type" : "ParticleCoordinate",
@@ -12,27 +13,19 @@
             "dimension" : "y"
         }
     ],
-    "method" : {
-        "type" : "Metadynamics",
-        "widths" : [
-            0.1,
-            0.1
-        ],
-        "hill_frequency" : 1,
-        "height" : 0.1
-    },
-    "driver" : [
+    "methods" : [
         {
-            "number processors" : 1,
-            "type" : "LAMMPS",
-            "MDSteps" : 40000,
-            "logfile" : "node-1"
-        },
-        {
-            "number processors" : 1,
-            "type" : "LAMMPS",
-            "MDSteps" : 40000,
-            "logfile" : "node-1"
+            "type" : "Metadynamics",
+            "widths" : [
+                0.1,
+                0.1
+            ],
+            "hill_frequency" : 500,
+            "height" : 0.1, 
+            "lower_bounds" : [-1.5, -1.5], 
+            "upper_bounds" : [ 2.0,  2.0],
+            "lower_bound_restraints" : [0, 0], 
+            "upper_bound_restraints" : [0, 0]
         }
     ]
 }
