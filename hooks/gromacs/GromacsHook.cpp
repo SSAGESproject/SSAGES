@@ -1,4 +1,3 @@
-#include <mxx/comm.hpp>
 #include "GromacsHook.h"
 #include "Snapshot.h"
 
@@ -178,8 +177,7 @@ namespace SSAGES
 		virial[2][2] += vir(2,2);
 	}
 
-// Explicit instantiation. Normally we'd let this happen in Gromacs, 
-// but the boost mpi calls are giving lib dependency grief.
+// Explicit instantiation.
 template void GromacsHook::PullToSSAGES<float>(
 	int, 
 	int, 

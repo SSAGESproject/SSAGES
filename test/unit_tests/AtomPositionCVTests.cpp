@@ -1,7 +1,6 @@
 #include "../src/CVs/AtomPositionCV.h"
 #include "../src/Snapshot.h"
 #include "gtest/gtest.h"
-#include <boost/mpi.hpp>
 
 using namespace SSAGES;
 

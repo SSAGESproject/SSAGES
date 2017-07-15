@@ -1,6 +1,5 @@
 #include "../hooks/lammps/fix_ssages.h"
 #include "gtest/gtest.h"
-#include <boost/mpi.hpp>
 
 using namespace SSAGES;
 
