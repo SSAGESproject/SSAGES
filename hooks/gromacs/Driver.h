@@ -21,6 +21,7 @@
 
 #include <mpi.h>
 #include <vector>
+#include <string>
 
 // Forward declare.
 namespace Json {
