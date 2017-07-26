@@ -128,19 +128,19 @@
 			"minimum" : 0
 		},
 
-		"filename" : {
+		"output_file" : {
 			"type" : "string"
 		},
 
-		"Fworld_filename" : {
+		"Fworld_output_file" : {
 			"type" : "string"
 		},
 
-		"Nworld_filename" : {
+		"Nworld_output_file" : {
 			"type" : "string"
 		},
 		
-		"backup_frequency" : {
+		"output_frequency" : {
 			"type" : "integer",
 			"minimum" : 0
 		},

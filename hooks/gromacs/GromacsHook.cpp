@@ -1,8 +1,6 @@
-#include <boost/mpi.hpp>
+#include <mxx/comm.hpp>
 #include "GromacsHook.h"
 #include "Snapshot.h"
-
-using namespace boost;
 
 namespace SSAGES
 {

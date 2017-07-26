@@ -51,6 +51,7 @@ namespace SSAGES
 			throw BuildException(validator.GetErrors());
 
 		Method* method = nullptr;
+
 		if(json["type"] == "ABF")
 			method = ABF::Build(json, world, comm, path);
 		else if(json["type"] == "BFSMethod")

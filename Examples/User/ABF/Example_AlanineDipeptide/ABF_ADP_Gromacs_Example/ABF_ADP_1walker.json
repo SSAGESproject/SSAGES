@@ -1,5 +1,4 @@
 {
-	"logfile" : "node-1",
 	"walkers" : 1,
 	"args" : ["-v","-deffnm","example_adp"],
 	"CVs": [
@@ -36,8 +35,8 @@
 		"CV_isperiodic" : [false,false],
 		"timestep" : 0.002,
 		"minimum_count" : 50,
-		"filename" : "F_out",
-		"backup_frequency" : 1000,
+		"output_file" : "F_out",
+		"output_frequency" : 1000,
 		"unit_conversion" : 1,
 		"frequency" : 1
             }]

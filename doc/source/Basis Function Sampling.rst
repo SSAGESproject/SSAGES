@@ -55,22 +55,22 @@ These are all the options that SSAGES provides for running Basis Function
 Sampling. In order to add BFS to the JSON file, the method should be labeled as
 "Basis".
 
-CV coefficients
+CV_coefficients
     The order of the polynomial to be projected for each collective variable. If
     the order of this array doesn't match the number of CVs, the system assumes
     the first number for all of the CVs
 
-CV restraint spring constants
+CV_restraint_spring_constants
     The strength of the springs keeping the system in bounds in a non-periodic
     system.
 
-CV restraint maximums
+CV_restraint_maximums
     The upper bounds of each CV in a non-periodic system.
 
-CV restraint minimums
+CV_restraint_minimums
     The lower bounds of each CV in a non-periodic system.
 
-cycle frequency
+cycle_frequency
     The frequency of updating the projection bias.
 
 frequency
@@ -81,11 +81,11 @@ weight
     option is available to make it slightly greater. The system has a higher
     chance of exploding at higher weight values.
 
-basis filename
+basis_filename
     A suffix to name the output file. If not specified the output will be
     "basis.out"
 
-coeff filename
+coeff_filename
     A suffix to name the coefficient file.
 
 temperature
@@ -96,7 +96,7 @@ tolerance
     Convergence criteria. The sum of the difference in subsequent updates of the
     coefficients squared must be less than this for convergence to work.
 
-convergence exit
+convergence_exit
     A boolean option to let the user choose if the system should exit once the
     convergence is met.
 
@@ -111,6 +111,30 @@ The only inputs required to run the method:
 * cyclefrequency
 * frequency
 * CV coefficients
+
+Example Input
+^^^^^^^^^^^^^
+.. code-block:: javascript
+
+"methods" : [{
+        "type" : "Basis",
+        "cvs" : [0],
+        "cycle_frequency" : 10000,
+        "frequency" : 1,
+        "weight" : 1.0,
+        "basis_filename" : "nacl_example",
+        "coeff_filename" : "nacl_example",
+        "CV_coefficients" : [ 50 ],
+        "CV_restraint_spring_constants" : [ 30 ],
+        "CV_restraint_maximums" : [ 10.3 ],
+        "CV_restraint_minimums" : [ 1.7 ],
+        "grid" : {
+                "lower" : [2.0],
+                "upper" : [15.0],
+                "number_points" : [500],
+                "periodic" : [false]
+        }
+    }]
 
 Guidelines for running BFS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -138,28 +162,32 @@ This tutorial will provide a reference for running BFS in SSAGES. There are
 multiple examples provided in the Examples/User directory of SSAGES, but this
 tutorial will cover the Alanine Dipeptide example. 
 In the ADP subdirectory of the ``Examples/User section`` there should be a
-LAMMPS input file (titled ``in.BFS_ADP_shake``) and two JSON input files.
-Both of these files will work for SSAGES, but the one titled ``BFS_AdP_rst.json``
-makes use of the restart capability in SSAGES.
+LAMMPS input file (titled ``in.ADP_BFS_example(0-1)``) and two JSON input files.
+Both of these files will work for SSAGES, but the one titled ``ADP_BFS_2walkers.json``
+makes use of multiple walkers.
 
-After compiling SSAGES with the user's version of LAMMPS with the
-``make rigid=yes`` option chosen, the user can elect to run the example. 
+For LAMMPS to run the example it must be made with RIGID and MOLECULE options.
+In order to do so, 
 
-(NOTE: if the user did not compile lammps with the rigid option, then the other
-lammps file can be used. Just change the input file variable in the json file to
-``in.BFS_ADP``)
+1) Go to LAMMPS src folder (/build/hooks/lammps/lammps-download-prefix/src/lammps-download/src/ for -DLAMMPS=YES)
+2) Do:
+
+.. code-block:: bash
+
+   make yes-RIGID
+   make yes-MOLECULE
+
+3) Go to your build folder and make.
+
 Use the following command to run the example:
 
 .. code-block:: bash
 
-    mpiexec -np 1 /path/to/SSAGES/build/dir/ssages BFS_AdP_rst.json
+    mpiexec -np 1 ./ssages ADP_BFS_2walkers.json
 
 This should prompt SSAGES to begin an alanine dipeptide run. If the run is
 successful, the console will output the current sweep number on each node.
 At this point the user can elect to read the output information after each sweep. 
-If at any point during the run, the user elects to stop running and then pickup
-where the simulation was left off, simply execute SSAGES with the newly generated
-restart file (``BFS_AdP_restart.json``).
 
 basis.out
 ~~~~~~~~~
@@ -189,5 +217,6 @@ file is entirely used for restart runs.
 Developer
 ^^^^^^^^^
 
-Joshua Moller.
+Joshua Moller
+Julian Helfferich
 

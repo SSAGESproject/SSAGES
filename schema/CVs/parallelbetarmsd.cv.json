@@ -2,7 +2,7 @@
 	"type" : "object",
 	"varname" : "ParallelBetaRMSDCV",
 	"properties" : {
-		"type" : { 
+		"type" : {
 			"type" : "string",
 			"enum" : ["ParallelBetaRMSD"]
 		},
@@ -18,6 +18,9 @@
 		},
 		"mode" : {
 			"type" : "integer"
+		},
+		"name" : {
+			"type" : "string"
 		}
 	},
 	"required": ["type", "reference", "residue_ids", "mode"],

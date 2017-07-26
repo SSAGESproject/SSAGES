@@ -1,0 +1,25 @@
+{
+    "input" : "Butane_SSAGES.in",
+    "walkers" : 1,
+    "CVs" : [
+        {
+            "type" : "Torsional",
+            "atom_ids" : [
+                1,
+                5,
+                8,
+                11
+            ],
+            "periodic" : true
+        }
+    ],
+    "methods" : [
+        {
+    	    "type" : "Umbrella",
+            "ksprings" : [1000],
+            "centers" : [1.0],
+	    "output_file" : ["umbrella.dat1", "umbrella.dat2"],
+            "output_frequency" : 100 
+        }
+    ]
+}

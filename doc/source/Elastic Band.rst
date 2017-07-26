@@ -124,8 +124,10 @@ flavor
     being used; for EB, it should be set to “ElasticBand”.
 
 centers
-    For each driver, the initial values of each CV should be specified as
-    a list under “centers”. In this way, the initial band is defined.
+    This parameter assigns a location in CV space for each individual image 
+    along the string/elastic band. This should be an array with size equal to
+    the total number of images, with each entry consisting of an array with size
+    equal to the number of CVs used for the elastic band method.
 
 tolerance
     This is a tolerance threshold that can be set to trigger the end of
@@ -157,36 +159,36 @@ the ``SSAGES/Examples/User/ElasticBand/ADP`` subdirectory.  Now, take a moment
 to observe the ``in.ADP_Test and data.input`` files in order to familiarize
 yourself with the system being simulated.  
 
-The next two files of interest are the ``EB_Template.json`` input file and the
-``EB_Input_Generator.py`` script.  Both of these files can be modified in your
+The next two files of interest are the ``Template_Input.json`` input file and the
+``Input_Generator.py`` script.  Both of these files can be modified in your
 text editor of choice to customize the inputs, but for this tutorial, simply
-observe them and leave them be.  EB_Template.json contains all the information
-necessary to fully specify one driver; EB_Input_Generator.py copies this
+observe them and leave them be.  ``Template_Input.json`` contains all the information
+necessary to fully specify one driver; ``Input_Generator.py`` copies this
 information a number of times specified within the script (for this tutorial,
-12 times) while also linearly interpolating through the start and end states
+22 times) while also linearly interpolating through the start and end states
 defined in the script and substituting the correct values into the “centers”
 portion of the method definition.  Execute this script as follows:
 
 .. code-block:: bash
 
-    python EB_Input_Generator.py
+    python Input_Generator.py
 
-You will produce a file called ``EB.json``. You can also open this file to
+You will produce a file called ``ElasticBand.json``. You can also open this file to
 verify for yourself that the script did what it was supposed to do.  Now, with
 your JSON input and your SSAGES binary, you have everything you need to perform
 a simulation.  Simply run:
 
 .. code-block:: bash
 
-    mpiexec -np 12 ./ssages EB.json
+    mpiexec -np 22 ./ssages ElasticBand.json
 
 Soon, the simulation will produce a ``node-X.log`` file for each driver, where
-X is the number specifying the driver (in this case, 0-11 for our 12 drivers).
+X is the number specifying the driver (in this case, 0-21 for our 22 drivers).
 Each one will report the following information, in order: the node number, the
 iteration number, and for each CV, the current value of the band CV as well as
 the current value of the CV calculated from the molecular system.  
 
-Allow your system to run for the specified number of iterations (2000 for this
+Allow your system to run for the specified number of iterations (1000 for this
 tutorial).  The last line of every node file can be analyzed to view the last
 positons of each image of the elastic band.
 

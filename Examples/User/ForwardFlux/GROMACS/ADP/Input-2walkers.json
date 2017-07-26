@@ -1,0 +1,47 @@
+{
+    "logfile": "log",
+    "args": [
+        "-v",
+        "-deffnm",
+        "adp"
+    ],
+    "CVs": [
+        {
+            "atom_ids": [
+                5,
+                7,
+                9,
+                15
+            ],
+            "periodic": true,
+            "type": "Torsional"
+        }
+    ],
+    "walkers": 2,
+    "methods": [
+        {
+            "currentInterface": 0,
+            "trials": [
+                50,
+                50,
+                50,
+                50,
+                50
+            ],
+            "interfaces": [
+                -2.61,
+                -2.44,
+                -2.26,
+                -2.09,
+                -1.04
+            ],
+            "saveTrajectories": true,
+            "outputDirectoryName": "FFSoutput",
+            "computeInitialFlux": true,
+            "nInterfaces": 5,
+            "flavor": "DirectForwardFlux",
+            "type": "ForwardFlux",
+            "N0Target": 100
+        }
+    ]
+}

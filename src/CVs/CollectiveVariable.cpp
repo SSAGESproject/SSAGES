@@ -25,9 +25,8 @@
 #include "AngleCV.h"
 #include "AntiBetaRMSDCV.h"
 #include "BoxVolumeCV.h"
-#include "CoordinationNumberCV.h"
 #include "GyrationTensorCV.h"
-#include "NearestNeighborsCV.h"
+#include "PairwiseCV.h"
 #include "ParallelBetaRMSDCV.h"
 #include "ParticleCoordinateCV.h"
 #include "ParticlePositionCV.h"
@@ -48,12 +47,10 @@ namespace SSAGES
 			return AngleCV::Build(json, path);
 		else if(type == "BoxVolume")
 			return BoxVolumeCV::Build(json, path);
-		else if(type == "CoordinationNumber")
-			return CoordinationNumberCV::Build(json, path);
 		else if(type == "GyrationTensor")
 			return GyrationTensorCV::Build(json, path);
-		else if(type == "NearestNeighbors")
-			return NearestNeighborsCV::Build(json, path);
+		else if(type == "Pairwise")
+			return PairwiseCV::Build(json, path);
 		else if(type == "ParticleCoordinate")
 			return ParticleCoordinateCV::Build(json, path);
 		else if(type == "ParticlePosition")

@@ -1,0 +1,44 @@
+{
+	"walkers" : 2,
+	"input" : ["in.ADP_BFS_example0", "in.ADP_BFS_example1"],
+    "CVs": [
+        {
+            "periodic": true,
+            "type": "Torsional",
+            "atom_ids": [
+                5,
+                7,
+                9,
+                15
+            ]
+        },
+        {
+            "periodic": true,
+            "type": "Torsional",
+            "atom_ids": [
+                7,
+                9,
+                15,
+                17
+            ]
+        }
+    ],
+    "methods" : [{
+        "type" : "Basis",
+        "cvs" : [0,1],
+        "cycle_frequency" : 100000,
+        "frequency" : 1,
+        "basis_filename" : "adp_example",
+        "coeff_filename" : "adp_example",
+        "CV_coefficients" : [ 25, 25 ],
+        "weight" : 1.0,
+        "tolerance" : 1e-6,
+        "convergence_exit" : false,
+        "grid" : {
+            "lower" : [-3.14, -3.14],
+            "upper" : [3.14,3.14],
+            "number_points" : [50,50],
+            "periodic" : [true, true]
+        }
+    }]
+}

@@ -5,7 +5,6 @@
 
 import json 
 import numpy as np
-import copy
 from random import randint
 import os
 
@@ -13,18 +12,18 @@ class LessPrecise(float):
     def __repr__(self):
         return str(self)
 
-def gromacs_random_number(gromacs_filename, nDrivers):
+def gromacs_random_number(gromacs_filename, nWalkers):
     """Takes a gromacs input file, finds the seed number of langevin, replaces it with a random number, and
 	generates new input files
 	"""
     randon_numbers = set()
-    while (len(randon_numbers) < nDrivers):
+    while (len(randon_numbers) < nWalkers):
         randon_numbers.add(randint(0, 100000))
     randon_numbers = list(randon_numbers)
 
     in_gromacs_file = open(gromacs_filename, 'r')
 
-    for i in range(0, nDrivers):
+    for i in range(0, nWalkers):
         out_gromacs_file = open(gromacs_filename + '-' + str(i) + ".mdp", 'w')
         for line in in_gromacs_file:
             if line.find('gen_seed') != -1:
@@ -43,12 +42,15 @@ def gromacs_random_number(gromacs_filename, nDrivers):
 
 
 # User must set these variables
-nDrivers = 2
-gromacs_random_number("nvt", nDrivers)
+nWalkers = 2
+input_filename = "nvt"
 interfaces = np.array([-2.61, -2.44, -2.26, -2.09, -1.04])
 trials = np.empty(5, dtype=int)
 trials.fill(50)
 # Use interfaces = np.linspace(<firstInterface>, <lastInterface>, num=<nInterfaces>) if you have many equally-spaced interfaces
+
+#Generate the new gromacs input files
+gromacs_random_number(input_filename, nWalkers)
 
 # Open template and load in the json data. 
 root = {}
@@ -56,21 +58,14 @@ with open('Template_Input.json') as f:
     root = json.load(f)
 
 
-#print interfaces
-root['driver'][0]['method']['interfaces'] = interfaces.tolist()
-root['driver'][0]['method']['trials'] = trials.tolist()
+root["walkers"] = nWalkers
+root['methods'][0]['interfaces'] = interfaces.tolist()
+root['methods'][0]['trials'] = trials.tolist()
 
-# Add on the requested number of objects -1 because we are appending
-for i in range(0, nDrivers):
-    root['driver'].append(copy.deepcopy(root['driver'][0]))
-    # Change the input filename so each driver uses a different input file file
-    #root['driver'][i]['inputfile'] = root['driver'][i]['inputfile'] + str(i) + '.tpr'
+for i in range(0, nWalkers):
     #Generate the gromacs tpr files
     os.system("./gmx_mpi grompp -f nvt-" + str(i) + ".mdp -p topol.top -c adp.gro -o adp" + str(i) + '.tpr')
-	
-# Because appending remove original copy
-root['driver'] = root['driver'][1:]
 
 # Convert python dictionary into JSON file
-with open('Input-2proc.json', 'w') as f:
+with open('Input-2walkers.json', 'w') as f:
         json.dump(root, f, indent=4, separators=(',', ': '))

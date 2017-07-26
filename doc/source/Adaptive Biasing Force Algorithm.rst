@@ -41,6 +41,11 @@ Adaptive Biasing Force Method
 * Bias with the negative of the estimated generalized force
 * Define a CV range. Outside of the CV range, there will be no bias, and no
   histogram hits will be collected.
+* Can restart from a previous run. Simply include Fworld_cvX and Nworld outputs
+  in your working directory at runtime. IMPORTANT! If you want to start a clean run,
+  or if you've made changes to the grid, these files must NOT BE PRESENT in the working
+  directory, otherwise SSAGES will give you a warning, or worse, you will merge your 
+  histogram into another one on accident.
 * Can optionally define a restraint range. Outside this range, a harmonic
   restraint of user-chosen spring constant(s) will drive the CV(s) back into the
   range. This range should be WIDER than the CV range by at least one bin size
@@ -121,24 +126,24 @@ mass_weighing
     Turns on/off mass weighing of the adaptive force.
     Default is off. Keep off if your system has massless sites such as in TIP4P water.
 
-filename
+output_file
     *string*.
     Default = F_out
     Name of the file to save Adaptive Force Vector Field information to - this
     is what’s useful
 
-Fworld_filename
+Fworld_output_file
     *string*.
     Default = Fworld_cv
     Name of the file to backup the raw Fworld output to for restarts.
     There will be separate outputs for each CV.
 
-Nworld_filename
+Nworld_output_file
     *string*.
     Default = Nworld
     Name of the file to backup the raw Nworld output to for restarts.
 
-backup_frequency
+output_frequency
     *integer*.
     Saves the histogram of generalized force every this many timesteps.
 

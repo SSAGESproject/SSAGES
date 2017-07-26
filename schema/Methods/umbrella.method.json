@@ -7,36 +7,108 @@
 			"enum" : ["Umbrella"]
 		},
 		"ksprings" : {
-			"type" : "array",
-			"minItems" : 1,
-			"items" : {
-				"type" : "number"
-			}
+			"oneOf" : [
+				{
+					"type" : "array",
+					"minItems" : 1,
+					"items" : {
+						"type" : "number"
+					}
+				},
+				{
+					"type" : "array",
+					"minItems" : 1,
+					"items" : {
+						"type" : "array",
+						"minItems" : 1,
+						"items" : {
+							"type" : "number"
+						}
+					}
+				}
+			]
 		},
 		"centers" : {
-			"type" : "array",
-			"minItems" : 1,
-			"items" : {
-				"type" : "number"
-			}
+			"oneOf" : [
+				{
+					"type" : "array",
+					"minItems" : 1,
+					"items" : {
+						"type" : "number"
+					}
+				},
+				{
+					"type" : "array",
+					"minItems" : 1,
+					"items" : {
+						"type" : "array",
+						"minItems" : 1,
+						"items" : {
+							"type" : "number"
+						}
+					}
+				}
+			]
 		},
 		"centers0" : {
-			"type" : "array",
-			"minItems" : 1,
-			"items" : {
-				"type" : "number"
-			}
+			"oneOf" : [
+				{
+					"type" : "array",
+					"minItems" : 1,
+					"items" : {
+						"type" : "number"
+					}
+				},
+				{
+					"type" : "array",
+					"minItems" : 1,
+					"items" : {
+						"type" : "array",
+						"minItems" : 1,
+						"items" : {
+							"type" : "number"
+						}
+					}
+				}
+			]
 		},
 		"centers1" : {
-			"type" : "array",
-			"minItems" : 1,
-			"items" : {
-				"type" : "number"
-			}
+			"oneOf" : [
+				{
+					"type" : "array",
+					"minItems" : 1,
+					"items" : {
+						"type" : "number"
+					}
+				},
+				{
+					"type" : "array",
+					"minItems" : 1,
+					"items" : {
+						"type" : "array",
+						"minItems" : 1,
+						"items" : {
+							"type" : "number"
+						}
+					}
+				}
+			]
 		},
 		"timesteps" : {
-			"type" : "integer",
-			"minimum" : 0
+			"oneOf" :[
+				{
+					"type" : "integer",
+					"minimum" : 0
+				},
+				{
+					"type" : "array", 
+					"minItems" : 1, 
+					"items" :{
+						"type" : "integer", 
+						"minimum" : 0
+					}
+				}
+			]
 		},
 		"frequency" : {
 			"type" : "integer",
@@ -55,9 +127,6 @@
 					}
 				}
 			]
-		},
-		"iteration" : {
-			"type" : "integer"
 		},
 		"output_frequency" : {
 			"type" : "integer",

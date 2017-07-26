@@ -1,5 +1,6 @@
 {
-	"inputfile" : "in.ADP_Test",
+	"input" : "in.ADP_Test",
+	"walkers" : 22,
 	"CVs" : [
 		{
 			"type" : "Torsional",
@@ -9,7 +10,7 @@
 				9,
 				15
 			],
-			"periodic" : true 
+			"periodic" : true
 		},
 		{
 			"type": "Torsional",
@@ -22,26 +23,21 @@
 			"periodic" : true
 		}
 	],
-	"driver" : [
+	"methods" : [
 		{
-			"number processors" : 1,
-			"type" : "LAMMPS",
-			"MDSteps" : 10000000,
-			"logfile" : "none",
-			"method" : {
-				"type" : "String",
-				"centers" : [-1.39, 1.31],
-				"block_iterations": 20,
-				"max_iterations" : 100000,
-				"time_step" : 1.0,
-				"frequency" : 1,
-				"ksprings" : [100,100],
-				"tolerance" : [0.0001, 0.0001],
-				"flavor" : "ElasticBand",
-				"equilibration_steps" : 1000,
-				"evolution_steps" : 200,
-				"kstring" : 0.1
-			}
+			"type" : "String",
+			"centers" : [],
+			"block_iterations": 20,
+			"max_iterations" : 1000,
+			"time_step" : 1.0,
+			"frequency" : 1,
+			"ksprings" : [100,100],
+			"tolerance" : [0.0001, 0.0001],
+			"flavor" : "ElasticBand",
+			"equilibration_steps" : 1000,
+			"evolution_steps" : 200,
+			"kstring" : 0.1,
+			"cvs" : [0,1]
 		}
 	]
 }
