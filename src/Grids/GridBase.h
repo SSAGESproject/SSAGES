@@ -117,6 +117,7 @@ protected:
             throw std::invalid_argument("Size of vector isPeriodic does not "
                     "match size of vector containing number of grid points.");
         }
+		
     }
 
 public:
@@ -319,6 +320,71 @@ public:
         }
 
         return wrapIndices(indices);
+    }
+	
+	//! Return linear interpolation on a coordinate.
+	/*!
+	 * \param x Point in space.
+     * \return Linearly interpolated value of grid at that point.
+     *  This function performs a n-linear interpolation on the grid.
+	 *  The formula is bilinear/trilinear interpolation generalized
+     *  to N-dimensional space. 
+     */
+	double GetInterpolated(const std::vector<double> &x)
+    {
+		double interpvalue = 0;
+		int tempindex;
+		for (size_t i = 0 ; i < pow(2,dimension_) ; ++i)
+		{
+			
+			std::vector<double> shiftedvector = x;
+			tempindex = i;
+				
+			double accumulatedweight = 1;
+			for(size_t j = 0; j < dimension_ ; ++j)
+			{
+				double spacing = (GetUpper(j) - GetLower(j)) / GetNumPoints(j);
+				shiftedvector[j] += ((tempindex%2)-0.5)*spacing;
+				tempindex = tempindex/2;
+			}
+			
+			std::vector<int> shiftedindices = GetIndices(shiftedvector);
+			std::vector<double> shiftedcenters = GetCoordinates(shiftedindices);
+			
+			for(size_t j = 0; j < dimension_ ; ++j)
+			{	
+				double spacing = (GetUpper(j) - GetLower(j)) / GetNumPoints(j);
+				//Handle Edges
+				if(shiftedindices[j] == -1)
+					{
+					accumulatedweight *= ((std::abs(x[j]-GetCoordinates(GetIndices(x))[j])/spacing));
+					shiftedvector[j] += spacing/2;
+					}
+				else if (shiftedindices[j] == GetNumPoints(j))
+					{
+					accumulatedweight *= ((std::abs(x[j]-GetCoordinates(GetIndices(x))[j])/spacing));
+					shiftedvector[j] -= spacing/2;
+					}
+				else
+					{
+					// Handle Periodicity
+					if(std::abs(x[j]-shiftedcenters[j]) > spacing)
+						accumulatedweight *= (1-(std::abs(std::abs(x[j]-shiftedcenters[j]) - (GetUpper(j) - GetLower(j)))/spacing));
+					else
+						accumulatedweight *= (1-(std::abs(x[j]-shiftedcenters[j])/spacing));
+					}
+			}
+			
+			//DEBUG
+			for(size_t j = 0; j < dimension_ ; ++j)
+				std::cout << shiftedvector[j] << std::endl;
+			for(size_t j = 0; j < dimension_ ; ++j)
+				std::cout << (GetIndices(shiftedvector))[j] << std::endl;
+			std::cout << accumulatedweight << std::endl;
+			
+			interpvalue += accumulatedweight*at(shiftedvector);
+		}
+		return interpvalue;
     }
 
     //! Return the Grid index for a one-dimensional grid.
