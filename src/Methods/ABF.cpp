@@ -63,11 +63,6 @@ namespace SSAGES
 		wdotp1_.setZero(dim_);
 		wdotp2_.setZero(dim_);	
 		
-		//TESTING
-		std::vector<double> trial = {-2.094,-2.094};
-		std::cout << N_->at(trial) << std::endl;
-		std::cout << N_->GetInterpolated(trial);
-		exit(0);
 	}
 
 	//! Post-integration hook.

@@ -373,15 +373,7 @@ public:
 					else
 						accumulatedweight *= (1-(std::abs(x[j]-shiftedcenters[j])/spacing));
 					}
-			}
-			
-			//DEBUG
-			for(size_t j = 0; j < dimension_ ; ++j)
-				std::cout << shiftedvector[j] << std::endl;
-			for(size_t j = 0; j < dimension_ ; ++j)
-				std::cout << (GetIndices(shiftedvector))[j] << std::endl;
-			std::cout << accumulatedweight << std::endl;
-			
+			}			
 			interpvalue += accumulatedweight*at(shiftedvector);
 		}
 		return interpvalue;
