@@ -62,7 +62,6 @@ namespace SSAGES
 		// Initialize w \dot p's for finite difference. 
 		wdotp1_.setZero(dim_);
 		wdotp2_.setZero(dim_);	
-		
 	}
 
 	//! Post-integration hook.
@@ -486,7 +485,6 @@ namespace SSAGES
 		//{
 		
 		// Appropriately size the grids.
-			for(size_t i=0; i<dim; ++i) 
 		
 			N= new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);
 			Nworld= new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);

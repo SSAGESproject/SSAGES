@@ -109,6 +109,7 @@ protected:
 		std::vector<std::vector<double>> restraint;
 		std::vector<bool> isperiodic;
 		std::vector<std::vector<double>> periodicboundaries;
+					
 		for(size_t i=0; i < 3; ++i)
 		{
 			std::vector<double> temp1 = {-1, 1, 2};
@@ -118,20 +119,44 @@ protected:
 			isperiodic.push_back(false);
 			periodicboundaries.push_back(std::vector<double>(2, 0.0));
 		}
+		
+		Grid<int> *N;
+		Grid<int> *Nworld;
+		std::vector<Grid<double>*> F(3);
+		std::vector<Grid<double>*> Fworld(3);
+		
+		N= new Grid<int>({2,2,2}, {-1,-1,-1}, {1,1,1}, isperiodic);
+		Nworld= new Grid<int>({2,2,2}, {-1,-1,-1}, {1,1,1}, isperiodic);
+			
+		for(auto& grid : F)
+		{
+			grid= new Grid<double>({2,2,2}, {-1,-1,-1}, {1,1,1}, isperiodic);
+		}
+		for(auto& grid : Fworld)
+		{
+			grid= new Grid<double>({2,2,2}, {-1,-1,-1}, {1,1,1}, isperiodic);
+		}
 
 		Method = new ABF(world, // MPI global communicator
-						 comm,  // MPI local communicator
-						 restraint, // Min, max, spring constant
-						 isperiodic, // Periodicity in CVs
-						 periodicboundaries, // Position of periodic boundaries
-						 5, // min hists before applying bias
-						 false, // mass wheighing
-						 "testout", // filename
-						 histdetails, // hist details
-						 10, // Backup interval
-						 1, // Unit conversion
-						 1, // timestep
-						 1); // frequency
+						comm,  // MPI local communicator
+						N, 
+						Nworld, 
+						F, 
+						Fworld, 
+						restraint, // Min, max, spring constant
+						isperiodic, // Periodicity in CVs
+						periodicboundaries, // Position of periodic boundaries
+						5, // min hists before applying bias
+						false, // mass weighing
+						"testout", // filename
+						"Nworld", //Nworld_filename
+						"Fworld_cv",  //Fworld_filename
+						histdetails, // hist details
+						10, // Backup interval
+						1,  // Unit conversion
+						1, // timestep
+						1); // frequency
+					
 	}
 
 	virtual void TearDown() 
@@ -171,19 +196,25 @@ TEST_F(ABFTest,Initialization)
 
 	// Test dimensionality is correct.
 	int dim = 3;
-	// Check for correct initialization.
-	EXPECT_TRUE(Method->_N.size() == 8);
-	EXPECT_TRUE(Method->_F.size() == 24);
+	
+	// Check for correct initialization.	
+	EXPECT_TRUE(((Method->N_)->size()) == 8);
+	EXPECT_TRUE(Method->F_.size() == 3);
 
-	for(size_t i = 0; i < (Method->_N).size() ; ++i)
+	/*
+	for(size_t i = 0; i < dim ; ++i)
 	{
-		EXPECT_TRUE(Method->_N[i] == 0);
+		EXPECT_TRUE(Method->N_ == 0);
 
-		EXPECT_TRUE(Method->_F[dim*i] == 0);
-		EXPECT_TRUE(Method->_F[dim*i+1] == 0);
-		EXPECT_TRUE(Method->_F[dim*i+2] == 0);
+		EXPECT_TRUE((Method->F_)[0][i] == 0);
+		EXPECT_TRUE((Method->F_)[1][i] == 0);
+		EXPECT_TRUE((Method->F_)[2][i] == 0);
 	}
+	*/
+	
 }
+
+/*
 TEST_F(ABFTest,Getters_Setters)
 {
 	Method->ABF::PreSimulation(snapshot1, cvmanager);
@@ -191,12 +222,14 @@ TEST_F(ABFTest,Getters_Setters)
 	// Check Setters
 	Eigen::VectorXd F(2);
 	F << 1,1;
-	Method->SetHistogram(F,{1,1});
-	EXPECT_TRUE(Method->_N[0] == 1);
-	EXPECT_TRUE(Method->_N[1] == 1);
-	EXPECT_TRUE(Method->_F[0] == 1);
-	EXPECT_TRUE(Method->_F[1] == 1);
+	F_[0] = F;
+	EXPECT_TRUE(Method->N_[0] == 1);
+	EXPECT_TRUE(Method->N_[1] == 1);
+	EXPECT_TRUE(Method->F_[0] == 1);
+	EXPECT_TRUE(Method->F_[1] == 1);
 }
+*/
+
 TEST_F(ABFTest,CV_outofboundscheck)
 {
 	// Initialize CVs.	
@@ -212,14 +245,20 @@ TEST_F(ABFTest,CV_outofboundscheck)
 	Method->ABF::PostIntegration(snapshot1, cvmanager);
 
 	// Test whether bound checking works. There should be no hits as 3rd CV was out of bounds.
-	for(size_t i = 0; i < (Method->_N).size() ; ++i)
+	
+	for(auto& point : *(Method->N_))
+	{
+		EXPECT_TRUE(point == 0);
+	}
+	/*
 	{
 		EXPECT_TRUE(Method->_N[i] == 0);
 
-		EXPECT_TRUE(Method->_F[dim*i] == 0);
-		EXPECT_TRUE(Method->_F[dim*i+1] == 0);
-		EXPECT_TRUE(Method->_F[dim*i+2] == 0);
+		EXPECT_TRUE(Method->_F[0][i] == 0);
+		EXPECT_TRUE(Method->_F[1][i] == 0);
+		EXPECT_TRUE(Method->_F[2][i] == 0);
 	}
+	*/
 
 	// The only bias force should be from CV restraints.
 	double bias = (CV3->GetValue()+1.5)*10;
@@ -227,6 +266,7 @@ TEST_F(ABFTest,CV_outofboundscheck)
 	for(size_t i = 0; i < Method->biases_[0].size() ; ++i)
 		EXPECT_NEAR(-Method->biases_[0][i], bias*CV3->GetGradient()[0][i], eps);
 }
+
 TEST_F(ABFTest,MD_steps_inboundscheck)
 {
 	// Initialize CVs.	
@@ -249,21 +289,24 @@ TEST_F(ABFTest,MD_steps_inboundscheck)
 	Method->ABF::PostIntegration(snapshot3, cvmanager);
 
 	// Check that hits are recorded correctly
-	EXPECT_TRUE(Method->_N[2] == 2);
+	EXPECT_TRUE(Method->N_->at({0,1,0}) == 2);
 
-	EXPECT_TRUE(Method->_F[2*dim] == -8.0);
-	EXPECT_TRUE(Method->_F[2*dim+1] == -20.4);
-	EXPECT_TRUE(Method->_F[2*dim+2] == -32.8);
-
+	
+	EXPECT_TRUE(Method->F_[0]->at({0,1,0}) == -8.0);
+	EXPECT_TRUE(Method->F_[1]->at({0,1,0}) == -20.4);
+	EXPECT_TRUE(Method->F_[2]->at({0,1,0}) == -32.8);
+	
 	// Check that the biases are accurate
 	EXPECT_NEAR(Method->biases_[0][0], 1.6, eps);
 	EXPECT_NEAR(Method->biases_[0][1], 4.08, eps);
 	EXPECT_NEAR(Method->biases_[0][2], 6.56, eps);
-
+	
+	
 	// Check that the biases added to forces correctly
 	EXPECT_NEAR(snapshot3->GetForces()[0][0], 1.6, eps);
 	EXPECT_NEAR(snapshot3->GetForces()[0][1], 4.08, eps);
 	EXPECT_NEAR(snapshot3->GetForces()[0][2], 6.56, eps);
+	
 }
 
 int main(int argc, char *argv[])
