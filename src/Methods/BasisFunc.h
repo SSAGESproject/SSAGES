@@ -21,7 +21,7 @@
 #pragma once
 
 #include "Method.h"
-#include "Basis.h"
+#include "Utility/Basis.h"
 #include "Grids/Histogram.h"
 #include <fstream>
 #include <vector>

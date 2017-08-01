@@ -335,22 +335,8 @@ namespace SSAGES
         std::vector<BasisFunction> functions;
         for(auto& m : json["basis_functions"])
         {
-            if(json["type"] == "Legendre") {
-                reader.parse(JsonSchema::LegendreBasis, schema);
-                validator.Parse(schema, path);
-
-                // Validate inputs.
-                validator.Validate(json, path);
-                if(validator.HasErrors())
-                    throw BuildException(validator.GetErrors());
-
-                auto polyord = json.get("polynomial_order",25).asInt();
-                functions.push_back(Legendre(polyord, b->GetNumPoints(ii)));
-            }
-            else if (json["type"] == "Chebyshev") {
-                auto polyord = json.get("polynomial_order",25).asInt();
-                functions.push_back(Chebyshev(polyord, b->GetNumPoints(ii), -1.0, 1.0));
-            }
+            BasisFunction *bf = BasisFunction::Build(m, path, b->GetNumPoints(ii));
+            functions.push_back(*bf);
             ii++;
         }
 
