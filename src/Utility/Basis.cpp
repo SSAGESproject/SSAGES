@@ -191,7 +191,7 @@ namespace SSAGES
                     //Normalize the values by the associated value
                     basis *= 2.0 * coeff.map[l] + 1.0;
                 }
-                coeff.value += basis * log(array[j]) * weight/std::pow(2.0,functions_.size());
+                coeff.value += basis * array[j] * weight/std::pow(2.0,functions_.size());
             }
             coeffTemp -= coeff.value;
             sum += fabs(coeffTemp);
