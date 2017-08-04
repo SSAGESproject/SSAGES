@@ -121,7 +121,7 @@ namespace SSAGES
         bool converge_exit_;
 
         //! The functions which calculates the updated bias and coefficients and then stores them
-        void UpdateBias(const CVList& cvs, const double beta);
+        void ProjectBias(const CVList& cvs, const double beta);
 
         //! A function which checks to see if the CVs are still in bounds
         void InBounds(const CVList& cvs);
@@ -132,9 +132,6 @@ namespace SSAGES
          * \param beta Scale parameter.
          */
 		void PrintBias(const CVList& cvs, const double beta);
-
-		//! Output stream for basis projection data.
-		std::ofstream basisout_;
 
         //! The option to name both the basis and coefficient files will be given
         //! Basis filename 
@@ -171,7 +168,7 @@ namespace SSAGES
               Grid<uint> *h,
               Grid<std::vector<double>> *f,
               Grid<double> *b,
-              const std::vector<BasisFunction>& functions,
+              const std::vector<BasisFunction*>& functions,
               const std::vector<double>& restraint,
               const std::vector<double>& boundUp,
               const std::vector<double>& boundLow,
@@ -247,9 +244,9 @@ namespace SSAGES
         //! Destructor.
         ~BFS()
         {
-            delete h_;
-            delete f_;
-            delete b_;
+            //delete h_;
+            //delete f_;
+            //delete b_;
         }
 	};
 }

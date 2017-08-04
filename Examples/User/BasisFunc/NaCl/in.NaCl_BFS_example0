@@ -38,4 +38,4 @@ velocity	all create 300 432567 dist uniform
 
 timestep	1 
 
-run 5000
+run 1000000

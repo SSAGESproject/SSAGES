@@ -24,20 +24,28 @@
         }
     ],
     "methods" : [{
-        "type" : "Basis",
+        "type" : "BFSMethod",
+        "basis_functions" : [
+        {
+            "type" :"Legendre", 
+            "polynomial_order" : 25
+        },
+        {
+            "type" : "Legendre",
+            "polynomial_order": 25
+        }],
         "cvs" : [0,1],
         "cycle_frequency" : 100000,
-        "frequency" : 1,
         "basis_filename" : "adp_example",
-        "coeff_filename" : "adp_example",
-        "CV_coefficients" : [ 25, 25 ],
+        "frequency" : 1,
+        "temperature" : 1.0,
         "weight" : 1.0,
         "tolerance" : 1e-6,
-        "convergence_exit" : false,
+        "convergence_exit" : true,
         "grid" : {
             "lower" : [-3.14, -3.14],
             "upper" : [3.14,3.14],
-            "number_points" : [50,50],
+            "number_points" : [100,100],
             "periodic" : [true, true]
         }
     }]

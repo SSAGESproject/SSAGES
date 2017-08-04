@@ -1,5 +1,4 @@
 {
-	"logfile" : "node-1",
 	"walkers" : 1,
 	"input" : ["in.NaCl_BFS_example0"],
     "CVs" : [
@@ -10,21 +9,24 @@
         }
     ],
     "methods" : [{
-        "type" : "Basis",
+        "type" : "BFSMethod",
+        "basis_functions" : [
+        {
+            "type" :"Legendre", 
+            "polynomial_order" : 30
+        }],
         "cvs" : [0],
-        "cycle_frequency" : 10000,
+        "cycle_frequency" : 5000,
         "frequency" : 1,
         "weight" : 1.0,
         "basis_filename" : "nacl_example",
-        "coeff_filename" : "nacl_example",
-        "CV_coefficients" : [ 50 ],
         "CV_restraint_spring_constants" : [ 30 ],
-        "CV_restraint_maximums" : [ 10.3 ],
+        "CV_restraint_maximums" : [ 15.3 ],
         "CV_restraint_minimums" : [ 1.7 ],
         "grid" : {
                 "lower" : [2.0],
                 "upper" : [15.0],
-                "number_points" : [500],
+                "number_points" : [100],
                 "periodic" : [false]
         }
     }]

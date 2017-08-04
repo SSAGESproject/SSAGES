@@ -25,4 +25,4 @@ fix        	ssages all ssages
 special_bonds   amber                               
 
 thermo 1000 
-run 1000000
+run 5000000

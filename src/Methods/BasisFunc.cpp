@@ -99,7 +99,7 @@ namespace SSAGES
             // user needs to define their own temperature. This is a hack that
             // will be removed in future versions.
 
-            if(snapshot->GetTemperature() == 0)
+            if(!snapshot->GetTemperature())
             {
                 beta = temperature_;
                 if(temperature_ == 0)
@@ -110,8 +110,7 @@ namespace SSAGES
                 }
             }
             iteration_+= 1;
-            UpdateBias(cvs,beta);
-
+            ProjectBias(cvs,beta);
             std::cout<<"Node: ["<<mpiid_<<"]"<<std::setw(10)<<"\tSweep: "<<iteration_<<std::endl;
         }
 
@@ -121,12 +120,13 @@ namespace SSAGES
         InBounds(cvs);
         if (bounds_) 
         {
-            auto& bias_grad = f_->at(x);	
+            auto& bias = f_->at(x);	
+            for (size_t ii = 0; ii<bias.size(); ii++)
+                bias_grad[ii] = bias[ii];
         }
         else 
         {
             // This is where the wall potentials are going to be thrown into the method if the system is not a periodic CV
-            std::vector<double> bias_grad (cvs.size(),0);
             for(size_t j = 0; j < cvs.size(); ++j)
             {
                 if(!h_->GetPeriodic(j))
@@ -164,7 +164,7 @@ namespace SSAGES
 	}
  
 	// Update the coefficients/bias projection
-	void BFS::UpdateBias(const CVList& cvs, const double beta)
+	void BFS::ProjectBias(const CVList& cvs, const double beta)
 	{
         double sum  = 0.0;
 
@@ -192,11 +192,16 @@ namespace SSAGES
             val = 0;
         }
 
+        // Create the log array and send that to the integrator
+        std::vector<double> z_array (unbias_.size(),0);
+        for (i = 0; i < unbias_.size(); i++)
+            z_array[i] = log(unbias_[i]);
+
         //Update the coefficients and determine the difference from the previous iteration
-        sum = evaluator_.UpdateCoeff(unbias_,*h_);
+        sum = evaluator_.UpdateCoeff(z_array,*h_);
         coeff_arr_ = evaluator_.GetCoeff();
         //Update both the gradient and the bias on the grids
-        evaluator_.UpdateBias(*b_,*f_);
+        evaluator_.UpdateBias(b_,f_);
 
         if(world_.rank() == 0)
             // Write coeff at this step, but only one walker
@@ -222,11 +227,17 @@ namespace SSAGES
     {
         // The filenames will have a standard name, with a user-defined suffix
         std::string filename1 = "basis"+bnme_+".out"; 
-		basisout_.precision(5);
-        basisout_.open(filename1.c_str());
+        std::string filename2 = "coeff"+bnme_+".out"; 
+        std::ofstream basisout;
+        std::ofstream coeffout;
+        basisout.precision(5);
+        coeffout.precision(5);
+        basisout.open(filename1.c_str());
+        coeffout.open(filename2.c_str());
 
         // The CV values, PMF projection, PMF, and biased histogram are output for the user
-        basisout_ << "CV Values" << std::setw(35*cvs.size()) << "Basis Set Bias" << std::setw(35) << "PMF Estimate" << std::setw(35) << "Biased Histogram" << std::endl;
+        basisout << "CV Values" << std::setw(35*cvs.size()) << "Basis Set Bias" << std::setw(35) << "PMF Estimate" << std::setw(35) << "Biased Histogram" << std::endl;
+        coeffout << "Index" << std::setw(35)<< "Coefficients" << std::endl;
         
         size_t j = 0;
         for(Grid<double>::iterator it = b_->begin(); it != b_->end(); ++it, ++j)
@@ -234,19 +245,25 @@ namespace SSAGES
             for(size_t k = 0; k < cvs.size(); ++k)
             {
                 // Evaluate the CV values for printing purposes
-                basisout_ << it.coordinate(k) << std::setw(35);
+                basisout << it.coordinate(k) << std::setw(35);
             }
-            basisout_ << -(*it) << std::setw(35);
-            if(unbias_[j])
-                basisout_ << -log(unbias_[j]) / beta << std::setw(35);
-            else
-                basisout_ << "0" << std::setw(35);
-            basisout_ << unbias_[j];
-            basisout_ << std::endl;
+            basisout << -(*it) << std::setw(35);
+            basisout << -log(unbias_[j]) << std::setw(35);
+            basisout << unbias_[j];
+            basisout << std::endl;
         }
 
-		basisout_ << std::endl;
-        basisout_.close();
+        std::vector<double> coeff = evaluator_.GetCoeff();
+        size_t ii = 0;
+        for (auto& val : coeff) {
+            coeffout << ii << std::setw(35) << val << std::endl;
+            ii++;
+        }
+
+		basisout << std::endl;
+		coeffout << std::endl;
+        basisout.close();
+        coeffout.close();
 	}
 
     // The forces are calculated by chain rule, first  the derivatives of the basis set, then in the PostIntegration function, the derivative of the CV is evaluated
@@ -332,11 +349,11 @@ namespace SSAGES
                                         json.get("grid", Json::Value()) );
 
         size_t ii = 0;
-        std::vector<BasisFunction> functions;
+        std::vector<BasisFunction*> functions;
         for(auto& m : json["basis_functions"])
         {
-            BasisFunction *bf = BasisFunction::Build(m, path, b->GetNumPoints(ii));
-            functions.push_back(*bf);
+            auto *bf = BasisFunction::Build(m, path, b->GetNumPoints(ii));
+            functions.push_back(bf);
             ii++;
         }
 

@@ -34,8 +34,8 @@ neigh_modify	every 1 delay 10 check yes
 fix		1 all nvt temp 300.0 300.0 100.0
 fix  	ssages all ssages
 
-velocity	all create 300 432567 dist uniform
+velocity	all create 300 312345 dist uniform
 
 timestep	1 
 
-run 5000
+run 1000000
