@@ -58,23 +58,23 @@ namespace SSAGES
     class BasisFunction
     {
     protected:
-        uint poly_ord_; 
+        uint polyOrd_; 
         uint nbins_;
         double boundLow_, boundHigh_;
         bool isFinite_;
 
     public: 
-        BasisFunction(uint poly_ord,
+        BasisFunction(uint polyOrd,
                       uint nbins,
                       bool isFinite,
                       double boundLow,
                       double boundHigh) :
-        poly_ord_(poly_ord), isFinite_(isFinite), nbins_(nbins),
+        polyOrd_(polyOrd), isFinite_(isFinite), nbins_(nbins),
         boundLow_(boundLow), boundHigh_(boundHigh)
         {
         }
 
-        uint GetOrder() {return poly_ord_;}
+        uint GetOrder() {return polyOrd_;}
         uint GetBins() {return nbins_;}
         double GetLower() {return boundLow_;}
         double GetUpper() {return boundHigh_;}
@@ -103,8 +103,8 @@ namespace SSAGES
     private:  
     protected:
     public:
-        Chebyshev(unsigned int poly_ord, double boundLow, double boundHigh, unsigned int nbins) :
-        BasisFunction(poly_ord, nbins, true, boundLow, boundHigh)
+        Chebyshev(unsigned int polyOrd, double boundLow, double boundHigh, unsigned int nbins) :
+        BasisFunction(polyOrd, nbins, true, boundLow, boundHigh)
         {
         }
 
@@ -133,8 +133,8 @@ namespace SSAGES
     private:  
     protected:
     public:
-        Legendre(unsigned int poly_ord, unsigned int nbins) :
-        BasisFunction(poly_ord, nbins, true, -1.0, 1.0)
+        Legendre(unsigned int polyOrd, unsigned int nbins) :
+        BasisFunction(polyOrd, nbins, true, -1.0, 1.0)
         {
         }
 

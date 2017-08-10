@@ -1,0 +1,17 @@
+{
+    "type" : "object",
+    "varname" : "ChebyshevBasis",
+    "properties" : {
+        "polynomial_order" : {
+            "type" : "integer",
+            "minimum" : 0
+        },
+        "lower_bound" : {
+            "type" : "double"
+        },
+        "upper_bound" : {
+            "type" : "double"
+        }
+    },
+    "required" : ["polynomial_order", "lower_bound", "upper_bound"]
+}
