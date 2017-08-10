@@ -485,7 +485,6 @@ namespace SSAGES
 		//{
 		
 		// Appropriately size the grids.
-			for(size_t i=0; i<dim; ++i) 
 		
 			N= new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);
 			Nworld= new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);
