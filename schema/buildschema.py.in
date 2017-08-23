@@ -24,6 +24,7 @@ folders = [
 	"${CMAKE_CURRENT_SOURCE_DIR}/Observers/",
 	"${CMAKE_CURRENT_SOURCE_DIR}/Constraints/",
 	"${CMAKE_CURRENT_SOURCE_DIR}/Loggers/",
+	"${CMAKE_CURRENT_SOURCE_DIR}/Utility/",
 ]
 
 exclude = [

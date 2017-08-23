@@ -36,10 +36,14 @@ The following parameters need to be set under `"method"` in the JSON input file:
 The following options are available for Umbrella Sampling:
 
 centers (required)
-	Array of target values for each CV
+	Array of target values for each CV. This can either be an array of numbers, or 
+	an array of an array of numbers, for multiple walkers. If only a single array is 
+	defined, it is used across all walkers.
 
 ksprings (required)
-	Array of spring constants for each CV 
+	Array of spring constants for each CV. This can either be an array of numbers, or 
+	an array of an array of numbers, for multiple walkers. If only a single array is 
+	defined, it is used across all walkers.
 
 output_file (required)
 	Output file name for umbrella sampling data. This can be a string or 
@@ -57,10 +61,14 @@ This is equivalent to the "steered MD" method. To do so, omit `"centers"`
 and use the following options instead: 
 
 centers0 (required)
-	Array of initial target values for each CV 
+	Array of initial target values for each CV. This can either be an array of numbers, or 
+	an array of an array of numbers, for multiple walkers. If only a single array is 
+	defined, it is used across all walkers. 
 
 centers1 (required)
-	Array of final target values for each CV 
+	Array of final target values for each CV. This can either be an array of numbers, or 
+	an array of an array of numbers, for multiple walkers. If only a single array is 
+	defined, it is used across all walkers. 
 
 timesteps (required)
 	The number of timesteps over which to scale the umbrella centers 

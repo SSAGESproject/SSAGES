@@ -1,5 +1,4 @@
 {
-	"logfile" : "node-1",
 	"walkers" : 1,
 	"input" : "in.ADP_ABF_Example0",
 	"CVs": [

@@ -34,7 +34,8 @@
 			"ksprings" : [150,150],
 			"flavor" : "FTS",
 			"umbrella_iterations" : 2000,
-			"kappa" : 0.1
+			"kappa" : 0.1,
+			"cvs" : [0,1]
 		}
 	]
 }

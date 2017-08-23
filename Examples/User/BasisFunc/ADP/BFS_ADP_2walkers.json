@@ -1,5 +1,4 @@
 {
-	"logfile" : "node-1",
 	"walkers" : 2,
 	"input" : ["in.ADP_BFS_example0", "in.ADP_BFS_example1"],
     "CVs": [

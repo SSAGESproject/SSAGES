@@ -1,43 +1,36 @@
 {
-	"inputfile" : "in.LAMMPS_2DParticle",
-	"driver" : [
+	"input" : "in.LAMMPS_2DParticle",
+	"walkers" : 16,
+	"CVs" : [
 		{
-			"number processors" : 1,
-			"type" : "LAMMPS",
-			"MDSteps" : 10000000,
-			"logfile" : "log",
-			"CVs" : [
-				{
-					"type" : "ParticleCoordinate",
-					"atom_ids" : [
-						1
-					],
-					"dimension" : "x"
-				},
-				{
-					"type": "ParticleCoordinate",
-					"atom_ids" : [
-						1
-					],
-                    "dimension" : "y"
-				}
+			"type" : "ParticleCoordinate",
+			"atom_ids" : [
+				1
 			],
-			"method" : {
-				"type" : "String",
-				"centers" : [
-						-1.39,
-                        1.31
-				],	
-				"max_iterations" : 1000,	
-				"frequency" : 1,
-				"ksprings" : [500,500],
-				"tolerance" : [0.0001, 0.0001],
-				"flavor" : "SWARM",
-				"initial_steps" : 1000,
-				"harvest_length" : 10,
-				"number_of_trajectories" : 200,
-                "swarm_length" : 2
-			}
+			"dimension" : "x"
+		},
+		{
+			"type": "ParticleCoordinate",
+			"atom_ids" : [
+				1
+			],
+            "dimension" : "y"
+		}
+	],
+	"methods" : [
+		{
+			"type" : "String",
+			"centers" : [],
+			"max_iterations" : 1000,
+			"frequency" : 1,
+			"ksprings" : [500,500],
+			"tolerance" : [0.0001, 0.0001],
+			"flavor" : "SWARM",
+			"initial_steps" : 1000,
+			"harvest_length" : 10,
+			"number_of_trajectories" : 200,
+        	"swarm_length" : 2,
+			"cvs" : [0,1]
 		}
 	]
 }

@@ -319,7 +319,7 @@ namespace SSAGES
 			auto NumberTrajectories = json.get("number_of_trajectories", 250).asInt();
 			auto SwarmLength = json.get("swarm_length", 20).asInt();
 			
-			auto* m = new Swarm(world, comm, centers, maxiterator, ksprings, freq, InitialSteps, HarvestLength, NumberTrajectories, SwarmLength);
+			m = new Swarm(world, comm, centers, maxiterator, ksprings, freq, InitialSteps, HarvestLength, NumberTrajectories, SwarmLength);
 			
 			if(json.isMember("tolerance"))
 			{

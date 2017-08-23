@@ -1,5 +1,4 @@
 {
-	"logfile" : "node-1",
 	"walkers" : 1,
 	"args" : ["-v","-deffnm","example_adp"],
 	"CVs": [

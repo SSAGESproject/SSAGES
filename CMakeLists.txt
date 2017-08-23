@@ -1,10 +1,10 @@
 project(SSAGES)
 cmake_minimum_required(VERSION 2.8.8)
 
-# SAPHRON version number.
+# SSAGES version number.
 set(SSAGES_VERSION_MAJOR "0")
 set(SSAGES_VERSION_MINOR "7")
-set(SSAGES_VERSION_TINY "0") 
+set(SSAGES_VERSION_TINY "5") 
 
 # Default type is release
 if (NOT CMAKE_BUILD_TYPE)
@@ -55,7 +55,7 @@ set(SOURCE
 	src/Loggers/Logger.cpp
 	src/Validator/RequirementLoader.cpp
 	src/JSON/jsoncpp.cpp
-	src/Utility/SwitchingFunction.cpp
+	src/Utility/PairwiseKernel.cpp
 	src/Hook.cpp
 	src/ResourceHandler.cpp
 )

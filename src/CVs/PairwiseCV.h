@@ -3,6 +3,7 @@
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
  * Copyright 2017 Hythem Sidky <hsidky@nd.edu>
+ *                Michael Quevillon <mquevill@nd.edu>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,45 +23,45 @@
 #include "CVs/CollectiveVariable.h"
 #include "Validator/ObjectRequirement.h"
 #include "Drivers/DriverException.h"
-#include "Utility/SwitchingFunction.h"
+#include "Utility/PairwiseKernel.h"
 #include "Snapshot.h"
 #include "schema.h"
  
 namespace SSAGES
 {
-	//! Collective variable on coordination number between two groups of atoms.
+	//! Generalized collective variable based on pairwise properties of atoms.
 	/*!
-	 * Collective variable on coordination number between two groups of atoms. 
-	 * To ensure a continuously differentiable function, there are various 
-	 * switching functions from which to choose from. 
+	 * Collective variable on pairwise properties between two groups of atoms. 
+	 * To ensure generality of usage, there are various pairwise kernel functions
+	 * from which to choose. 
 	 *
 	 * \ingroup CVs
 	 */
-	class CoordinationNumberCV : public CollectiveVariable
+	class PairwiseCV : public CollectiveVariable
 	{
 	private:
 		Label group1_; //!< IDs of the first group of atoms. 
 		Label group2_; //!< IDs of the second group of atoms. 
-		SwitchingFunction* sf_; //!< Switching function used for coordination number.
+		PairwiseKernel* pk_; //!< Pairwise kernel function used for CV.
 
 	public:
 		//! Constructor.
 		/*!
-			* \param group1 IDs of the first group of atoms. 
-			* \param group2 IDs of the second group of atoms. 
-			*
-			* Construct a CoordinationNumberCV.
-			*
-			*/    
-		CoordinationNumberCV(const Label& group1, const Label& group2, SwitchingFunction* sf) : 
-		group1_(group1), group2_(group2), sf_(sf)
+		 * \param group1 IDs of the first group of atoms. 
+		 * \param group2 IDs of the second group of atoms. 
+		 *
+		 * Construct a PairwiseCV.
+		 *
+		 */    
+		PairwiseCV(const Label& group1, const Label& group2, PairwiseKernel* pk) : 
+		group1_(group1), group2_(group2), pk_(pk)
 		{
 		}
 
 		//! Initialize necessary variables.
 		/*!
-			* \param snapshot Current simulation snapshot.
-			*/
+		 * \param snapshot Current simulation snapshot.
+		 */
 		void Initialize(const Snapshot& snapshot) override
 		{
 			using std::to_string;
@@ -88,7 +89,7 @@ namespace SSAGES
 			unsigned ntot2 = std::accumulate(found2.begin(), found2.end(), 0, std::plus<int>());
 			if(ntot1 != n1)
 				throw BuildException({
-					"CoordinationNumberCV: Expected to find " + 
+					"PairwiseCV: Expected to find " + 
 					to_string(n1) + 
 					" atoms in group 1, but only found " + 
 					to_string(ntot1) + "."
@@ -96,17 +97,17 @@ namespace SSAGES
 
 			if(ntot2 != n2)
 				throw BuildException({
-					"CoordinationNumberCV: Expected to find " + 
+					"PairwiseCV: Expected to find " + 
 					to_string(n2) + 
 					" atoms in group 2, but only found " + 
 					to_string(ntot2) + "."
 				});			
 		}
-		
+
 		//! Evaluate the CV.
 		/*!
-			* \param snapshot Current simulation snapshot.
-			*/
+		 * \param snapshot Current simulation snapshot.
+		 */
 		void Evaluate(const Snapshot& snapshot) override
 		{
 			// Get local atom indices.
@@ -172,11 +173,11 @@ namespace SSAGES
 					if(t1 == t2)
 						continue;
 					
-					// Compute distance and switching function. 
+					// Compute distance and pairwise function. 
 					Vector3 rij = pi - pj;
 					snapshot.ApplyMinimumImage(&rij);
 					auto r = rij.norm();
-					val_ +=  sf_->Evaluate(r, df);
+					val_ +=  pk_->Evaluate(r, df);
 
 					// Get local indices and sum gradients.
 					auto lid1 = snapshot.GetLocalIndex(t1);
@@ -194,13 +195,13 @@ namespace SSAGES
 			}
 		}
 
-		static CoordinationNumberCV* Build(const Json::Value& json, const std::string& path)
+		static PairwiseCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
 			Json::Reader reader;
 
-			reader.parse(JsonSchema::CoordinationNumberCV, schema);
+			reader.parse(JsonSchema::PairwiseCV, schema);
 			validator.Parse(schema, path);
 
 			// Validate inputs.
@@ -216,12 +217,18 @@ namespace SSAGES
 			for(auto& s : json["group2"])
 				group2.push_back(s.asInt());
 			
-			return new CoordinationNumberCV(group1, group2, SwitchingFunction::Build(json["switching"]));
+			return new PairwiseCV(group1, group2, PairwiseKernel::Build(json["kernel"], path));
 		}
 
-		~CoordinationNumberCV()
+		~PairwiseCV()
 		{
-			delete sf_;
+			delete pk_;
+			/*
+			 * deleting object of abstract class type ‘SSAGES::PairwiseKernel’
+			 * which has non-virtual destructor will cause undefined behaviour
+			 * [-Wdelete-non-virtual-dtor]
+			 *
+			 */
 		}
 	};
 }

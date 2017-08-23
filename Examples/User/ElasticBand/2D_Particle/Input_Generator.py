@@ -12,22 +12,16 @@ root = {}
 with open('Template_Input.json') as f:
 	root = json.load(f)
 
+# number of nodes to use for nudged elastic band
 num = 16
 
 centers_1 = np.linspace(-0.7, 0.7, num)
 centers_2 = np.linspace(-0.5, 1.0, num)
 
-# Add on the requested number of objects -1 because we are appending
-for i in range(0,num - 1):
-	root['driver'].append(copy.deepcopy(root['driver'][0]))
-
 for i in range(num):
-	# Change the log file name so each driver uses a different log file
-	#root['driver'][i]['logfile'] = "log"
-
-	# Change the node's location
-        root['driver'][i]['method']['centers'][0] = round(centers_1[i], 3)
-        root['driver'][i]['method']['centers'][1] = round(centers_2[i], 3)
+    x1 = round(centers_1[i], 3)
+    x2 = round(centers_2[i], 3)
+    root['methods'][0]['centers'].append([x1, x2])
 
 # Convert python dictionary into JSON file
 with open('ElasticBand.json', 'w') as f:

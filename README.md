@@ -5,15 +5,17 @@ SSAGES
 It is designed to be easy to use, extendable and extremely versatile. It is currently pre-beta, meaning that there are many rough edges, but we are working rapidly 
 to expand its features and fix any bugs. Keep an eye on this page for future updates and see below on how to contribute!
 
-## What's New (v0.7.0)
-- New simplified JSON syntax
-- Support for multiple simultaneous methods! 
-- Eliminated boost dependency! 
-- CV selector for methods 
-- Argument forwarding for Gromacs 
-- Updated forward flux examples 
-- Significant under-the-hood improvements
-- Fixed Gromacs auto-download
+## What's New (v0.7.5)
+- Major documentation update!
+- Major examples update! 
+- New generalized pairwise CV
+- New secondary structure CVs (alpha and anti/parallel beta sheet RMSD)
+- New CV logging capability 
+- CV selection by name in methods 
+- Updated unit tests 
+- Updated ABF integrators for periodic and non-periodic CVs 
+- Gromacs 2016.3 support! 
+- Many bug fixes! 
 
 <a id="features"></a>
 ## Features
@@ -27,7 +29,7 @@ to expand its features and fix any bugs. Keep an eye on this page for future upd
 - Much more!
 
 ### Engines 
-- Gromacs 5.x.x
+- Gromacs 5.x.x, 2016.3
 - LAMMPS (Most recent versions)
 - OpenMD (2.4+)
 - QBox (1.63+)
@@ -37,11 +39,12 @@ to expand its features and fix any bugs. Keep an eye on this page for future upd
 - Atom group position 
 - Atom group separation 
 - Bend angle
-- Torsional angle
-- Components of gyration tensor
-- Polymer Rouse modes 
-- Coordination number
 - Box volume
+- Components of gyration tensor
+- Pairwise kernel (coordination number, nearest neighbors)
+- Polymer Rouse modes 
+- Secondary structure (alpha, anti/parallel beta sheet) RMSD
+- Torsional angle
 
 ### Methods 
 - Metadynamics 
@@ -144,6 +147,16 @@ or
 $ firefox doc/Manual/index.html
 ```
 
+## What's Old (v0.7.0)
+- New simplified JSON syntax
+- Support for multiple simultaneous methods! 
+- Eliminated boost dependency! 
+- CV selector for methods 
+- Argument forwarding for Gromacs 
+- Updated forward flux examples 
+- Significant under-the-hood improvements
+- Fixed Gromacs auto-download
+
 ## What's Old (v0.6.0)
 - Support for QBox first-principles MD engine 
 - Support for OpenMD engine 
@@ -166,15 +179,10 @@ $ firefox doc/Manual/index.html
 - Better engine error handling
 - More! (See commit log)
 
-## What's Old (v0.4.3)
-- Added time dependent umbrella centers (steered MD)
-- Fixed biases resizing bug in ABF method
-
 ## Known issues 
 **SSAGES** is currently in pre-beta. That means there may be known issues that are not yet resolved. Major issues are listed here. 
 
-- Examples have not been completely updated to reflect the new JSON syntax
-
+- Restarts are not fully functioning for all methods.
 
 ## Contributing 
 Feel free to fork this project on GitHub. Any pull-requests, feature requests or other form of contributions are welcome.

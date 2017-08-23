@@ -1,0 +1,24 @@
+{
+	"type" : "object",
+	"varname" : "RationalSwitchPK",
+	"properties" : {
+		"type" : {
+			"type" : "string",
+			"enum" : ["rationalswitch"]
+		},
+		"d0" : {
+			"type" : "number"
+		},
+		"r0" : {
+			"type" : "number"
+		},
+		"n" : {
+			"type" : "integer"
+		},
+		"m" : {
+			"type" : "integer"
+		}
+	},
+	"required" : ["type", "d0", "r0", "m", "n"],
+	"additionalProperties" : false
+}

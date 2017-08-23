@@ -39,7 +39,11 @@ namespace SSAGES
         std::string line;
         std::ifstream file(rh_->GetInput());
         
-        // Execute file. 
+        // File doesn't exist or other error. 
+        if(!file)
+            throw std::runtime_error("Error opening file \"" + rh_->GetInput() + "\". Please check that the file exists.");
+        
+		// Execute file. 
         while(std::getline(file, line))
         {
             lammps_->input->one(line.c_str());

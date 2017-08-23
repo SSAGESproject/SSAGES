@@ -124,8 +124,8 @@ set(LAMMPS_PACKAGES "all"      # All packages
                     "user-vtk")
 
 foreach (PACKAGE ${LAMMPS_PACKAGES})
-    add_custom_target (yes-${PACKAGE} $(MAKE) -C ${LAMMPS_SRC} yes-${PACKAGE})
-    add_custom_target (no-${PACKAGE} $(MAKE) -C ${LAMMPS_SRC} no-${PACKAGE})
+    add_custom_target (yes-${PACKAGE} $(MAKE) -C ${LAMMPS_SRC} yes-${PACKAGE} DEPENDS lammps-download)
+    add_custom_target (no-${PACKAGE} $(MAKE) -C ${LAMMPS_SRC} no-${PACKAGE} DEPENDS lammps-download)
 endforeach (PACKAGE ${LAMMPS_PACKAGES})
 
 # Add lammps as external project
