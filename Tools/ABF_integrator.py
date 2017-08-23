@@ -303,8 +303,8 @@ def main(argv):
 
 			grid_x, grid_y = np.mgrid[boundx[0]:boundx[1]:interpolate*1j,boundy[0]:boundy[1]:interpolate*1j]
 		
-			dx = boundx[1]-boundx[0]/interpolate
-			dy = boundy[1]-boundy[0]/interpolate
+			dx = (boundx[1]-boundx[0])/interpolate
+			dy = (boundy[1]-boundy[0])/interpolate
 	
 			nx = interpolate
 			ny = interpolate
