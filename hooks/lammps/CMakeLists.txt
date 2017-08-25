@@ -149,15 +149,13 @@ ExternalProject_Add_Step(
     COMMENT "Configuring LAMMPS"
     DEPENDERS build
     DEPENDEES update
+    COMMAND ln -sf ${CMAKE_CURRENT_SOURCE_DIR}/fix_ssages.h ${LAMMPS_SRC}/fix_ssages.h &&
+    		touch ${LAMMPS_SRC}/modify.cpp &&
+    		sh ${LAMMPS_SRC}/Make.sh style
     ALWAYS 1
 )
 
-add_custom_command(
-    TARGET lammps PRE_BUILD
-    COMMAND ln -sf ${CMAKE_CURRENT_SOURCE_DIR}/fix_ssages.h ${LAMMPS_SRC}/fix_ssages.h
-    COMMAND touch ${LAMMPS_SRC}/modify.cpp
-    COMMAND sh ${LAMMPS_SRC}/Make.sh style
-)
+
 
 # Add source for appropriate package hook.
 set(HOOKSRC
