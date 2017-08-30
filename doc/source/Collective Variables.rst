@@ -421,6 +421,65 @@ point in the simulation box.
 Property ``fix`` must be a 3-dimensional array of booleans specifying the components 
 of the distance vector to include in the calculation.
 
+Particle Separation
+-------------------
+
+Example
+^^^^^^^
+
+.. code-block:: javascript
+
+    {
+        "type" : "ParticleSeparation",
+        "group1" : [1],
+        "group2" : [5, 6, 10]
+    }
+
+Description
+^^^^^^^^^^^
+
+This CV calculates the distance between the centers of mass of two groups of
+atoms.
+
+Options & Parameters
+^^^^^^^^^^^^^^^^^^^^
+
+Required
+~~~~~~~~
+
+.. code-block:: javascript
+
+    "type"
+
+Property ``type`` must be set to string ``"ParticleSeparation"``.
+
+.. code-block:: javascript
+
+    "group1"
+
+Property ``group1`` must be an array of integers containing the atom ID(s) which
+make up the first group of atoms. The CV will calculate the distance between
+the center of mass of this group and the group defined by property ``group2``.
+
+.. code-block:: javascript
+
+    "group2"
+
+Property ``group2`` must be an array of integers containing the atom ID(s) which
+make up the second group of atoms. The CV will calculate the distance between
+the center of mass of this group and the group defined by property ``group1``.
+
+Optional
+~~~~~~~~
+
+.. code-block:: javascript
+
+    "dimension"
+
+Property ``dimension`` is a 3-dimensional array of booleans specifying which
+Cartesian components to include in the calculation. If left unspecified, all
+three xyz components will be used.
+
 Polymer Rouse Modes
 -------------------
 
