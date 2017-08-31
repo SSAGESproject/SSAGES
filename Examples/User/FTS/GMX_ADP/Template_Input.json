@@ -1,0 +1,46 @@
+{
+    "args": [
+        "-v",
+        "-deffnm",
+        "adp"
+    ],
+	"input" : "adp.tpr",
+	"walkers" : 22,
+	"CVs" : [
+		{
+			"type" : "Torsional",
+			"atom_ids" : [
+				5,
+				7,
+				9,
+				15
+			],
+			"periodic" : true 
+		},
+		{
+			"type": "Torsional",
+			"atom_ids" : [
+				7,
+				9,
+				15,
+				17
+			],
+			"periodic" : true
+		}
+	],
+	"methods" : [
+		{
+			"type" : "String",
+			"centers" : [],
+			"block_iterations": 5000,
+			"max_iterations" : 1000,
+			"time_step" : 0.1,
+			"frequency" : 1,
+			"ksprings" : [250,250],
+			"flavor" : "FTS",
+			"umbrella_iterations" : 2000,
+			"kappa" : 0.1,
+			"cvs" : [0,1]
+		}
+	]
+}

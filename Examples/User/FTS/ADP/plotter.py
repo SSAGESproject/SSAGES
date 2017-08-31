@@ -91,4 +91,5 @@ if(free_energy == 'bfs'):
 
     plt.contour(xi, yi, zi, 45)
 
-plt.show()
+plt.savefig("fts_plot.png")
+#plt.show()
