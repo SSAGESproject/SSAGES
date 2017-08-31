@@ -41,15 +41,25 @@ namespace SSAGES
         //On the first iteration, check that the CVs are within (threshold*100)% of the center value they're associated to
         for(size_t i = 0; i < cvs.size(); i++)
         {
-            if(centers_[i] <= eps)
-            {//e.g. if centers_[i] = 0
-                diff = std::abs((cvs[i]->GetValue() - (centers_[i]+eps)) / ((cvs[i]->GetValue() + (eps + centers_[i]))/2.0));
+            if(std::abs(centers_[i]) <= eps)
+            {//e.g. if centers_[i] = 0.0
+                if(std::abs(cvs[i]->GetValue()) <= threshold)
+                {
+                    diff = 0; //If current value is approximately zero then go ahead
+                }
+                else
+                {
+                    diff = 2*threshold; //Will always be greater than threshold
+                }
+                //diff = std::abs((cvs[i]->GetValue() - (centers_[i]+eps))) / ((cvs[i]->GetValue() + (eps + centers_[i]))/2.0);
+                //std::cout << "MPIID = " << mpiid_ << " and center[" << i << "] = 0.0 and diff = " << diff << std::endl; 
             }
             else
             {
-                diff = std::abs((cvs[i]->GetValue() - (centers_[i])) / ((cvs[i]->GetValue() + (centers_[i]))/2.0));
+                diff = std::abs((cvs[i]->GetValue() - (centers_[i]))) / ((cvs[i]->GetValue() + (centers_[i]))/2.0);
+                //std::cout << "MPIID = " << mpiid_ << " and center[" << i << "] != 0.0 and diff = " << diff << std::endl; 
             }
-            if(diff >= threshold)
+            if(std::abs(diff) >= threshold)
             {
                 return false; //proceed to initialize again
             }
@@ -65,17 +75,19 @@ namespace SSAGES
         auto& velocities = snapshot->GetVelocities();
         auto& atomids = snapshot->GetAtomIDs();
 
+        //First check if a previous snapshot was stored; the system is definitely initialized if so
         if(snapshot_stored)
         {
             initialized = true;
         }
         else
         {
-            initialized = CVInitialized(cvs); //Whether to initialize or not
+            initialized = CVInitialized(cvs); //If no snapshot stored, evalute whether the system finish initializing
         }
         
-        original_initialized = initialized;
+        original_initialized = initialized; //Will remember whether this system was initialized before the MPI call overrides it
 
+        //If system finished initializing and hadn't entered the sampling blocks, check if a snapshot was stored.  If not, store one and don't store any future snapshots.
         if(initialized && !sampling_started)
         {
             if(!snapshot_stored)
@@ -85,13 +97,15 @@ namespace SSAGES
                 prev_IDs_[index_] = snapshot->SerializeIDs();
                 snapshot_stored = true;
             }
-        }
-        MPI_Allreduce(MPI_IN_PLACE, &initialized, 1, MPI_INT, MPI_LAND, world_);
+        } 
+        MPI_Allreduce(MPI_IN_PLACE, &initialized, 1, MPI_INT, MPI_LAND, world_); //Check if all systems are initialized; initialize is only true if everything node finished initializing
+        //If any system wasn't initialized and the sampling block were not entered, begin restraining each node
         if(!initialized && !sampling_started)
-        {//Ensure CVs are initialized well
-            //Do restrained sampling, and do not harvest trajectories 
+        {
+            //Do restrained sampling; NO trajectory harvesting 
             if(!original_initialized)
             {
+                //If the system was not initialized originally, restrain it
                 for(size_t i = 0; i < cvs.size(); i++)
                 {
                     //Get current CV and gradient
@@ -113,7 +127,7 @@ namespace SSAGES
             }
             else
             {
-                //Reset positions and forces, keeping them at their initialized value
+                //If the system was already initialized, simply reset the positions and velocities; this keeps them in their initialized states
                 index_ = 0;
                 for(auto& force: forces)
                     force.setZero();
@@ -137,9 +151,10 @@ namespace SSAGES
         }
         else
         {
+            //Enter this block is every node was done initializing, or the sampling had already begun
             if(!sampling_started)
             {
-                sampling_started = true; //Flag to prevent unneeded umbrella sampling 
+                sampling_started = true; //If the node got here right after initializing, set the flag that sampling has begun (preventing unneeded initializing in the future)
             }
             if(iterator_ <= initialize_steps_ + restrained_steps_)
             {
