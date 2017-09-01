@@ -29,13 +29,12 @@
 			"centers" : [],
 			"max_iterations" : 1000,
 			"frequency" : 1,
-			"ksprings" : [100,100],
-			"tolerance" : [0.001, 0.001],
+			"ksprings" : [150,150],	
 			"flavor" : "SWARM",
         	"initial_steps" : 10000,
 			"harvest_length" : 10,
 			"number_of_trajectories" : 100,
-        	"swarm_length" : 20,
+        	"swarm_length" : 10,
 			"cvs" : [0,1]
 		}
 	]

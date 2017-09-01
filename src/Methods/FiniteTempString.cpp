@@ -80,14 +80,16 @@ namespace SSAGES
         }
         insidecell = InCell(cvs); 
 
-        MPI_Allreduce(MPI_IN_PLACE, &run_umbrella_, 1, MPI_INT, MPI_LOR, world_);
+        MPI_Allreduce(MPI_IN_PLACE, &run_umbrella_, 1, MPI_INT, MPI_LOR, world_); //Compares all run_umbrellas on all processors - if any is true, all are set to true
 
 		if(run_umbrella_)
 		{ 
 			if(umbrella_iter_ == min_num_umbrella_steps_)
 			{
-				if(insidecell)
+                //After reaching the minimum umbrella sampling checkpoint, evaluate whether to keep going (per individual image)
+                if(insidecell)
                 {
+                    //Stop umbrella sampling if inside cell
                     run_umbrella_ = false;
                     reset_for_umbrella = true;
 
@@ -101,6 +103,7 @@ namespace SSAGES
 			{
                 if(!reset_for_umbrella)
                 {
+                    //If not at the minimum step checkpoint AND not a system which was already done, add restraining force
                     for(size_t i = 0; i < cvs.size(); i++)
                     {
                         // Get current cv and gradient
@@ -114,22 +117,25 @@ namespace SSAGES
                         for(size_t j = 0; j < forces.size(); j++)
                                 forces[j] -= D*grad[j];
                     }
-                    umbrella_iter_++;    
+                    umbrella_iter_++; //Progress toward checkpoint 
                 }
                 else
                 {
+                    //End umbrella sampling of this node if it was already initialized
                     run_umbrella_ = false;
                 }
 			}
-            return;
+            return; //Don't do any sampling after restraining
 		}
         else
         {
+            //If run umbrella was false (only possible if every node was done) then set reset to false for next string method iteration (only proceed past umbrella sampling if no images require further umbrella sampling)
             reset_for_umbrella = false;
         }
 
 		if(!insidecell)
 		{
+            //If last step took the system outside the Voronoi cell, reset the position and zero the force to reset the trajectory 
 			for(auto& force : forces)
 				force.setZero();
 
@@ -162,7 +168,8 @@ namespace SSAGES
 				newcenters_[i] = newcenters_[i] * (iteration_ * blockiterations_ + iterator_ - 1) + cvs[i]->GetMinimumImage(centers_[i]);
 				newcenters_[i] /= (iteration_ * blockiterations_ + iterator_);
 			}
-
+            
+            //Store info about this step in prev_vectors
             prev_CVs_.clear();
             for(size_t i = 0; i < centers_.size(); i++)
             {
@@ -182,18 +189,18 @@ namespace SSAGES
 			UpdateWorldString(cvs); 
             PrintString(cvs);
 
-			iterator_ = 0;
-			iteration_++;
+			iterator_ = 0; //Number of steps within current method iteration
+			iteration_++; //Increment string method iteration
 
 			if(!InCell(cvs))
             {
                 run_umbrella_ = true;
                 reset_for_umbrella = false; 
             }
-			MPI_Allreduce(MPI_IN_PLACE, &run_umbrella_, 1, MPI_INT, MPI_LOR, world_);
+            MPI_Allreduce(MPI_IN_PLACE, &run_umbrella_, 1, MPI_INT, MPI_LOR, world_); //Compares all run_umbrellas on all processors - if any is true, all are set to true	
 		}
 
-		iterator_++;
+        iterator_++; //Iterate number of steps within current method iteration	
 	}
 
 	void FiniteTempString::StringUpdate()

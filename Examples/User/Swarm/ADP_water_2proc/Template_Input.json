@@ -1,0 +1,42 @@
+{
+	"input" : "adp_H2O_ssages.in",
+    "walkers" : 22,
+    "CVs": [
+        {
+            "atom_ids": [
+                4502,
+                4504,
+                4506,
+                4512
+            ],
+            "periodic": true,
+            "type": "Torsional"
+        },
+        {
+            "atom_ids": [
+                4504,
+                4506,
+                4512,
+                4514
+            ],
+            "periodic": true,
+            "type": "Torsional"
+        }
+    ],	
+    "methods" : [
+		{
+			"type" : "String",
+			"centers" : [],
+			"max_iterations" : 1000,
+			"frequency" : 1,
+			"ksprings" : [150,150],
+			"tolerance" : [0.001, 0.001],
+			"flavor" : "SWARM",
+        	"initial_steps" : 10000,
+			"harvest_length" : 10,
+			"number_of_trajectories" : 100,
+        	"swarm_length" : 20,
+			"cvs" : [0,1]
+		}
+	]
+}

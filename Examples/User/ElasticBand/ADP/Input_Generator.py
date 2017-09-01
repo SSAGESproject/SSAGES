@@ -16,8 +16,8 @@ with open('Template_Input.json') as f:
 num = 22
 
 # Create vector of Torsional angle range. -pi to pi
-centers_1 = np.linspace(-2.0944, 1.50, num)
-centers_2 = np.linspace(2.0944, -1.50, num)
+centers_1 = np.linspace(-1.5, 0.25, num)
+centers_2 = np.linspace(2.0, -2.0, num)
 
 for i in range(num):
     x1 = round(centers_1[i], 3)
