@@ -88,7 +88,9 @@ namespace SSAGES
         }
        
         // The histogram is updated based on the index
-        h_->at(x) += 1;
+        InBounds(cvs);
+        if (bounds_) 
+            h_->at(x) += 1;
     
         // Update the basis projection after a predefined number of steps
         if(snapshot->GetIteration()  % cyclefreq_ == 0) {
@@ -117,7 +119,6 @@ namespace SSAGES
 		// This gets the bias force from the grid
         std::vector<double> bias_grad(cvs.size(),0);
 
-        InBounds(cvs);
         if (bounds_) 
         {
             auto& bias = f_->at(x);	
@@ -132,9 +133,9 @@ namespace SSAGES
                 if(!h_->GetPeriodic(j))
                 {
                     if(x[j] > boundUp_[j])
-                        bias_grad[j] = restraint_[j] * (x[j] - boundUp_[j]);
+                        bias_grad[j] = -restraint_[j] * (x[j] - boundUp_[j]);
                     else if(x[j] < boundLow_[j])
-                        bias_grad[j] = -restraint_[j] * (x[j] - boundLow_[j]);
+                        bias_grad[j] = restraint_[j] * (x[j] - boundLow_[j]);
                 }
             }
         }
@@ -169,18 +170,19 @@ namespace SSAGES
         double sum  = 0.0;
 
         // For multiple walkers, the struct is unpacked
-        Grid<uint> histlocal(*h_);
+        Histogram<uint> histlocal(*h_);
 
         // Summed between all walkers
         MPI_Allreduce(histlocal.data(), h_->data(), h_->size(), MPI_INT, MPI_SUM, world_);
 
         // Construct the biased histogram
         size_t i = 0;
-        for (Grid<uint>::iterator it2 = h_->begin(); it2 != h_->end(); ++it2, ++i)
+        for (Histogram<uint>::iterator it2 = h_->begin(); it2 != h_->end(); ++it2, ++i)
         {
-            // This is to make sure that the CV projects across the entire surface
-            if (*it2 == 0) { *it2 = 1; }
-            
+            if (it2.isUnderOverflowBin()) {
+                --i;
+                continue;
+            }
             /* The evaluation of the biased histogram which projects the histogram to the
              * current bias of CV space.
              */
@@ -193,13 +195,13 @@ namespace SSAGES
         }
 
         // Create the log array and send that to the integrator
-        std::vector<double> z_array (unbias_.size(),0);
+        std::vector<double> z (unbias_.size(),0);
         for (i = 0; i < unbias_.size(); i++)
-            z_array[i] = log(unbias_[i]);
+            z[i] = log(unbias_[i]);
 
         //Update the coefficients and determine the difference from the previous iteration
-        sum = evaluator_.UpdateCoeff(z_array,*h_);
-        coeff_arr_ = evaluator_.GetCoeff();
+        sum = evaluator_.UpdateCoeff(z,h_);
+        coeffArr_ = evaluator_.GetCoeff();
         //Update both the gradient and the bias on the grids
         evaluator_.UpdateBias(b_,f_);
 
@@ -211,7 +213,7 @@ namespace SSAGES
         if(sum < tol_)
         {
             std::cout<<"System has converged"<<std::endl;
-            if(converge_exit_)
+            if(convergeExit_)
             {
                 std::cout<<"User has elected to exit. System is now exiting"<<std::endl;
                 exit(EXIT_SUCCESS);
@@ -240,8 +242,12 @@ namespace SSAGES
         coeffout << "Index" << std::setw(35)<< "Coefficients" << std::endl;
         
         size_t j = 0;
-        for(Grid<double>::iterator it = b_->begin(); it != b_->end(); ++it, ++j)
+        for(Histogram<double>::iterator it = b_->begin(); it != b_->end(); ++it, ++j)
         {
+            if (it.isUnderOverflowBin()) {
+                --j;
+                continue;
+            }
             for(size_t k = 0; k < cvs.size(); ++k)
             {
                 // Evaluate the CV values for printing purposes
@@ -339,13 +345,13 @@ namespace SSAGES
         auto tol  = json.get("tolerance", 1e-6).asDouble();
         auto conv = json.get("convergence_exit", false).asBool();
 
-        Grid<uint> *h = Grid<uint>::BuildGrid(
+        Histogram<uint> *h = Histogram<uint>::BuildHistogram(
                                         json.get("grid", Json::Value()) );
 
-        Grid<std::vector<double>> *f = Grid<std::vector<double>>::BuildGrid(
+        Histogram<std::vector<double>> *f = Histogram<std::vector<double>>::BuildHistogram(
                                         json.get("grid", Json::Value()) );
 
-        Grid<double> *b = Grid<double>::BuildGrid(
+        Histogram<double> *b = Histogram<double>::BuildHistogram(
                                         json.get("grid", Json::Value()) );
 
         size_t ii = 0;
