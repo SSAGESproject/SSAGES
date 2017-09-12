@@ -1,6 +1,6 @@
 #include <cmath>
 #include "json/json.h"
-#include "../Grids/Grid.h"
+#include "../Grids/Histogram.h"
 
 namespace SSAGES
 {
@@ -180,21 +180,21 @@ namespace SSAGES
         void BasisInit(void);
 
         //Outputs the basis projection at a specific coordinate
-		void UpdateBias(Grid<double> *bias, Grid<std::vector<double>> *grad);
+		void UpdateBias(Histogram<double> *bias, Histogram<std::vector<double>> *grad);
 
         //Calculates the inner product of the basis set and the biased histogram
         //This function then returns the coefficients from this calculation
-		double UpdateCoeff(std::vector<double> array, Grid<uint> hist);
+		double UpdateCoeff(const std::vector<double> &array, Histogram<uint> *hist);
 
         //Gets the coefficient array
         std::vector<double> GetCoeff(void)
         {
-            std::vector<double> coeff_array (coeff_.size(),0);
+            std::vector<double> coeffArray (coeff_.size(),0);
             for (size_t i=0; i<coeff_.size(); i++)
             {
-                coeff_array[i] = coeff_[i].value;
+                coeffArray[i] = coeff_[i].value;
             }
-            return coeff_array; 
+            return coeffArray; 
         }
 
         ~BasisEvaluator()

@@ -43,19 +43,19 @@ namespace SSAGES
         /*!
          * Histogram is stored locally.
          */
-        Grid<uint> *h_;
+        Histogram<uint> *h_;
 
         //! Stored bias potential
         /*!
          * The sum of basis functions that adds up to the bias potential of the surface
          */
-        Grid<double> *b_;
+        Histogram<double> *b_;
 
         //! Stored gradients
         /*!
          * The gradients corresponding to each point on the grid
          */
-        Grid<std::vector<double>> *f_;
+        Histogram<std::vector<double>> *f_;
 
         //! The basis evaluator class
         /*!
@@ -73,7 +73,7 @@ namespace SSAGES
         std::vector<double> unbias_;
 
         //! The coefficient array for restart runs
-        std::vector<double> coeff_arr_;
+        std::vector<double> coeffArr_;
 
         //! Spring constants for restrained system.
         /*!
@@ -118,7 +118,7 @@ namespace SSAGES
         bool bounds_;
 
         //! A check to see if you want the system to end when it reaches the convergence criteria.
-        bool converge_exit_;
+        bool convergeExit_;
 
         //! The functions which calculates the updated bias and coefficients and then stores them
         void ProjectBias(const CVList& cvs, const double beta);
@@ -165,9 +165,9 @@ namespace SSAGES
          */
 		BFS(const MPI_Comm& world,
 			  const MPI_Comm& comm,
-              Grid<uint> *h,
-              Grid<std::vector<double>> *f,
-              Grid<double> *b,
+              Histogram<uint> *h,
+              Histogram<std::vector<double>> *f,
+              Histogram<double> *b,
               const std::vector<BasisFunction*>& functions,
               const std::vector<double>& restraint,
               const std::vector<double>& boundUp,
@@ -180,11 +180,11 @@ namespace SSAGES
               const double weight,
               bool converge) :
 		Method(frequency, world, comm), 
-        h_(h),  b_(b), f_(f), unbias_(), coeff_arr_(), evaluator_(functions),
+        h_(h),  b_(b), f_(f), unbias_(), coeffArr_(), evaluator_(functions),
         restraint_(restraint), boundUp_(boundUp), boundLow_(boundLow),
         cyclefreq_(cyclefreq), mpiid_(0), weight_(weight),
         temperature_(temperature), tol_(tol),
-        converge_exit_(converge), bnme_(bnme), iteration_(0)
+        convergeExit_(converge), bnme_(bnme), iteration_(0)
 		{
 		}
 
@@ -231,7 +231,7 @@ namespace SSAGES
          */
         void SetBasis(const std::vector<double>&coeff, std::vector<double>&unbias)
         {
-            coeff_arr_ = coeff;
+            coeffArr_ = coeff;
             unbias_ = unbias;
         }
 

@@ -117,15 +117,19 @@ namespace SSAGES
         }
     }
     
-    void BasisEvaluator::UpdateBias(Grid<double> *bias, Grid<std::vector<double>> *grad)
+    void BasisEvaluator::UpdateBias(Histogram<double> *bias, Histogram<std::vector<double>> *grad)
     { 
         double basis;
         double temp;
         size_t j = 0;
         int nbins;
 
-        for(Grid<double>::iterator it = bias->begin(); it != bias->end(); ++it, ++j)
+        for(Histogram<double>::iterator it = bias->begin(); it != bias->end(); ++it, ++j)
         {
+            if (it.isUnderOverflowBin()) {
+                --j;
+                continue;
+            }
             std::vector<double> tmp_grad (functions_.size(),0);
             double tmp_bias = 0;
             for (size_t i = 1; i < coeff_.size(); ++i)
@@ -157,28 +161,23 @@ namespace SSAGES
 
     //Calculates the inner product of the basis set and the biased histogram
     //This function then returns the coefficients from this calculation
-    double BasisEvaluator::UpdateCoeff(std::vector<double> array, Grid<uint> hist)
+    double BasisEvaluator::UpdateCoeff(const std::vector<double> &array, Histogram<uint> *hist)
     {
         double coeffTemp;
         double sum = 0;
 
         for(auto& coeff : coeff_)
         {
-            // The method uses a standard integration with trap rule weights
+            // The method uses a standard integration
             size_t j = 0;
             coeffTemp = coeff.value;
             coeff.value = 0.0;
-            for(Grid<uint>::iterator it2 = hist.begin(); it2 != hist.end(); ++it2, ++j)
-            {
-                double weight = std::pow(2.0,functions_.size());
-                // This adds in a trap-rule type weighting which lowers error significantly at the boundaries
-                for(size_t k = 0; k < functions_.size(); ++k)
-                {
-                    if( it2.index(k) == 0 ||
-                        it2.index(k) == hist.GetNumPoints(k)-1)
-                        weight /= 2.0;
+            for(Histogram<uint>::iterator it2 = hist->begin(); it2 != hist->end(); ++it2, ++j)
+            { 
+                if (it2.isUnderOverflowBin()) {
+                    --j;
+                    continue;
                 }
-            
                 /*The numerical integration of the biased histogram across the entirety of CV space
                  *All calculations include the normalization as well
                  */
@@ -186,12 +185,12 @@ namespace SSAGES
 
                 for(size_t l = 0; l < functions_.size(); l++)
                 {
-                    int nbins = hist.GetNumPoints(l);
+                    int nbins = hist->GetNumPoints(l);
                     basis *= lookup_[l].values[it2.index(l) + coeff.map[l]*nbins] / nbins;
                     //Normalize the values by the associated value
                     basis *= 2.0 * coeff.map[l] + 1.0;
                 }
-                coeff.value += basis * array[j] * weight/std::pow(2.0,functions_.size());
+                coeff.value += basis * array[j];
             }
             coeffTemp -= coeff.value;
             sum += fabs(coeffTemp);
