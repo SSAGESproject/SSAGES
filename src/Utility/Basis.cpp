@@ -178,6 +178,16 @@ namespace SSAGES
                     --j;
                     continue;
                 }
+
+                double weight = std::pow(2.0,functions_.size());
+
+                // This adds in a trap-rule type weighting which lowers error significantly at the boundaries
+                for(size_t k = 0; k < functions_.size(); ++k)
+                {
+                    if( it2.index(k) == 0 ||
+                        it2.index(k) == hist->GetNumPoints(k)-1)
+                        weight /= 2.0;
+                }
                 /*The numerical integration of the biased histogram across the entirety of CV space
                  *All calculations include the normalization as well
                  */
@@ -190,7 +200,7 @@ namespace SSAGES
                     //Normalize the values by the associated value
                     basis *= 2.0 * coeff.map[l] + 1.0;
                 }
-                coeff.value += basis * array[j];
+                coeff.value += basis * array[j] * weight/std::pow(2.0,functions_.size());
             }
             coeffTemp -= coeff.value;
             sum += fabs(coeffTemp);

@@ -197,7 +197,8 @@ namespace SSAGES
         // Create the log array and send that to the integrator
         std::vector<double> z (unbias_.size(),0);
         for (i = 0; i < unbias_.size(); i++)
-            z[i] = log(unbias_[i]);
+            // Make sure the log of the biased histogram is a number
+            unbias_[i] == 0 ? z[i] = 1 : z[i] = log(unbias_[i]);
 
         //Update the coefficients and determine the difference from the previous iteration
         sum = evaluator_.UpdateCoeff(z,h_);

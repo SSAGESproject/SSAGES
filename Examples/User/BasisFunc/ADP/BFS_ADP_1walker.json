@@ -35,13 +35,13 @@
             "polynomial_order": 25
         }],
         "cvs" : [0,1],
-        "cycle_frequency" : 100000,
+        "cycle_frequency" : 1000000,
         "basis_filename" : "adp_example",
         "frequency" : 1,
         "temperature" : 1.0,
-        "weight" : 1.0,
+        "weight" : 10000.0,
         "tolerance" : 1e-6,
-        "convergence_exit" : true,
+        "convergence_exit" : false,
         "grid" : {
             "lower" : [-3.14, -3.14],
             "upper" : [3.14,3.14],
