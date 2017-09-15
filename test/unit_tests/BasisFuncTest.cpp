@@ -10,8 +10,8 @@
 
 using namespace SSAGES;
 
-// Test calculation up to accuracy of 10^-10
-const double eps = 0.0000000001;
+// Test calculation up to accuracy of 10^-6
+const double eps = 0.000001;
 
 class BasisFuncTest : public ::testing::Test {
 protected:
@@ -197,8 +197,9 @@ TEST_F(BasisFuncTest,InBounds)
         }
     }
 
-    //Method->BFS::PostIntegration(snapshot2, cvmanager);
-    //Method->BFS::PostIntegration(snapshot3, cvmanager);
+	// Check the coefficients as well
+	EXPECT_NEAR(Method->evaluator_.coeff_[11].value,-0.61115,eps);
+	EXPECT_NEAR(Method->evaluator_.coeff_[36].value,0.602855,eps);
 }
 
 TEST_F(BasisFuncTest,OutBounds)
@@ -210,6 +211,7 @@ TEST_F(BasisFuncTest,OutBounds)
 	// Initialize Method.
 	Method->BFS::PreSimulation(snapshot1, cvmanager);
     CV2->val_ = -3;
+    CV1->val_ = -3.5;
 
     // Take a single step
     Method->BFS::PostIntegration(snapshot1, cvmanager);
@@ -218,7 +220,6 @@ TEST_F(BasisFuncTest,OutBounds)
 
 	for(Histogram<uint>::iterator it = Method->h_->begin(); it != Method->h_->end(); ++it)
 	{
-		EXPECT_TRUE(Method->b_->at(it.coordinates()) == 0);
 		EXPECT_TRUE(Method->h_->at(it.coordinates()) == 0);
 	}
 }
