@@ -292,12 +292,14 @@ namespace SSAGES
                     std::cout<<"WARNING: CV is above the maximum boundary."<<std::endl;
                     std::cout<<"Statistics will not be gathered during this interval"<<std::endl;
                     bounds_ = false;
+                    break;
                 }
                 else if(x[j] < min && bounds_)
                 {
                     std::cout<<"WARNING: CV is below the minimum boundary."<<std::endl;
                     std::cout<<"Statistics will not be gathered during this interval"<<std::endl;
                     bounds_ = false;
+                    break;
                 }
                 else if(x[j] < max && x[j] > min && !bounds_)
                 {

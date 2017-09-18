@@ -18,16 +18,15 @@
         "cvs" : [0],
         "cycle_frequency" : 5000,
         "frequency" : 1,
-        "weight" : 1.0,
+        "weight" : 500.0,
         "basis_filename" : "nacl_example",
-        "CV_coefficients" : [ 50 ],
         "CV_restraint_spring_constants" : [ 30 ],
         "CV_restraint_maximums" : [ 10.3 ],
         "CV_restraint_minimums" : [ 1.7 ],
         "grid" : {
                 "lower" : [2.0],
                 "upper" : [11.0],
-                "number_points" : [500],
+                "number_points" : [100],
                 "periodic" : [false]
         }
     }]
