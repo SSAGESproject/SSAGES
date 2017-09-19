@@ -86,9 +86,11 @@ namespace SSAGES
             else
                 return 0.0;
         }
+        virtual double GetNorm(int order) {return 1.0;}
 
         virtual double Evaluate(double val, int order) {return 0;}
         virtual double EvalGrad(double grad, int order) {return 0;}
+        virtual double Weight(double val, int order) {return 1;}
         //virtual std::vector<double> ConvBounds(std::vector<double> x, double max, double min) = 0;
 		static BasisFunction* Build(const Json::Value& json, const std::string& path, uint nbins);
 
@@ -153,10 +155,52 @@ namespace SSAGES
                     (2.0*n-1.0)/(double)n*(Evaluate(x,n-1) + x * EvalGrad(x,n-1)) - (n-1.0)/(double)n*EvalGrad(x,n-2);
         }
 
+        virtual double GetNorm(int n)
+        {
+            return n + 0.5;
+        }
+
         //Build the Legendre polynomial
         static Legendre* Build(const Json::Value& json, const std::string& path, uint nbins);
     };
 
+    class Fourier : public BasisFunction
+    {
+    private:
+    protected:
+    public:
+        Fourier(unsigned int polyOrd, double boundLow, double boundHigh, unsigned int nbins) :
+        BasisFunction(polyOrd, nbins, true, boundLow, boundHigh)
+        {
+        }
+
+        //For the Fourier series, I am choosing to split the coefficients in two
+        //The first odd coefficients are the sine series and the even are cosine
+        //However when evaluated, they will be treated as n, just stored differently
+        virtual double Evaluate(double x, int n)
+        {
+            return n == 0 ? 0.5 : 
+                    n % 2 == 1 ? std::sin(2.0*floor(double(n)*0.5)*M_PI*x/(boundHigh_-boundLow_)) :
+                      std::cos(2.0*floor(double(n)*0.5)*M_PI*x/(boundHigh_-boundLow_));
+        }
+
+        //Same but for the gradients
+        virtual double EvalGrad(double x, int n)
+        {
+            return n == 0 ? 0.0 :
+                    n % 2 == 0 ? (-2.0*floor(double(n)*0.5)*M_PI/(boundHigh_-boundLow_))*(std::sin(2.0*floor(double(n)*0.5)*M_PI*x/(boundHigh_-boundLow_))) : 
+                     (2.0*floor(double(n)*0.5)*M_PI/(boundHigh_-boundLow_))*std::cos(2.0*floor(double(n)*0.5)*M_PI*x/(boundHigh_-boundLow_));
+        }
+
+        virtual double GetNorm(int n)
+        {
+            //Assumes the period of the function is the range of the CV
+            return 2.0/(boundHigh_-boundLow_);
+        }
+
+        //Build the Fourier polynomial
+        static Fourier* Build(const Json::Value& json, const std::string& path, uint nbins);
+    };
     //Calculates the inner product of all the basis functions and the histogram
     class BasisEvaluator
     {

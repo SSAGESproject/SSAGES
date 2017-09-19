@@ -13,6 +13,8 @@ namespace SSAGES
             return Legendre::Build(json, path, nbins);
         else if (type == "Chebyshev")
             return Chebyshev::Build(json, path, nbins);
+        else if (type == "Fourier")
+            return Fourier::Build(json, path, nbins);
         else
             throw std::invalid_argument("Invalid basis set type \"" + type + "\".");
     }
@@ -41,6 +43,29 @@ namespace SSAGES
             );
     }
 
+    Fourier* Fourier::Build(const Json::Value& json,
+                            const std::string& path,
+                            uint nbin)
+    {
+        Json::ObjectRequirement validator;
+        Json::Value schema;
+        Json::Reader reader;
+        
+        reader.parse(JsonSchema::FourierBasis, schema);
+        validator.Parse(schema, path);
+
+        //Validate Inputs
+        validator.Validate(json, path);
+        if(validator.HasErrors())
+            throw BuildException(validator.GetErrors());
+
+        return new Fourier(
+                json["polynomial_order"].asInt(),
+                json["lower_bound"].asDouble(),
+                json["upper_bound"].asDouble(),
+                nbin
+            );
+    }
     Legendre* Legendre::Build(const Json::Value& json,
                               const std::string& path,
                               uint nbin)
@@ -196,9 +221,9 @@ namespace SSAGES
                 for(size_t l = 0; l < functions_.size(); l++)
                 {
                     int nbins = hist->GetNumPoints(l);
-                    basis *= lookup_[l].values[it2.index(l) + coeff.map[l]*nbins] / nbins;
+                    basis *= lookup_[l].values[it2.index(l) + coeff.map[l]*nbins]*functions_[l]->GetRange()/nbins;
                     //Normalize the values by the associated value
-                    basis *= 2.0 * coeff.map[l] + 1.0;
+                    basis *= functions_[l]->GetNorm(coeff.map[l])*functions_[l]->Weight(it2.coordinate(l),coeff.map[l]);
                 }
                 coeff.value += basis * array[j] * weight/std::pow(2.0,functions_.size());
             }
