@@ -65,6 +65,8 @@ protected:
             int index = indices.at(i);
             while (index < 0) { index += GetNumPoints(i); }
             while (index >= GetNumPoints(i)) { index -= GetNumPoints(i); }
+			if(index == GetNumPoints(i)-1)
+				index = 0;
             newIndices.at(i) = index;
         }
 
@@ -117,11 +119,85 @@ protected:
             throw std::invalid_argument("Size of vector isPeriodic does not "
                     "match size of vector containing number of grid points.");
         }
+		for(size_t i=0 ; i < isPeriodic_.size() ; i++)
+		{
+			if(isPeriodic_[i])
+			{
+				double spacing = (GetUpper(i) - GetLower(i)) / GetNumPoints(i);
+				numPoints_[i]++;
+				edges_.first[i] -= spacing/2;
+				edges_.second[i] += spacing/2;
+			}
+		}
 		
     }
 
 public:
-    //! Get the dimension.
+
+	
+	void syncGrid()
+	{
+		double dim = this->GetDimension();
+		
+		if(dim == 1 && isPeriodic_[0])
+		{
+			this->at(GetNumPoints(0)-1) = this->at(0);
+		}
+		
+		else if(dim == 1)
+		{
+			return;			
+		}
+		
+		double loopsize = 1;
+		std::vector<int> navigate(dim);		
+		for(size_t i = 0; i<dim ; ++i)
+		{
+			if(!isPeriodic_[i])
+				continue;
+				
+			loopsize = 1;
+			for(size_t j = 0; j<dim; ++j)
+			{
+				if(j!=i)
+					loopsize *= GetNumPoints(j);
+			}
+			std::fill(navigate.begin(), navigate.end(), 0);
+			
+			double div = 1;			
+			for(size_t j = 0; j<loopsize; ++j)
+			{
+				div = 1;
+				if(i==0)
+				{
+					navigate[1] = j%(GetNumPoints(1));
+				}
+				else
+				{
+					navigate[0] = j%(GetNumPoints(0));
+				}
+				for(size_t l = 1; l<dim; ++l)
+				{
+					if((i==0)&&(l==1))
+					{
+						continue;
+					}
+					if( l!=i )
+					{
+						div *= GetNumPoints(l);	
+						navigate[l] = loopsize/div;
+					}
+				}
+				navigate[i] = 0;
+				auto temp = this->at(navigate);
+				navigate[i] = GetNumPoints(i)-1;
+				this->at(navigate) = temp;
+			}
+		}			
+	}	
+	
+	 
+	//! Get the dimension.
     /*!
      * \return Dimensionality of the grid.
      */
@@ -318,7 +394,7 @@ public:
             double spacing = (GetUpper(i) - GetLower(i)) / GetNumPoints(i);
             indices.at(i) = std::floor( (xpos - GetLower(i)) / spacing);
         }
-
+		
         return wrapIndices(indices);
     }
 	

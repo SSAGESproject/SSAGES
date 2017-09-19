@@ -237,11 +237,15 @@ namespace SSAGES
 		// Only one processor should be performing I/O.
 		if(world_.rank() != 0)
 			return;
+			
+		Nworld_->syncGrid();
+		
 
 		// Backup Fworld and Nworld.
 		Nworld_->WriteToFile(Nworld_filename_);
 		for(size_t i = 0 ; i < dim_; ++i)
 		{
+			//Fworld_[i]->syncGrid();
 			Fworld_[i]->WriteToFile(Fworld_filename_+std::to_string(i));
 		}
 		
