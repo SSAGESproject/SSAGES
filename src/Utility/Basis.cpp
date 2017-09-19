@@ -223,7 +223,7 @@ namespace SSAGES
                     int nbins = hist->GetNumPoints(l);
                     basis *= lookup_[l].values[it2.index(l) + coeff.map[l]*nbins]*functions_[l]->GetRange()/nbins;
                     //Normalize the values by the associated value
-                    basis *= functions_[l]->GetNorm(coeff.map[l])*functions_[l]->Weight(it2.coordinate(l),coeff.map[l]);
+                    basis *= functions_[l]->GetNorm(coeff.map[l])*functions_[l]->Weight(it2.coordinate(l));
                 }
                 coeff.value += basis * array[j] * weight/std::pow(2.0,functions_.size());
             }

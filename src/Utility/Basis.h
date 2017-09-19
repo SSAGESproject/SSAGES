@@ -90,7 +90,7 @@ namespace SSAGES
 
         virtual double Evaluate(double val, int order) {return 0;}
         virtual double EvalGrad(double grad, int order) {return 0;}
-        virtual double Weight(double val, int order) {return 1;}
+        virtual double Weight(double val) {return 1;}
         //virtual std::vector<double> ConvBounds(std::vector<double> x, double max, double min) = 0;
 		static BasisFunction* Build(const Json::Value& json, const std::string& path, uint nbins);
 
@@ -111,18 +111,28 @@ namespace SSAGES
         }
 
         //Quick recursive relation to evaluate the basis sets
-        double Evaluate(double x, int n)
+        virtual double Evaluate(double x, int n)
         {
             return n == 0 ? 1.0 : 
                     n == 1 ? x :
                     2.0*x*Evaluate(x,n-1) - Evaluate(x,n-2);
         }
         //Same but for the gradients
-        double EvalGrad(double x, int n)
+        virtual double EvalGrad(double x, int n)
         {
             return n == 0 ? 0.0 :
                     n == 1 ? 1.0 :
                     2.0*(Evaluate(x,n-1) + x * EvalGrad(x,n-1)) - EvalGrad(x,n-2);
+        }
+
+        virtual double Weight(double x)
+        {
+            return 1.0/sqrt(1.0-x*x);
+        }
+
+        virtual double GetNorm(int n)
+        {
+            return (boundHigh_-boundLow_)/M_PI;
         }
         
         //Build the Chebyshev polynomial
