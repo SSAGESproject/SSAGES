@@ -194,6 +194,23 @@ namespace SSAGES
 		}
 	}
 
+	void ANN::WriteBias()
+	{
+		net_.write("netstate.dat");
+		std::ofstream file("ann.out");
+		file.precision(16);
+		net_.forward_pass(hist_);
+		matrix_t y = net_.get_activation();
+		for(int i = 0; i < y.rows(); ++i)
+		{
+			for(int j = 0; j < hist_.cols(); ++j)
+				file << std::fixed << hist_(i,j) << " ";
+			file << std::fixed << uhist_(i) << " " << std::fixed << y(i) << "\n";
+		}
+
+		file.close();
+	}
+
 	ANN* ANN::Build(
 		const Json::Value& json, 
 		const MPI_Comm& world,
