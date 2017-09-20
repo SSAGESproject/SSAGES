@@ -9,7 +9,7 @@ using namespace Eigen;
 
 namespace nnet
 {
-	neural_net::neural_net(VectorXi& topology) 
+	neural_net::neural_net(const VectorXi& topology) 
 	{
 		assert(topology.size()>1);
 		init_layers(topology);
@@ -52,7 +52,7 @@ namespace nnet
 		file.close();
 	}
 
-	void neural_net::init_layers(VectorXi& topology) 
+	void neural_net::init_layers(const VectorXi& topology) 
 	{
 		// init input layer
 		nparam_ = 0; 

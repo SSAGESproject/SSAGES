@@ -30,7 +30,7 @@ namespace nnet
 	{
 	private:
 		/** Allocate memory and initialize default values. */
-		void init_layers(Eigen::VectorXi &topology);
+		void init_layers(const Eigen::VectorXi &topology);
 		
 		/** Holds the layers of the neural net. */
 		std::vector<nn_layer> layers_;
@@ -53,7 +53,7 @@ namespace nnet
 		
 	public:
 		/** Init neural net with given topology. */
-		neural_net(Eigen::VectorXi& topology);
+		neural_net(const Eigen::VectorXi& topology);
 		
 		/** Read neural net from file. */
 		neural_net(const char* filename);
