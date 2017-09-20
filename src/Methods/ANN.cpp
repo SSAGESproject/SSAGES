@@ -1,10 +1,14 @@
 #include "ANN.h"
-#include "mxx/bcast.hpp"
+#include "schema.h"
 #include "Snapshot.h"
+#include "mxx/bcast.hpp"
 #include "CVs/CVManager.h"
+#include "Drivers/DriverException.h"
+#include "Validator/ObjectRequirement.h"
 
 using namespace Eigen; 
 using namespace nnet;
+using namespace Json;
 
 namespace SSAGES
 {
@@ -19,9 +23,9 @@ namespace SSAGES
 		     double temperature,
 		     double weight,
 		     uint maxiter, 
-			 uint sweep) : 
+			 uint nsweep) : 
 	Method(1, world, comm), topol_(topol), maxiter_(maxiter), sweep_(0),
-	nsweep_(sweep),  net_(topol), pweight_(1.), weight_(weight), temp_(temperature), 
+	nsweep_(nsweep),  net_(topol), pweight_(1.), weight_(weight), temp_(temperature), 
 	kbt_(0), fgrid_(fgrid), hgrid_(nullptr), hist_(), bias_(), uhist_(),
 	lowerb_(lowerb), upperb_(upperb), lowerk_(lowerk), upperk_(upperk)
 	{
@@ -159,8 +163,8 @@ namespace SSAGES
 
 		// Update FES estimator.
 		Map<Array<uint, Dynamic, 1>> hist(hgrid_->data(), hgrid_->size());
-		uhist_.array() = pweight_*uhist_.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_/sweep_;
-		hist = 0;
+		uhist_.array() = pweight_*uhist_.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_/nsweep_;
+		hist *= 0;
 
 		bias_.array() = kbt_*uhist_.array().log();
 		bias_.array() -= bias_.minCoeff();
@@ -188,5 +192,57 @@ namespace SSAGES
 			MatrixXd forces = net_.get_gradient(i); 
 			fgrid_->data()[i] = forces.row(i).transpose();
 		}
+	}
+
+	ANN* ANN::Build(
+		const Json::Value& json, 
+		const MPI_Comm& world,
+		const MPI_Comm& comm,
+		const std::string& path)
+	{
+		ObjectRequirement validator;
+		Value schema;
+		Reader reader;
+		
+		reader.parse(JsonSchema::ANNMethod, schema);
+		validator.Parse(schema, path);
+
+		// Validate inputs.
+		validator.Validate(json, path);
+		if(validator.HasErrors())
+			throw BuildException(validator.GetErrors());
+		
+		// Grid. 
+		Grid<VectorXd>* fgrid = Grid<VectorXd>::BuildGrid(json.get("grid", Json::Value()));
+
+
+		// Topology. 
+		auto nlayers = json["topology"].size() + 2;
+		VectorXi topol(nlayers);
+		topol[0] = fgrid->GetDimension();
+		topol[nlayers-1] = 1;
+		for(int i = 0; i < json["topology"].size(); ++i)
+			topol[i+1] = json["topology"][i].asInt();
+		
+		auto maxiter = json["max_iter"].asUInt();
+		auto weight = json.get("weight", 1).asDouble();
+		auto temp = json["temperature"].asDouble();
+		auto pweight = json.get("prev_weight", 1).asDouble();
+		auto nsweep = json["nsweep"].asUInt();
+
+		// Assume all vectors are the same size. 
+		std::vector<double> lowerb, upperb, lowerk, upperk;
+		for(int i = 0; i < json["lower_bound_restraints"].size(); ++i)
+		{
+			lowerk.push_back(json["lower_bound_restraints"][i].asDouble());
+			upperk.push_back(json["upper_bound_restraints"][i].asDouble());
+			lowerb.push_back(json["lower_bounds"][i].asDouble());
+			upperb.push_back(json["upper_bounds"][i].asDouble());
+		}
+
+		auto* m = new ANN(world, comm, topol, fgrid, lowerb, upperb, lowerk, upperk, temp, weight, maxiter, nsweep);
+		m->SetPrevWeight(pweight);
+
+		return m;
 	}
 }

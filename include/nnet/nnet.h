@@ -1,7 +1,7 @@
 #ifndef __NN_H__
 #define __NN_H__
 
-#define f_type float
+#define f_type double
 
 #include <Eigen/Core>
 #include <vector>

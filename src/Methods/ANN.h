@@ -60,7 +60,7 @@ namespace SSAGES
             double temperature,
             double weight,
             uint maxiter, 
-            uint sweep
+            uint nsweep
 		);
 
 			//! Pre-simulation hook.

@@ -61,7 +61,11 @@
             "type" : "number", 
             "minimum" : 0, 
             "maximum" : 1
-        }
+		},
+		"nsweep" : {
+			"type" : "integer", 
+			"minimum" : 1
+		}
     },
     "required" : [
         "type", 
@@ -72,7 +76,8 @@
 		"upper_bound_restraints",
 		"lower_bounds",
 		"upper_bounds",
-        "temperature"
+		"temperature",
+		"nsweep"
     ],
     "additionalProperties" : false
 }
