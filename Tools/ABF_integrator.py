@@ -118,7 +118,7 @@ def main():
     parser = argparse.ArgumentParser(description='This script post-process the F_out file that SSAGES print out, and create a FES from the estimation of the thermodynamic force')
     parser.add_argument('-i','--input',default='F_out',help='name of the file containing the force')
     parser.add_argument('-o','--output',default='G',help='file containing the free energy surface')
-    parser.add_argument('-p','--periodicity',type=bool,default=[False,False],help='periodicity of the CVs (True is periodic, False is not)')
+    parser.add_argument('-p','--periodicity',nargs='*',default=[False,False],help='periodicity of the CVs (True is periodic, False is not)')
     parser.add_argument('-n','--npoints',type=int,default=500,help='number of points for the interpolation')
     parser.add_argument('-s','--scale',type=float,default=1,help='scale for the interpolation')
 
@@ -131,13 +131,14 @@ def main():
     scale=args.scale
 
 
+
     if not (os.path.isfile(inputfile)):
         print('Input file is missing. Aborting! Please use -h to ask for help!')
         exit()
 
-    print('Input file is :\n', inputfile, '\nand output file is : \n',outputname)
-    print('currently, CV1 periodicity is set to \n',periodic[0],' \nwhile periodicity of CV2 (if present) is set to \n',periodic[1])
-    print('Free energy will be interpolate with \n',interpolate,'\npoints')
+    print('Input file is :\n', inputfile, '\n and output file is : \n',outputname)
+    print('currently, CV1 periodicity is set to \n',periodic[0],' \n while periodicity of CV2 (if present) is set to \n',periodic[1])
+    print('Free energy will be interpolate with \n',interpolate,'\n points')
     f = open(outputname+'_integrated.txt','w')	
 
     vfield = []
