@@ -1,0 +1,78 @@
+{
+    "type" : "object", 
+    "varname" : "ANNMethod", 
+    "properties" : {
+        "type" : {
+            "type" : "string", 
+            "enum" : ["ANN"]
+        }, 
+        "topology" : {
+            "type" : "array", 
+            "minItems" : 1,
+            "items" : { 
+                "type" : "integer", 
+                "minimum" : 1
+            } 
+        }, 
+        "maxiter" : { 
+            "type" : "integer", 
+            "minimum" : 1
+        },
+        "weight" : {
+            "type" : "number",
+            "minimum" : 0 
+        },
+        "grid" : {
+            "type" : "object"
+        },
+        "temperature" : {
+            "type" : "number", 
+            "minimum" : 0
+        },
+		"lower_bounds" : {
+			"type" : "array", 
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+		"upper_bounds" : {
+			"type" : "array", 
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+		"lower_bound_restraints" : {
+			"type" : "array", 
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+		"upper_bound_restraints" : {
+			"type" : "array", 
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+        "prev_weight" : {
+            "type" : "number", 
+            "minimum" : 0, 
+            "maximum" : 1
+        }
+    },
+    "required" : [
+        "type", 
+        "topology", 
+        "maxiter", 
+        "grid", 
+        "lower_bound_restraints",
+		"upper_bound_restraints",
+		"lower_bounds",
+		"upper_bounds",
+        "temperature"
+    ],
+    "additionalProperties" : false
+}
