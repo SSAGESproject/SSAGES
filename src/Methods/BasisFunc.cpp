@@ -230,7 +230,7 @@ namespace SSAGES
     {
         // The filenames will have a standard name, with a user-defined suffix
         std::string filename1 = "basis"+bnme_+".out"; 
-        std::string filename2 = "coeff"+bnme_+".out"; 
+        std::string filename2 = "restart"+bnme_+".out";
         std::ofstream basisout;
         std::ofstream coeffout;
         basisout.precision(5);
@@ -239,8 +239,9 @@ namespace SSAGES
         coeffout.open(filename2.c_str());
 
         // The CV values, PMF projection, PMF, and biased histogram are output for the user
-        basisout << "CV Values" << std::setw(35*cvs.size()) << "Basis Set Bias" << std::setw(35) << "PMF Estimate" << std::setw(35) << "Biased Histogram" << std::endl;
-        coeffout << "Index" << std::setw(35)<< "Coefficients" << std::endl;
+        basisout << "CV Values" << std::setw(35*cvs.size()) << "Basis Set Bias" << std::setw(35) << "PMF Estimate" << std::endl;
+        coeffout << "The information stored in this file is for the purpose of restarting simulations with BFS" << std::endl;
+        coeffout << "***COEFFICIENTS***" << std::endl;
         
         size_t j = 0;
         for(Histogram<double>::iterator it = b_->begin(); it != b_->end(); ++it, ++j)
@@ -256,19 +257,18 @@ namespace SSAGES
             }
             basisout << -(*it) << std::setw(35);
             basisout << -log(unbias_[j]) << std::setw(35);
-            basisout << unbias_[j];
             basisout << std::endl;
         }
 
         std::vector<double> coeff = evaluator_.GetCoeff();
-        size_t ii = 0;
         for (auto& val : coeff) {
-            coeffout << ii << std::setw(35) << val << std::endl;
-            ii++;
+            coeffout << val << std::endl;
+        }
+        coeffout << "***HISTOGRAM***" << std::endl;
+        for (auto& val : unbias_) {
+            coeffout << val << std::endl;
         }
 
-		basisout << std::endl;
-		coeffout << std::endl;
         basisout.close();
         coeffout.close();
 	}
@@ -366,6 +366,7 @@ namespace SSAGES
             ii++;
         }
 
+
         auto* m = new BFS(world, comm, h, f, b, functions, restrCV, boundUp, boundLow,
                             cyclefreq, freq, bnme, temp, tol, wght,
                             conv);
@@ -373,18 +374,40 @@ namespace SSAGES
         if(json.isMember("iteration"))
             m->SetIteration(json.get("iteration",0).asInt());
 
-        if(json.isMember("coefficients") && json.isMember("bias_hist"))
-        {
+		// Check if previously saved grids exist. If so, check that data match and load grids.
+        std::ifstream restrFile;
+        restrFile.open("restart"+_bnme+".out");
+		if(restrFile.is_open())
+		{
+            std::string line;
             std::vector<double> coeff;
             std::vector<double> unbias;
+            bool coeffFlag = false;
+            bool basisFlag = false;
+			std::cout << "Attempting to load data from a previous run of BFS." << std::endl;
 
-            for(auto& c : json["coefficients"])
-                coeff.push_back(c.asDouble());
-
-            for(auto& u : json["bias_hist"])
-                unbias.push_back(u.asDouble());
-
+            while(!std::getline(restrFile,line).eof()) 
+            {
+                if(line.find("COEFFICIENTS") != std::string::npos) {
+                    std::getline(restrFile,line);
+                    coeffFlag = true;
+                }
+                else if (line.find("HISTOGRAM") != std::string::npos) {
+                    std::getline(restrFile,line);
+                    basisFlag = true;
+                    coeffFlag = false;
+                }
+                if(coeffFlag) {
+                    //std::cout<<line<<std::endl;
+                    coeff.push_back(std::stod(line));
+                }
+                else if (basisFlag) { 
+                    std::cout<<line<<std::endl;
+                    unbias.push_back(std::stod(line));
+                }
+            }
             m->SetBasis(coeff, unbias);
+            restrFile.close();
     	}
 
 		return m;

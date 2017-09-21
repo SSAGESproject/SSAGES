@@ -251,6 +251,17 @@ namespace SSAGES
             return coeffArray; 
         }
 
+        //Set the coefficient array in the event of a restart run
+        void SetCoeff(const std::vector<double>& coeff)
+        {
+            size_t ii = 0;
+            for(auto& val : coeff_) 
+            {    
+                val.value = coeff[ii];
+                ii++;
+            }
+        }
+
         ~BasisEvaluator()
         {
         }

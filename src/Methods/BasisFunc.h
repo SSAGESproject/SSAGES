@@ -231,7 +231,7 @@ namespace SSAGES
          */
         void SetBasis(const std::vector<double>&coeff, std::vector<double>&unbias)
         {
-            coeffArr_ = coeff;
+            evaluator_.SetCoeff(coeff);
             unbias_ = unbias;
         }
 
