@@ -398,11 +398,9 @@ namespace SSAGES
                     coeffFlag = false;
                 }
                 if(coeffFlag) {
-                    //std::cout<<line<<std::endl;
                     coeff.push_back(std::stod(line));
                 }
                 else if (basisFlag) { 
-                    std::cout<<line<<std::endl;
                     unbias.push_back(std::stod(line));
                 }
             }
