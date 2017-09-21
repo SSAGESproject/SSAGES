@@ -162,7 +162,9 @@ Example Input
 Guidelines for running BFS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* It is generally a good idea to use polynomials of order at least 25. 
+* It is generally a good idea to choose a lower order polynomial initially.
+  Excessive number of polynomials may create an unwanted "ringing" effect that could result
+  in much slower convergence.
 * For higher order polynomials, the error in projection is less, but the number
   of bins must increase in order to accurately project the surface. This may
   also result in an undesired ringing phenomena.
@@ -232,11 +234,11 @@ sweeps, and then will take a longer period of time to retrieve the fully
 converged surface. A reference image of the converged  alanine dipeptide example
 is provided in the same directory as the LAMMPS and JSON input files.
 
-coeff.out
+restart.out
 ~~~~~~~~~
 
-This holds all the coefficient values after each bias projection update. This
-file is entirely used for restart runs.
+This holds all the coefficient values after each bias projection update, as well
+as the biased histogram. This file is entirely used for restart runs.
 
 Developer
 ^^^^^^^^^
