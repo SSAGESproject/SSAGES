@@ -61,7 +61,13 @@
 		"nsweep" : {
 			"type" : "integer", 
 			"minimum" : 1
-		}
+        },
+        "output_file" : {
+            "type" : "string"
+        },
+        "overwrite_output" : {
+            "type" : "boolean"
+        }
     },
     "required" : [
         "type", 

@@ -42,6 +42,12 @@ namespace SSAGES
 		//! Bound restraints. 
 		std::vector<double> lowerk_, upperk_;
 
+		//! Output filename. 
+		std::string outfile_;
+
+		//! Overwrite outputs? 
+		bool overwrite_;
+
 		//! Trains the neural network.
 		void TrainNetwork();
 		 
@@ -89,6 +95,18 @@ namespace SSAGES
         void SetPrevWeight(double h)
         {
             pweight_ = h;
+		}
+
+		//! Set name of output file. 
+		void SetOutput(const std::string& outfile)
+		{
+			outfile_ = outfile;
+		}
+
+		//! Set overwrite flag on output file.
+		void SetOutputOverwrite(bool overwrite)
+		{
+			overwrite_ = overwrite;
 		}
 
 		//! \copydoc Buildable::Build()

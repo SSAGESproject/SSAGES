@@ -28,7 +28,8 @@ namespace SSAGES
 	Method(1, world, comm), topol_(topol), sweep_(0), nsweep_(nsweep),  
 	net_(topol), pweight_(1.), weight_(weight), temp_(temperature), 
 	kbt_(0), fgrid_(fgrid), hgrid_(hgrid), ugrid_(ugrid), hist_(), bias_(),
-	lowerb_(lowerb), upperb_(upperb), lowerk_(lowerk), upperk_(upperk)
+	lowerb_(lowerb), upperb_(upperb), lowerk_(lowerk), upperk_(upperk),
+	outfile_("ann.out"), overwrite_(true)
 	{
 		// Create histogram grid matrix.
 		auto points = hgrid_->GetNumPoints();
@@ -188,7 +189,9 @@ namespace SSAGES
 	void ANN::WriteBias()
 	{
 		net_.write("netstate.dat");
-		std::ofstream file("ann.out");
+		
+		std::string filename = overwrite_ ? outfile_ : outfile_ + std::to_string(sweep_);
+		std::ofstream file(filename);
 		file.precision(16);
 		net_.forward_pass(hist_);
 		matrix_t y = net_.get_activation();
@@ -237,6 +240,8 @@ namespace SSAGES
 		auto temp = json["temperature"].asDouble();
 		auto pweight = json.get("prev_weight", 1).asDouble();
 		auto nsweep = json["nsweep"].asUInt();
+		auto file = json.get("output_file", "ann.out").asString();
+		auto overwrite = json.get("overwrite_output", true).asBool();
 
 		// Assume all vectors are the same size. 
 		std::vector<double> lowerb, upperb, lowerk, upperk;
@@ -250,6 +255,8 @@ namespace SSAGES
 
 		auto* m = new ANN(world, comm, topol, fgrid, hgrid, ugrid, lowerb, upperb, lowerk, upperk, temp, weight, nsweep);
 		m->SetPrevWeight(pweight);
+		m->SetOutput(file);
+		m->SetOutputOverwrite(overwrite);
 
 		return m;
 	}
