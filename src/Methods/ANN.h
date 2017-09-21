@@ -12,9 +12,6 @@ namespace SSAGES
 		// Neural network topology. 
 		Eigen::VectorXi topol_;
 
-		//! Maximum number of learning iterations. 
-		uint maxiter_; 
-
 		//! Number of iterations per sweep. 
 		uint sweep_, nsweep_;
 
@@ -33,8 +30,11 @@ namespace SSAGES
 		//! Histogram grid.
 		Grid<uint>* hgrid_;
 
+		//! Unbiased histogram grid. 
+		Grid<double>* ugrid_;
+
 		//! Eigen matrices of grids. 
-		Eigen::MatrixXd hist_, bias_, uhist_;
+		Eigen::MatrixXd hist_, bias_;
 	   
 		//! Bounds 
 	   	std::vector<double> lowerb_, upperb_; 
@@ -53,13 +53,14 @@ namespace SSAGES
 			const MPI_Comm& comm, 
 			const Eigen::VectorXi& topol,
 			Grid<Eigen::VectorXd>* fgrid,
+			Grid<uint>* hgrid,
+			Grid<double>* ugrid,
 			const std::vector<double>& lowerb,
 			const std::vector<double>& upperb,
 			const std::vector<double>& lowerk,
 			const std::vector<double>& upperk,
             double temperature,
             double weight,
-            uint maxiter, 
             uint nsweep
 		);
 

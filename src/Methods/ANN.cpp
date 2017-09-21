@@ -15,28 +15,21 @@ namespace SSAGES
 	ANN::ANN(const MPI_Comm& world, 
 		     const MPI_Comm& comm, 
 		     const VectorXi& topol,
-		     Grid<VectorXd>* fgrid,
+			 Grid<VectorXd>* fgrid,
+			 Grid<uint>* hgrid,
+			 Grid<double>* ugrid,
 		     const std::vector<double>& lowerb,
 		     const std::vector<double>& upperb,
 		     const std::vector<double>& lowerk,
 		     const std::vector<double>& upperk,
 		     double temperature,
 		     double weight,
-		     uint maxiter, 
 			 uint nsweep) : 
-	Method(1, world, comm), topol_(topol), maxiter_(maxiter), sweep_(0),
-	nsweep_(nsweep),  net_(topol), pweight_(1.), weight_(weight), temp_(temperature), 
-	kbt_(0), fgrid_(fgrid), hgrid_(nullptr), hist_(), bias_(), uhist_(),
+	Method(1, world, comm), topol_(topol), sweep_(0), nsweep_(nsweep),  
+	net_(topol), pweight_(1.), weight_(weight), temp_(temperature), 
+	kbt_(0), fgrid_(fgrid), hgrid_(hgrid), ugrid_(ugrid), hist_(), bias_(),
 	lowerb_(lowerb), upperb_(upperb), lowerk_(lowerk), upperk_(upperk)
 	{
-		// Build histogram grid. 
-		hgrid_ = new Grid<uint>(
-			fgrid_->GetNumPoints(), 
-			fgrid_->GetLower(), 
-			fgrid_->GetUpper(), 
-			fgrid_->GetPeriodic()
-		);
-
 		// Create histogram grid matrix.
 		auto points = hgrid_->GetNumPoints();
 		auto ntot = std::accumulate(points.begin(), points.end(), 1, std::multiplies<int>());
@@ -55,13 +48,8 @@ namespace SSAGES
 
 		// Initialize FES vector.
 		bias_.resize(ntot, 1);
-		uhist_.resize(ntot, 1);
-		
 		for(i = 0; i < ntot; ++i)
-		{
 			bias_(i) = 0;
-			uhist_(i) = 1;
-		}
 	}
 
 	void ANN::PreSimulation(Snapshot* snapshot, const CVManager&) 
@@ -72,6 +60,7 @@ namespace SSAGES
 		// Zero out forces and histogram. 
 		VectorXd vec = VectorXd::Zero(ndim);
 		std::fill(hgrid_->begin(), hgrid_->end(), 0);
+		std::fill(ugrid_->begin(), ugrid_->end(), 1.);
 		std::fill(fgrid_->begin(), fgrid_->end(), vec);
 	}
 
@@ -161,12 +150,14 @@ namespace SSAGES
 		// Synchronize grid in case it's periodic. 
 		hgrid_->syncGrid();
 
-		// Update FES estimator.
+		// Update FES estimator. Synchronize unbiased histogram.
 		Map<Array<uint, Dynamic, 1>> hist(hgrid_->data(), hgrid_->size());
-		uhist_.array() = pweight_*uhist_.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_/nsweep_;
+		Map<Matrix<double, Dynamic, 1>> uhist(ugrid_->data(), ugrid_->size());
+		uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_/nsweep_;
+		ugrid_->syncGrid();
 		hist *= 0;
 
-		bias_.array() = kbt_*uhist_.array().log();
+		bias_.array() = kbt_*uhist.array().log();
 		bias_.array() -= bias_.minCoeff();
 		
 		// Train network.
@@ -205,7 +196,7 @@ namespace SSAGES
 		{
 			for(int j = 0; j < hist_.cols(); ++j)
 				file << std::fixed << hist_(i,j) << " ";
-			file << std::fixed << uhist_(i) << " " << std::fixed << y(i) << "\n";
+			file << std::fixed << ugrid_->data()[i] << " " << std::fixed << y(i) << "\n";
 		}
 
 		file.close();
@@ -230,8 +221,9 @@ namespace SSAGES
 			throw BuildException(validator.GetErrors());
 		
 		// Grid. 
-		Grid<VectorXd>* fgrid = Grid<VectorXd>::BuildGrid(json.get("grid", Json::Value()));
-
+		auto* fgrid = Grid<VectorXd>::BuildGrid(json.get("grid", Json::Value()));
+		auto* hgrid = Grid<uint>::BuildGrid(json.get("grid", Json::Value()));
+		auto* ugrid = Grid<double>::BuildGrid(json.get("grid", Json::Value()));
 
 		// Topology. 
 		auto nlayers = json["topology"].size() + 2;
@@ -241,7 +233,6 @@ namespace SSAGES
 		for(int i = 0; i < json["topology"].size(); ++i)
 			topol[i+1] = json["topology"][i].asInt();
 		
-		auto maxiter = json["max_iter"].asUInt();
 		auto weight = json.get("weight", 1).asDouble();
 		auto temp = json["temperature"].asDouble();
 		auto pweight = json.get("prev_weight", 1).asDouble();
@@ -257,7 +248,7 @@ namespace SSAGES
 			upperb.push_back(json["upper_bounds"][i].asDouble());
 		}
 
-		auto* m = new ANN(world, comm, topol, fgrid, lowerb, upperb, lowerk, upperk, temp, weight, maxiter, nsweep);
+		auto* m = new ANN(world, comm, topol, fgrid, hgrid, ugrid, lowerb, upperb, lowerk, upperk, temp, weight, nsweep);
 		m->SetPrevWeight(pweight);
 
 		return m;
