@@ -376,7 +376,7 @@ namespace SSAGES
 
 		// Check if previously saved grids exist. If so, check that data match and load grids.
         std::ifstream restrFile;
-        restrFile.open("restart"+_bnme+".out");
+        restrFile.open("restart"+bnme+".out");
 		if(restrFile.is_open())
 		{
             std::string line;
