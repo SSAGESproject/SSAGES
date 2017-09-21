@@ -63,9 +63,9 @@ protected:
             }
 
             int index = indices.at(i);
-            while (index < 0) { index += GetNumPoints(i); }
-            while (index >= GetNumPoints(i)) { index -= GetNumPoints(i); }
-			if(index == GetNumPoints(i)-1)
+            while (index < 0) { index += numPoints_[i]; }
+            while (index >= numPoints_[i]) { index -= numPoints_[i]; }
+			if(index == numPoints_[i]-1)
 				index = 0;
             newIndices.at(i) = index;
         }
@@ -123,7 +123,7 @@ protected:
 		{
 			if(isPeriodic_[i])
 			{
-				double spacing = (GetUpper(i) - GetLower(i)) / GetNumPoints(i);
+				double spacing = (edges_.second[i] - edges_.first[i]) / numPoints_[i];
 				numPoints_[i]++;
 				edges_.first[i] -= spacing/2;
 				edges_.second[i] += spacing/2;
@@ -141,7 +141,7 @@ public:
 		
 		if(dim == 1 && isPeriodic_[0])
 		{
-			this->at(GetNumPoints(0)-1) = this->at(0);
+			this->at(numPoints_[0]-1) = this->at(0);
 		}
 		
 		else if(dim == 1)
@@ -160,7 +160,7 @@ public:
 			for(size_t j = 0; j<dim; ++j)
 			{
 				if(j!=i)
-					loopsize *= GetNumPoints(j);
+					loopsize *= numPoints_[j];
 			}
 			std::fill(navigate.begin(), navigate.end(), 0);
 			
@@ -170,11 +170,11 @@ public:
 				div = 1;
 				if(i==0)
 				{
-					navigate[1] = j%(GetNumPoints(1));
+					navigate[1] = j%(numPoints_[1]);
 				}
 				else
 				{
-					navigate[0] = j%(GetNumPoints(0));
+					navigate[0] = j%(numPoints_[0]);
 				}
 				for(size_t l = 1; l<dim; ++l)
 				{
@@ -184,13 +184,13 @@ public:
 					}
 					if( l!=i )
 					{
-						div *= GetNumPoints(l);	
+						div *= numPoints_[l];	
 						navigate[l] = loopsize/div;
 					}
 				}
 				navigate[i] = 0;
 				auto temp = this->at(navigate);
-				navigate[i] = GetNumPoints(i)-1;
+				navigate[i] = numPoints_[i]-1;
 				this->at(navigate) = temp;
 			}
 		}			
@@ -211,9 +211,12 @@ public:
      * \return Vector of ints containing the number of grid points for each
      *         dimension.
      */
-    const std::vector<int>& GetNumPoints() const
+    const std::vector<int> GetNumPoints() const
     {
-        return numPoints_;
+		std::vector<int> numPoints = numPoints_;
+		for(size_t i = 0; i<dimension_;++i)
+			if(GetPeriodic(i)){numPoints[i]--;}
+        return numPoints;
     }
 
     //! Get the number of points for a specific dimension.
@@ -230,17 +233,22 @@ public:
                          "than the grid dimensionality!\n";
             return 0;
         }
-
-        return numPoints_.at(dim);
+		if(GetPeriodic(dim)){return numPoints_[dim]-1;}
+		else
+			return numPoints_.at(dim);
     }
 
     //! Return the lower edges of the Grid.
     /*!
      * \return Vector containing the lower edges of the grid.
      */
-    const std::vector<double>& GetLower() const
+    const std::vector<double> GetLower() const
     {
-        return edges_.first;
+		std::vector<double> lower(dimension_);
+		for(size_t i = 0; i<dimension_;++i) 
+			if(GetPeriodic(i)) {lower[i] = edges_.first[i] - ((edges_.first[i] - edges_.second[i]) / numPoints_[i])/2;}
+			else {lower[i] = edges_.first[i];}
+        return lower;
     }
 
     //! Get the lower edge for a specific dimension.
@@ -257,16 +265,21 @@ public:
                          "than the grid dimensionality!\n";
             return 0.0;
         }
-        return GetLower().at(dim);
+        if(GetPeriodic(dim)){return edges_.first[dim] - ((edges_.first[dim] - edges_.second[dim]) / numPoints_[dim])/2;}
+		else{return edges_.first[dim];}
     }
 
     //! Return the upper edges of the Grid.
     /*!
      * \return Vector containing the upper edges of the grid.
      */
-    const std::vector<double>& GetUpper() const
+    const std::vector<double> GetUpper() const
     {
-        return edges_.second;
+		std::vector<double> upper(dimension_);
+		for(size_t i = 0; i<dimension_;++i) 
+			if(GetPeriodic(i)) {upper[i] = edges_.second[i] + ((edges_.first[i] - edges_.second[i]) / numPoints_[i])/2;}
+			else {upper[i] = edges_.second[i];}
+        return upper;
     }
 
 
@@ -284,7 +297,8 @@ public:
                          "than the grid dimensionality!\n";
             return 0.0;
         }
-        return GetUpper().at(dim);
+		if(GetPeriodic(dim)){return edges_.second[dim] + ((edges_.first[dim] - edges_.second[dim]) / numPoints_[dim])/2;}
+		else{return edges_.second[dim];}
     }
 
     //! Return the periodicity of the Grid.
@@ -381,18 +395,18 @@ public:
         for (size_t i = 0; i < dimension_; ++i) {
             double xpos = x.at(i);
             if (!GetPeriodic(i)) {
-                if (xpos < GetLower(i)) {
+                if (xpos < edges_.first[i]) {
                     indices.at(i) = -1;
                     continue;
-                } else if (xpos > GetUpper(i)) {
-                    indices.at(i) = GetNumPoints(i);
+                } else if (xpos > edges_.second[i]) {
+                    indices.at(i) = numPoints_[i];
                     continue;
                 }
             }
 
             // To make sure, the value is rounded in the correct direction.
-            double spacing = (GetUpper(i) - GetLower(i)) / GetNumPoints(i);
-            indices.at(i) = std::floor( (xpos - GetLower(i)) / spacing);
+            double spacing = (edges_.second[i] - edges_.first[i]) / numPoints_[i];
+            indices.at(i) = std::floor( (xpos - edges_.first[i]) / spacing);
         }
 		
         return wrapIndices(indices);
@@ -419,7 +433,7 @@ public:
 			double accumulatedweight = 1;
 			for(size_t j = 0; j < dimension_ ; ++j)
 			{
-				double spacing = (GetUpper(j) - GetLower(j)) / GetNumPoints(j);
+				double spacing = (edges_.second[j] - edges_.first[j]) / numPoints_[j];
 				shiftedvector[j] += ((tempindex%2)-0.5)*spacing;
 				tempindex = tempindex/2;
 			}
@@ -429,14 +443,14 @@ public:
 			
 			for(size_t j = 0; j < dimension_ ; ++j)
 			{	
-				double spacing = (GetUpper(j) - GetLower(j)) / GetNumPoints(j);
+				double spacing = (edges_.second[j] - edges_.first[j]) / numPoints_[j];
 				//Handle Edges
 				if(shiftedindices[j] == -1)
 					{
 					accumulatedweight *= ((std::abs(x[j]-GetCoordinates(GetIndices(x))[j])/spacing));
 					shiftedvector[j] += spacing/2;
 					}
-				else if (shiftedindices[j] == GetNumPoints(j))
+				else if (shiftedindices[j] == numPoints_[j])
 					{
 					accumulatedweight *= ((std::abs(x[j]-GetCoordinates(GetIndices(x))[j])/spacing));
 					shiftedvector[j] -= spacing/2;
@@ -445,7 +459,7 @@ public:
 					{
 					// Handle Periodicity
 					if(std::abs(x[j]-shiftedcenters[j]) > spacing)
-						accumulatedweight *= (1-(std::abs(std::abs(x[j]-shiftedcenters[j]) - (GetUpper(j) - GetLower(j)))/spacing));
+						accumulatedweight *= (1-(std::abs(std::abs(x[j]-shiftedcenters[j]) - (edges_.second[j] - edges_.first[j]))/spacing));
 					else
 						accumulatedweight *= (1-(std::abs(x[j]-shiftedcenters[j])/spacing));
 					}
@@ -493,8 +507,8 @@ public:
         std::vector<double> v(dimension_);
 
         for (size_t i = 0; i < dimension_; ++i) {
-            double spacing = (GetUpper(i) - GetLower(i)) / GetNumPoints(i);
-            v.at(i) = GetLower(i) + (indices[i] + 0.5)*spacing;
+            double spacing = (edges_.second[i] - edges_.first[i]) / numPoints_[i];
+            v.at(i) = edges_.first[i] + (indices[i] + 0.5)*spacing;
         }
 
         return v;

@@ -266,7 +266,26 @@ namespace SSAGES
 			worldout_ << (N_->GetNumPoints())[i] << " by " ;
 		worldout_ << (N_->GetNumPoints(dim_-1)) << " points in " << dim_ << " dimensions." << std::endl;
 		worldout_ << std::endl;	
-
+		
+		
+		for(auto it = Nworld_->begin(); it != Nworld_->end(); ++it)
+		{
+			auto& val = *it; 
+			auto coord = it.coordinates(); 
+			for(auto& c : coord)
+				worldout_ << std::setprecision(8) << std::fixed << c << " ";
+			for(size_t i = 0 ; i < dim_-1; ++i)
+				worldout_ << std::setprecision(8) << std::fixed << Fworld_[i]->at(coord)/std::max(val,min_) << " ";
+			worldout_ << std::endl;
+		}
+		
+		
+		
+		
+		
+		
+		
+		/*
 		std::vector<int> printCoords(dim_);
 		int div = 1;
 		int index = 0;
@@ -292,7 +311,7 @@ namespace SSAGES
 			worldout_ << std::endl;
 			
 		}
-
+		*/
 		worldout_ << std::endl;
 		worldout_ << std::endl;
 		worldout_.close();
