@@ -204,7 +204,7 @@ namespace nnet
 			do
 			{
 				// Compute new weights and performance.
-				optwb = wb - (beta*jj_ + (tparams_.mu + alpha)*eye).ldlt().solve(beta*je_ + alpha*wb);
+				optwb = wb - (beta*jj_ + (tparams_.mu + alpha)*eye).colPivHouseholderQr().solve(beta*je_ + alpha*wb);
 				wse2 = optwb.transpose()*optwb;
 				set_wb(optwb);
 				mse2 = loss(X, Y);

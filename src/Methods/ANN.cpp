@@ -154,9 +154,9 @@ namespace SSAGES
 		// Update FES estimator. Synchronize unbiased histogram.
 		Map<Array<uint, Dynamic, 1>> hist(hgrid_->data(), hgrid_->size());
 		Map<Matrix<double, Dynamic, 1>> uhist(ugrid_->data(), ugrid_->size());
-		uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_/nsweep_;
+		uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_;
 		ugrid_->syncGrid();
-		hist *= 0;
+		hist.setZero();
 
 		bias_.array() = kbt_*uhist.array().log();
 		bias_.array() -= bias_.minCoeff();
@@ -236,7 +236,7 @@ namespace SSAGES
 		for(int i = 0; i < json["topology"].size(); ++i)
 			topol[i+1] = json["topology"][i].asInt();
 		
-		auto weight = json.get("weight", 1).asDouble();
+		auto weight = json.get("weight", 1.).asDouble();
 		auto temp = json["temperature"].asDouble();
 		auto pweight = json.get("prev_weight", 1).asDouble();
 		auto nsweep = json["nsweep"].asUInt();
