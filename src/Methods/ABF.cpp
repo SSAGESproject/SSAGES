@@ -256,7 +256,7 @@ namespace SSAGES
 		for(size_t i = 0 ; i < dim_; ++i)
 			gridPoints = gridPoints * N_->GetNumPoints(i);
 
-		worldout_.open(filename_,std::ios::out);
+		worldout_.open(filename_ + std::to_string(iteration_), std::ios::out);
 		worldout_ << std::endl;
 		worldout_ << "Iteration: " << iteration_ << std::endl;			
 		worldout_ << "Printing out the current Adaptive Biasing Vector Field." << std::endl;
