@@ -15,6 +15,9 @@ namespace SSAGES
 		//! Number of iterations per sweep. 
 		uint sweep_, nsweep_;
 
+		//! Number of iterations after which we turn on full weight. 
+		uint citers_; 
+
 		//! Neural network.
 		nnet::neural_net net_;
 
@@ -107,6 +110,11 @@ namespace SSAGES
 		void SetOutputOverwrite(bool overwrite)
 		{
 			overwrite_ = overwrite;
+		}
+
+		void SetConvergeIters(uint citers)
+		{
+			citers_ = citers;
 		}
 
 		//! \copydoc Buildable::Build()

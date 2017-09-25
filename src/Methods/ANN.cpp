@@ -26,7 +26,7 @@ namespace SSAGES
 		     double weight,
 			 uint nsweep) : 
 	Method(1, world, comm), topol_(topol), sweep_(0), nsweep_(nsweep),  
-	net_(topol), pweight_(1.), weight_(weight), temp_(temperature), 
+	citers_(0), net_(topol), pweight_(1.), weight_(weight), temp_(temperature), 
 	kbt_(0), fgrid_(fgrid), hgrid_(hgrid), ugrid_(ugrid), hist_(), bias_(),
 	lowerb_(lowerb), upperb_(upperb), lowerk_(lowerk), upperk_(upperk),
 	outfile_("ann.out"), overwrite_(true)
@@ -69,6 +69,10 @@ namespace SSAGES
 	{
 		if(snapshot->GetIteration() && snapshot->GetIteration() % nsweep_ == 0)
 		{
+			// Switch to full blast.
+			if(citers_ && snapshot->GetIteration() > citers_)
+				pweight_ = 1.0;
+			
 			TrainNetwork();
 			if(world_.rank() == 0)
 				WriteBias();
@@ -242,6 +246,7 @@ namespace SSAGES
 		auto nsweep = json["nsweep"].asUInt();
 		auto file = json.get("output_file", "ann.out").asString();
 		auto overwrite = json.get("overwrite_output", true).asBool();
+		auto citers = json.get("converge_iters", 0).asUInt();
 
 		// Assume all vectors are the same size. 
 		std::vector<double> lowerb, upperb, lowerk, upperk;
@@ -257,6 +262,7 @@ namespace SSAGES
 		m->SetPrevWeight(pweight);
 		m->SetOutput(file);
 		m->SetOutputOverwrite(overwrite);
+		m->SetConvergeIters(citers);
 
 		return m;
 	}
