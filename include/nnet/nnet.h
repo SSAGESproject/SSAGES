@@ -22,7 +22,7 @@ namespace nnet
 
 	struct train_param
 	{
-		f_type mu, mu_max, mu_scale, min_grad;
+		f_type mu, mu_max, mu_scale, min_grad, min_loss;
 		int max_iter;
 	};
 
@@ -71,6 +71,12 @@ namespace nnet
 		f_type loss(const matrix_t& X, const matrix_t& Y);
 
 		void train(const matrix_t& X, const matrix_t& Y, bool verbose = false);
+		
+		/** Get training parameters. */
+		train_param get_train_params() const;
+
+		/** Set training parameters. */
+		void set_train_params(const train_param& params);
 
 		/** Return activation of output layer. */
 		matrix_t get_activation();

@@ -116,6 +116,20 @@ namespace SSAGES
 		{
 			citers_ = citers;
 		}
+		
+		void SetMaxIters(uint iters)
+		{
+			auto params = net_.get_train_params();
+			params.max_iter = iters;
+			net_.set_train_params(params);
+		}
+
+		void SetMinLoss(double loss)
+		{
+			auto params = net_.get_train_params();
+			params.min_loss = loss; 
+			net_.set_train_params(params);			
+		}
 
 		//! \copydoc Buildable::Build()
 		static ANN* Build(

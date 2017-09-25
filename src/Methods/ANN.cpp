@@ -242,11 +242,7 @@ namespace SSAGES
 		
 		auto weight = json.get("weight", 1.).asDouble();
 		auto temp = json["temperature"].asDouble();
-		auto pweight = json.get("prev_weight", 1).asDouble();
 		auto nsweep = json["nsweep"].asUInt();
-		auto file = json.get("output_file", "ann.out").asString();
-		auto overwrite = json.get("overwrite_output", true).asBool();
-		auto citers = json.get("converge_iters", 0).asUInt();
 
 		// Assume all vectors are the same size. 
 		std::vector<double> lowerb, upperb, lowerk, upperk;
@@ -259,10 +255,14 @@ namespace SSAGES
 		}
 
 		auto* m = new ANN(world, comm, topol, fgrid, hgrid, ugrid, lowerb, upperb, lowerk, upperk, temp, weight, nsweep);
-		m->SetPrevWeight(pweight);
-		m->SetOutput(file);
-		m->SetOutputOverwrite(overwrite);
-		m->SetConvergeIters(citers);
+
+		// Set optional params.
+		m->SetPrevWeight(json.get("prev_weight", 1).asDouble());
+		m->SetOutput(json.get("output_file", "ann.out").asString());
+		m->SetOutputOverwrite( json.get("overwrite_output", true).asBool());
+		m->SetConvergeIters(json.get("converge_iters", 0).asUInt());
+		m->SetMaxIters(json.get("max_iters", 1000).asUInt());
+		m->SetMinLoss(json.get("min_loss", 0).asDouble());
 
 		return m;
 	}

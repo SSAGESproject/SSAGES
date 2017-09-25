@@ -71,6 +71,14 @@
         "converge_iters" : {
             "type" : "integer", 
             "minimum" : 0
+        },
+        "max_iters" : {
+            "type" : "integer", 
+            "minimum" : 0
+        }, 
+        "min_loss" : {
+            "type" : "number",
+            "minimum" : 0
         }
     },
     "required" : [
