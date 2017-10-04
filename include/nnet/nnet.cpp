@@ -202,11 +202,11 @@ namespace nnet
         {
             if(verbose)
                 std::cout << "iter: " << iter << " mse: " << mse << " gamma: " << gamma << " mu: " << tparams_.mu << " grad: " << grad << std::endl;
-            
+            matrix_t jjb = jj_, jeb = je_; 
             do
             {
                 // Compute new weights and performance.
-                optwb = wb - (beta*jj_ + (tparams_.mu + alpha)*eye).colPivHouseholderQr().solve(beta*je_ + alpha*wb);
+                optwb = wb - (beta*jjb + (tparams_.mu + alpha)*eye).colPivHouseholderQr().solve(beta*jeb + alpha*wb);
                 wse2 = optwb.transpose()*optwb;
                 set_wb(optwb);
                 mse2 = loss(X, Y);
@@ -218,7 +218,7 @@ namespace nnet
                 else
                 {
                     set_wb(wb);
-                    mse2 = loss(X, Y);
+                    //mse2 = loss(X, Y);
                     tparams_.mu *= tparams_.mu_scale;           
                 }
             } while(true);
