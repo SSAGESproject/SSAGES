@@ -30,14 +30,12 @@ namespace SSAGES
 	void Hook::PreSimulationHook()
 	{
 		snapshot_->Changed(false);
-	
 		// Initialize/evaluate CVs.
 		for(auto& cv : cvmanager_->GetCVs())
 		{
 			cv->Initialize(*snapshot_);
 			cv->Evaluate(*snapshot_);
 		}
-
 		// Call presimulation method on listeners. 
 		for(auto& listener : listeners_)
 			listener->PreSimulation(snapshot_, *cvmanager_);
