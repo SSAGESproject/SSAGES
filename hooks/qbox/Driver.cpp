@@ -67,13 +67,29 @@ namespace SSAGES
 		remove(lockfile.c_str());
 	}
 
+	std::string Driver::CheckStorageFiles(std::string& storagefile,int run_no){ ////
+		std::fstream file; ////
+		file.open(storagefile, std::ios_base::out | std::ios_base::in); //// 
+		std::string new_storage;
+		if(file.is_open()){
+			run_no++;
+			new_storage = "ssages_out_" + std::to_string(rh_->GetWalkerID()) + "_run_"+std::to_string(run_no)+".xml"; ////
+			CheckStorageFiles(new_storage,run_no);
+		}else{ ////
+			new_storage = "ssages_out_" + std::to_string(rh_->GetWalkerID()) + "_run_"+std::to_string(run_no)+".xml"; ////
+		}
+		file.close();
+		return new_storage;
+	}
+
 	void Driver::Run()
 	{
 		using std::ofstream;
+		using std::ifstream;
 
 		// In and out files for Qbox communication. 
-		auto infile = "ssages_in" + std::to_string(0);
-		auto outfile = "ssages_out" + std::to_string(0);
+		auto infile = "ssages_in_" + std::to_string(rh_->GetWalkerID());
+		auto outfile = "ssages_out_" + std::to_string(rh_->GetWalkerID());
 		auto lockfile = infile + ".lock";
 
 		// Wait for initial lockfile to exist. This means Qbox is ready 
@@ -92,12 +108,20 @@ namespace SSAGES
 		WaitForFile(lockfile);
 		qbhook_->XMLToSSAGES(outfile);
 		qbhook_->PreSimulationHook();
+
+		// If first cycle save the first xml output ////
+		int run_no = 0; ////
+		std::string storage ; ////
+		auto storage_zero = "ssages_out_" + std::to_string(rh_->GetWalkerID()) + "_run_"+std::to_string(run_no)+".xml"; ////
+		storage = CheckStorageFiles(storage_zero,run_no); ////
+		ofstream fstorage;
+		fstorage.open(storage);
+		fstorage.close();
 	
 		//Initialize commands (defines "extforces" in qbox).
 		qbhook_->InitializeCommands(infile);
 		remove(lockfile.c_str());
 		WaitForFile(lockfile);
-
 
 		for(int i = 0; i < mditerations_; ++i)
 		{
@@ -110,6 +134,12 @@ namespace SSAGES
 			WaitForFile(lockfile);
 			qbhook_->XMLToSSAGES(outfile);
 			qbhook_->PostIntegrationHook();
+
+			// Append to storage file ////
+			ofstream of_a(storage, std::ios_base::binary | std::ios_base::app); ////
+			ifstream if_b(outfile, std::ios_base::binary); ////
+			of_a.seekp(0, std::ios_base::end); ////
+			of_a << if_b.rdbuf(); ////
 		}
 		
 		qbhook_->SSAGESToCommands(infile);
@@ -118,6 +148,13 @@ namespace SSAGES
 		qbhook_->XMLToSSAGES(outfile);
 		qbhook_->PostSimulationHook();	
 
+		// closing the storage file ////
+		if(fstorage.is_open()){
+			std::cout << "closing" << std::endl ; 
+			fstorage.close(); ////
+		}
+
+		// Instructing Qbox that the run is finished ////
 		fin.open(infile, std::ofstream::trunc);
 		fin << "quit" << std::endl;
 		fin.close();

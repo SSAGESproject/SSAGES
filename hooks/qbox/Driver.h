@@ -54,6 +54,8 @@ namespace SSAGES
 		{}
 
         void Run();
+	std::string CheckStorageFiles(std::string&,int); ////
+
 
         //! Build a new Driver from JSON. 
 		/*!

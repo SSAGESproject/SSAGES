@@ -58,6 +58,16 @@ namespace SSAGES
 		for(auto& atom : atomset.children("atom"))
 		{
 			auto name = atom.attribute("name").value();
+			/*
+			fout << "#move " << name << " by "
+				<< pos[i][0] - prevpositions_[i][0] << " "
+				<< pos[i][1] - prevpositions_[i][1] << " "
+				<< pos[i][2] - prevpositions_[i][2] << std::endl;
+			fout << "#set_velocity " << name << " "
+				<< vel[i][0] << " "
+				<< vel[i][1] << " "
+				<< vel[i][2] << std::endl;
+				*/
 			fout << "extforce set " << name << " "
 					<< frc[i][0] - prevforces_[i][0] << " "
 					<< frc[i][1] - prevforces_[i][1] << " "
