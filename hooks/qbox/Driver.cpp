@@ -68,18 +68,21 @@ namespace SSAGES
 	}
 
 	std::string Driver::CheckStorageFiles(std::string& storagefile,int run_no){ ////
+		// This function check if there is already a backup file on disk
+		// When it finds that the new backup file does not exist, it returns so it can be
+		// open and user
 		std::fstream file; ////
 		file.open(storagefile, std::ios_base::out | std::ios_base::in); //// 
-		std::string new_storage;
-		if(file.is_open()){
-			run_no++;
+		std::string new_storage, return_storage; ////
+		if(file.is_open()){////
+			run_no++;////
 			new_storage = "ssages_out_" + std::to_string(rh_->GetWalkerID()) + "_run_"+std::to_string(run_no)+".xml"; ////
-			CheckStorageFiles(new_storage,run_no);
+			return_storage = CheckStorageFiles(new_storage,run_no);////
 		}else{ ////
-			new_storage = "ssages_out_" + std::to_string(rh_->GetWalkerID()) + "_run_"+std::to_string(run_no)+".xml"; ////
-		}
-		file.close();
-		return new_storage;
+			return_storage = "ssages_out_" + std::to_string(rh_->GetWalkerID()) + "_run_"+std::to_string(run_no)+".xml"; ////
+		}////
+		file.close();////
+		return return_storage;////
 	}
 
 	void Driver::Run()
@@ -91,6 +94,8 @@ namespace SSAGES
 		auto infile = "ssages_in_" + std::to_string(rh_->GetWalkerID());
 		auto outfile = "ssages_out_" + std::to_string(rh_->GetWalkerID());
 		auto lockfile = infile + ".lock";
+
+		std::cout << infile << std::endl ; 
 
 		// Wait for initial lockfile to exist. This means Qbox is ready 
 		WaitForFile(lockfile);
@@ -114,9 +119,9 @@ namespace SSAGES
 		std::string storage ; ////
 		auto storage_zero = "ssages_out_" + std::to_string(rh_->GetWalkerID()) + "_run_"+std::to_string(run_no)+".xml"; ////
 		storage = CheckStorageFiles(storage_zero,run_no); ////
-		ofstream fstorage;
-		fstorage.open(storage);
-		fstorage.close();
+		ofstream fstorage;////
+		fstorage.open(storage);////
+		fstorage.close();////
 	
 		//Initialize commands (defines "extforces" in qbox).
 		qbhook_->InitializeCommands(infile);
@@ -148,17 +153,14 @@ namespace SSAGES
 		qbhook_->XMLToSSAGES(outfile);
 		qbhook_->PostSimulationHook();	
 
-		// closing the storage file ////
-		if(fstorage.is_open()){
-			std::cout << "closing" << std::endl ; 
-			fstorage.close(); ////
-		}
-
 		// Instructing Qbox that the run is finished ////
-		fin.open(infile, std::ofstream::trunc);
-		fin << "quit" << std::endl;
-		fin.close();
-		remove(lockfile.c_str());
+		// And make each walkers print a xml restart file ////
+		fin.open(infile, std::ofstream::trunc); ////
+		auto restart_xml = "restart_"+std::to_string(rh_->GetWalkerID())+".xml";
+		fin << "save "<< restart_xml << std::endl ;
+		fin << "quit" << std::endl;////
+		fin.close();////
+		remove(lockfile.c_str());////
 	}
 
 	Driver* Driver::Build(const Json::Value& json, const MPI_Comm& world)
