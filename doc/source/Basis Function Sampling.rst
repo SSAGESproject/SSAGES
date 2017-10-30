@@ -116,7 +116,7 @@ Example Input
 ^^^^^^^^^^^^^
 .. code-block:: javascript
 
-"methods" : [{
+    "methods" : [{
         "type" : "Basis",
         "cvs" : [0],
         "cycle_frequency" : 10000,
@@ -129,10 +129,10 @@ Example Input
         "CV_restraint_maximums" : [ 10.3 ],
         "CV_restraint_minimums" : [ 1.7 ],
         "grid" : {
-                "lower" : [2.0],
-                "upper" : [15.0],
-                "number_points" : [500],
-                "periodic" : [false]
+            "lower" : [2.0],
+            "upper" : [15.0],
+            "number_points" : [500],
+            "periodic" : [false]
         }
     }]
 

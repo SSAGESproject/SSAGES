@@ -199,7 +199,7 @@ file. Here we describe the parameters and the options that should be set in
 run a DFFS simulation.
 
 Input and parameters related to "walkers"
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 input
     + Type: array of strings

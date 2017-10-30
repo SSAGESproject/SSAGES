@@ -112,7 +112,7 @@ be found in ``Examples/User/Umbrella`` and consist of the following files:
 	Template JSON input containing information for one Umbrella Sampling simulation. 
 
 ``umbrella_multiwalker_gen.py``
-	Python script for creating `multiwalker_umbrella.json` input file. The total number of
+    Python script for creating `multiwalker_umbrella.json` input file. The total number of
     simulations and the 'centers' values are controlled in this file.
 	
 Once in the directory, the appropriate `.json` file needs to be generated. A `.json` file
