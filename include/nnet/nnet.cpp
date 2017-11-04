@@ -202,7 +202,9 @@ namespace nnet
         {
             if(verbose)
                 std::cout << "iter: " << iter << " mse: " << mse << " gamma: " << gamma << " mu: " << tparams_.mu << " grad: " << grad << std::endl;
-            matrix_t jjb = jj_, jeb = je_; 
+            
+            matrix_t jjb = jj_; 
+            vector_t jeb = je_;
             do
             {
                 // Compute new weights and performance.
