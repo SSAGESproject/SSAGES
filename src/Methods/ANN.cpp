@@ -99,7 +99,10 @@ namespace SSAGES
 		if(inbounds)
 		{
 			// Record histogram hit and get gradient. 
-			hgrid_->at(val) += 1;
+			// Only record hits on master processes since we will 
+			// reduce later. 
+			if(comm_.rank() == 0)
+				hgrid_->at(val) += 1;
 			//derivatives = (*fgrid_)[val];
 			net_.forward_pass(vec);
 			derivatives = net_.get_gradient(0);
@@ -114,6 +117,9 @@ namespace SSAGES
 				std::cerr << ")" << std::endl;
 			}
 		}
+
+		if(snapshot->GetIteration() % 2000 == 0)
+			std::cout << snapshot->GetIteration() << " " << world_.rank() << " " << derivatives[0] << " " << derivatives[1] << std::endl;
 
 		// Restraints.
 		for(size_t i = 0; i < n; ++i)
@@ -152,6 +158,9 @@ namespace SSAGES
 		// Increment cycle counter.
 		++sweep_;
 
+		// Reduce histogram across procs. 
+		mxx::allreduce(hgrid_->data(), hgrid_->size(), std::plus<uint>(), world_);
+
 		// Synchronize grid in case it's periodic. 
 		hgrid_->syncGrid();
 
@@ -166,10 +175,10 @@ namespace SSAGES
 		bias_.array() -= bias_.minCoeff();
 		
 		// Train network.
+		net_.autoscale(hist_, bias_);
 		if(world_.rank() == 0)
 		{
-			net_.autoscale(hist_, bias_);
-			net_.train(hist_, bias_, true);
+			net_.train(hist_, bias_, false);
 		}
 
 		// Send optimal nnet params to all procs.
