@@ -178,6 +178,8 @@ The keywords ``walkers`` and ``input`` are the standard SSAGES keywords to decla
 
 The Qbox input file of each walker, specifies the parameters to be used in the DFT calculations (`xc`,`ecut`, T etc..). This file will be parsed by Qbox **at the first timestep of the simulations** to set up the calculations. If the file contains a command such as `run 200 10` the 200 MD steps that Qbox will perform **will be unbiased**. If wanted, this feature can be used to equilibrate the system. After this first step, the command `run 1 qm_iterations wf_iterations` will be repeated for `md_iterations`. 
 
+An example of `input.json` and `md.i` is present in the `/Examples/User/ABF/NaCl-Qbox` folder.
+
 Running
 ~~~~~~~
 
