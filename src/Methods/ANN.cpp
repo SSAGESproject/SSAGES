@@ -118,9 +118,6 @@ namespace SSAGES
 			}
 		}
 
-		if(snapshot->GetIteration() % 2000 == 0)
-			std::cout << snapshot->GetIteration() << " " << world_.rank() << " " << derivatives[0] << " " << derivatives[1] << std::endl;
-
 		// Restraints.
 		for(size_t i = 0; i < n; ++i)
 		{
@@ -163,7 +160,7 @@ namespace SSAGES
 
 		// Synchronize grid in case it's periodic. 
 		hgrid_->syncGrid();
-
+	
 		// Update FES estimator. Synchronize unbiased histogram.
 		Map<Array<uint, Dynamic, 1>> hist(hgrid_->data(), hgrid_->size());
 		Map<Matrix<double, Dynamic, 1>> uhist(ugrid_->data(), ugrid_->size());
