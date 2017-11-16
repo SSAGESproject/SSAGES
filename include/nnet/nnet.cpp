@@ -69,7 +69,7 @@ namespace nnet
             layers_.push_back(l);
             nparam_ += l.W.size() + l.b.size();
         }
-        tparams_ = {0.005, 1.e10, 10.0, 1.e-7, 1000, 0};
+        tparams_ = {0.005, 1.e10, 10.0, 1.e-7, 0, 1000};
     }
 
     void neural_net::init_weights(f_type sd) 
