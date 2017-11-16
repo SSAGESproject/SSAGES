@@ -117,7 +117,7 @@ namespace SSAGES
 			MPI_Allreduce(MPI_IN_PLACE, &nfound, 1, MPI_INT, MPI_SUM, snapshot.GetCommunicator());
 			if(nfound != resids_.size() * 5)
 				throw BuildException({
-					"OHOHOoohoho: Expected to find " +
+					"AntiBetaRMSDCV: Expected to find " +
 					to_string(resids_.size() * 5) +
 					" atoms, but only found " +
 					to_string(nfound) + "."
