@@ -32,9 +32,7 @@ namespace SSAGES
 	outfile_("ann.out"), overwrite_(true)
 	{
 		// Create histogram grid matrix.
-		auto points = hgrid_->GetNumPoints();
-		auto ntot = std::accumulate(points.begin(), points.end(), 1, std::multiplies<int>());
-		hist_.resize(ntot, hgrid_->GetDimension());
+		hist_.resize(hgrid_->size(), hgrid_->GetDimension());
 
 		// Fill it up. 
 		size_t i = 0;
@@ -48,9 +46,8 @@ namespace SSAGES
 		}
 
 		// Initialize FES vector.
-		bias_.resize(ntot, 1);
-		for(i = 0; i < ntot; ++i)
-			bias_(i) = 0;
+		bias_.resize(hgrid_->size(), 1);
+		bias_.setZero();
 	}
 
 	void ANN::PreSimulation(Snapshot* snapshot, const CVManager&) 
@@ -61,7 +58,7 @@ namespace SSAGES
 		// Zero out forces and histogram. 
 		VectorXd vec = VectorXd::Zero(ndim);
 		std::fill(hgrid_->begin(), hgrid_->end(), 0);
-		std::fill(ugrid_->begin(), ugrid_->end(), 1.);
+		std::fill(ugrid_->begin(), ugrid_->end(), 1.0);
 		std::fill(fgrid_->begin(), fgrid_->end(), vec);
 	}
 
