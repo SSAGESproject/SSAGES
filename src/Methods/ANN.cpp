@@ -172,7 +172,7 @@ namespace SSAGES
 		net_.autoscale(hist_, bias_);
 		if(world_.rank() == 0)
 		{
-			net_.train(hist_, bias_, false);
+			net_.train(hist_, bias_, true);
 		}
 
 		// Send optimal nnet params to all procs.
