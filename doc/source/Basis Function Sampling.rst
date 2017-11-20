@@ -27,7 +27,7 @@ is not required.
 The BFS method applies its bias in sweeps of $N$ through a histogram (:math:`H_{i}`)
 that is updated at every :math:`j` microstate or timestep. This histogram is
 then modified to an unbiased partition function estimate (:math:`\tilde{H_{i}}`)
-by multiplication with the current bias potential (:math:`\Phi_{i}`).
+by exponentiation with the current bias potential (:math:`\Phi_{i}`).
 
 .. math::
 

@@ -35,8 +35,8 @@
             "polynomial_order": 25
         }],
         "cvs" : [0,1],
-        "cycle_frequency" : 1000000,
-        "basis_filename" : "adp_example",
+        "cycle_frequency" : 100000,
+        "basis_filename" : "adp_example_legendre_25_25",
         "frequency" : 1,
         "temperature" : 1.0,
         "weight" : 10000.0,

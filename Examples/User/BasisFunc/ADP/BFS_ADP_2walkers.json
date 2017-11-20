@@ -27,25 +27,29 @@
         "type" : "BFSMethod",
         "basis_functions" : [
         {
-            "type" :"Legendre", 
-            "polynomial_order" : 15
+            "type" :"Fourier", 
+            "polynomial_order" : 20
+            "upper_bound" : 3.14,
+            "lower_bound" : -3.14
         },
         {
-            "type" : "Legendre",
-            "polynomial_order": 15
+            "type" : "Fourier",
+            "polynomial_order": 20
+            "upper_bound" : 3.14,
+            "lower_bound" : -3.14
         }],
         "cvs" : [0,1],
         "cycle_frequency" : 100000,
-        "basis_filename" : "adp_example",
+        "basis_filename" : "adp_example_legendre_20_20",
         "frequency" : 1,
         "temperature" : 1.0,
         "weight" : 10000.0,
-        "tolerance" : 1e-6,
+        "tolerance" : 1e-3,
         "convergence_exit" : true,
         "grid" : {
             "lower" : [-3.14, -3.14],
             "upper" : [3.14,3.14],
-            "number_points" : [100,100],
+            "number_points" : [75,75],
             "periodic" : [true, true]
         }
     }]
