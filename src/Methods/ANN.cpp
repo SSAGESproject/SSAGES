@@ -47,7 +47,8 @@ namespace SSAGES
 
 		// Initialize FES vector.
 		bias_.resize(hgrid_->size(), 1);
-		bias_.setZero();
+		net_.forward_pass(hist_);
+		bias_.array() = net_.get_activation().col(0).array();
 	}
 
 	void ANN::PreSimulation(Snapshot* snapshot, const CVManager&) 
@@ -164,7 +165,7 @@ namespace SSAGES
 		uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_;
 		ugrid_->syncGrid();
 		hist.setZero();
-
+		
 		bias_.array() = kbt_*uhist.array().log();
 		bias_.array() -= bias_.minCoeff();
 		
