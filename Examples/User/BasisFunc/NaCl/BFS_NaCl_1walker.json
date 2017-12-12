@@ -1,30 +1,32 @@
 {
-	"logfile" : "node-1",
 	"walkers" : 1,
 	"input" : ["in.NaCl_BFS_example0"],
     "CVs" : [
         {
             "type" : "ParticleSeparation",
-            "group1" : [ 4498 ],
-            "group2" : [ 4499 ]
+            "group1" : [ 319 ],
+            "group2" : [ 320 ]
         }
     ],
     "methods" : [{
-        "type" : "Basis",
+        "type" : "BFSMethod",
+        "basis_functions" : [
+        {
+            "type" :"Legendre", 
+            "polynomial_order" : 15
+        }],
         "cvs" : [0],
-        "cycle_frequency" : 10000,
+        "cycle_frequency" : 1000,
         "frequency" : 1,
-        "weight" : 1.0,
+        "weight" : 10.0,
         "basis_filename" : "nacl_example",
-        "coeff_filename" : "nacl_example",
-        "CV_coefficients" : [ 50 ],
-        "CV_restraint_spring_constants" : [ 30 ],
-        "CV_restraint_maximums" : [ 10.3 ],
-        "CV_restraint_minimums" : [ 1.7 ],
+        "CV_restraint_spring_constants" : [ 100 ],
+        "CV_restraint_maximums" : [ 10.1 ],
+        "CV_restraint_minimums" : [ 1.9 ],
         "grid" : {
                 "lower" : [2.0],
-                "upper" : [15.0],
-                "number_points" : [500],
+                "upper" : [10.0],
+                "number_points" : [100],
                 "periodic" : [false]
         }
     }]

@@ -39,17 +39,23 @@ namespace SSAGES
 		class  QboxHook* qbhook_;
 
 		//! MD iterations.
-		int iterations_;
+		int mditerations_;
 
 		//! QM iterations.
 		int qmiterations_;
 
+		//! WF iterations.
+		int wfiterations_;
+
+
 	public:
-		Driver(class ResourceHandler* rh, class QboxHook* qbhook, int iter, int qmiter) : 
-		rh_(rh), qbhook_(qbhook), iterations_(iter), qmiterations_(qmiter)
+		Driver(class ResourceHandler* rh, class QboxHook* qbhook, int iter, int qmiter,int wfiter) : 
+		rh_(rh), qbhook_(qbhook), mditerations_(iter), qmiterations_(qmiter), wfiterations_(wfiter)
 		{}
 
         void Run();
+	std::string CheckStorageFiles(std::string&,int); ////
+
 
         //! Build a new Driver from JSON. 
 		/*!

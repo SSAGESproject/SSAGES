@@ -1,0 +1,11 @@
+{
+    "type" : "object",
+    "varname" : "LegendreBasis",
+    "properties" : {
+        "polynomial_order" : {
+            "type" : "integer",
+            "minimum" : 0
+        }
+    },
+    "required" : ["polynomial_order"]
+}

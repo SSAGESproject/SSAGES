@@ -20,6 +20,9 @@ namespace SSAGES
 		//! Previous forces for velocity verlet integration.
 		std::vector<Vector3> prevforces_;
 
+		//! Previous positions.
+		std::vector<Vector3> prevpositions_;
+
 		//! Get species index from species vector.
 		int GetSpeciesIndex(const std::string& species)
 		{
@@ -40,7 +43,7 @@ namespace SSAGES
 		void SyncToSnapshot() override;
 
 	public: 
-		QboxHook() : species_(), speciesmass_(), prevforces_(0)
+		QboxHook() : species_(), speciesmass_(), prevforces_(0), prevpositions_()
 		{}
 
 		void XMLToSSAGES(const std::string& xmlfile);
