@@ -72,7 +72,7 @@ private:
         // Check if an index is out of bounds
         for (size_t i=0; i < GridBase<T>::GetDimension(); ++i) {
             int index = indices.at(i);
-            int numpoints = GridBase<T>::GetNumPoints(i);
+            int numpoints = GridBase<T>::numPoints_[i];
             if ( index < 0 || index >= numpoints )
             {
                 throw std::out_of_range("Grid index out of range.");
@@ -83,7 +83,7 @@ private:
         size_t fac = 1;
         for (size_t i=0; i < GridBase<T>::GetDimension(); ++i) {
             idx += indices.at(i) * fac;
-            fac *= GridBase<T>::GetNumPoints(i);
+            fac *= GridBase<T>::numPoints_[i];
         }
         return idx;
     }
@@ -108,7 +108,7 @@ public:
     {
         size_t data_size = 1;
         for (size_t d = 0; d < GridBase<T>::GetDimension(); ++d) {
-            size_t storage_size = GridBase<T>::GetNumPoints(d);
+            size_t storage_size = GridBase<T>::numPoints_[d];
             data_size *= storage_size;
         }
 
@@ -313,7 +313,7 @@ public:
         {
             indices_.at(0) += 1;
             for (size_t i = 0; i < grid_->GetDimension() - 1; ++i) {
-                if (indices_.at(i) >= grid_->GetNumPoints(i)) {
+                if (indices_.at(i) >= grid_->numPoints_[i]) {
                     indices_.at(i) = 0;
                     indices_.at(i+1) += 1;
                 }
@@ -388,7 +388,7 @@ public:
             indices_.at(0) -= 1;
             for (size_t i = 0; i < grid_->GetDimension() - 1; ++i) {
                 if (indices_.at(i) < 0) {
-                    indices_.at(i) = grid_->GetNumPoints(i)-1;
+                    indices_.at(i) = grid_->numPoints_[i]-1;
                     indices_.at(i+1) -= 1;
                 }
             }
@@ -538,7 +538,7 @@ public:
     {
         std::vector<int> indices(GridBase<T>::GetDimension());
         for (size_t i = 0; i < indices.size(); ++i) {
-            indices.at(i) = GridBase<T>::GetNumPoints(i) - 1;
+            indices.at(i) = GridBase<T>::numPoints_[i] - 1;
         }
 
         iterator it(indices, this);
@@ -569,7 +569,7 @@ public:
     {
         std::vector<int> indices(GridBase<T>::GetDimension());
         for (size_t i = 0; i < indices.size(); ++i) {
-            indices.at(i) = GridBase<T>::GetNumPoints(i) - 1;
+            indices.at(i) = GridBase<T>::numPoints_[i] - 1;
         }
 
         iterator it(indices, this);
@@ -588,15 +588,15 @@ public:
         output << "#! type grid\n";
         output << "#! dim  " << GridBase<T>::dimension_ << "\n"; 
         output << "#! count "; 
-        for(auto& c : GridBase<T>::numPoints_) 
+        for(auto& c : this->GetNumPoints()) 
             output << c << " "; 
         output << "\n";
         output << "#! lower "; 
-        for(auto& l : GridBase<T>::edges_.first)
+        for(auto& l : this->GetLower())
             output << l << " "; 
         output << "\n"; 
         output << "#! upper "; 
-        for(auto& u : GridBase<T>::edges_.second)
+        for(auto& u : this->GetUpper())
             output << u << " "; 
         output << "\n"; 
         output << "#! periodic "; 
@@ -652,7 +652,12 @@ public:
             iss >> buff >> buff;
             for(int i = 0; iss >> count; ++i)
             {
-                if(count != counts[i])
+				int period = 0;
+				if(GridBase<T>::isPeriodic_[i])
+				{
+					period++;
+				}				
+                if((count+period) != counts[i])
                     throw std::invalid_argument(filename + 
                     ": Expected count " + std::to_string(counts[i]) + 
                     " on dimension " + std::to_string(i) + " but got " + 
@@ -669,9 +674,14 @@ public:
             iss >> buff >> buff;
             for(int i = 0; iss >> lower; ++i)
             {
-                if(std::abs(lower - lowers[i]) > 1e-8)
+				double spacing = 0;
+				if(GridBase<T>::isPeriodic_[i])
+				{
+					spacing = (GridBase<T>::edges_.second[i] - GridBase<T>::edges_.first[i]) / GridBase<T>::numPoints_[i];
+				}				
+                if(std::abs(lower-spacing/2 - lowers[i]) > 1e-8)
                     throw std::invalid_argument(filename + 
-                    ": Expected lower " + std::to_string(lowers[i]) + 
+                    ": Expected lower " + std::to_string(lowers[i]+spacing/2) + 
                     " on dimension " + std::to_string(i) + " but got " + 
                     std::to_string(lower) + " instead.");
             }
@@ -686,9 +696,14 @@ public:
             iss >> buff >> buff;
             for(int i = 0; iss >> upper; ++i)
             {
-                if(std::abs(upper - uppers[i]) > 1e-8)
+				double spacing = 0;
+				if(GridBase<T>::isPeriodic_[i])
+				{
+					spacing = (GridBase<T>::edges_.second[i] - GridBase<T>::edges_.first[i]) / GridBase<T>::numPoints_[i];
+				}
+                if(std::abs((upper+spacing/2) - uppers[i]) > 1e-8)
                     throw std::invalid_argument(filename + 
-                    ": Expected upper " + std::to_string(uppers[i]) + 
+                    ": Expected upper " + std::to_string(uppers[i]-spacing/2) + 
                     " on dimension " + std::to_string(i) + " but got " + 
                     std::to_string(upper) + " instead.");
             }
