@@ -134,8 +134,55 @@ protected:
 
 public:
 
-	
 	void syncGrid()
+	{
+		//Convenience
+		double dim = this->GetDimension();
+		
+		//Preallocate
+		std::vector<int> navigate(dim);
+		
+		//Loop over all surfaces. Number of surfaces = dim.
+		for(size_t i=0 ; i < dim ; i++)
+		{
+			//Check if periodic in this dimension.
+			if(isPeriodic_[i])
+			{
+			
+				//Calculate surface size. This is equal to number of points in each other dimension multiplied.
+				int surfsize = 1;
+				for(size_t j=0 ; j < dim ; j++)
+				{
+					if(i!=j)
+						surfsize*=numPoints_[j];
+				}
+				
+				//Loop over all points of this surface on the 0 side and copy to end.
+				for(size_t j=0 ; j < surfsize ; j++)
+				{
+					int runningcount = j;
+					for(size_t k=0 ; k < dim ; k++)
+					{
+						if(k==i)
+							navigate[k] = 0;
+						else
+						{
+							navigate[k] = runningcount%numPoints_[k];
+							runningcount = runningcount / numPoints_[k];
+						}
+					}		
+					auto temp = this->at(navigate);
+					navigate[i] = numPoints_[i]-1;
+					this->at(navigate) = temp;	
+				}
+			}
+		}
+	}
+				
+			
+
+	
+	/*void syncGrid()
 	{
 		double dim = this->GetDimension();
 		
@@ -150,7 +197,7 @@ public:
 		}
 		
 		double loopsize = 1;
-		std::vector<int> navigate(dim);		
+		std::vector<int> navigate(dim);	
 		for(size_t i = 0; i<dim ; ++i)
 		{
 			if(!isPeriodic_[i])
@@ -164,7 +211,7 @@ public:
 			}
 			std::fill(navigate.begin(), navigate.end(), 0);
 			
-			double div = 1;			
+			int div = 1;	
 			for(size_t j = 0; j<loopsize; ++j)
 			{
 				div = 1;
@@ -185,16 +232,42 @@ public:
 					if( l!=i )
 					{
 						div *= numPoints_[l];	
-						navigate[l] = loopsize/div;
+						navigate[l] = j%div;
 					}
 				}
 				navigate[i] = 0;
+				std::vector<int> navigate2 = navigate;
+				navigate2[i] = numPoints_[i]-1;
+				for(size_t l = 0; l<navigate.size(); ++l)
+					std::cout << navigate[l] << " " ;
+				std::cout << " to " ;
+				for(size_t l = 0; l<navigate2.size(); ++l)
+					std::cout << navigate2[l] << " " ;
+				std::cout << std::endl;
+				/*
+				std::cout << "2.1.2."<<i << ".0" <<std::endl;
+				for(size_t l = 0; l<navigate.size(); ++l)
+					std::cout << navigate[l] << std::endl;
+				std::cout << "2.1.2."<<i << ".1" <<std::endl;
+				navigate[i] = 0;
+				for(size_t l = 0; l<navigate.size(); ++l)
+					std::cout << navigate[l] << std::endl;
+				std::cout << "2.1.2."<<i << ".2" <<std::endl;
 				auto temp = this->at(navigate);
+				std::cout << "2.1.2."<<i << ".3" <<std::endl;
 				navigate[i] = numPoints_[i]-1;
+				for(size_t l = 0; l<navigate.size(); ++l)
+					std::cout << navigate[i] << std::endl;
+				std::cout << "2.1.2."<<i << ".4" <<std::endl;
 				this->at(navigate) = temp;
+				std::cout << "2.1.2."<<i << ".5" <<std::endl;
+				std::cout << "2.1.3."<<i << std::endl;
+				
 			}
+			std::cout << "2.2."<<i << std::endl;
 		}			
 	}	
+	*/
 	
 	 
 	//! Get the dimension.
@@ -419,8 +492,7 @@ public:
      *  This function performs a n-linear interpolation on the grid.
 	 *  The formula is bilinear/trilinear interpolation generalized
      *  to N-dimensional space. 
-     */
-	double GetInterpolated(const std::vector<double> &x)
+     double GetInterpolated(const std::vector<double> &x)
     {
 		double interpvalue = 0;
 		int tempindex;
@@ -467,7 +539,7 @@ public:
 			interpvalue += accumulatedweight*at(shiftedvector);
 		}
 		return interpvalue;
-    }
+    }*/
 
     //! Return the Grid index for a one-dimensional grid.
     /*!
@@ -486,6 +558,19 @@ public:
         }
         return GetIndices({x}).at(0);
     }
+
+
+    //! Return the distance to adjacent grid center points from given coordinates
+    /*!
+     *\param coords
+     *\param dim
+     * To be finalized.
+     	
+    std::vector<double> GetDist(const std::vector<double> &coords)
+    {
+	
+    }*/
+
 
     //! Return coordinates of the grid center points
     /*!

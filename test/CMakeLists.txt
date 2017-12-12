@@ -4,7 +4,7 @@ set(TEST_DEPS
 	${GTEST_LIBRARY_MAIN_PATH}
 	libssages)
 
-set  (UNIT_TESTS "ParticlePositionCVTests"
+set  (UNIT_TESTS #"ParticlePositionCVTests"
                  "ABFTests"
                  "TorsionalCVTests"
                  "SnapshotTests"
@@ -15,10 +15,10 @@ set  (UNIT_TESTS "ParticlePositionCVTests"
                  "ReadFileTest"
                  "MockCVTests"
                  "COMTests"
-                 "DirectForwardFluxTests"
+                 #"DirectForwardFluxTests"
                  "SwarmTest"
                  "FTSTest"
-                 "StringMethodTest"
+                 #"StringMethodTest"
                  "GyrationTensorCVTests"
                  "RouseModeCVTests"
                  "PairwiseCVTests"
