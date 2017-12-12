@@ -11,11 +11,11 @@ with open("umbrella_input.json") as f:
 	root = json.load(f)
 
 # Define number of walker. 
-nwalkers = 13
+nwalkers = 12
 
 # Create vector of Torsional angle range. -pi to pi
 # We remove last value because torsional CV is periodic.
-centers = np.linspace(-3.14159, 3.14159, num=nwalkers)[:-1]
+centers = np.linspace(-3.14159, 3.14159, num=nwalkers+1)[:-1]
 
 # Define centers, and filenames as arrays. We will use the same 
 # spring constant for all. 

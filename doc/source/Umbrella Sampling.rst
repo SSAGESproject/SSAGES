@@ -90,10 +90,13 @@ To do this, return to your LAMMPS ``src`` directory and issue the following comm
 
 .. code-block:: bash
 
-    make yes-MOLECULE
-    make yes-KSPACE
+    make yes-molecule
+    make yes-kspace
+    make
 
-which add the ``MOLECULE`` and ``KSPACE`` LAMMPS packages. Additional information about building LAMMPS with optional packages can be found in the `LAMMPS documentation <http://lammps.sandia.gov/doc/Section_start.html#start-3>`_.
+which add the ``MOLECULE`` and ``KSPACE`` LAMMPS packages. Additional information about building
+LAMMPS with optional packages can be found in the
+`LAMMPS documentation <http://lammps.sandia.gov/doc/Section_start.html#start-3>`_.
 
 
 The files for running this example can 
@@ -105,38 +108,57 @@ be found in ``Examples/User/Umbrella`` and consist of the following files:
 ``Butane.data``
 	LAMMPS data file describing butane molecule.
 
-``Template_Input.json``
+``umbrella_input.json``
 	Template JSON input containing information for one Umbrella Sampling simulation. 
 
-``Umbrella_Input_Generator.py``
-	Python script for creating Umbrella.json input file. The total number of simulations and the 'centers' values 
-	are controlled in this file.
+``umbrella_multiwalker_gen.py``
+    Python script for creating `multiwalker_umbrella.json` input file. The total number of
+    simulations and the 'centers' values are controlled in this file.
 	
-Once in the directory, the appropriate .json file needs to be generated. A .json file is already in the directory,
-``Template_Input.json``, which contains the CV information and specifies the LAMMPS input files to be used. Using 
+Once in the directory, the appropriate `.json` file needs to be generated. A `.json` file
+is already in the directory, ``umbrella_input.json``, which contains the CV information
+and specifies the LAMMPS input files to be used. A single-walker umbrella simulation can
+be run directly using
 
 .. code-block:: bash
 
-	python Umbrella_Input_Generator.py
+    ssages umbrella_input.json
 
-will generate ``Umbrella.json``. ``Umbrella.json`` contains the information from ``Template_Input.json`` duplicated 12 
-times with varying values of ``centers``. These values correspond to the target values of the torsional CV. 
+The simulation will create an output file named `umbrella.dat1` containing the value of
+the CV and the target value (the center) every 100 timesteps. From this histogram, the
+local free energy can be calculated.
 
-To run SSAGES issue the command:
+While it is possible to run Umbrella sampling using a simle walker, typically multiple
+walker (multiple umbrellas) are simulated. For multiwalker Umbrella sampling of butane,
+you can generate an input file using the `umbrella_multiwalker_gen.py` script via
+
+.. code-block:: bash
+
+	python umbrella_multiwalker_gen.py
+
+This will generate an input file called ``multiwalker_umbrella.json`` containing the
+information from ``umbrella_input.json`` duplicated 12 times with varying values of
+``centers``. These values correspond to the target values of the torsional CV. 
+
+To run multiwalker SSAGES issue the command:
 
 .. code-block:: bash 
 
-	mpiexec -np 12 /path/to/SSAGES/build/.ssages Umbrella.json
+	mpiexec -np 12 /path/to/SSAGES/build/ssages multiwaler_umbrella.json
 	
 This will run 12 different umbrella sampling simulations simultaneously.
-Ideally, this example will be run in computing environment where each process can run on a different processor.
-Though the example will still work if run on a users local desktop or laptop machine, the runtime of the code will be very large.
+Ideally, this example will be run in computing environment where each process can run
+on a different processor. The example will still work if run on a users local desktop
+or laptop machine, but the runtime of the code will be very large.
 
-During the simulation 12 different output files will be generated, each containing the iteration, target value of the corresponding 'center' CV, 
-and the value of the CV at the iteration number. 
+During the simulation 12 different output files will be generated, each containing the
+iteration, target value of the corresponding 'center' CV,  and the value of the CV at
+the iteration number. 
 
-These output files can then be used to construct a complete free energy surface using the WHAM algorithm [2]_.
-Though SSAGES does not currently contain its own implementation of WHAM, there are many implementations available, such as that provided by the Grossfield Lab [3]_.
+These output files can then be used to construct a complete free energy surface using
+the WHAM algorithm [2]_. Though SSAGES does not currently contain its own implementation
+of WHAM, there are many implementations available, such as that provided by the
+Grossfield Lab [3]_.
 
 References
 ^^^^^^^^^^

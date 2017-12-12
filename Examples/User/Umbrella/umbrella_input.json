@@ -15,10 +15,10 @@
     ],
     "methods" : [
         {
-    	    "type" : "Umbrella",
+            "type" : "Umbrella",
             "ksprings" : [1000],
             "centers" : [1.0],
-	    "output_file" : ["umbrella.dat1", "umbrella.dat2"],
+            "output_file" : ["umbrella.dat1"],
             "output_frequency" : 100 
         }
     ]

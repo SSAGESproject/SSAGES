@@ -128,36 +128,36 @@ Example Input
 ^^^^^^^^^^^^^
 .. code-block:: javascript
 
-"methods" : [{
-    "type" : "BFSMethod",
-    "basis_functions" : [
-    {
-        "type" :"Fourier", 
-        "polynomial_order" : 30,
-        "upper_bound" : 3.14,
-        "lower_bound" : -3.14
-    },
-    {
-        "type" : "Fourier",
-        "polynomial_order": 30,
-        "upper_bound" : 3.14,
-        "lower_bound" : -3.14
-    }],
-    "cvs" : [0,1],
-    "cycle_frequency" : 100000,
-    "basis_filename" : "example",
-    "frequency" : 1,
-    "temperature" : 1.0,
-    "weight" : 100000.0,
-    "tolerance" : 1e-6,
-    "convergence_exit" : false,
-    "grid" : {
-        "lower" : [-3.14, -3.14],
-        "upper" : [3.14,3.14],
-        "number_points" : [100,100],
-        "periodic" : [true, true]
-    }
-}]
+  "methods" : [{
+      "type" : "BFSMethod",
+      "basis_functions" : [
+      {
+          "type" :"Fourier", 
+          "polynomial_order" : 30,
+          "upper_bound" : 3.14,
+          "lower_bound" : -3.14
+      },
+      {
+          "type" : "Fourier",
+          "polynomial_order": 30,
+          "upper_bound" : 3.14,
+          "lower_bound" : -3.14
+      }],
+      "cvs" : [0,1],
+      "cycle_frequency" : 100000,
+      "basis_filename" : "example",
+      "frequency" : 1,
+      "temperature" : 1.0,
+      "weight" : 100000.0,
+      "tolerance" : 1e-6,
+      "convergence_exit" : false,
+      "grid" : {
+          "lower" : [-3.14, -3.14],
+          "upper" : [3.14,3.14],
+          "number_points" : [100,100],
+          "periodic" : [true, true]
+      }
+  }]
 
 Guidelines for running BFS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
