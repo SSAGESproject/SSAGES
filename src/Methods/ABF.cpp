@@ -38,7 +38,6 @@ namespace SSAGES
 	// Pre-simulation hook.
 	void ABF::PreSimulation(Snapshot* snapshot, const CVManager& cvmanager)
 	{
-		
 		// Open/close outfile to create it fresh. 
 		if(world_.rank() == 0)
 		{
@@ -157,8 +156,9 @@ namespace SSAGES
 		wdotp1_ = wdotp;		
 
 		// Write out data to file.
-		if(iteration_ % FBackupInterv_ == 0)
+		if(iteration_ % FBackupInterv_ == 0){
 			WriteData();
+		}
 
 		// Calculate the bias from averaged F at current CV coordinates.
 		// Or apply harmonic restraints to return CVs back in bounds.
@@ -234,14 +234,19 @@ namespace SSAGES
 	// Also write out Fworld and Nworld backups for restarts.
 	void ABF::WriteData()
 	{
+		
 		// Only one processor should be performing I/O.
 		if(world_.rank() != 0)
 			return;
+			
+		Nworld_->syncGrid();
+		
 
 		// Backup Fworld and Nworld.
 		Nworld_->WriteToFile(Nworld_filename_);
 		for(size_t i = 0 ; i < dim_; ++i)
 		{
+			Fworld_[i]->syncGrid();
 			Fworld_[i]->WriteToFile(Fworld_filename_+std::to_string(i));
 		}
 		
@@ -262,7 +267,26 @@ namespace SSAGES
 			worldout_ << (N_->GetNumPoints())[i] << " by " ;
 		worldout_ << (N_->GetNumPoints(dim_-1)) << " points in " << dim_ << " dimensions." << std::endl;
 		worldout_ << std::endl;	
-
+		
+		
+		for(auto it = Nworld_->begin(); it != Nworld_->end(); ++it)
+		{
+			auto& val = *it; 
+			auto coord = it.coordinates(); 
+			for(auto& c : coord)
+				worldout_ << std::setprecision(8) << std::fixed << c << " ";
+			for(size_t i = 0 ; i < dim_-1; ++i)
+				worldout_ << std::setprecision(8) << std::fixed << Fworld_[i]->at(coord)/std::max(val,min_) << " ";
+			worldout_ << std::endl;
+		}
+		
+		
+		
+		
+		
+		
+		
+		/*
 		std::vector<int> printCoords(dim_);
 		int div = 1;
 		int index = 0;
@@ -288,7 +312,7 @@ namespace SSAGES
 			worldout_ << std::endl;
 			
 		}
-
+		*/
 		worldout_ << std::endl;
 		worldout_ << std::endl;
 		worldout_.close();
@@ -536,38 +560,4 @@ namespace SSAGES
 	}
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

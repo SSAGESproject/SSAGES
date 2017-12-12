@@ -56,6 +56,7 @@ set(SOURCE
 	src/Validator/RequirementLoader.cpp
 	src/JSON/jsoncpp.cpp
 	src/Utility/PairwiseKernel.cpp
+    src/Utility/Basis.cpp
 	src/Hook.cpp
 	src/ResourceHandler.cpp
 )

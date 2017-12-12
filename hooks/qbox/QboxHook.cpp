@@ -51,19 +51,24 @@ namespace SSAGES
 		const auto& vel = snapshot_->GetVelocities();
 		const auto& frc = snapshot_->GetForces();
 		const auto& typ = snapshot_->GetAtomTypes();
-		
+
 		auto atomset = xml_.child("fpmd:simulation").child("iteration").child("atomset");
 
 		int i = 0;
 		for(auto& atom : atomset.children("atom"))
 		{
 			auto name = atom.attribute("name").value();
-			fout << "extforce set " << name << " "
-					<< frc[i][0] - prevforces_[i][0] << " "
-					<< frc[i][1] - prevforces_[i][1] << " "
-					<< frc[i][2] - prevforces_[i][2] << std::endl;
 
-			++i;
+			fout << "move " << name << " by "
+				<< pos[i][0] - prevpositions_[i][0] << " "
+				<< pos[i][1] - prevpositions_[i][1] << " "
+				<< pos[i][2] - prevpositions_[i][2] << std::endl;
+			fout << "extforce set " << name << " "
+				<< frc[i][0] - prevforces_[i][0] << " "
+				<< frc[i][1] - prevforces_[i][1] << " "
+				<< frc[i][2] - prevforces_[i][2] << std::endl;
+
+		++i;
 		}
 	}
 
@@ -118,6 +123,7 @@ namespace SSAGES
 
 		// Resize previous forces. 
 		prevforces_.resize(natoms, Vector3{0,0,0});
+		prevpositions_.resize(natoms, Vector3{0,0,0});
 
 		int i = 0;
 		for(auto& atom : atomset.children("atom"))
@@ -125,6 +131,7 @@ namespace SSAGES
 			to_vector3<Vector3>(atom.child_value("position"), pos[i]);
 			to_vector3<Vector3>(atom.child_value("velocity"), vel[i]);
 			to_vector3<Vector3>(atom.child_value("force"), frc[i]);
+			prevpositions_[i] = pos[i]; // Store "previous positions".
 			prevforces_[i] = frc[i]; // Store "previous forces".
 			ids[i] = i + 1;
 			
