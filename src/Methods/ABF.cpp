@@ -38,7 +38,6 @@ namespace SSAGES
 	// Pre-simulation hook.
 	void ABF::PreSimulation(Snapshot* snapshot, const CVManager& cvmanager)
 	{
-		
 		// Open/close outfile to create it fresh. 
 		if(world_.rank() == 0)
 		{
@@ -157,8 +156,9 @@ namespace SSAGES
 		wdotp1_ = wdotp;		
 
 		// Write out data to file.
-		if(iteration_ % FBackupInterv_ == 0)
+		if(iteration_ % FBackupInterv_ == 0){
 			WriteData();
+		}
 
 		// Calculate the bias from averaged F at current CV coordinates.
 		// Or apply harmonic restraints to return CVs back in bounds.
@@ -234,6 +234,7 @@ namespace SSAGES
 	// Also write out Fworld and Nworld backups for restarts.
 	void ABF::WriteData()
 	{
+		
 		// Only one processor should be performing I/O.
 		if(world_.rank() != 0)
 			return;
@@ -559,38 +560,4 @@ namespace SSAGES
 	}
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

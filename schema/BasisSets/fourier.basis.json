@@ -1,0 +1,17 @@
+{
+    "type" : "object",
+    "varname" : "FourierBasis",
+    "properties" : {
+        "polynomial_order" : {
+            "type" : "integer",
+            "minimum" : 0
+        },
+        "lower_bound" : {
+            "type" : "number"
+        },
+        "upper_bound" : {
+            "type" : "number"
+        }
+    },
+    "required" : ["polynomial_order", "lower_bound", "upper_bound"]
+}

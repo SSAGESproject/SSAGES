@@ -19,10 +19,10 @@ velocity all create 300 3
 timestep        2.0
 
 fix             1 all nvt temp 300 300 100.0
-fix             2 all shake 0.0001 10 100 b 3 5 7 
+fix             2 all shake 0.0001 10 0 b 3 5 7 
 fix        	ssages all ssages
 
 special_bonds   amber                               
 
-thermo 1000 
-run 1000000
+thermo 10000 
+run 500000000

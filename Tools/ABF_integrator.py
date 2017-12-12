@@ -1,27 +1,13 @@
 import sys
-import getopt
 import numpy as np
-import scipy as sp
 import scipy.sparse as sps
 import scipy.sparse.linalg as spsl
 import scipy.interpolate as interp
 import os
 import re
-
-import numpy.matlib as matlib
 import numpy.linalg as npl
-
-import matplotlib
-matplotlib.use('Agg')
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import matplotlib.pyplot as plt
-np.set_printoptions(threshold=np.inf)
-
-
-matplotlib.use('Agg')
-
+import argparse
 
 def intgrad2(fx,fy,nx,ny,dx,dy,intconst,per1,per2):
 	
@@ -127,237 +113,184 @@ def intgrad2(fx,fy,nx,ny,dx,dy,intconst,per1,per2):
 	return fhat
 
 
-def main(argv):
-	inputfile = ''
-	outputname = ''
-	periodic = [False,False]
-	interpolate = 500
-	scale = 1
-	try:
-		opts, args = getopt.getopt(argv,"hi:o:p:l:n:s",["ifile=","ofile=","periodic1=","periodic2=","interpolate=","scale="])
-	except getopt.GetoptError:
-		print 'ABF_integrator.py -i <inputfile> -o <outputname> --periodic1 <True/False> --periodic2 <True/False> --interpolate <integer> --scale <float>'
-		sys.exit(2)
-	for opt, arg in opts:
-		if opt == '-h':
-			print 'ABF_integrator.py -i <inputfile> -o <outputname> --periodic1 <True/False> --periodic2 <True/False> --interpolate <integer> --scale <float>'
-			sys.exit()
-		elif opt in ("-i", "--ifile"):
-			inputfile = arg
-		elif opt in ("-o", "--ofile"):
-			outputname = arg
-		elif opt in ("-p", "--periodic1"):
-			if arg == 'True':
-				periodic[0] = True
-			elif arg == 'False':
-				periodic[0] = False
-			elif(1):
-				print "--periodic1 option not understood. Please provide \"True\" or \"False\""
-				sys.exit()
-		elif opt in ("-l", "--periodic2"):
-			if arg == 'True':
-				periodic[1] = True
-			elif arg == 'False':
-				periodic[1] = False
-			elif(1):
-				print "--periodic2 option not understood. Please provide \"True\" or \"False\""
-				sys.exit()
-		elif opt in ("-n", "--interpolate"):
-			interpolate = int(arg)
-		elif opt in ("-s", "--scale"):
-			scale = float(arg)
-	if inputfile == '':
-		print 'Defaulting to input \"F_out\"'
-		inputfile = 'F_out'
-	elif(1):
-		print "Input file is \""+inputfile+"\""
-	if outputname == '':
-		print 'Defaulting to output name \"G\"'
-		outputname = 'G'
-	elif(1):
-		print 'Output file is \"'+outputname+"\""
-	if periodic[0] == False:
-		print 'Periodicity in CV1 is set to false. You may change this by passing \"--periodic1 True\"'
-	elif(1):
-		print 'Periodicity in CV1 is set to true.'
-	if periodic[1] == False:
-		print 'Periodicity in CV2 is set to false. You may change this by passing \"--periodic2 True\"'
-	elif(1):
-		print 'Periodicity in CV2 is set to true.'
-	if interpolate == 500:
-		print 'Interpolation is set to its default value of 500. You may change this by passing \"--interpolate <integer>\" or turn it off with \"--interpolate 0\"'
-	elif interpolate == 0:
-		print 'Interpolation is turned off'
-	elif(1):
-		print 'Interpolation grid is set to '+str(interpolate)
+def main():
 
-	f = open(outputname+'_integrated.txt','w')	
+    parser = argparse.ArgumentParser(description='This script post-process the F_out file that SSAGES print out, and create a FES from the estimation of the thermodynamic force')
+    parser.add_argument('-i','--input',default='F_out',help='name of the file containing the force')
+    parser.add_argument('-o','--output',default='G',help='file containing the free energy surface')
+    parser.add_argument('-p','--periodicity',nargs='*',default=[False,False],help='periodicity of the CVs (True is periodic, False is not)')
+    parser.add_argument('-n','--npoints',type=int,default=500,help='number of points for the interpolation')
+    parser.add_argument('-s','--scale',type=float,default=1,help='scale for the interpolation')
 
-	if not (os.path.isfile(inputfile)):
-		print'File not found.'
-		print 'Hint: usage is \"ABF_integrator.py -i <inputfile> -o <outputname> --periodic1 <True/False> --periodic2 <True/False> --interpolate <integer> --scale <float>\"'
-		exit()		
+    args=parser.parse_args()
 
-	vfield = []
-	with open(inputfile,"r") as infile:
-		for line in reversed(infile.readlines()):
-			if "The columns" in line:
-				headerinfo=re.findall(r'\d+',line)
-				break
-			elif not (line.strip()==""):
-				vfield.append(map(float,line.split()))
+    inputfile=args.input
+    outputname=args.output
+    periodic=args.periodicity
+    interpolate=args.npoints
+    scale=args.scale
+
+
+
+    if not (os.path.isfile(inputfile)):
+        print('Input file is missing. Aborting! Please use -h to ask for help!')
+        exit()
+
+    print('Input file is :\n', inputfile, '\n and output file is : \n',outputname)
+    print('currently, CV1 periodicity is set to \n',periodic[0],' \n while periodicity of CV2 (if present) is set to \n',periodic[1])
+    print('Free energy will be interpolate with \n',interpolate,'\n points')
+    f = open(outputname+'_integrated.txt','w')	
+
+    vfield = []
+
+    with open(inputfile,"r") as infile:
+        for line in reversed(infile.readlines()):
+            if "The columns" in line:
+                headerinfo=re.findall(r'\d+',line)
+                break
+            elif not (line.strip()==""):
+                vfield.append(list(map(float,line.split())))
+    
+
+    vfield = np.flipud(np.asarray(vfield))
+    shapeinfo = vfield.shape
+    headerfound = 0
+    try:
+        headerinfo = [int(i) for i in headerinfo]
+        headerfound = 1
+        if (headerinfo[0] == shapeinfo[0]) and (headerinfo[-1]*2 == shapeinfo[1]):
+            print("Columns reported and header information internally consistent. Continuing with analysis.")
+        else:
+            print("WARNING! Header information does not match column information. Continuing with analysis, but there may be errors.")
+    except NameError:
+        print("Header not found. Proceeding with analysis, but the file read in is likely not created by ABF directly. Proceed with caution.")
+    
+    if shapeinfo[1] == 2:
+        print("Two columns detected in input, which translates to a 1-dimensional grid of "+str(shapeinfo[0])+ " points.")
+        
+        if interpolate == 0:
+            A=np.zeros((vfield.shape[0],vfield.shape[0]))
+            dx = vfield[2,0]-vfield[1,0]
+            X = vfield[:,0]
+            b = vfield[:,1]
+            
+        else:
+            A=np.zeros((interpolate,interpolate))
+            dx = (vfield[-1,0]-vfield[0,0])/interpolate
+            X = np.linspace(vfield[0,0],vfield[-1,0],interpolate)
+            b = np.interp(X,vfield[:,0],vfield[:,1])
+            
+        for i in range (1,A.shape[0]-1):
+            A[i][i-1]=-1
+            A[i][i]=1
+            
+            if(periodic[0]):
+                A[0][-1] = -2
+                A[0][0] = 2
+                A[-1][-1] = 1
+                A[-1][-2] = -1
+            else:
+                A[0][0] = -1
+                A[0][1] = 1
+                A[-1][-1] = 1
+                A[-1][-2] = -1
+                
+                A[1][1] = 1
+                A[1][0] = 0
+                b[1] = 0
+        A=A/dx			
+        
+        Asurf,c,d,e = npl.lstsq(A,b)
+        Asurf = -Asurf*scale
+        
+        dx = vfield[2,0]-vfield[1,0]
+        vfieldy = vfield[:,1]
+        
+        for k in range(0,A.shape[0]):
+            f.write("{0:4f} {1:4f} \n".format(X[k],Asurf[k]))
+        minimum = min(Asurf[:])
+        plt.plot(X,Asurf-minimum)
+
+#        plt.show()
+        plt.savefig(outputname+'_integrated.png')
+
+    elif shapeinfo[1] == 4:
+        print( "Four columns detected in input, which translates to a 2-dimensional grid of "+str(shapeinfo[0])+" points.")
+        if(headerfound):
+            nx = headerinfo[1]
+            ny = headerinfo[2]
+
+        else:               
+            print( "Since header is missing, cannot read in CV dimensions.")
+            print( "I am trying to guess them from numpy, but if the number of digits is very different, I will fail")
+            unique,counts=np.unique(vfield[:,0],return_counts=True)
+            nx = len(unique)
+            unique,counts=np.unique(vfield[:,1],return_counts=True)
+            ny = len(unique)
+        if not shapeinfo[0] == (nx*ny): 
+            print("np.ndim of input file (",shapeinfo[0],") does not match given CV bin dimensions of ",nx," x ",ny," = ",nx*ny)
+            exit()
 	
-	vfield = np.flipud(np.asarray(vfield))
-	shapeinfo = vfield.shape
-	headerfound = 0
-	try:
-		headerinfo = [int(i) for i in headerinfo]
-		headerfound = 1
-		if (headerinfo[0] == shapeinfo[0]) and (headerinfo[-1]*2 == shapeinfo[1]):
-			print "Columns reported and header information internally consistent. Continuing with analysis."
-		else:
-			print "WARNING! Header information does not match column information. Continuing with analysis, but there may be errors."
-	except NameError:
-		print "Header not found. Proceeding with analysis, but the file read in is likely not created by ABF directly. Proceed with caution."
-
-
-	if shapeinfo[1] == 2:
-		print "Two columns detected in input, which translates to a 1-dimensional grid of "+str(shapeinfo[0])+ " points."
-
-		if interpolate == 0:
-			A=np.zeros((vfield.shape[0],vfield.shape[0]))
-			dx = vfield[2,0]-vfield[1,0]
-			X = vfield[:,0]
-			b = vfield[:,1]
-
-		else:
-			A=np.zeros((interpolate,interpolate))
-			dx = (vfield[-1,0]-vfield[0,0])/interpolate
-			X = np.linspace(vfield[0,0],vfield[-1,0],interpolate)
-			b = np.interp(X,vfield[:,0],vfield[:,1])
-
-		for i in range (1,A.shape[0]-1):
-			A[i][i-1]=-1
-			A[i][i]=1
-	
-		if(periodic[0]):
-			A[0][-1] = -2
-			A[0][0] = 2
-			A[-1][-1] = 1
-			A[-1][-2] = -1
-		else:
-			A[0][0] = -1
-			A[0][1] = 1
-			A[-1][-1] = 1
-			A[-1][-2] = -1
-
-			A[1][1] = 1
-			A[1][0] = 0
-			b[1] = 0			
-
-		A=A/dx			
-		
-		Asurf,c,d,e = npl.lstsq(A,b)
-		Asurf = -Asurf*scale
-		
-		dx = vfield[2,0]-vfield[1,0]
-		vfieldy = vfield[:,1]
-
-		for k in range(0,A.shape[0]):
-			f.write("{0:4f} {1:4f} \n".format(X[k],Asurf[k]))
-		minimum = min(Asurf[:])
-		plt.plot(X,Asurf-minimum)
-
-		#plt.show()
-		plt.savefig(outputname+'_integrated.png')
-	
-	
-	elif shapeinfo[1] == 4:
-		print "Four columns detected in input, which translates to a 2-dimensional grid of "+str(shapeinfo[0])+" points."
-		if(headerfound):
-			print "CV1 number of bins is "+str(headerinfo[1])
-			nx = headerinfo[1]
-			print"CV2 number of bins is "+str(headerinfo[2])
-			ny = headerinfo[2]
-		
-		else:
-			print "Since header is missing, cannot read in CV dimensions."
-			nx = input("Please enter CV1 number of bins:")
-			ny = input("Please enter CV2 number of bins:")	
-
-		if not shapeinfo[0] == (nx*ny):
-			print("np.ndim of input file (",shapeinfo[0],") does not match given CV bin dimensions of ",nx," x ",ny," = ",nx*ny)
-			exit()
-		
-
-		boundx = [vfield[0,0],vfield[-1,0]]
-		boundy = [vfield[0,1],vfield[-1,1]]
-
-		plot1 = plt.figure()
-		plt.quiver(vfield[:,0],vfield[:,1],vfield[:,2],vfield[:,3],width = (0.0002*(vfield[nx*ny-1,0]-vfield[0,0])), headwidth=3)
-		plt.axis([boundx[0],boundx[1],boundy[0],boundy[1]])
-		plt.title('Gradient Field of the Free Energy')
-		plot1.savefig(outputname+'_GradientField.png')
-
-		if interpolate != 0:
-
-			grid_x, grid_y = np.mgrid[boundx[0]:boundx[1]:interpolate*1j,boundy[0]:boundy[1]:interpolate*1j]
-		
-			dx = (boundx[1]-boundx[0])/interpolate
-			dy = (boundy[1]-boundy[0])/interpolate
-	
-			nx = interpolate
-			ny = interpolate
-
-			fx=interp.griddata(vfield[:,0:2], vfield[:,2],(grid_x,grid_y), method='cubic')
-			fy=interp.griddata(vfield[:,0:2], vfield[:,3],(grid_x,grid_y), method='cubic')
-		else:			
-		
-			fx = vfield[:,2]
-			fy = vfield[:,3]		
-
-			dx = vfield[ny,0] - vfield[0,0]
-			dy = vfield[1,1] - vfield[0,1]
-
-			grid_x = vfield[:,0].reshape((nx,ny))
-			grid_y = vfield[:,1].reshape((nx,ny))
-		
-		fhat = intgrad2(fx,fy,nx,ny,dx,dy,1,periodic[0],periodic[1])
-		fhat = fhat*scale
-
-		zmin = min(fhat)
-		zmax = max(fhat)
-		fhat = fhat.reshape((nx,ny))
-		
-		X = grid_x
-		Y = grid_y
-
-		for n in range(0,nx):
-			for k in range(0,ny): 
-				f.write("{0:4f} {1:4f} {2:4f} \n".format(X[n,k],Y[n,k],-fhat[n,k]))
-
-
-		plot3 = plt.figure()
-	
-		plt.pcolormesh(X,Y,-fhat)
-		plt.colorbar()
-		plt.axis([min(vfield[:,0]),max(vfield[:,0]),min(vfield[:,1]),max(vfield[:,1])])
-		plot3.savefig(outputname+'_EnergySurface.png')
-	
-		plot4=plt.figure()
-		CS=plt.contour(X,Y,-fhat,antialiased=True,levels=np.linspace(np.amin(-fhat),np.amax(-fhat),30))
-
-		plot4.savefig(outputname+'_contourmap.png')
-
-	else:
-		print("Input file does not contain the corrent number of dimensions. This code only supports 1D and 2D currently.")
-		f.close()
-		exit()
-
-	f.close()
+        boundx = [vfield[0,0],vfield[-1,0]]
+        boundy = [vfield[0,1],vfield[-1,1]]
+        
+        plot1 = plt.figure()
+        
+        plt.quiver(vfield[:,0],vfield[:,1],vfield[:,2],vfield[:,3],width = (0.0002*(vfield[nx*ny-1,0]-vfield[0,0])), headwidth=3)
+        plt.axis([boundx[0],boundx[1],boundy[0],boundy[1]])
+        plt.title('Gradient Field of the Free Energy')
+        plot1.savefig(outputname+'_GradientField.png')
+        
+        if interpolate != 0:
+            grid_x, grid_y = np.mgrid[boundx[0]:boundx[1]:interpolate*1j,boundy[0]:boundy[1]:interpolate*1j]
+            dx = (boundx[1]-boundx[0])/interpolate
+            dy = (boundy[1]-boundy[0])/interpolate
+            nx = interpolate
+            ny = interpolate
+            fx=interp.griddata(vfield[:,0:2], vfield[:,2],(grid_x,grid_y), method='cubic')
+            fy=interp.griddata(vfield[:,0:2], vfield[:,3],(grid_x,grid_y), method='cubic')
+        else:			
+            fx = vfield[:,2]
+            fy = vfield[:,3]		
+            dx = vfield[ny,0] - vfield[0,0]
+            dy = vfield[1,1] - vfield[0,1]
+            grid_x = vfield[:,0].reshape((nx,ny))
+            grid_y = vfield[:,1].reshape((nx,ny))
+            
+        fhat = intgrad2(fx,fy,nx,ny,dx,dy,1,periodic[0],periodic[1])
+        fhat = fhat*scale
+        zmin = min(fhat)
+        
+        zmax = max(fhat)
+        fhat = fhat.reshape((nx,ny))
+        
+        X = grid_x
+        Y = grid_y
+        
+        for n in range(0,nx):
+            for k in range(0,ny): 
+                f.write("{0:4f} {1:4f} {2:4f} \n".format(X[n,k],Y[n,k],-fhat[n,k]))
+        
+        plot3 = plt.figure() 
+        plt.pcolormesh(X,Y,-fhat)
+        plt.colorbar()
+        plt.axis([min(vfield[:,0]),max(vfield[:,0]),min(vfield[:,1]),max(vfield[:,1])])
+        plot3.savefig(outputname+'_EnergySurface.png')
+        
+        plot4=plt.figure()
+        CS=plt.contour(X,Y,-fhat,antialiased=True,levels=np.linspace(np.amin(-fhat),np.amax(-fhat),30))
+        
+        plot4.savefig(outputname+'_contourmap.png')
+    
+    else:
+        print("Input file does not contain the corrent number of dimensions. This code only supports 1D and 2D currently.")
+        f.close()
+        exit()
+            
+    f.close()
 
 if __name__ == "__main__":
-   main(sys.argv[1:])
+   main()
 	 
 
 
