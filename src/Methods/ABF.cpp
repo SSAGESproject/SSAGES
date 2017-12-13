@@ -274,45 +274,12 @@ namespace SSAGES
 			auto& val = *it; 
 			auto coord = it.coordinates(); 
 			for(auto& c : coord)
-				worldout_ << std::setprecision(8) << std::fixed << c << " ";
-			for(size_t i = 0 ; i < dim_-1; ++i)
-				worldout_ << std::setprecision(8) << std::fixed << Fworld_[i]->at(coord)/std::max(val,min_) << " ";
+				worldout_ << std::setw(14) << std::setprecision(8) << std::fixed << c << " ";
+			for(size_t i = 0 ; i < dim_; ++i)
+				worldout_ << std::setw(14) << std::setprecision(8) << std::fixed << Fworld_[i]->at(coord)/std::max(val,min_) << " ";
 			worldout_ << std::endl;
 		}
-		
-		
-		
-		
-		
-		
-		
-		/*
-		std::vector<int> printCoords(dim_);
-		int div = 1;
-		int index = 0;
-		std::vector<double> tempcoord(dim_);
-		for(size_t i = 0; i < gridPoints; ++i)
-		{
-			printCoords[0] = i%(Nworld_->GetNumPoints(0));
-			div = 1;
-			for(size_t j = 1; j < dim_; ++j)
-			{
-				div = div * Nworld_->GetNumPoints(j);
-				printCoords[j]=i/div;						
-			}
-			for(size_t j = 0; j < dim_; ++j)
-			{
-				worldout_ << std::setw(10) << (printCoords[j]+0.5)*((Nworld_->GetUpper(j)-Nworld_->GetLower(j))/Nworld_->GetNumPoints(j)) + Nworld_->GetLower(j) << " ";
-				tempcoord[j] = ((printCoords[j]+0.5)*((Nworld_->GetUpper(j)-Nworld_->GetLower(j))/Nworld_->GetNumPoints(j)) + Nworld_->GetLower(j));
-			}
-			for(size_t j = 0; j < dim_; ++j)
-			{
-				worldout_ <<  std::setw(10) << (Fworld_[j]->at(tempcoord))/std::max(Nworld_->at(tempcoord),min_)<< " ";
-			}
-			worldout_ << std::endl;
-			
-		}
-		*/
+	
 		worldout_ << std::endl;
 		worldout_ << std::endl;
 		worldout_.close();
@@ -524,7 +491,7 @@ namespace SSAGES
 
 			for(size_t i=0; i<dim; ++i)
 			{
-				temp1 = {minsCV[i], maxsCV[i], binsCV[i]};
+				temp1 = {minsCV[i], maxsCV[i], double(binsCV[i])};
 				temp2 = {minsrestCV[i], maxsrestCV[i], springkrestCV[i]};
 				histdetails.push_back(temp1);
 				restraint.push_back(temp2);
