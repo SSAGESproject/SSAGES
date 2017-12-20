@@ -46,13 +46,14 @@ namespace SSAGES
         // defining CVs and grids
         if(h_->GetDimension() != cvs.size())
         {
-            std::cerr<<"ERROR: Histogram dimensions doesn't match number of CVS."<<std::endl;
+            std::cerr<<"ERROR: Grid dimensions doesn't match number of CVS."<<std::endl;
             MPI_Abort(world_, EXIT_FAILURE);
         }
 
         // This is to check for non-periodic bounds. It comes into play in the update bias function
         bounds_ = true;        
         unbias_.resize(h_->size(),0);
+        std::fill(unbias_.begin(),unbias_.end(),1.0);
  
         // Initialize the mapping for the hist function
         for (auto &val : *h_) {
@@ -95,22 +96,12 @@ namespace SSAGES
         // Update the basis projection after a predefined number of steps
         if(snapshot->GetIteration()  % cyclefreq_ == 0) {
             double beta;
-            beta = 1.0 / (snapshot->GetTemperature() * snapshot->GetKb());
+            beta = 1.0 / (temperature_ * snapshot->GetKb());
 
             // For systems with poorly defined temperature (ie: 1 particle) the
             // user needs to define their own temperature. This is a hack that
             // will be removed in future versions.
 
-            if(!snapshot->GetTemperature())
-            {
-                beta = temperature_;
-                if(temperature_ == 0)
-                {
-                    std::cout<<std::endl;
-                    std::cerr<<"ERROR: Input temperature needs to be defined for this simulation"<<std::endl;
-                    MPI_Abort(world_, EXIT_FAILURE);
-                }
-            }
             iteration_+= 1;
             ProjectBias(cvs,beta);
             std::cout<<"Node: ["<<mpiid_<<"]"<<std::setw(10)<<"\tSweep: "<<iteration_<<std::endl;
@@ -170,23 +161,19 @@ namespace SSAGES
         double sum  = 0.0;
 
         // For multiple walkers, the struct is unpacked
-        Histogram<uint> histlocal(*h_);
+        Grid<uint> histlocal(*h_);
 
         // Summed between all walkers
         MPI_Allreduce(histlocal.data(), h_->data(), h_->size(), MPI_INT, MPI_SUM, world_);
 
         // Construct the biased histogram
         size_t i = 0;
-        for (Histogram<uint>::iterator it2 = h_->begin(); it2 != h_->end(); ++it2, ++i)
+        for (Grid<uint>::iterator it2 = h_->begin(); it2 != h_->end(); ++it2, ++i)
         {
-            if (it2.isUnderOverflowBin()) {
-                --i;
-                continue;
-            }
             /* The evaluation of the biased histogram which projects the histogram to the
              * current bias of CV space.
              */
-            unbias_[i] += (*it2) * exp(b_->at(it2.coordinates())) * weight_ / (double)(cyclefreq_);
+            unbias_[i] += (*it2) * exp(beta * b_->at(it2.coordinates()));
         }
 
         // Reset histogram
@@ -198,7 +185,7 @@ namespace SSAGES
         std::vector<double> z (unbias_.size(),0);
         for (i = 0; i < unbias_.size(); i++)
             // Make sure the log of the biased histogram is a number
-            unbias_[i] == 0 ? z[i] = 1 : z[i] = log(unbias_[i]);
+            z[i] = 1.0/beta*log(unbias_[i] * weight_);
 
         //Update the coefficients and determine the difference from the previous iteration
         sum = evaluator_.UpdateCoeff(z,h_);
@@ -206,9 +193,11 @@ namespace SSAGES
         //Update both the gradient and the bias on the grids
         evaluator_.UpdateBias(b_,f_);
 
-        if(world_.rank() == 0)
+        if(world_.rank() == 0) {
             // Write coeff at this step, but only one walker
+            std::cout<<"Coefficient difference is: " <<sum<<std::endl;
             PrintBias(cvs,beta);
+        }
 
         // The convergence tolerance and whether the user wants to exit are incorporated here
         if(sum < tol_)
@@ -239,25 +228,22 @@ namespace SSAGES
         coeffout.open(filename2.c_str());
 
         // The CV values, PMF projection, PMF, and biased histogram are output for the user
-        basisout << "CV Values" << std::setw(35*cvs.size()) << "Basis Set Bias" << std::setw(35) << "PMF Estimate" << std::endl;
+        basisout << "The information stored in this file is the output of a Basis Function Sampling run" << std::endl;
+        basisout << "CV Values" << std::setw(15*cvs.size()) << "Basis Set Bias" << std::setw(15) << "PMF Estimate" << std::endl;
         coeffout << "The information stored in this file is for the purpose of restarting simulations with BFS" << std::endl;
         coeffout << "***COEFFICIENTS***" << std::endl;
         
         size_t j = 0;
-        for(Histogram<double>::iterator it = b_->begin(); it != b_->end(); ++it, ++j)
+        for(Grid<double>::iterator it = b_->begin(); it != b_->end(); ++it, ++j)
         {
-            if (it.isUnderOverflowBin()) {
-                --j;
-                continue;
-            }
             for(size_t k = 0; k < cvs.size(); ++k)
             {
                 // Evaluate the CV values for printing purposes
-                basisout << it.coordinate(k) << std::setw(35);
+                basisout << it.coordinate(k) << std::setw(15);
             }
-            basisout << -(*it) << std::setw(35);
-            basisout << -log(unbias_[j]) << std::setw(35);
-            basisout << std::endl;
+            basisout << -(*it) << std::setw(15) <<
+                        -1.0/beta*log(unbias_[j]) << 
+                        std::endl;
         }
 
         std::vector<double> coeff = evaluator_.GetCoeff();
@@ -289,15 +275,15 @@ namespace SSAGES
                 // In order to prevent the index for the histogram from going out of bounds a check is in place
                 if(x[j] > max && bounds_)
                 {
-                    std::cout<<"WARNING: CV is above the maximum boundary."<<std::endl;
-                    std::cout<<"Statistics will not be gathered during this interval"<<std::endl;
+                    //std::cout<<"WARNING: CV is above the maximum boundary."<<std::endl;
+                    //std::cout<<"Statistics will not be gathered during this interval"<<std::endl;
                     bounds_ = false;
                     break;
                 }
                 else if(x[j] < min && bounds_)
                 {
-                    std::cout<<"WARNING: CV is below the minimum boundary."<<std::endl;
-                    std::cout<<"Statistics will not be gathered during this interval"<<std::endl;
+                    //std::cout<<"WARNING: CV is below the minimum boundary."<<std::endl;
+                    //std::cout<<"Statistics will not be gathered during this interval"<<std::endl;
                     bounds_ = false;
                     break;
                 }
@@ -348,13 +334,13 @@ namespace SSAGES
         auto tol  = json.get("tolerance", 1e-6).asDouble();
         auto conv = json.get("convergence_exit", false).asBool();
 
-        Histogram<uint> *h = Histogram<uint>::BuildHistogram(
+        Grid<uint> *h = Grid<uint>::BuildGrid(
                                         json.get("grid", Json::Value()) );
 
-        Histogram<std::vector<double>> *f = Histogram<std::vector<double>>::BuildHistogram(
+        Grid<std::vector<double>> *f = Grid<std::vector<double>>::BuildGrid(
                                         json.get("grid", Json::Value()) );
 
-        Histogram<double> *b = Histogram<double>::BuildHistogram(
+        Grid<double> *b = Grid<double>::BuildGrid(
                                         json.get("grid", Json::Value()) );
 
         size_t ii = 0;

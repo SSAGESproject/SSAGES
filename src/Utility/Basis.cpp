@@ -142,19 +142,15 @@ namespace SSAGES
         }
     }
     
-    void BasisEvaluator::UpdateBias(Histogram<double> *bias, Histogram<std::vector<double>> *grad)
+    void BasisEvaluator::UpdateBias(Grid<double> *bias, Grid<std::vector<double>> *grad)
     { 
         double basis;
         double temp;
         size_t j = 0;
         int nbins;
 
-        for(Histogram<double>::iterator it = bias->begin(); it != bias->end(); ++it, ++j)
+        for(Grid<double>::iterator it = bias->begin(); it != bias->end(); ++it, ++j)
         {
-            if (it.isUnderOverflowBin()) {
-                --j;
-                continue;
-            }
             std::vector<double> tmp_grad (functions_.size(),0);
             double tmp_bias = 0;
             for (size_t i = 1; i < coeff_.size(); ++i)
@@ -186,9 +182,9 @@ namespace SSAGES
 
     //Calculates the inner product of the basis set and the biased histogram
     //This function then returns the coefficients from this calculation
-    double BasisEvaluator::UpdateCoeff(const std::vector<double> &array, Histogram<uint> *hist)
+    double BasisEvaluator::UpdateCoeff(const std::vector<double> &array, Grid<uint> *hist)
     {
-        double coeffTemp;
+        double coeffTemp = 0;
         double sum = 0;
 
         for(auto& coeff : coeff_)
@@ -197,12 +193,8 @@ namespace SSAGES
             size_t j = 0;
             coeffTemp = coeff.value;
             coeff.value = 0.0;
-            for(Histogram<uint>::iterator it2 = hist->begin(); it2 != hist->end(); ++it2, ++j)
+            for(Grid<uint>::iterator it2 = hist->begin(); it2 != hist->end(); ++it2, ++j)
             { 
-                if (it2.isUnderOverflowBin()) {
-                    --j;
-                    continue;
-                }
 
                 double weight = std::pow(2.0,functions_.size());
 
@@ -228,6 +220,7 @@ namespace SSAGES
                 coeff.value += basis * array[j] * weight/std::pow(2.0,functions_.size());
             }
             coeffTemp -= coeff.value;
+            //std::cout<<coeffTemp<<std::endl;
             sum += fabs(coeffTemp);
         }
         return sum;

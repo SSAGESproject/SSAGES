@@ -22,7 +22,7 @@
 
 #include "Method.h"
 #include "Utility/Basis.h"
-#include "Grids/Histogram.h"
+#include "Grids/Grid.h"
 #include <fstream>
 #include <vector>
 
@@ -39,23 +39,23 @@ namespace SSAGES
 	{
 	private:	
         
-        //! Histogram of visited states.
+        //! Grid of visited states.
         /*!
-         * Histogram is stored locally.
+         * Grid is stored locally.
          */
-        Histogram<uint> *h_;
+        Grid<uint> *h_;
 
         //! Stored bias potential
         /*!
          * The sum of basis functions that adds up to the bias potential of the surface
          */
-        Histogram<double> *b_;
+        Grid<double> *b_;
 
         //! Stored gradients
         /*!
          * The gradients corresponding to each point on the grid
          */
-        Histogram<std::vector<double>> *f_;
+        Grid<std::vector<double>> *f_;
 
         //! The basis evaluator class
         /*!
@@ -165,9 +165,9 @@ namespace SSAGES
          */
 		BFS(const MPI_Comm& world,
 			  const MPI_Comm& comm,
-              Histogram<uint> *h,
-              Histogram<std::vector<double>> *f,
-              Histogram<double> *b,
+              Grid<uint> *h,
+              Grid<std::vector<double>> *f,
+              Grid<double> *b,
               const std::vector<BasisFunction*>& functions,
               const std::vector<double>& restraint,
               const std::vector<double>& boundUp,

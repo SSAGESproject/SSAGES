@@ -1,6 +1,6 @@
 #include <cmath>
 #include "json/json.h"
-#include "../Grids/Histogram.h"
+#include "../Grids/Grid.h"
 
 namespace SSAGES
 {
@@ -62,20 +62,23 @@ namespace SSAGES
         uint nbins_;
         double boundLow_, boundHigh_;
         bool isFinite_;
+        bool zeroOrder_;
 
     public: 
         BasisFunction(uint polyOrd,
                       uint nbins,
                       bool isFinite,
+                      bool zeroOrder,
                       double boundLow,
                       double boundHigh) :
-        polyOrd_(polyOrd), isFinite_(isFinite), nbins_(nbins),
+        polyOrd_(polyOrd), isFinite_(isFinite), zeroOrder_(zeroOrder), nbins_(nbins),
         boundLow_(boundLow), boundHigh_(boundHigh)
         {
         }
 
         uint GetOrder() {return polyOrd_;}
         uint GetBins() {return nbins_;}
+        bool GetZeroOrder() {return zeroOrder_;}
         double GetLower() {return boundLow_;}
         double GetUpper() {return boundHigh_;}
         double GetRange() 
@@ -106,7 +109,7 @@ namespace SSAGES
     protected:
     public:
         Chebyshev(unsigned int polyOrd, double boundLow, double boundHigh, unsigned int nbins) :
-        BasisFunction(polyOrd, nbins, true, boundLow, boundHigh)
+        BasisFunction(polyOrd, nbins, true, false, boundLow, boundHigh)
         {
         }
 
@@ -146,7 +149,7 @@ namespace SSAGES
     protected:
     public:
         Legendre(unsigned int polyOrd, unsigned int nbins) :
-        BasisFunction(polyOrd, nbins, true, -1.0, 1.0)
+        BasisFunction(polyOrd, nbins, true, false, -1.0, 1.0)
         {
         }
 
@@ -180,7 +183,7 @@ namespace SSAGES
     protected:
     public:
         Fourier(unsigned int polyOrd, double boundLow, double boundHigh, unsigned int nbins) :
-        BasisFunction(polyOrd, nbins, true, boundLow, boundHigh)
+        BasisFunction(polyOrd, nbins, true, true, boundLow, boundHigh)
         {
         }
 
@@ -234,11 +237,11 @@ namespace SSAGES
         void BasisInit(void);
 
         //Outputs the basis projection at a specific coordinate
-		void UpdateBias(Histogram<double> *bias, Histogram<std::vector<double>> *grad);
+		void UpdateBias(Grid<double> *bias, Grid<std::vector<double>> *grad);
 
         //Calculates the inner product of the basis set and the biased histogram
         //This function then returns the coefficients from this calculation
-		double UpdateCoeff(const std::vector<double> &array, Histogram<uint> *hist);
+		double UpdateCoeff(const std::vector<double> &array, Grid<uint> *hist);
 
         //Gets the coefficient array
         std::vector<double> GetCoeff(void)
