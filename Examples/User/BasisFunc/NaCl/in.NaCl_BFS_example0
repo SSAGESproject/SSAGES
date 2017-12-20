@@ -80,6 +80,6 @@ fix        ssages all ssages
 
 velocity        all create ${temperature} ${seed} dist gaussian
 
-run 100000
+run 1000000
 
 
