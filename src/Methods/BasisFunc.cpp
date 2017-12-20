@@ -166,6 +166,8 @@ namespace SSAGES
         // Summed between all walkers
         MPI_Allreduce(histlocal.data(), h_->data(), h_->size(), MPI_INT, MPI_SUM, world_);
 
+        h_->syncGrid();
+
         // Construct the biased histogram
         size_t i = 0;
         for (Grid<uint>::iterator it2 = h_->begin(); it2 != h_->end(); ++it2, ++i)
