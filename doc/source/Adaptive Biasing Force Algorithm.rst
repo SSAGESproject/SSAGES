@@ -165,23 +165,25 @@ Example input
 
 .. code-block:: javascript
 
-"methods" : [{
-                "type" : "ABF",
-		"cvs" : [0,1],
-  		"CV_lower_bounds" : [-3.14, -3.14],
-                "CV_upper_bounds" : [3.14,3.14],
-		"CV_bins" : [21,21],
-  		"CV_restraint_minimums" : [-5,-5],
-                "CV_restraint_maximums" : [5,5],
-		"CV_restraint_spring_constants" : [0,0],
-		"CV_isperiodic" : [false,false],
-		"timestep" : 0.002,
-		"minimum_count" : 50,
-		"filename" : "F_out",
-		"backup_frequency" : 1000,
-		"unit_conversion" : 1,
-		"frequency" : 1
-            }]
+    "methods" : [
+        {
+            "type" : "ABF",
+            "cvs" : [0,1],
+            "CV_lower_bounds" : [-3.14, -3.14],
+            "CV_upper_bounds" : [3.14,3.14],
+            "CV_bins" : [21,21],
+            "CV_restraint_minimums" : [-5,-5],
+            "CV_restraint_maximums" : [5,5],
+            "CV_restraint_spring_constants" : [0,0],
+            "CV_isperiodic" : [false,false],
+            "timestep" : 0.002,
+            "minimum_count" : 50,
+            "output_file" : "F_out",
+            "output_frequency" : 1000,
+            "unit_conversion" : 1,
+            "frequency" : 1
+        }
+    ]
 
 Output
 ^^^^^^

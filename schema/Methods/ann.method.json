@@ -1,0 +1,96 @@
+{
+    "type" : "object", 
+    "varname" : "ANNMethod", 
+    "properties" : {
+        "type" : {
+            "type" : "string", 
+            "enum" : ["ANN"]
+        }, 
+        "topology" : {
+            "type" : "array", 
+            "minItems" : 1,
+            "items" : { 
+                "type" : "integer", 
+                "minimum" : 1
+            } 
+        }, 
+        "weight" : {
+            "type" : "number",
+            "minimum" : 0 
+        },
+        "grid" : {
+            "type" : "object"
+        },
+        "temperature" : {
+            "type" : "number", 
+            "minimum" : 0
+        },
+		"lower_bounds" : {
+			"type" : "array", 
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+		"upper_bounds" : {
+			"type" : "array", 
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+		"lower_bound_restraints" : {
+			"type" : "array", 
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+		"upper_bound_restraints" : {
+			"type" : "array", 
+			"minItems" : 1,
+			"items" : {
+				"type" : "number"
+			}
+		},
+        "prev_weight" : {
+            "type" : "number", 
+            "minimum" : 0, 
+            "maximum" : 1
+		},
+		"nsweep" : {
+			"type" : "integer", 
+			"minimum" : 1
+        },
+        "output_file" : {
+            "type" : "string"
+        },
+        "overwrite_output" : {
+            "type" : "boolean"
+        },
+        "converge_iters" : {
+            "type" : "integer", 
+            "minimum" : 0
+        },
+        "max_iters" : {
+            "type" : "integer", 
+            "minimum" : 0
+        }, 
+        "min_loss" : {
+            "type" : "number",
+            "minimum" : 0
+        }
+    },
+    "required" : [
+        "type", 
+        "topology", 
+        "grid", 
+        "lower_bound_restraints",
+		"upper_bound_restraints",
+		"lower_bounds",
+		"upper_bounds",
+		"temperature",
+		"nsweep"
+    ],
+    "additionalProperties" : false
+}

@@ -241,9 +241,9 @@ Example
 .. code-block:: javascript 
 	
 	{
-		"type" : "PairwiseCV", 
+		"type" : "Pairwise", 
 		"group1" : [1, 5],
-		"group1" : [2, 3, 4, 6, 7, 8],
+		"group2" : [2, 3, 4, 6, 7, 8],
 		"kernel" : {
 			"type" : "gaussian",
 			"mu" : 1.0,
@@ -308,7 +308,7 @@ The Gaussian function is defined as:
 
 .. math::
 
-	g_{ij} = e^{\frac{\left(r_{ij} - \mu\right)^2}{2 sigma^2}}.
+	g_{ij} = e^{-\frac{\left(r_{ij} - \mu\right)^2}{2 sigma^2}}.
 
 Properties
 ++++++++++
@@ -341,7 +341,7 @@ Properties
 	
 	"type"
 
-Property ``type`` must be set to string ``"rational"``.
+Property ``type`` must be set to string ``"rationalswitch"``.
 
 .. code-block:: javascript 
 	

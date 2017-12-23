@@ -377,6 +377,13 @@ inline void allreduce(const T* in, size_t n, T* out, Func func, const mxx::comm&
     MPI_Allreduce(const_cast<T*>(in), out, n, op.get_type(), op.get_op(), comm);
 }
 
+template <typename T, typename Func>
+inline void allreduce(T* out, size_t n, Func func, const mxx::comm& comm = mxx::comm()) {
+    // get custom op
+    mxx::custom_op<T> op(std::forward<Func>(func));
+    MPI_Allreduce(MPI_IN_PLACE, out, n, op.get_type(), op.get_op(), comm);
+}
+
 template <typename T>
 inline void allreduce(const T* in, size_t n, T* out, const mxx::comm& comm = mxx::comm()) {
     allreduce(in, n, out, std::plus<T>(), comm);

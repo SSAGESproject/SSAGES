@@ -1,5 +1,4 @@
 {
-	"logfile" : "node-1",
 	"walkers" : 2,
 	"input" : ["in.Langevin_BFS_example0", "in.Langevin_BFS_example1"],
     "CVs" : [
@@ -15,9 +14,18 @@
         }
     ],
     "methods" : [{
-        "type" : "Basis",
+        "type" : "BFSMethod",
+        "basis_functions" : [
+        {
+            "type" :"Legendre", 
+            "polynomial_order" : 25
+        },
+        {
+            "type" : "Legendre",
+            "polynomial_order": 25
+        }],
         "cvs" : [0,1],
-        "cycle_frequency" : 100000,
+        "cycle_frequency" : 10000,
         "frequency" : 1,
         "temperature" : 1.0,
         "weight" : 1.0,
@@ -30,7 +38,6 @@
         "basis_filename" : "langevin_2d_example",
         "coeff_filename" : "langevin_2d_example",
         "tolerance" : 1e-6,
-        "convergence_exit" : false,
-        "CV_coefficients" : [ 25, 25 ]
+        "convergence_exit" : false
     }]
 }

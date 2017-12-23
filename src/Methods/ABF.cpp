@@ -38,7 +38,6 @@ namespace SSAGES
 	// Pre-simulation hook.
 	void ABF::PreSimulation(Snapshot* snapshot, const CVManager& cvmanager)
 	{
-		
 		// Open/close outfile to create it fresh. 
 		if(world_.rank() == 0)
 		{
@@ -157,8 +156,9 @@ namespace SSAGES
 		wdotp1_ = wdotp;		
 
 		// Write out data to file.
-		if(iteration_ % FBackupInterv_ == 0)
+		if(iteration_ % FBackupInterv_ == 0){
 			WriteData();
+		}
 
 		// Calculate the bias from averaged F at current CV coordinates.
 		// Or apply harmonic restraints to return CVs back in bounds.
@@ -234,14 +234,19 @@ namespace SSAGES
 	// Also write out Fworld and Nworld backups for restarts.
 	void ABF::WriteData()
 	{
+		
 		// Only one processor should be performing I/O.
 		if(world_.rank() != 0)
 			return;
+			
+		Nworld_->syncGrid();
+		
 
 		// Backup Fworld and Nworld.
 		Nworld_->WriteToFile(Nworld_filename_);
 		for(size_t i = 0 ; i < dim_; ++i)
 		{
+			Fworld_[i]->syncGrid();
 			Fworld_[i]->WriteToFile(Fworld_filename_+std::to_string(i));
 		}
 		
@@ -251,7 +256,7 @@ namespace SSAGES
 		for(size_t i = 0 ; i < dim_; ++i)
 			gridPoints = gridPoints * N_->GetNumPoints(i);
 
-		worldout_.open(filename_,std::ios::out);
+		worldout_.open(filename_, std::ios::out);
 		worldout_ << std::endl;
 		worldout_ << "Iteration: " << iteration_ << std::endl;			
 		worldout_ << "Printing out the current Adaptive Biasing Vector Field." << std::endl;
@@ -262,33 +267,19 @@ namespace SSAGES
 			worldout_ << (N_->GetNumPoints())[i] << " by " ;
 		worldout_ << (N_->GetNumPoints(dim_-1)) << " points in " << dim_ << " dimensions." << std::endl;
 		worldout_ << std::endl;	
-
-		std::vector<int> printCoords(dim_);
-		int div = 1;
-		int index = 0;
-		std::vector<double> tempcoord(dim_);
-		for(size_t i = 0; i < gridPoints; ++i)
+		
+		
+		for(auto it = Nworld_->begin(); it != Nworld_->end(); ++it)
 		{
-			printCoords[0] = i%(Nworld_->GetNumPoints(0));
-			div = 1;
-			for(size_t j = 1; j < dim_; ++j)
-			{
-				div = div * Nworld_->GetNumPoints(j);
-				printCoords[j]=i/div;						
-			}
-			for(size_t j = 0; j < dim_; ++j)
-			{
-				worldout_ << std::setw(10) << (printCoords[j]+0.5)*((Nworld_->GetUpper(j)-Nworld_->GetLower(j))/Nworld_->GetNumPoints(j)) + Nworld_->GetLower(j) << " ";
-				tempcoord[j] = ((printCoords[j]+0.5)*((Nworld_->GetUpper(j)-Nworld_->GetLower(j))/Nworld_->GetNumPoints(j)) + Nworld_->GetLower(j));
-			}
-			for(size_t j = 0; j < dim_; ++j)
-			{
-				worldout_ <<  std::setw(10) << (Fworld_[j]->at(tempcoord))/std::max(Nworld_->at(tempcoord),min_)<< " ";
-			}
+			auto& val = *it; 
+			auto coord = it.coordinates(); 
+			for(auto& c : coord)
+				worldout_ << std::setw(14) << std::setprecision(8) << std::fixed << c << " ";
+			for(size_t i = 0 ; i < dim_; ++i)
+				worldout_ << std::setw(14) << std::setprecision(8) << std::fixed << Fworld_[i]->at(coord)/std::max(val,min_) << " ";
 			worldout_ << std::endl;
-			
 		}
-
+	
 		worldout_ << std::endl;
 		worldout_ << std::endl;
 		worldout_.close();
@@ -500,7 +491,7 @@ namespace SSAGES
 
 			for(size_t i=0; i<dim; ++i)
 			{
-				temp1 = {minsCV[i], maxsCV[i], binsCV[i]};
+				temp1 = {minsCV[i], maxsCV[i], double(binsCV[i])};
 				temp2 = {minsrestCV[i], maxsrestCV[i], springkrestCV[i]};
 				histdetails.push_back(temp1);
 				restraint.push_back(temp2);
@@ -536,38 +527,4 @@ namespace SSAGES
 	}
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

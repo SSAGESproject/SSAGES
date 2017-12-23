@@ -52,7 +52,7 @@ TEST_F(GridTest, ReadWriteGrid)
 
 }
 
-TEST_F(GridTest, Interpolation)
+/*TEST_F(GridTest, Interpolation)
 {
 	// Fill grid with random numbers.
 	std::random_device rd;
@@ -85,7 +85,7 @@ TEST_F(GridTest, Interpolation)
 						(grid->at({1,1})*std::abs(3-(-1.5+(10+1.5)/4))	*std::abs(6-(-2.0+5*(6.7+2.0)/4))		/ (((10+1.5)/2)*((6.7+2.0)/2)));
 						
 	EXPECT_NEAR(real_value, grid->GetInterpolated({3.0,6.0}), 1e-8);
-}
+}*/
 
 int main(int argc, char *argv[])
 {

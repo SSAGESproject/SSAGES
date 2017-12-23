@@ -18,21 +18,24 @@ of orthogonal basis functions.
 
 By projecting a basis set, the system resolves the same properties as the
 Kronecker deltas, but in a continuous and differentiable manner that lends well
-towards MD simulations. Currently in SSAGES, Legendre Polynomials have been
-implemented to work with BFS. These have the property where the weight
-:math:`w(\xi) = 1` and are defined on the interval :math:`[-1, 1]`.
+towards MD simulations. The current version of SSAGES has support for Legendre, 
+Chebyshev, and Fourier polynomials. Each of these has their defined weight function :math:`w(\xi)`
+implemented specific to the method. Additionally, any combination of implemented basis sets can be
+used for any system. It is advised that a periodic basis set be used with a periodic CV, but it
+is not required.
 
-The method applies its bias in sweeps of $N$ through a histogram (:math:`H_{i}`)
+The BFS method applies its bias in sweeps of $N$ through a histogram (:math:`H_{i}`)
 that is updated at every :math:`j` microstate or timestep. This histogram is
 then modified to an unbiased partition function estimate (:math:`\tilde{H_{i}}`)
-by convolution with the current bias potential (:math:`\Phi_{i}`).
+by exponentiation with the current bias potential (:math:`\Phi_{i}`).
 
 .. math::
 
     \tilde{H}_{i}(\xi) = H_{i}(\xi)e^{\beta \Phi_{i}}
 
-In order to account for sampling history into this partition function estimate,
-a simple weight function (:math:`W(t_{j})`) is added. 
+A weight function has been added into this implementation (:math:`W(t_{j})`) so that
+the user can define the effective strength of the applied bias. If not chosen, the weight is normalized to
+the length of the interval.
 
 .. math::
 
@@ -53,12 +56,24 @@ Options & Parameters
 
 These are all the options that SSAGES provides for running Basis Function
 Sampling. In order to add BFS to the JSON file, the method should be labeled as
-"Basis".
+"BFSMethod".
 
-CV_coefficients
-    The order of the polynomial to be projected for each collective variable. If
-    the order of this array doesn't match the number of CVs, the system assumes
-    the first number for all of the CVs
+Basis Function Sampling requires the use of a basis set. These are defined by defining
+an object of "basis_functions". These have the following properties
+
+type
+    Currently can either be Chebyshev, Fourier, or Legendre
+
+polynomial_order
+    Order of the polynomial. In the case of Chebyshev or Legendre this results in an
+    order of input value + 1 as the method takes the 0th order internally. For a Fourier
+    series, the order is the total number of coefficients including the sine and cosine series.
+
+upper_bound
+    Only exists for Chebyshev and Fourier series. This is the upper bound of the CV
+
+lower_bound
+    Only exists for Chebyshev and Fourier series. This is the lower bound of the CV
 
 CV_restraint_spring_constants
     The strength of the springs keeping the system in bounds in a non-periodic
@@ -77,16 +92,13 @@ frequency
     The frequency of each integration step. This should almost always be set to 1.
 
 weight
-    The weight of each visited histogram step. Should be kept at 1.0, but the
-    option is available to make it slightly greater. The system has a higher
+    The weight of each visited histogram step. Should be kept around the same value
+    as the cycle_frequency (usually 0.1 times that) The system has a higher
     chance of exploding at higher weight values.
 
 basis_filename
     A suffix to name the output file. If not specified the output will be
     "basis.out"
-
-coeff_filename
-    A suffix to name the coefficient file.
 
 temperature
     Only should be used if the MD engine cannot produce a good temperature
@@ -110,38 +122,52 @@ The only inputs required to run the method:
 
 * cyclefrequency
 * frequency
-* CV coefficients
+* basis_functions
 
 Example Input
 ^^^^^^^^^^^^^
 .. code-block:: javascript
 
-"methods" : [{
-        "type" : "Basis",
-        "cvs" : [0],
-        "cycle_frequency" : 10000,
-        "frequency" : 1,
-        "weight" : 1.0,
-        "basis_filename" : "nacl_example",
-        "coeff_filename" : "nacl_example",
-        "CV_coefficients" : [ 50 ],
-        "CV_restraint_spring_constants" : [ 30 ],
-        "CV_restraint_maximums" : [ 10.3 ],
-        "CV_restraint_minimums" : [ 1.7 ],
-        "grid" : {
-                "lower" : [2.0],
-                "upper" : [15.0],
-                "number_points" : [500],
-                "periodic" : [false]
-        }
-    }]
+  "methods" : [{
+      "type" : "BFSMethod",
+      "basis_functions" : [
+      {
+          "type" :"Fourier", 
+          "polynomial_order" : 30,
+          "upper_bound" : 3.14,
+          "lower_bound" : -3.14
+      },
+      {
+          "type" : "Fourier",
+          "polynomial_order": 30,
+          "upper_bound" : 3.14,
+          "lower_bound" : -3.14
+      }],
+      "cvs" : [0,1],
+      "cycle_frequency" : 100000,
+      "basis_filename" : "example",
+      "frequency" : 1,
+      "temperature" : 1.0,
+      "weight" : 100000.0,
+      "tolerance" : 1e-6,
+      "convergence_exit" : false,
+      "grid" : {
+          "lower" : [-3.14, -3.14],
+          "upper" : [3.14,3.14],
+          "number_points" : [100,100],
+          "periodic" : [true, true]
+      }
+  }]
 
 Guidelines for running BFS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* It is generally a good idea to use polynomials of order at least 25. 
+* It is generally a good idea to choose a lower order polynomial initially.
+  Excessive number of polynomials may create an unwanted "ringing" effect that could result
+  in much slower convergence.
 * For higher order polynomials, the error in projection is less, but the number
-  of bins must increase in order to accurately project the surface.
+  of bins must increase in order to accurately project the surface. This may
+  also result in an undesired ringing phenomena.
 * A good rule of thumb for these simulations is to do at least one order of
   magnitude more bins than polynomial order.
 
@@ -183,7 +209,7 @@ Use the following command to run the example:
 
 .. code-block:: bash
 
-    mpiexec -np 1 ./ssages ADP_BFS_2walkers.json
+    mpiexec -np 2 ./ssages ADP_BFS_2walkers.json
 
 This should prompt SSAGES to begin an alanine dipeptide run. If the run is
 successful, the console will output the current sweep number on each node.
@@ -208,11 +234,11 @@ sweeps, and then will take a longer period of time to retrieve the fully
 converged surface. A reference image of the converged  alanine dipeptide example
 is provided in the same directory as the LAMMPS and JSON input files.
 
-coeff.out
+restart.out
 ~~~~~~~~~
 
-This holds all the coefficient values after each bias projection update. This
-file is entirely used for restart runs.
+This holds all the coefficient values after each bias projection update, as well
+as the biased histogram. This file is entirely used for restart runs.
 
 Developer
 ^^^^^^^^^

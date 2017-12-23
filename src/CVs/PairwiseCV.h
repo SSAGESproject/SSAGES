@@ -89,7 +89,7 @@ namespace SSAGES
 			unsigned ntot2 = std::accumulate(found2.begin(), found2.end(), 0, std::plus<int>());
 			if(ntot1 != n1)
 				throw BuildException({
-					"PairwiseCV: Expected to find " + 
+					"Pairwise: Expected to find " + 
 					to_string(n1) + 
 					" atoms in group 1, but only found " + 
 					to_string(ntot1) + "."
@@ -97,7 +97,7 @@ namespace SSAGES
 
 			if(ntot2 != n2)
 				throw BuildException({
-					"PairwiseCV: Expected to find " + 
+					"Pairwise: Expected to find " + 
 					to_string(n2) + 
 					" atoms in group 2, but only found " + 
 					to_string(ntot2) + "."
