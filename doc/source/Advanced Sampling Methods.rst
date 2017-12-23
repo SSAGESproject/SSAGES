@@ -3,16 +3,13 @@
 Advanced Sampling Methods
 =========================
 
-.. todo::
-
-    Give a short overview over all SSAGES methods. Not more than 2 paragraphs.
-
 List of Advanced Sampling Methods (alphabetical order):
 
 .. toctree::
    :maxdepth: 1
 
    Adaptive Biasing Force Algorithm
+   Artificial Neural Network Sampling
    Basis Function Sampling
    Elastic Band
    Finite Temperature String

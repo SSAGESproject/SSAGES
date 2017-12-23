@@ -178,7 +178,7 @@ public:
 			}
 		}
 	}
-	 
+				
     //! Get the dimension.
     /*!
      * \return Dimensionality of the grid.

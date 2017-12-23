@@ -39,6 +39,7 @@ link_directories(${MPI_CXX_LIBRARIES})
 # General source files
 set(SOURCE
 	src/Methods/ABF.cpp
+	src/Methods/ANN.cpp
   	src/Methods/BasisFunc.cpp
 	src/Methods/DirectForwardFlux.cpp
 	src/Methods/ElasticBand.cpp
@@ -59,6 +60,7 @@ set(SOURCE
     src/Utility/Basis.cpp
 	src/Hook.cpp
 	src/ResourceHandler.cpp
+	"include/nnet/nnet.cpp"
 )
 
 ####################### MD ENGINES #########################
@@ -135,6 +137,10 @@ endif ()
 # Configure flags 
 # - Globals
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -pthread -std=c++11")
+
+if (SSAGES_PERF)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -march=native")
+endif()
 
 # Add doc subdirectory for building the documentation
 add_subdirectory(doc)
