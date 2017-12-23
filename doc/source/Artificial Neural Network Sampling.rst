@@ -42,7 +42,7 @@ grid
 nsweep 
 	*integer* 
 	Defines the length of a sweep in iterations. Typical values range from 1,000 to 10,000 depending 
-	on the size of the system. The longer the system, the longer the sweep. This is not going to heavily 
+	on the size of the system. The slower the system dynamics, the longer the sweep. This is not going to heavily 
 	affect convergence time, and the method is generally quite robust to choice of sweep length. The main 
 	consequence of this choice is that the ANN training time become relatively expensive if the system is 
 	very cheap to evaluate. 
@@ -81,12 +81,12 @@ upper_bounds
 lower_bound_restraints
     *array of doubles (nr of CVs) long*.
     This array defines the spring constants for the lower bound CV restraints. If you do not 
-    wish to restrain the CVs to a particualr interval, you can set this to zero.
+    wish to restrain the CVs to a particular interval, you can set this to zero.
 
 upper_bound_restraints
     *array of doubles (nr of CVs) long*.
     This array defines the spring constants for the upper bound CV restraints. If you do not 
-    wish to restrain the CVs to a particualr interval, you can set this to zero.
+    wish to restrain the CVs to a particular interval, you can set this to zero.
 
 max_iters
 	*integer* 
