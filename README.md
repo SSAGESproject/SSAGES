@@ -5,17 +5,16 @@ SSAGES
 It is designed to be easy to use, extendable and extremely versatile. It is currently pre-beta, meaning that there are many rough edges, but we are working rapidly 
 to expand its features and fix any bugs. Keep an eye on this page for future updates and see below on how to contribute!
 
-## What's New (v0.7.5)
-- Major documentation update!
-- Major examples update! 
-- New generalized pairwise CV
-- New secondary structure CVs (alpha and anti/parallel beta sheet RMSD)
-- New CV logging capability 
-- CV selection by name in methods 
-- Updated unit tests 
-- Updated ABF integrators for periodic and non-periodic CVs 
-- Gromacs 2016.3 support! 
-- Many bug fixes! 
+## What's New (v0.8.0)
+- Added ANN sampling! 
+- More documentation updates
+- Updates to examples 
+- Added Fourier and Chebyshev basis sets to BFS 
+- Added 3D ABF integrator
+- Improved periodicity handling on grid
+- Secondary structure CV bug fixes 
+- Improved Qbox integration
+
 
 <a id="features"></a>
 ## Features
@@ -47,14 +46,15 @@ to expand its features and fix any bugs. Keep an eye on this page for future upd
 - Torsional angle
 
 ### Methods 
-- Metadynamics 
-- Basis function sampling 
 - Adaptive biasing force 
-- Nudged elastic band 
-- Finite temperature string 
-- Forward flux sampling 
-- Swarm of trajectories 
+- Artificial neural network sampling
+- Basis function sampling 
+- Metadynamics 
 - Umbrella sampling 
+- Finite temperature string 
+- Nudged elastic band 
+- Swarm of trajectories 
+- Forward flux sampling 
 
 <a id="installation"></a>
 ## Installation
@@ -146,6 +146,17 @@ or
 ```bash
 $ firefox doc/Manual/index.html
 ```
+## What's Old (v0.7.5)
+- Major documentation update!
+- Major examples update! 
+- New generalized pairwise CV
+- New secondary structure CVs (alpha and anti/parallel beta sheet RMSD)
+- New CV logging capability 
+- CV selection by name in methods 
+- Updated unit tests 
+- Updated ABF integrators for periodic and non-periodic CVs 
+- Gromacs 2016.3 support! 
+- Many bug fixes! 
 
 ## What's Old (v0.7.0)
 - New simplified JSON syntax
