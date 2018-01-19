@@ -1,3 +1,18 @@
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR})
+
+# The short X.Y.Z version
+set (VERSION_STRING "${SSAGES_VERSION_MAJOR}.${SSAGES_VERSION_MINOR}.${SSAGES_VERSION_TINY}")
+
+# The full version, including alpha/beta/rc tags.
+execute_process(
+    COMMAND git describe --tag
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    RESULT_VARIABLE GIT_RESULT
+    OUTPUT_VARIABLE RELEASE_STRING
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
 find_package (Doxygen)
 
 if (DOXYGEN_FOUND)
@@ -20,23 +35,9 @@ else (DOXYGEN_FOUND)
                      "Doxygen.")
 endif (DOXYGEN_FOUND)
 
-set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR})
 find_package (Sphinx)
 
 if (SPHINX_FOUND)
-    execute_process(
-        COMMAND git describe --tag
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        RESULT_VARIABLE GIT_RESULT
-        OUTPUT_VARIABLE RELEASE_STRING
-        ERROR_QUIET
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-
-    if (NOT ${GIT_RESULT} EQUAL 0)
-        set (RELEASE_STRING "${SSAGES_VERSION_MAJOR}.${SSAGES_VERSION_MINOR}.${SSAGES_VERSION_TINY}")
-    endif (NOT ${GIT_RESULT} EQUAL 0)
-
     configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/source/conf.py.in"
                     "${CMAKE_CURRENT_BINARY_DIR}/conf.py")
 
