@@ -6,7 +6,7 @@
  *
  * This reference contains the documentation of all classes and methods which
  * are part of SSAGES. We hope you will find this a valuable resource when
- * developing new MetaDynamics methods with SSAGES or when contributing to
+ * developing new advanced sampling methods with SSAGES or when contributing to
  * the core SSAGES functionalities.
  *
  * \section license License
@@ -20,9 +20,9 @@
  */
 
 /*! \defgroup Methods Methods
- *  \brief Meta-Dynamics Methods
+ *  \brief Advanced Sampling Methods
  *
- * This module contains all MetaDynamics Methods.
+ * This module contains all Advanced Sampling Methods.
  */
 
 /*! \defgroup CVs CVs
@@ -37,7 +37,7 @@
  * This module contains the core classes of SSAGES.
  */
 
- /*! \defgroup Json Json
+ /*! \defgroup JSON JSON
   * \brief Classes for handling JSON input files.
   *
   * This module contains classes and functions to handle JSON input files.
@@ -48,7 +48,7 @@
   * The global namespace for all SSAGES classes and functions.
   */
 
-/*! \namespace Json
+/*! \namespace JSON
  *
  * The global namespace for all classes handling JSON input and output.
  */
