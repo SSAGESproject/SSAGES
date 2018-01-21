@@ -4,6 +4,7 @@
 
 #include "Hook.h"
 #include <functional>
+#include <mxx/comm.hpp>
 
 namespace SSAGES
 {
