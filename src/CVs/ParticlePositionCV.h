@@ -133,6 +133,7 @@ namespace SSAGES
 				grad_[id] = dx/val_*masses[id]/masstot;
 		}
 		
+		//! \copydoc CollectiveVariable::BuildCV()
 		static ParticlePositionCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;

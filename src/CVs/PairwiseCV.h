@@ -49,6 +49,7 @@ namespace SSAGES
 		/*!
 		 * \param group1 IDs of the first group of atoms. 
 		 * \param group2 IDs of the second group of atoms. 
+		 * \param pk pairwise kernel (function) to use.
 		 *
 		 * Construct a PairwiseCV.
 		 *
@@ -195,6 +196,7 @@ namespace SSAGES
 			}
 		}
 
+		//! \copydoc CollectiveVariable::BuildCV()
 		static PairwiseCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;

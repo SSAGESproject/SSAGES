@@ -134,6 +134,7 @@ protected:
 
 public:
 
+	//! Sync the grid.
 	void syncGrid()
 	{
 		//Convenience
@@ -469,8 +470,8 @@ public:
     }
 
 
-    //! Return the distance to adjacent grid center points from given coordinates
-    /*!
+    ///! Return the distance to adjacent grid center points from given coordinates
+    /*/!
      *\param coords
      *\param dim
      * To be finalized.

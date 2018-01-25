@@ -164,6 +164,7 @@ namespace SSAGES
 			return val_ - Location;
 		}
 
+		//! \copydoc CollectiveVariable::BuildCV()
 		static ParticleCoordinateCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;

@@ -72,7 +72,10 @@ namespace SSAGES
 		//! Sets the active snapshot.
 		void SetSnapshot(class Snapshot* snapshot);
 
-		//! Sets the current CV manager. 
+		//! Sets the current CV manager.
+		/*!
+		 * \param cvmanager Collective variable manager.
+		 */
 		void SetCVManager(class CVManager* cvmanager);
 
 		//! Add a listener to the hook.

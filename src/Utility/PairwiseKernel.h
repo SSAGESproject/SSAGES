@@ -56,7 +56,8 @@ namespace SSAGES
 
 		//! Build PairwiseKernel from JSON value. 
 		/*!
-		 * \param json JSON value node. 
+		 * \param json JSON value node.
+		 * \param path Path for JSON path specification.
 		 * 
 		 * \return Pointer to new PairwiseKernel.
 		 */
@@ -86,14 +87,7 @@ namespace SSAGES
 		 */
 		GaussianPK(double mu, double sigma) : 
 		mu_(mu), sigma_(sigma) {}
-
-		//! Evaluate the Gaussian function.
-		/*!
-		 * \param rij distance between two atoms. 
-		 * \param df Reference to variable which will store the gradient.
-		 * 
-		 * \return value of Gaussian function. 
-		 */
+		
 		double Evaluate(double rij, double& df) const
 		{
 			const auto dx = (rij - mu_)/sigma_;
@@ -106,7 +100,8 @@ namespace SSAGES
 
 		//! Build GaussianPK from JSON value. 
 		/*!
-		 * \param json JSON value node. 
+		 * \param json JSON value node.
+		 * \param path Path for JSON path specification.
 		 * 
 		 * \return Pointer to new GaussianPK.
 		 */
@@ -124,7 +119,8 @@ namespace SSAGES
 	private: 
 		double d0_; //!< Minimum linear shift value. 
 		double r0_; //!< Cutoff distance. 
-		int n_, m_; //!< Exponents of the switching function which control the stiffness. 
+		int n_;     //!< Exponent of numerator in switching function (controls stiffness).
+		int m_;     //!< Exponent of denominator in switching function (controls stiffness). 
 	
 	public:
 		//! Constructor.
@@ -140,13 +136,6 @@ namespace SSAGES
 		RationalSwitchPK(double d0, double r0, int n, int m) : 
 		d0_(d0), r0_(r0), n_(n), m_(m) {}
 
-		//! Evaluate the switching function.
-		/*!
-		 * \param rij distance between two atoms. 
-		 * \param df Reference to variable which will store the gradient.
-		 * 
-		 * \return value of switching function. 
-		 */
 		double Evaluate(double rij, double& df) const override
 		{
 			const auto xarg = (rij - d0_)/r0_;
@@ -160,7 +149,8 @@ namespace SSAGES
 
 		//! Build RationalSwitchPK from JSON value. 
 		/*!
-		 * \param json JSON value node. 
+		 * \param json JSON value node.
+		 * \param path Path for JSON path specification.
 		 * 
 		 * \return Pointer to new RationalSwitchPK.
 		 */

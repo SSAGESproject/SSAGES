@@ -142,49 +142,51 @@ namespace SSAGES
 
 	public:
         //! Constructor
-		/*!
+        /*!
          * \param world MPI global communicator.
          * \param comm MPI local communicator.
-         * \param polyord Order of Legendre polynomials.
+         * \param h Grid containing histogram.
+         * \param f Grid containing histogram.
+         * \param b Grid containing histogram.
+         * \param functions Vector of basis functions.
          * \param restraint Restraint spring constants.
          * \param boundUp Upper bounds of restraint springs.
          * \param boundLow Lower bounds of restraint springs.
          * \param cyclefreq Cycle frequency.
          * \param frequency Frequency with which this Method is applied.
          * \param bnme Basis file name.
-         * \param cnme Coefficient file name.
          * \param temperature Automatically set temperature.
          * \param tol Threshold for tolerance criterion.
          * \param weight Weight for improved sampling.
          * \param converge If \c True quit on convergence.
          *
          * Constructs an instance of the Basis function sampling method. The
-         * coefficients describes the basis projection of the system. This is
+         * coefficients describe the basis projection of the system. This is
          * updated once every cyclefreq_. For now, only the Legendre polynomial
          * is implemented. Others will be added later.
          */
 		BFS(const MPI_Comm& world,
-			  const MPI_Comm& comm,
-              Grid<uint> *h,
-              Grid<std::vector<double>> *f,
-              Grid<double> *b,
-              const std::vector<BasisFunction*>& functions,
-              const std::vector<double>& restraint,
-              const std::vector<double>& boundUp,
-              const std::vector<double>& boundLow,
-              unsigned int cyclefreq,
-			  unsigned int frequency,
-              const std::string bnme,
-              const double temperature,
-              const double tol,
-              const double weight,
-              bool converge) :
+		    const MPI_Comm& comm,
+		    Grid<uint> *h,
+		    Grid<std::vector<double>> *f,
+		    Grid<double> *b,
+		    const std::vector<BasisFunction*>& functions,
+		    const std::vector<double>& restraint,
+		    const std::vector<double>& boundUp,
+		    const std::vector<double>& boundLow,
+		    unsigned int cyclefreq,
+		    unsigned int frequency,
+		    const std::string bnme,
+		    const double temperature,
+		    const double tol,
+		    const double weight,
+		    bool converge) :
 		Method(frequency, world, comm), 
-        h_(h),  b_(b), f_(f), unbias_(), coeffArr_(), evaluator_(functions),
-        restraint_(restraint), boundUp_(boundUp), boundLow_(boundLow),
-        cyclefreq_(cyclefreq), mpiid_(0), weight_(weight),
-        temperature_(temperature), tol_(tol),
-        convergeExit_(converge), bnme_(bnme), iteration_(0)
+		h_(h),  b_(b), f_(f), unbias_(), coeffArr_(), evaluator_(functions),
+		restraint_(restraint), boundUp_(boundUp), boundLow_(boundLow),
+		cyclefreq_(cyclefreq), mpiid_(0), weight_(weight),
+		temperature_(temperature), tol_(tol),
+		convergeExit_(converge), bnme_(bnme), iteration_(0)
 		{
 		}
 
@@ -235,11 +237,11 @@ namespace SSAGES
             unbias_ = unbias;
         }
 
-		//! \copydoc Buildable::Build()
+		//! \copydoc Method::BuildMethod()
 		static BFS* Build(const Json::Value& json, 
-		                        const MPI_Comm& world,
-		                        const MPI_Comm& comm,
-					            const std::string& path);
+		                  const MPI_Comm& world,
+		                  const MPI_Comm& comm,
+		                  const std::string& path);
 
         //! Destructor.
         ~BFS()

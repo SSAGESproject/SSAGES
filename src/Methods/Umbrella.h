@@ -38,8 +38,10 @@ namespace SSAGES
 		//! Vector of spring constants.
 		std::vector<double> kspring_;
 
+		//!@{
 		//! Vector of equilibrium distances.
 		std::vector<double> centers0_, centers1_;
+		//!@}
 
 		//! Amount of time over which to scale centers.
 		int time_;
@@ -56,6 +58,13 @@ namespace SSAGES
 		//! Append to output files?
 		bool append_; 
 
+		//! Get the current center of the umbrella at a given iteration.
+		/*!
+		 * \param iteration Current iteration of the Snapshot.
+		 * \param i index (iterator) for CV.
+		 *
+		 * \return Center of umbrella at current iteration
+		 */
 		double GetCurrentCenter(int iteration, unsigned i)
 		{
 			// We are at the end.
@@ -148,7 +157,7 @@ namespace SSAGES
 
 		//! Set output frequency.
 		/*!
-		 * \param iter New value for output frequency.
+		 * \param outfreq New value for output frequency.
 		 */
 		void SetOutputFrequency(int outfreq)
 		{
@@ -164,7 +173,7 @@ namespace SSAGES
 			append_ = append;
 		}
 
-		//! \copydoc Buildable::Build()
+		//! \copydoc Method::BuildMethod()
 		static Umbrella* Build(const Json::Value& json, 
 		                           const MPI_Comm& world,
 		                           const MPI_Comm& comm,

@@ -69,8 +69,6 @@ namespace SSAGES
 
 		//! Evaluate CV.
 		/*!
-		 * \param snapshot Reference of the current simulation snapshot.
-		 *
 		 * Evaluation of the CV. This function is called by the Hook in the
 		 * post-integration phase every iteration. The CV should compute its
 		 * value and gradient, storing them in a local private variable.

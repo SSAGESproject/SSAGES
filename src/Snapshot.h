@@ -54,7 +54,7 @@ namespace SSAGES
 		Matrix3 H_; //!< Parrinello-Rahman box H-matrix.
 		Matrix3 Hinv_; //!< Parinello-Rahman box inverse.
 
-		Matrix3 virial_; //! < Virial tensor.
+		Matrix3 virial_; //!< Virial tensor.
 
 		Vector3 origin_; //!< Box origin.
 
@@ -128,13 +128,13 @@ namespace SSAGES
 
 		//! Get box virial
 		/*!
-		 * \retun Virial tensor of the simulation box. 
+		 * \return Virial tensor of the simulation box. 
 		 */
 		const Matrix3& GetVirial() const { return virial_; }
 
 		//! Get box virial
 		/*!
-		 * \retun Virial tensor of the simulation box. 
+		 * \return Virial tensor of the simulation box. 
 		 */
 		Matrix3& GetVirial() { return virial_; }
 

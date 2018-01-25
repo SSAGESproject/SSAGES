@@ -1,3 +1,22 @@
+/**
+ * This file is part of
+ * SSAGES - Suite for Advanced Generalized Ensemble Simulations
+ *
+ * Copyright 2017 Hythem Sidky <hsidky@nd.edu>
+ *
+ * SSAGES is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * SSAGES is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #include "ANN.h"
 #include "schema.h"
 #include "Snapshot.h"
@@ -13,18 +32,18 @@ using namespace Json;
 namespace SSAGES
 {
 	ANN::ANN(const MPI_Comm& world, 
-		     const MPI_Comm& comm, 
-		     const VectorXi& topol,
-			 Grid<VectorXd>* fgrid,
-			 Grid<uint>* hgrid,
-			 Grid<double>* ugrid,
-		     const std::vector<double>& lowerb,
-		     const std::vector<double>& upperb,
-		     const std::vector<double>& lowerk,
-		     const std::vector<double>& upperk,
-		     double temperature,
-		     double weight,
-			 uint nsweep) : 
+	         const MPI_Comm& comm, 
+	         const VectorXi& topol,
+	         Grid<VectorXd>* fgrid,
+	         Grid<uint>* hgrid,
+	         Grid<double>* ugrid,
+	         const std::vector<double>& lowerb,
+	         const std::vector<double>& upperb,
+	         const std::vector<double>& lowerk,
+	         const std::vector<double>& upperk,
+	         double temperature,
+	         double weight,
+	         uint nsweep) : 
 	Method(1, world, comm), topol_(topol), sweep_(0), nsweep_(nsweep),  
 	citers_(0), net_(topol), pweight_(1.), weight_(weight), temp_(temperature), 
 	kbt_(0), fgrid_(fgrid), hgrid_(hgrid), ugrid_(ugrid), hist_(), bias_(),
@@ -106,7 +125,7 @@ namespace SSAGES
 			derivatives = net_.get_gradient(0);
 		}
 		else
-		{   
+		{
 			if(comm_.rank() == 0)
 			{
 				std::cerr << "ANN (" << snapshot->GetIteration() << "): out of bounds ( ";

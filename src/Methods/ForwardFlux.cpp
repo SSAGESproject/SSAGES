@@ -395,8 +395,8 @@ namespace SSAGES
         std::vector<unsigned int> shouldpop (world_.size(),0);
         MPI_Allgather(&shouldpop_local,1,MPI_UNSIGNED,shouldpop.data(),1,MPI_UNSIGNED,world_);
 
-        // I dont pass the queue information between procs but I do syncronize 'shouldpop'
-        //   as a reuslt all proc should have the same queue throughout the simulation
+        // I don't pass the queue information between procs, but I do syncronize 'shouldpop'.
+        // As a result, all proc should have the same queue throughout the simulation.
 		for (int i=0;i<world_.size();i++)
 		{
         	if (shouldpop[i] == true)
@@ -581,7 +581,7 @@ namespace SSAGES
 				ffsconfig.l = ffsconfig.lprev;
 				ffsconfig.n = ffsconfig.nprev;
 				ffsconfig.a = ffsconfig.aprev;
-          	}
+			}
 			//the last element is the last lambda, which doesn't have a trajectory, so delete it
 			path.pop_back();
 
@@ -622,14 +622,13 @@ namespace SSAGES
 					ofile << line << "\n";
 			}
 			ofile.close();
-        }
-    }	
+		}
+	}	
 
-	//! \copydoc Buildable::Build()
 	ForwardFlux* ForwardFlux::Build(const Json::Value& json, 
-						                const MPI_Comm& world,
-								        const MPI_Comm& comm,
-								        const std::string& path)
+	                                const MPI_Comm& world,
+	                                const MPI_Comm& comm,
+	                                const std::string& path)
 	{
 		ObjectRequirement validator;
 		Value schema;
@@ -673,4 +672,3 @@ namespace SSAGES
 		}
 	}
 }
-

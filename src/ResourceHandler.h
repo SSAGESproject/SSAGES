@@ -81,49 +81,59 @@ namespace SSAGES
 		 * \param comm MPI communicator containing walker-specific processors. 
 		 * \param walkerid ID of the walker for the current processor.
 		 * \param methods Vector of pointers to methods. 
-		 * \param CVManager Pointer to CV manager. 
+		 * \param cvmanager Pointer to CV manager. 
 		 * 
 		 * \note ResourceHandler will be responsible for lifetime of methods and CV manager. 
 		 */
 		ResourceHandler(mxx::comm&& world, mxx::comm&& comm, uint walkerid,
 		          const std::vector<class Method*>& methods, class CVManager* cvmanager);
 
-		
+		//! Returns inputs of the walker for the current processor. 
 		std::string GetInput() const
 		{
 			return inputs_[walkerid_];
 		}
 
+		//! Returns local (walker-specific) MPI communicator.
 		MPI_Comm GetLocalComm() const
 		{
 			return comm_;
 		}
 
+		//! Returns world (all processors) MPI communicator.
 		MPI_Comm GetWorldComm() const
 		{
 			return world_;
 		}
 
+		//! Returns local (walker-specific) mxx communicator.
 		const mxx::comm& GetLocalMxxComm() const
 		{
 			return comm_;
 		}
-		
+
+		//! Returns world (all processors) mxx communicator.
 		const mxx::comm& GetWorldMxxComm() const
 		{
 			return world_;
 		}
 
+		//! Returns processor-specific walker ID.
 		uint GetWalkerID() const
 		{
 			return walkerid_;
 		}
 
+		//! Returns the total number of walkers across all processors.
 		uint GetNumWalkers() const 
 		{
 			return nwalkers_;
 		}
-
+		
+		//! Configure the Hook from given resources. 
+		/*!
+		 * \param hook Pointer to specified Hook.
+		 */
 		void ConfigureHook(class Hook* hook);
 
 		//! Build a new ResourceHandler from JSON. 

@@ -29,6 +29,11 @@
 
 namespace SSAGES
 {
+	//! Define components of gyration tensor
+	/*!
+	 * Components of the gyration tensor. CV uses these definitions
+	 * to determine what to calculate.
+	 */
 	enum GyrationTensor
 	{
 		Rg = 0, // Radius of gyration (squared)
@@ -203,6 +208,7 @@ namespace SSAGES
 			}
 		}
 
+		//! \copydoc CollectiveVariable::BuildCV()
 		static GyrationTensorCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;

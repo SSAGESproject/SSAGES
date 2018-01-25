@@ -30,11 +30,9 @@
 
 namespace SSAGES
 {
-
 	//! Adaptive Biasing Force Algorithm
 	/*!
 	 * \ingroup Methods
-	 *
 	 *
 	 * Implementation of the Adaptive Biasing Force algorithm based on
 	 * \cite DARVE2008144120
@@ -271,7 +269,7 @@ namespace SSAGES
 			iteration_ = iter;
 		}			
 		
-		//! \copydoc Buildable::Build()
+		//! \copydoc Method::BuildMethod()
 		static ABF* Build(const Json::Value& json, 
 		                      const MPI_Comm& world,
 		                      const MPI_Comm& comm,

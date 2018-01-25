@@ -39,10 +39,11 @@ namespace SSAGES
 	class RMSDCV : public CollectiveVariable
 	{
 	private:
-
-		std::vector<int> atomids_; //!< IDs of the atoms used for Rg calculation
-
-		std::vector<int> pertatoms_; //!< Array to store indicies of atoms of interest
+		//! IDs of the atoms used for Rg calculation
+		std::vector<int> atomids_; 
+		
+		//! Array to store indices of atoms of interest
+		std::vector<int> pertatoms_;
 
 		//! Name of model structure.
 		std::string molecule_; 
@@ -85,7 +86,10 @@ namespace SSAGES
 			}
 		}
 
-		// Initialize variables
+		//! Initialize necessary variables.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 */
 		void Initialize(const Snapshot& snapshot) override
 		{
 
@@ -131,7 +135,10 @@ namespace SSAGES
 			COMref_ = mass_pos_prod_ref/total_mass;
 		}
 
-		// Evaluate the CV
+		//! Evaluate the CV.
+		/*!
+		 * \param snapshot Current simulation snapshot.
+		 */
 		void Evaluate(const Snapshot& snapshot) override
 		{
 			const auto& pos = snapshot.GetPositions();

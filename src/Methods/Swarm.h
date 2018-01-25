@@ -131,9 +131,7 @@ namespace SSAGES
             void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override; 
 
             //! Destructor
-            ~Swarm()
-            {
-            }
+            ~Swarm() {}
     };
 }
 

@@ -268,7 +268,7 @@ public:
         /*!
          * \param indices Bin indices specifying the current position of the
          *                iterator.
-         * \param hist Pointer to the grid to iterate over.
+         * \param grid Pointer to the grid to iterate over.
          */
         GridIterator(const std::vector<int> &indices, Grid<T> *grid)
             : indices_(indices), grid_(grid)
@@ -279,7 +279,7 @@ public:
         /*!
          * \param indices Bin indices specifying the current position of the
          *                iterator.
-         * \param hist Pointer to the grid to iterate over.
+         * \param grid Pointer to the grid to iterate over.
          */
         GridIterator(const std::vector<int> &indices, const Grid<T> *grid)
             : indices_(indices), grid_(grid)
@@ -580,9 +580,9 @@ public:
     /*!
      * \param filename Name of the output file. 
      */
-    void WriteToFile(const std::string& file)
+    void WriteToFile(const std::string& filename)
     {
-        std::ofstream output(file.c_str(), std::ofstream::out);
+        std::ofstream output(filename.c_str(), std::ofstream::out);
 
         // Print out header.
         output << "#! type grid\n";

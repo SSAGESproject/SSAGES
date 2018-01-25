@@ -7,7 +7,7 @@ Introduction
 ^^^^^^^^^^^^
 
 The Basis Function enhanced sampling method is a variant of the Continuous
-Wang-Landau Sampling method developed by Whitmer et al, which biases a PMF
+Wang-Landau Sampling method developed by Whitmer *et al.*, which biases a PMF
 through the summation of Kronecker deltas. In this method, the Kronecker delta
 is approximated by projection of a locally biased histogram to a truncated set
 of orthogonal basis functions.
@@ -24,7 +24,7 @@ implemented specific to the method. Additionally, any combination of implemented
 used for any system. It is advised that a periodic basis set be used with a periodic CV, but it
 is not required.
 
-The BFS method applies its bias in sweeps of $N$ through a histogram (:math:`H_{i}`)
+The BFS method applies its bias in sweeps of :math:`N` through a histogram (:math:`H_{i}`)
 that is updated at every :math:`j` microstate or timestep. This histogram is
 then modified to an unbiased partition function estimate (:math:`\tilde{H_{i}}`)
 by exponentiation with the current bias potential (:math:`\Phi_{i}`).
@@ -235,7 +235,7 @@ converged surface. A reference image of the converged  alanine dipeptide example
 is provided in the same directory as the LAMMPS and JSON input files.
 
 restart.out
-~~~~~~~~~
+~~~~~~~~~~~
 
 This holds all the coefficient values after each bias projection update, as well
 as the biased histogram. This file is entirely used for restart runs.

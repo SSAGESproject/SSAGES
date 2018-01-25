@@ -298,7 +298,6 @@ namespace SSAGES
         }
     }
 
-	//! \copydoc Method::Build()
 	BFS* BFS::Build(const Json::Value& json, 
 			       		    const MPI_Comm& world,
 					        const MPI_Comm& comm,

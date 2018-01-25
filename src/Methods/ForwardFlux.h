@@ -66,7 +66,7 @@ namespace SSAGES
         };
 
 		//! Number of FFS interfaces
-        //! note that _ninterfaces = n+1 where n is \lambda_n the interface defining B
+        //! note that _ninterfaces = n+1 where n is lambda_n the interface defining B
 		double _ninterfaces;
 
 		//! FFS Interfaces
@@ -123,9 +123,10 @@ namespace SSAGES
         //! If this is the case I call it a 'zombie job', since the job is running, but isnt doing anything useful. Its just burning cpu cycles waiting for the queue to repopulate
         bool _pop_tried_but_empty_queue;
 
-        //! if 1 compute initial flux
+        //! if 1, compute initial flux
         bool _initialFluxFlag;
 
+        //! if 1, initialize the Queue 
         bool initializeQueueFlag;
 
         //! The current FFSConfigID of this MPI process
@@ -183,9 +184,15 @@ namespace SSAGES
         bool HasReturnedToA(double);
 
         //! Function checks if configuration has crossed interface specified since the last check
-        /*! Simple function, given current and previous cv position, checks if interface i has been crossed. If crossed in positive direction, return +1, if crossed in negative direction return -1, if nothing crossed return 0
+        /*! Simple function, given current and previous CV position, checks if interface i has been crossed.
+         *  If crossed in positive direction, return +1, if crossed in negative direction return -1, if nothing crossed return 0.
+         * \param current Current value of CV.
+         * \param prev Previous value of CV.
+         * \param i Index of interface to check for crossing.
+         *
+         * \returns Ternary value for direction of crossing (positive, negative, or none).
          */
-        int HasCrossedInterface(double, double, unsigned int interface);
+        int HasCrossedInterface(double current, double prev, unsigned int i);
 
         //! Write a file corresponding to FFSConfigID from current snapshot
         void WriteFFSConfiguration(Snapshot *snapshot,FFSConfigID& ffsconfig, bool wassuccess);
@@ -239,19 +246,27 @@ namespace SSAGES
 		/*!
 		 * \param world MPI global communicator.
 		 * \param comm MPI local communicator.
-			 * \param frequency Frequency with which this method is invoked.
+		 * \param ninterfaces Number of interfaces.
+		 * \param interfaces Vector of interfaces.
+		 * \param N0Target Required number of initial configurations.
+		 * \param M Vector of trials.
+		 * \param initialFluxFlag Flag for first step of this method.
+		 * \param saveTrajectories Flag to save flux trajectories.
+		 * \param currentInterface The number of the current interface.
+		 * \param output_directory Directory to which trajectories are saved.
+		 * \param frequency Frequency with which this method is invoked.
 		 *
 		 * Create instance of Forward Flux
 		 */
 		ForwardFlux(const MPI_Comm& world,
-                    const MPI_Comm& comm, 
-                    double ninterfaces, std::vector<double> interfaces,
-                    unsigned int N0Target, std::vector<unsigned int> M,
-                    bool initialFluxFlag, bool saveTrajectories,
-                    unsigned int currentInterface, std::string output_directory, unsigned int frequency) : 
+		            const MPI_Comm& comm, 
+		            double ninterfaces, std::vector<double> interfaces,
+		            unsigned int N0Target, std::vector<unsigned int> M,
+		            bool initialFluxFlag, bool saveTrajectories,
+		            unsigned int currentInterface, std::string output_directory, unsigned int frequency) : 
 		 Method(frequency, world, comm), _ninterfaces(ninterfaces), _interfaces(interfaces), _N0Target(N0Target), 
-         _M(M), _initialFluxFlag(initialFluxFlag), _saveTrajectories(saveTrajectories), _current_interface(currentInterface),
-          _output_directory(output_directory), _generator(1), iteration_(0) 
+		 _M(M), _initialFluxFlag(initialFluxFlag), _saveTrajectories(saveTrajectories), _current_interface(currentInterface),
+		 _output_directory(output_directory), _generator(1), iteration_(0) 
 		{
 			//_output_directory = "FFSoutput";
 			mkdir(_output_directory.c_str(),S_IRWXU); //how to make directory?
@@ -260,7 +275,7 @@ namespace SSAGES
 			_N0TotalSimTime = 0;
 
 			if (!_initialFluxFlag)
-			    initializeQueueFlag = true;
+				initializeQueueFlag = true;
 
 			_A.resize(_ninterfaces);
 			_P.resize(_ninterfaces);
@@ -297,17 +312,17 @@ namespace SSAGES
 			else if (_interfaces[0] > _interfaces[1]) _interfaces_increase = false;
 			else errflag = true;
 			for (unsigned int i=0;i<_ninterfaces-1;i++)
-            {
+			{
 			    if((_interfaces_increase) && (_interfaces[i] >= _interfaces[i+1]))
 				    errflag = true;
 				else if ((!_interfaces_increase) && (_interfaces[i] <= _interfaces[i+1]))
 				    errflag = true;
 			}
 			if (errflag)
-            {
+			{
 				std::cerr << "Error! The interfaces are poorly defined. They must be monotonically increasing or decreasing and cannot equal one another! Please fix this.\n";
 				for (auto interface : _interfaces)
-                    std::cerr << interface << " ";
+					std::cerr << interface << " ";
 				std::cerr << "\n";
 				MPI_Abort(world_, EXIT_FAILURE);
 			}
@@ -317,14 +332,14 @@ namespace SSAGES
 			Lambda0ConfigLibrary.resize(_N0Target);
 			std::normal_distribution<double> distribution(0,1);
 			for (unsigned int i = 0; i < _N0Target ; i++)
-            {
-                Lambda0ConfigLibrary[i].l = 0;
-                Lambda0ConfigLibrary[i].n = i;
-                Lambda0ConfigLibrary[i].a = 0;
-                Lambda0ConfigLibrary[i].lprev = 0;
-                Lambda0ConfigLibrary[i].nprev = i;
-                Lambda0ConfigLibrary[i].aprev = 0;
-			    //FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
+			{
+				Lambda0ConfigLibrary[i].l = 0;
+				Lambda0ConfigLibrary[i].n = i;
+				Lambda0ConfigLibrary[i].a = 0;
+				Lambda0ConfigLibrary[i].lprev = 0;
+				Lambda0ConfigLibrary[i].nprev = i;
+				Lambda0ConfigLibrary[i].aprev = 0;
+				//FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];
 			}
 			/*// Write the dump file out
 			std::ofstream file;
@@ -339,7 +354,7 @@ namespace SSAGES
 			}
 			*/
 			_pop_tried_but_empty_queue = false;
-        }
+		}
 
 		//! Pre-simulation hook.
 		/*!
@@ -362,11 +377,11 @@ namespace SSAGES
 		 */
 		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
-        //! \copydoc Buildable::Build()
+		//! \copydoc Method::BuildMethod()
 		static ForwardFlux* Build(const Json::Value& json, 
-		                              const MPI_Comm& world,
-		                              const MPI_Comm& comm,
-					                  const std::string& path);
+		                          const MPI_Comm& world,
+		                          const MPI_Comm& comm,
+		                          const std::string& path);
 	};
 }
 

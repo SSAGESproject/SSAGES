@@ -60,6 +60,7 @@ namespace SSAGES
 		//! Constructor
 		/*!
 		 * \param frequency Frequency of logging.
+		 * \param filename File for logging.
 		 * \param world Global MPI communicator.
 		 * \param comm MPI communicator of walker.
 		 * 

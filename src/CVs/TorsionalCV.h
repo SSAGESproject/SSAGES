@@ -222,9 +222,10 @@ namespace SSAGES
 			else if(PeriodicDiff < -M_PI)
 				return (val_ + 2.0*M_PI);	
 
-            return val_;
+			return val_;
 		}
 
+		//! \copydoc CollectiveVariable::BuildCV()
 		static TorsionalCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;

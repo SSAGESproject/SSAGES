@@ -29,60 +29,53 @@ namespace SSAGES
 	//! ForwardFlux sampling method
 	/*!
 	 * \ingroup Methods
-     * The notation used here is drawn largely from Allen, Valeriani and Rein ten Wolde. J. Phys.: Condens. Matter (2009) 21:463102. 
-     * We recommend referring to this review if the reader is unfamiliar with the method, or our variable naming conventions.
+	 * The notation used here is drawn largely from Allen, Valeriani and Rein ten Wolde. J. Phys.: Condens. Matter (2009) 21:463102. 
+	 * We recommend referring to this review if the reader is unfamiliar with the method, or our variable naming conventions.
 	 */
 	class DirectForwardFlux : public ForwardFlux
 	{
 	protected:
-        //-----------------------------------------------------------------
-        // Private Variables
-        //-----------------------------------------------------------------
+		//-----------------------------------------------------------------
+		// Private Variables
+		//-----------------------------------------------------------------
 
-        //! Number of trials to attemt from each interface
-        //! Note _M[0] sets the number of 'branches' for RBFFS and BGFFS?
-        //std::vector<unsigned int> _M;
+		//! Number of trials to attemt from each interface
+		//! Note _M[0] sets the number of 'branches' for RBFFS and BGFFS?
+		//std::vector<unsigned int> _M;
 
-        //-----------------------------------------------------------------
-        // Private Functions
-        //-----------------------------------------------------------------
-        
-        //! Function that checks if interfaces have been crossed (different for each FFS flavor)
-        void CheckForInterfaceCrossings(Snapshot*, const class CVManager&) override;
+		//-----------------------------------------------------------------
+		// Private Functions
+		//-----------------------------------------------------------------
+		
+		//! Function that checks if interfaces have been crossed (different for each FFS flavor)
+		void CheckForInterfaceCrossings(Snapshot*, const class CVManager&) override;
 
-        //! Initialize the Queue
-        void InitializeQueue(Snapshot*, const CVList&) override;
+		//! Initialize the Queue
+		void InitializeQueue(Snapshot*, const CVList&) override;
 
 	public:
-		//! Constructor
-		/*!
-		 * \param world MPI global communicator.
-		 * \param comm MPI local communicator.
-			 * \param frequency Frequency with which this method is invoked.
-		 *
-		 * Create instance of Forward Flux
-		 */
+		//! \copydoc ForwardFlux::ForwardFlux()
 		DirectForwardFlux(const MPI_Comm& world,
-                          const MPI_Comm& comm, 
-                          double ninterfaces, std::vector<double> interfaces,
-                          unsigned int N0Target, std::vector<unsigned int> M,
-                          bool initialFluxFlag, bool saveTrajectories, 
-                          unsigned int currentInterface, std::string output_directory, unsigned int frequency)
+		                  const MPI_Comm& comm, 
+		                  double ninterfaces, std::vector<double> interfaces,
+		                  unsigned int N0Target, std::vector<unsigned int> M,
+		                  bool initialFluxFlag, bool saveTrajectories, 
+		                  unsigned int currentInterface, std::string output_directory, unsigned int frequency)
 		: ForwardFlux(world, comm, ninterfaces, interfaces, N0Target, M, 
-					initialFluxFlag, saveTrajectories, currentInterface, output_directory, frequency) {}
+		              initialFluxFlag, saveTrajectories, currentInterface, output_directory, frequency) {}
 
 		//! Post-integration hook.
 		/*!
 		 * \param snapshot Current simulation snapshot.
-         * \param cvmanager Collective variable manager.
+		 * \param cvmanager Collective variable manager.
 		 */
 		void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override;
-        
-		//! \copydoc Buildable::Build()
+
+		//! \copydoc Method::BuildMethod()
 		static DirectForwardFlux* Build(const Json::Value& json, 
-		                                    const MPI_Comm& world,
-		                                    const MPI_Comm& comm,
-					                        const std::string& path);
+		                                const MPI_Comm& world,
+		                                const MPI_Comm& comm,
+		                                const std::string& path);
 	};
 }
 

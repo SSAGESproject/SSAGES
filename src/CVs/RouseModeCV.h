@@ -39,12 +39,12 @@ namespace SSAGES
 	class RouseModeCV : public CollectiveVariable
 	{
 	private:
-		std::vector<Label>     groups_; // vector of groups of indices to define the particle groups
-		std::vector<double>     massg_; // vector of the total mass for each particle group
-		int                         N_; // number of Rouse beads in polymer chain
-		int                         p_; // index of mode of interest as CV
-	    Vector3                    xp_; // 3d vector for containing vectorial rouse amplitude
-		std::vector<Vector3>        r_; // vector of coordinate positions for each bead
+		std::vector<Label>     groups_; //!< vector of groups of indices to define the particle groups
+		std::vector<double>     massg_; //!< vector of the total mass for each particle group
+		int                         N_; //!< number of Rouse beads in polymer chain
+		int                         p_; //!< index of mode of interest as CV
+	    Vector3                    xp_; //!< 3d vector for containing vectorial rouse amplitude
+		std::vector<Vector3>        r_; //!< vector of coordinate positions for each bead
 	
 	public:
 		//! Basic Constructor for Rouse Mode CV
@@ -59,6 +59,7 @@ namespace SSAGES
 		//! Helper function to determine masses of each group
 		/*! Note: this here assumes that the masses of each group are not changing during
  		 *        the simulation, which is likely typical...
+ 		 * \param snapshot Current simulation snapshot.
  		 * \param groups - vector of vector of atom IDs, each group comprising a bead in the Rouse chain
  		 */ 
 		void setMasses(const std::vector<Label>& groups, const Snapshot& snapshot ) {
@@ -187,6 +188,7 @@ namespace SSAGES
 
 		}
 
+		//! \copydoc CollectiveVariable::BuildCV()
 		static RouseModeCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;

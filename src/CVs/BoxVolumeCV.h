@@ -60,7 +60,8 @@ namespace SSAGES
             if(snapshot.GetCommunicator().rank() == 0)
                 boxgrad_ = val_*Matrix3::Identity();
         }
-        
+
+        //! \copydoc CollectiveVariable::BuildCV()
         static BoxVolumeCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;

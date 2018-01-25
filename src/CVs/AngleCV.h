@@ -132,6 +132,7 @@ namespace SSAGES
 			if(jindex != -1) grad_[jindex] = -gradi - gradk;
 		}
 
+		//! \copydoc CollectiveVariable::BuildCV()
 		static AngleCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;

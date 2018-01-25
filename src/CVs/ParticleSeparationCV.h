@@ -163,6 +163,7 @@ namespace SSAGES
 				grad_[id] = -rij/val_*masses[id]/mtot2;
 		}
 		
+		//! \copydoc CollectiveVariable::BuildCV()
 		static ParticleSeparationCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;

@@ -206,6 +206,7 @@ for multiple walkers. At the moment, the name `ssages_in_` and `ssages_out_` are
 .. code::
 
        mpirun -n N ssages input.json
+
 After that SSAGES started, the two codes will alternate each other in the following way:
 
 1. SSAGES will write on file `ssages_in_i` the script `md.i`, that will initialize the DFT parameters of the calculations. Then, it will trigger Qbox execution by deleting the .lock files.

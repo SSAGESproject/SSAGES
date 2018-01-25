@@ -77,8 +77,10 @@ namespace SSAGES
 		//! Hill widths.
 		std::vector<double> widths_;
 
+		//!@{
 		//! Derivatives and temporary storage vectors.
 		std::vector<double> derivatives_, tder_, dx_;
+		//!@}
 
 		//! Frequency of new hills
 		unsigned int hillfreq_;
@@ -86,11 +88,15 @@ namespace SSAGES
 		//! CV Grid. 
 		Grid<Vector>* grid_;
 
+		//!@{
 		//! Bounds 
-		std::vector<double> upperb_, lowerb_; 
+		std::vector<double> upperb_, lowerb_;
+		//!@}
 
+		//!@{
 		//! Bound restraints. 
 		std::vector<double> upperk_, lowerk_;
+		//!@}
 
 		//! Adds a new hill.
 		/*!
@@ -110,7 +116,7 @@ namespace SSAGES
 		 * \param hill Hill to be printed.
 		 * \param iteration Current iteration.
 		 */
-		void PrintHill(const Hill& hill, int interation);
+		void PrintHill(const Hill& hill, int iteration);
 
 		//! Output stream for hill data.
 		std::ofstream hillsout_;
@@ -122,6 +128,11 @@ namespace SSAGES
 		 * \param comm MPI local communicator.
 		 * \param height Height of the hills to be deposited.
 		 * \param widths Width of the hills to be deposited.
+		 * \param lowerb Lower bounds for CVs.
+		 * \param upperb Upper bounds for CVs.
+		 * \param lowerk Lower bound restraints for CVs.
+		 * \param upperk Upper bound restraints for CVs.
+		 * \param grid Grid containing bias.
 		 * \param hillfreq Frequency of depositing hills.
 		 * \param frequency Frequency of invoking this method.
 		 *
@@ -177,7 +188,7 @@ namespace SSAGES
 		 */
 		void LoadHills(const std::string& filename);
 		
-		//! \copydoc Buildable::Build()
+		//! \copydoc Method::BuildMethod()
 		static Meta* Build(const Json::Value& json, 
 		                       const MPI_Comm& world,
 		                       const MPI_Comm& comm,
