@@ -1,7 +1,8 @@
 # List of supported versions of Gromacs
-set (SUPPORTED_GROMACS_VERSIONS "5.1.2"
-                                "5.1.3"
-                                "2016.3")
+set (SUPPORTED_GROMACS_VERSIONS
+      "5.1"  "5.1.0"  "5.1.1"  "5.1.2"  "5.1.3"  "5.1.4"  "5.1.5"
+     "2016" "2016.0" "2016.1" "2016.2" "2016.3" "2016.4"
+    )
 
 set(DGMX_BUILD_OWN_FFTW OFF CACHE BOOL "Let Gromacs build its own libfftw.")
 
@@ -42,14 +43,14 @@ if (GROMACS_SRC)
     endif (NOT ";${SUPPORTED_GROMACS_VERSIONS};" MATCHES ";${GROMACS_VERSION};")
     
     # Set the appropriate patch.
-    if(GROMACS_VERSION MATCHES "^5.1.[0-9]+$")
+    if (GROMACS_VERSION MATCHES "^5\\.1(\\.[0-9]+)?$")
         set(GMX_PATCH "gmx_diff_5.1.x.patch")
-    elseif(GROMACS_VERSION MATCHES "^2016.3$")
-        set(GMX_PATCH "gmx_diff_2016.3.patch")
-    else()
+    elseif (GROMACS_VERSION MATCHES "^2016(\\.[0-9]+)?$")
+        set(GMX_PATCH "gmx_diff_2016.x.patch")
+    else ()
         message(WARNING "\nWARNING: Could not find Gromacs version specific patch. "
                            "Attempting to use generic one.")
-    endif()
+    endif ()
     
     # Check that files to be patched do exist
     execute_process (COMMAND "sed" "-n"
@@ -59,40 +60,59 @@ if (GROMACS_SRC)
                         OUTPUT_VARIABLE GROMACS_FILES_TO_BE_PATCHED
                         OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-    foreach(PATCH_FILE ${GROMACS_FILES_TO_BE_PATCHED})
+    foreach (PATCH_FILE ${GROMACS_FILES_TO_BE_PATCHED})
         if (NOT EXISTS ${GROMACS_SRC}/${PATCH_FILE})
             message (FATAL_ERROR "\nERROR: File ${PATCH_FILE} does not exist.\n"
                                     "This error is probably caused by an unsupported "
                                     "version of Gromacs.")
         endif (NOT EXISTS ${GROMACS_SRC}/${PATCH_FILE})
-    endforeach()
-else ()
-    set (GROMACS_SRC ${CMAKE_CURRENT_BINARY_DIR}/gromacs-download-prefix/src/gromacs-download)
-    set (GROMACS_SRC ${GROMACS_SRC} PARENT_SCOPE )
+    endforeach ()
+elseif (GROMACS)
+    set (GROMACS_VERSION ${GROMACS})
+
+    # Strip the trailing ".0" for downloading
+    if (GROMACS_VERSION MATCHES "^[0-9\\.]+\\.0$")
+        STRING(REGEX REPLACE "^([0-9\\.]+)\\.0$" "\\1" GROMACS_VERSION ${GROMACS_VERSION})
+    endif ()
+
+    # Check if Gromacs version is supported, otherwise download default
+    if (NOT ";${SUPPORTED_GROMACS_VERSIONS};" MATCHES ";${GROMACS_VERSION};")
+        set(GROMACS_VERSION 5.1.3)
+    endif ()
+
+    # Set the appropriate patch.
+    if (GROMACS_VERSION MATCHES "^5\\.1(\\.[0-9]+)?$")
+        set(GMX_PATCH "gmx_diff_5.1.x.patch")
+    elseif (GROMACS_VERSION MATCHES "^2016(\\.[0-9]+)?$")
+        set(GMX_PATCH "gmx_diff_2016.x.patch")
+    else ()
+        message(WARNING "\nWARNING: Could not find Gromacs version specific patch. "
+                           "Attempting to use generic one.")
+    endif ()
+    
+    ExternalProject_Add(
+        gromacs-download
+        DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
+        GIT_REPOSITORY git://git.gromacs.org/gromacs.git
+        GIT_TAG v${GROMACS_VERSION}
+        TIMEOUT 600
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+    )
+    set (GROMACS_SRC "${CMAKE_CURRENT_BINARY_DIR}/gromacs-download-prefix/src/gromacs-download")
+    set (GROMACS_SRC ${GROMACS_SRC} PARENT_SCOPE)
 endif ()
 
-set(GRO_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}")
+set (GROMACS_VERSION ${GROMACS_VERSION} PARENT_SCOPE)
+
+set (GRO_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Configure patch.
 configure_file (
     "${CMAKE_CURRENT_SOURCE_DIR}/apply_patch.sh.in"
     "${CMAKE_CURRENT_BINARY_DIR}/apply_patch.sh"
 )
-
-if (GROMACS)
-    set(GMX_PATCH "gmx_diff_5.1.x.patch")
-    
-    ExternalProject_Add(
-        gromacs-download
-        DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}/gromacs_source/
-        GIT_REPOSITORY git://git.gromacs.org/gromacs.git
-        GIT_TAG v5.1.3
-        TIMEOUT 600
-        CONFIGURE_COMMAND ""
-        BUILD_COMMAND ""
-        INSTALL_COMMAND ""
-    )
-endif (GROMACS)
 
 ExternalProject_Add(
     gromacs
@@ -143,6 +163,9 @@ function(CONFIGURE_ENGINE)
 	add_library(ssagesgmx SHARED ${HOOKSRC} ${SOURCE})
 	target_link_libraries(ssagesgmx ${MPI_CXX_LIBRARIES})
     include_directories(${GROMACS_SRC}/src)
+    if(GROMACS_VERSION MATCHES "^5\\.1(\\.[0-9]+)?$")
+        include_directories(${GROMACS_SRC}/src/external/boost)
+    endif()
     include_directories(hooks/gromacs/)
 
 	add_dependencies(gromacs ssagesgmx)

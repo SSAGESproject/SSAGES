@@ -13,7 +13,7 @@ vary between supported engines.
 +==========+=====================+==============+================+
 | LAMMPS   |    2010 or newer    |    yes       |   yes          |
 +----------+---------------------+--------------+----------------+ 
-| Gromacs  |    5.1.x, 2016.3    |    yes       |   yes          |
+| Gromacs  |    5.1.x, 2016.x    |    yes       |   yes          |
 +----------+---------------------+--------------+----------------+
 | OpenMD   |      2.4, 2.5       |    no        |   no           |
 +----------+---------------------+--------------+----------------+
@@ -101,7 +101,7 @@ Gromacs
 Building
 ~~~~~~~~
 
-SSAGES supports Gromacs versions 5.1.x and 2016.3. To compile SSAGES with a 
+SSAGES supports Gromacs versions 5.1.x and 2016.x. To compile SSAGES with a 
 compatible version of Gromacs, either ``-DGROMACS=YES`` or 
 ``-DGROMACS_SRC=/path/to/Gromacs`` must be specified in the cmake command. 
 For example, 
@@ -112,7 +112,14 @@ For example,
 	make
 
 will automatically download Gromacs 5.1.3 and compile SSAGES. 
-If a user is interested in using a different version of Gromacs or one with 
+If a user is interested in using a different version of Gromacs, SSAGES can
+download a specific release (must be supported) with
+
+.. code:: bash
+
+	cmake -DGROMACS=2016.4 ..
+
+If a user is interested in using an already-downloaded source or one with
 personal modifications, then SSAGES can be pointed to that particular source 
 repository.
 

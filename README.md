@@ -28,7 +28,7 @@ to expand its features and fix any bugs. Keep an eye on this page for future upd
 - Much more!
 
 ### Engines 
-- Gromacs 5.x.x, 2016.3
+- Gromacs 5.1.x, 2016.x
 - LAMMPS (Most recent versions)
 - OpenMD (2.4+)
 - QBox (1.63+)
