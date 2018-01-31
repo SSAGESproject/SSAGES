@@ -101,9 +101,9 @@ elseif (GROMACS)
         INSTALL_COMMAND ""
     )
     set (GROMACS_SRC "${CMAKE_CURRENT_BINARY_DIR}/gromacs-download-prefix/src/gromacs-download")
-    set (GROMACS_SRC ${GROMACS_SRC} PARENT_SCOPE)
 endif ()
 
+set (GROMACS_SRC ${GROMACS_SRC} PARENT_SCOPE)
 set (GROMACS_VERSION ${GROMACS_VERSION} PARENT_SCOPE)
 
 set (GRO_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}")

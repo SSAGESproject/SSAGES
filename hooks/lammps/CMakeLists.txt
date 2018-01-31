@@ -42,12 +42,8 @@ if (LAMMPS_SRC)
         message(WARNING "\nWARNING: Lammps version \"${LAMMPS_VERSION}\" is not "
                         "officially supported by SSAGES.")
     endif (NOT ";${SUPPORTED_LAMMPS_VERSIONS};" MATCHES ";${LAMMPS_VERSION};")
-else ()
-    set (LAMMPS_SRC "${CMAKE_CURRENT_BINARY_DIR}/lammps-download-prefix/src/lammps-download/src")
-endif ()
-
-if (LAMMPS)
-    ExternalProject_Add(
+elseif (LAMMPS)
+	ExternalProject_Add(
         lammps-download
         DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
         GIT_REPOSITORY git://github.com/lammps/lammps.git
@@ -57,7 +53,10 @@ if (LAMMPS)
         BUILD_COMMAND ""
         INSTALL_COMMAND ""
     )
-endif (LAMMPS)
+    set (LAMMPS_SRC "${CMAKE_CURRENT_BINARY_DIR}/lammps-download-prefix/src/lammps-download/src")
+endif ()
+
+set (LAMMPS_SRC ${LAMMPS_SRC} PARENT_SCOPE)
 
 # List of optional LAMMPS packages (as of Oct 2016)
 set(LAMMPS_PACKAGES "all"      # All packages
