@@ -308,7 +308,7 @@ The Gaussian function is defined as:
 
 .. math::
 
-	g_{ij} = e^{-\frac{\left(r_{ij} - \mu\right)^2}{2 sigma^2}}.
+	g_{ij} = e^{-\frac{\left(r_{ij} - \mu\right)^2}{2\sigma^2}}.
 
 Properties
 ++++++++++
