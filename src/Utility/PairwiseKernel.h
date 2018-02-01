@@ -62,6 +62,9 @@ namespace SSAGES
 		 * \return Pointer to new PairwiseKernel.
 		 */
 		static PairwiseKernel* Build(const Json::Value& json, const std::string& path);
+		
+		//! Destructor
+		virtual ~PairwiseKernel() {}
 	};
 
 	//! Gaussian Function 
