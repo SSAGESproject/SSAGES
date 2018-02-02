@@ -33,7 +33,7 @@ using namespace Json;
 namespace SSAGES
 {
 	ResourceHandler::ResourceHandler(
-		mxx::comm&& world, mxx::comm&& comm, uint walkerid,
+		mxx::comm&& world, mxx::comm&& comm, size_t walkerid,
 		const std::vector<Method*>& methods, CVManager* cvmanager) : 
 	world_(std::move(world)), comm_(std::move(comm)), walkerid_(walkerid), nwalkers_(1), 
 	methods_(methods), cvmanager_(cvmanager), hook_(nullptr), inputs_(0)
@@ -72,10 +72,10 @@ namespace SSAGES
 			throw BuildException({"#/input: Number of inputs do not match requested walkers."});
 		
 		std::vector<std::string> inputs;
-		for(int i = 0; i < nwalkers; ++i)
+		for(size_t i = 0; i < nwalkers; ++i)
 		{
 			if(json["input"].isArray())
-				inputs.push_back(json["input"][i].asString());
+				inputs.push_back(json["input"][(int)i].asString());
 			else
 				inputs.push_back(json["input"].asString());
 		}

@@ -51,10 +51,10 @@ namespace SSAGES
 		mxx::comm comm_;
 
 		//! Walker ID for specific driver. 
-		uint walkerid_; 
+		size_t walkerid_; 
 
 		//! Number of walkers.
-		uint nwalkers_;
+		size_t nwalkers_;
 
 		//! Snapshot of system state (pointer). 
 		class Snapshot* snapshot_;
@@ -85,7 +85,7 @@ namespace SSAGES
 		 * 
 		 * \note ResourceHandler will be responsible for lifetime of methods and CV manager. 
 		 */
-		ResourceHandler(mxx::comm&& world, mxx::comm&& comm, uint walkerid,
+		ResourceHandler(mxx::comm&& world, mxx::comm&& comm, size_t walkerid,
 		          const std::vector<class Method*>& methods, class CVManager* cvmanager);
 
 		//! Returns inputs of the walker for the current processor. 
@@ -119,13 +119,13 @@ namespace SSAGES
 		}
 
 		//! Returns processor-specific walker ID.
-		uint GetWalkerID() const
+		size_t GetWalkerID() const
 		{
 			return walkerid_;
 		}
 
 		//! Returns the total number of walkers across all processors.
-		uint GetNumWalkers() const 
+		size_t GetNumWalkers() const 
 		{
 			return nwalkers_;
 		}
