@@ -57,7 +57,7 @@ protected:
     std::vector<int> wrapIndices(const std::vector<int> &indices) const
     {
         std::vector<int> newIndices(indices);
-        for (size_t i=0; i<dimension_; ++i) {
+        for (size_t i = 0; i < dimension_; ++i) {
             if (!GetPeriodic(i)) {
                 continue;
             }
@@ -138,33 +138,33 @@ public:
 	void syncGrid()
 	{
 		//Convenience
-		double dim = this->GetDimension();
+		size_t dim = this->GetDimension();
 		
 		//Preallocate
 		std::vector<int> navigate(dim);
 		
 		//Loop over all surfaces. Number of surfaces = dim.
-		for(size_t i=0 ; i < dim ; i++)
+		for(size_t i = 0 ; i < dim ; i++)
 		{
 			//Check if periodic in this dimension.
 			if(isPeriodic_[i])
 			{
 			
 				//Calculate surface size. This is equal to number of points in each other dimension multiplied.
-				int surfsize = 1;
-				for(size_t j=0 ; j < dim ; j++)
+				size_t surfsize = 1;
+				for(size_t j = 0 ; j < dim ; j++)
 				{
-					if(i!=j)
+					if(i != j)
 						surfsize*=numPoints_[j];
 				}
 				
 				//Loop over all points of this surface on the 0 side and copy to end.
-				for(size_t j=0 ; j < surfsize ; j++)
+				for(size_t j = 0 ; j < surfsize ; j++)
 				{
 					int runningcount = j;
-					for(size_t k=0 ; k < dim ; k++)
+					for(size_t k = 0 ; k < dim ; k++)
 					{
-						if(k==i)
+						if(k == i)
 							navigate[k] = 0;
 						else
 						{
@@ -197,8 +197,8 @@ public:
     const std::vector<int> GetNumPoints() const
     {
 		std::vector<int> numPoints = numPoints_;
-		for(size_t i = 0; i<dimension_;++i)
-			if(GetPeriodic(i)){numPoints[i]--;}
+		for(size_t i = 0; i < dimension_; ++i)
+			if(GetPeriodic(i)) {numPoints[i]--;}
         return numPoints;
     }
 
