@@ -67,7 +67,7 @@ namespace SSAGES
 			throw BuildException(validator.GetErrors());
 		
 		// Get number of desired walkers and create array of input files.
-		auto nwalkers = json.get("walkers", 1).asInt();
+		auto nwalkers = json.get("walkers", 1).asUInt();
 		if(json["input"].isArray() && json["input"].size() != nwalkers)
 			throw BuildException({"#/input: Number of inputs do not match requested walkers."});
 		
