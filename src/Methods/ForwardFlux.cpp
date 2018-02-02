@@ -130,7 +130,7 @@ namespace SSAGES
         MPI_Allgather(&success_local,1,MPI_UNSIGNED,successes.data(),1,MPI_UNSIGNED,world_);
 
         int success_count = 0;
-        for (size_t i = 0; i < world_.size(); i++)
+        for (int i = 0; i < world_.size(); i++)
 		{
 			// Since we are in State A, the values of lprev, nprev, aprev are all zero.
 			if (successes[i] == true)

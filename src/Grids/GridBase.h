@@ -793,6 +793,9 @@ public:
     {
         return at(x);
     }
+
+    //! Destructor
+    virtual ~GridBase() {}
 };
 
 } // End namespace SSAGES

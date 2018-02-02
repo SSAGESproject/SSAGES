@@ -57,13 +57,6 @@ namespace SSAGES
          */
         Grid<std::vector<double>> *f_;
 
-        //! The basis evaluator class
-        /*!
-         * A class which holds the basis functions and updates the coefficients
-         * at each cycle
-         */
-        BasisEvaluator evaluator_;
-
         //! The biased histogram of states.
         /*!
          * The biased histogram of states has the form hist_*exp(phi*beta),
@@ -74,6 +67,13 @@ namespace SSAGES
 
         //! The coefficient array for restart runs
         std::vector<double> coeffArr_;
+
+        //! The basis evaluator class
+        /*!
+         * A class which holds the basis functions and updates the coefficients
+         * at each cycle
+         */
+        BasisEvaluator evaluator_;
 
         //! Spring constants for restrained system.
         /*!
