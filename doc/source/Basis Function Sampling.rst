@@ -101,8 +101,7 @@ basis_filename
     "basis.out"
 
 temperature
-    Only should be used if the MD engine cannot produce a good temperature
-    value. (ie: LAMMPS with 1 particle)
+    The temperature of the simulation.
 
 tolerance
     Convergence criteria. The sum of the difference in subsequent updates of the
@@ -123,6 +122,7 @@ The only inputs required to run the method:
 * cyclefrequency
 * frequency
 * basis_functions
+* temperature
 
 Example Input
 ^^^^^^^^^^^^^
@@ -147,10 +147,10 @@ Example Input
       "cycle_frequency" : 100000,
       "basis_filename" : "example",
       "frequency" : 1,
-      "temperature" : 1.0,
-      "weight" : 100000.0,
-      "tolerance" : 1e-6,
-      "convergence_exit" : false,
+      "temperature" : 300.0,
+      "weight" : 1.0,
+      "tolerance" : 1e-3,
+      "convergence_exit" : true,
       "grid" : {
           "lower" : [-3.14, -3.14],
           "upper" : [3.14,3.14],
@@ -177,7 +177,7 @@ units outside the grid boundaries.
 
 The convergence exit option is available if the user chooses to continue running
 past convergence, but a good heuristic for tolerance is around
-:math:`1\mathrm{e}{-6}`.
+:math:`1\mathrm{e}{-3}`.
 
 .. _BFS-tutorial:
 
@@ -218,9 +218,9 @@ At this point the user can elect to read the output information after each sweep
 basis.out
 ~~~~~~~~~
 
-The ``basis.out`` file outputs in at least 4 columns. These columns refer to the
-CV values, the ultimate projected PMF, the unprojected PMF, and the biased
-histogram values. Depending on the number of CVs chosen for a simulation, the
+The ``basis.out`` file outputs in at least 3 columns. These columns refer to the
+CV values, the projected PMF from the basis set, and the log of the histogram. 
+Depending on the number of CVs chosen for a simulation, the
 number of CV columns will also correspond. Only the first CV column should be
 labeled.
 

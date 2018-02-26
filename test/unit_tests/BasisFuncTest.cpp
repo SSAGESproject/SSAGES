@@ -35,6 +35,11 @@ protected:
 		snapshot2->SetNumAtoms(1);
 		snapshot3->SetNumAtoms(1);
 
+        // Set up the boltzmann constant for all the snapshots
+		snapshot1->SetKb(1.0);
+		snapshot2->SetKb(1.0);
+		snapshot3->SetKb(1.0);
+
 		auto& loc1 = snapshot1 ->GetPositions();
 		auto& loc2 = snapshot2 ->GetPositions();
 		auto& loc3 = snapshot3 ->GetPositions();
@@ -91,9 +96,9 @@ protected:
 		mass2[0] = 2.0;
 		mass3[0] = 2.0;
 
-        h = new Histogram<uint>({10,10}, {-1.5,-2.0}, {2.0,1.5}, {true, false});
-        b = new Histogram<double>({10,10}, {-1.5,-2.0}, {2.0,1.5}, {true, false});
-        f = new Histogram<std::vector<double>> ({10,10}, {-1.5,-2.0}, {2.0,1.5}, {true, false});
+        h = new Grid<uint>({10,10}, {-1.5,-2.0}, {2.0,1.5}, {true, false});
+        b = new Grid<double>({10,10}, {-1.5,-2.0}, {2.0,1.5}, {true, false});
+        f = new Grid<std::vector<double>> ({10,10}, {-1.5,-2.0}, {2.0,1.5}, {true, false});
         std::vector<BasisFunction*> functions;
         functions.push_back(new Legendre(10,10));
         functions.push_back(new Chebyshev(10,-2.0,1.5,10));
@@ -104,9 +109,9 @@ protected:
         Method = new BFS(world, // MPI global communicator
                          comm, // MPI local communicator
                          h, f, b, // histogram of visited states, bias, force grids
-                         functions, // nasis function vector
+                         functions, // basis function vector
                          restr, bndUp, bndLw, // boundary positions and restraints
-                         10, // frequency of bias updates
+                         3, // frequency of bias updates
                          1, // frequency
                          "testout", // filename
                          1.0, // input temperature for poorly defined systems
@@ -135,9 +140,9 @@ protected:
 	Snapshot* snapshot2;
 	Snapshot* snapshot3;
 
-    Histogram<uint>* h;
-    Histogram<double>* b;
-    Histogram<std::vector<double>>* f;
+    Grid<uint>* h;
+    Grid<double>* b;
+    Grid<std::vector<double>>* f;
 
 	MockCV* CV1;
 	MockCV* CV2;
@@ -159,12 +164,12 @@ TEST_F(BasisFuncTest,Initialization)
 	// Test dimensionality is correct.
 	int dim = 3;
 	// Check for correct initialization.
-	EXPECT_TRUE(Method->unbias_.size() == 120);
-	EXPECT_TRUE(Method->f_->size() == 120);
+	EXPECT_TRUE(Method->unbias_.size() == 110);
+	EXPECT_TRUE(Method->f_->size() == 110);
 
     // Check to make sure all histograms have a zero initialization
     size_t i = 0;
-	for(Histogram<uint>::iterator it = Method->h_->begin(); it != Method->h_->end(); ++it, ++i)
+	for(Grid<uint>::iterator it = Method->h_->begin(); it != Method->h_->end(); ++it, ++i)
 	{
 		EXPECT_TRUE(Method->b_->at(it.coordinates()) == 0);
 		EXPECT_TRUE(Method->h_->at(it.coordinates()) == 0);
@@ -174,7 +179,7 @@ TEST_F(BasisFuncTest,Initialization)
     EXPECT_TRUE(Method->evaluator_.functions_.size() == 2);
     EXPECT_TRUE(Method->evaluator_.coeff_.size() == 121); //10 + 1 coeffs
     EXPECT_NEAR(Method->evaluator_.lookup_[0].values[73],0.224073,0.00001);
-    EXPECT_NEAR(Method->evaluator_.lookup_[1].derivs[41],-74.356,0.001);
+    EXPECT_NEAR(Method->evaluator_.lookup_[1].derivs[41],0.65380758017492635,0.000001);
 }
 
 TEST_F(BasisFuncTest,InBounds)
@@ -190,16 +195,11 @@ TEST_F(BasisFuncTest,InBounds)
     Method->BFS::PostIntegration(snapshot1, cvmanager);
 
     size_t i = 0;
-	for(Histogram<uint>::iterator it = Method->h_->begin(); it != Method->h_->end(); ++it, ++i)
-	{
-        if(Method->unbias_[i] != 0) {
-            EXPECT_NEAR(Method->unbias_[i],0.1,eps);
-        }
-    }
 
 	// Check the coefficients as well
-	EXPECT_NEAR(Method->evaluator_.coeff_[11].value,-0.61115,eps);
-	EXPECT_NEAR(Method->evaluator_.coeff_[36].value,0.602855,eps);
+    EXPECT_NEAR(Method->unbias_[80],2.0,eps);
+	EXPECT_NEAR(Method->evaluator_.coeff_[11].value,0.009171649,eps);
+	EXPECT_NEAR(Method->evaluator_.coeff_[36].value,-0.0476908749576,eps);
 }
 
 TEST_F(BasisFuncTest,OutBounds)
@@ -218,7 +218,7 @@ TEST_F(BasisFuncTest,OutBounds)
 
     EXPECT_FALSE(Method->bounds_);
 
-	for(Histogram<uint>::iterator it = Method->h_->begin(); it != Method->h_->end(); ++it)
+	for(Grid<uint>::iterator it = Method->h_->begin(); it != Method->h_->end(); ++it)
 	{
 		EXPECT_TRUE(Method->h_->at(it.coordinates()) == 0);
 	}

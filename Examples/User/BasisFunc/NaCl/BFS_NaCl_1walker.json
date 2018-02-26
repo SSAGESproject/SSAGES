@@ -13,20 +13,21 @@
         "basis_functions" : [
         {
             "type" :"Legendre", 
-            "polynomial_order" : 15
+            "polynomial_order" : 9
         }],
         "cvs" : [0],
         "cycle_frequency" : 10000,
         "frequency" : 1,
-        "weight" : 1000.0,
+        "weight" : 1.0,
+        "temperature" : 300.0,
         "basis_filename" : "nacl_example",
         "CV_restraint_spring_constants" : [ 1000 ],
-        "CV_restraint_maximums" : [ 7.01 ],
-        "CV_restraint_minimums" : [ 2.0 ],
+        "CV_restraint_maximums" : [ 10.1 ],
+        "CV_restraint_minimums" : [ 1.9 ],
         "convergence_exit" : true,
         "grid" : {
-                "lower" : [2.2],
-                "upper" : [7.0],
+                "lower" : [2.0],
+                "upper" : [10.0],
                 "number_points" : [100],
                 "periodic" : [false]
         }

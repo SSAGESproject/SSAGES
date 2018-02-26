@@ -39,11 +39,11 @@
             "lower_bound" : -3.14
         }],
         "cvs" : [0,1],
-        "cycle_frequency" : 100000,
-        "basis_filename" : "adp_example_fourier_20_20",
+        "cycle_frequency" : 5000,
+        "basis_filename" : "adp_example",
         "frequency" : 1,
         "temperature" : 300.0,
-        "weight" : 0.01,
+        "weight" : 1.0,
         "tolerance" : 1e-3,
         "convergence_exit" : true,
         "grid" : {

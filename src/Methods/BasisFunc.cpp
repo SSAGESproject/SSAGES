@@ -41,6 +41,10 @@ namespace SSAGES
 
         // Make sure the iteration index is set correctly
         iteration_ = 0;
+        step_ = 0;
+
+        // Set the temporary sweep frequency to the same as the input
+        cyclefreqTmp_ = cyclefreq_;
 
         // There are a few error messages / checks that are in place with
         // defining CVs and grids
@@ -90,11 +94,14 @@ namespace SSAGES
        
         // The histogram is updated based on the index
         InBounds(cvs);
-        if (bounds_) 
-            h_->at(x) += 1;
+        if (bounds_) {h_->at(x) += 1;}
+        else {cyclefreq_++;}
     
-        // Update the basis projection after a predefined number of steps
-        if(snapshot->GetIteration()  % cyclefreq_ == 0) {
+        // Update the basis projection after the requisite number of steps
+        int steps = snapshot->GetIteration()-step_;
+        if(steps  % cyclefreq_ == 0) {
+            step_ = snapshot->GetIteration();
+            cyclefreq_ = cyclefreqTmp_;
             double beta;
             beta = 1.0 / (temperature_ * snapshot->GetKb());
 
@@ -291,7 +298,7 @@ namespace SSAGES
                 }
                 else if(x[j] < max && x[j] > min && !bounds_)
                 {
-                    std::cout<<"CV has returned in between bounds. Run is resuming"<<std::endl;
+                    //std::cout<<"CV has returned in between bounds. Run is resuming"<<std::endl;
                     bounds_ = true;
                 }
             }

@@ -183,29 +183,37 @@ namespace SSAGES
         {
         }
 
+        double ChangeVariable(double x)
+        {
+            return (x-boundLow_)*2.0/(boundHigh_ - boundLow_)-1.0;
+        }
+
         //Quick recursive relation to evaluate the basis sets
         double Evaluate(double x, int n)
         {
+            double xMod = ChangeVariable(x);
             return n == 0 ? 1.0 : 
-                    n == 1 ? x :
-                    2.0*x*Evaluate(x,n-1) - Evaluate(x,n-2);
+                    n == 1 ? xMod :
+                    2.0*xMod*Evaluate(x,n-1) - Evaluate(x,n-2);
         }
         //Same but for the gradients
         double EvalGrad(double x, int n)
         {
+            double xMod = ChangeVariable(x);
             return n == 0 ? 0.0 :
                     n == 1 ? 1.0 :
-                    2.0*(Evaluate(x,n-1) + x * EvalGrad(x,n-1)) - EvalGrad(x,n-2);
+                    2.0*(Evaluate(x,n-1) + xMod * EvalGrad(x,n-1)) - EvalGrad(x,n-2);
         }
 
         double Weight(double x)
         {
-            return 1.0/sqrt(1.0-x*x);
+            double xMod = ChangeVariable(x);
+            return 1.0/sqrt(1.0-xMod*xMod);
         }
 
         double GetNorm(int n)
         {
-            return (boundUp_-boundLow_)/M_PI;
+            return 2.0/M_PI;
         }
         
         //! Build the Chebyshev polynomial

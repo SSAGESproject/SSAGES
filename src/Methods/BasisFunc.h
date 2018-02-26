@@ -91,6 +91,12 @@ namespace SSAGES
         
         //! Frequency of coefficient updates
 		unsigned int cyclefreq_;
+
+        //! Temporary cyclefrequency that ensures sweeps are of proper length for restrained simulations
+		unsigned int cyclefreqTmp_;
+
+        //! Step counter for the cyclefrequency
+        unsigned int step_;
         
         //! The node that the current system belongs to, primarily for printing and debugging.
         unsigned int mpiid_;

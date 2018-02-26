@@ -87,6 +87,6 @@
 			"type" : "array"
 		}
 	},
-	"required": ["type", "grid", "basis_functions", "cycle_frequency"],
+	"required": ["type", "grid", "basis_functions", "temperature", "cycle_frequency"],
 	"additionalProperties": false
 }
