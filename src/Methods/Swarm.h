@@ -61,7 +61,7 @@ namespace SSAGES
             std::vector<Label> traj_atomids_; 
 
             //! Updates the positions of the string
-            void StringUpdate();
+            void StringUpdate() override;
 
             //! Helper function check if CVs are initialized correctly
             bool CVInitialized(const CVList& cvs);

@@ -368,7 +368,7 @@ namespace SSAGES
 		 * \param snapshot Current simulation snapshot.
          * \param cvmanager Collective variable manager.
 		 */
-		virtual void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) = 0;
+		virtual void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override = 0;
 
 		//! Post-simulation hook.
 		/*!

@@ -61,7 +61,7 @@ namespace SSAGES
 		bool InCell(const CVList& cvs) const;
 
 		//! Updates the string according to the FTS method
-		void StringUpdate();
+		void StringUpdate() override;
         
         //! Flag for whether a system was to run umbrella sampling before checking against other systems
         bool reset_for_umbrella; 

@@ -55,7 +55,7 @@ namespace SSAGES
 		double stringspring_;
 
 		//! Updates the nudged elastic band string.
-		void StringUpdate();
+		void StringUpdate() override;
 
 	public:
 		//! Constructor
