@@ -216,7 +216,7 @@ namespace Json
 			// Dependencies
 			if(json.isMember("dependencies") && json["dependencies"].isObject())
 			{
-				dependency_ = std::move(std::unique_ptr<DependencyRequirement>(new DependencyRequirement()));
+				dependency_ = std::unique_ptr<DependencyRequirement>(new DependencyRequirement());
 				dependency_->Parse(json["dependencies"], path);
 			}
 
