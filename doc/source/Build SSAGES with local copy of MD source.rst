@@ -45,7 +45,8 @@ The following versions of Gromacs are supported
 
 * 5.1.x
 * 2016.x
+* 2018
 
 In contrast to LAMMPS, we are very confident that SSAGES will *not* work with other
 versions of Gromacs out of the box. We are working hard to make SSAGES compatible with
-more versions of Gromacs, especially with the new version 2018.
+new versions of Gromacs, as they are released.
