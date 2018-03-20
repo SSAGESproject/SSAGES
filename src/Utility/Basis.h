@@ -185,7 +185,7 @@ namespace SSAGES
 
         double ChangeVariable(double x)
         {
-            return (x-boundLow_)*2.0/(boundHigh_ - boundLow_)-1.0;
+            return (x-boundLow_)*2.0/(boundUp_ - boundLow_)-1.0;
         }
 
         //Quick recursive relation to evaluate the basis sets
