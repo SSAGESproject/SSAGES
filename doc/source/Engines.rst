@@ -8,17 +8,17 @@ features between MD engines. This may be the result of engine limitations
 or work in progress. The table below summarizes the main features that 
 vary between supported engines. 
 
-+----------+---------------------+--------------+----------------+
-| Engine   | Supported versions  | Multi-walker | NPT virial     |
-+==========+=====================+==============+================+
-| LAMMPS   |    2010 or newer    |    yes       |   yes          |
-+----------+---------------------+--------------+----------------+ 
-| Gromacs  | 5.1.x, 2016.x, 2018 |    yes       |   yes          |
-+----------+---------------------+--------------+----------------+
-| OpenMD   |      2.4, 2.5       |    no        |   no           |
-+----------+---------------------+--------------+----------------+
-| Qbox     |   1.60 or newer     |    yes       |   no           |
-+----------+---------------------+--------------+----------------+
++----------+-----------------------+--------------+----------------+
+| Engine   |  Supported versions   | Multi-walker | NPT virial     |
++==========+=======================+==============+================+
+| LAMMPS   |     2010 or newer     |    yes       |   yes          |
++----------+-----------------------+--------------+----------------+ 
+| Gromacs  | 5.1.x, 2016.x, 2018.x |    yes       |   yes          |
++----------+-----------------------+--------------+----------------+
+| OpenMD   |       2.4, 2.5        |    no        |   no           |
++----------+-----------------------+--------------+----------------+
+| Qbox     |     1.60 or newer     |    yes       |   no           |
++----------+-----------------------+--------------+----------------+
 
 Special instructions on how to use SSAGES with a particular engine are
 listed under the appropriate section. 
@@ -101,7 +101,7 @@ Gromacs
 Building
 ~~~~~~~~
 
-SSAGES supports Gromacs versions 5.1.x, 2016.x, and 2018. To compile SSAGES
+SSAGES supports Gromacs versions 5.1.x, 2016.x, and 2018.x. To compile SSAGES
 with a compatible version of Gromacs, either ``-DGROMACS=YES`` or 
 ``-DGROMACS_SRC=/path/to/Gromacs`` must be specified in the cmake command. 
 For example, 
