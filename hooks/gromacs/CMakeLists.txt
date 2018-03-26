@@ -2,7 +2,7 @@
 set (SUPPORTED_GROMACS_VERSIONS
       "5.1"  "5.1.0"  "5.1.1"  "5.1.2"  "5.1.3"  "5.1.4"  "5.1.5"
      "2016" "2016.0" "2016.1" "2016.2" "2016.3" "2016.4" "2016.5"
-     "2018" "2018.0"
+     "2018" "2018.0" "2018.1"
     )
 
 set(DGMX_BUILD_OWN_FFTW OFF CACHE BOOL "Let Gromacs build its own libfftw.")
