@@ -65,8 +65,8 @@ protected:
             int index = indices.at(i);
             while (index < 0) { index += numPoints_[i]; }
             while (index >= numPoints_[i]) { index -= numPoints_[i]; }
-			if(index == numPoints_[i]-1)
-				index = 0;
+	    if(index == numPoints_[i]-1)
+		index = 0;
             newIndices.at(i) = index;
         }
 
@@ -123,8 +123,11 @@ protected:
 		{
 			if(isPeriodic_[i])
 			{
-				double spacing = (edges_.second[i] - edges_.first[i]) / numPoints_[i];
-				numPoints_[i]++;
+				if(numPoints_[i] <= 1)
+				{
+					throw std::invalid_argument("A periodic grid is incompatible with a grid size of 1.");
+				}				
+				double spacing = (edges_.second[i] - edges_.first[i]) / (numPoints_[i]-1);
 				edges_.first[i] -= spacing/2;
 				edges_.second[i] += spacing/2;
 			}
@@ -196,10 +199,7 @@ public:
      */
     const std::vector<int> GetNumPoints() const
     {
-		std::vector<int> numPoints = numPoints_;
-		for(size_t i = 0; i < dimension_; ++i)
-			if(GetPeriodic(i)) {numPoints[i]--;}
-        return numPoints;
+        return numPoints_;
     }
 
     //! Get the number of points for a specific dimension.
@@ -216,9 +216,7 @@ public:
                          "than the grid dimensionality!\n";
             return 0;
         }
-		if(GetPeriodic(dim)){return numPoints_[dim]-1;}
-		else
-			return numPoints_.at(dim);
+	return numPoints_.at(dim);
     }
 
     //! Return the lower edges of the Grid.
@@ -229,7 +227,7 @@ public:
     {
 		std::vector<double> lower(dimension_);
 		for(size_t i = 0; i<dimension_;++i) 
-			if(GetPeriodic(i)) {lower[i] = edges_.first[i] - ((edges_.first[i] - edges_.second[i]) / numPoints_[i])/2;}
+			if(GetPeriodic(i)) {lower[i] = edges_.first[i] - ((edges_.first[i] - edges_.second[i]) / (numPoints_[i]))/2;}
 			else {lower[i] = edges_.first[i];}
         return lower;
     }
@@ -248,7 +246,7 @@ public:
                          "than the grid dimensionality!\n";
             return 0.0;
         }
-        if(GetPeriodic(dim)){return edges_.first[dim] - ((edges_.first[dim] - edges_.second[dim]) / numPoints_[dim])/2;}
+        if(GetPeriodic(dim)){return edges_.first[dim] - ((edges_.first[dim] - edges_.second[dim]) / (numPoints_[dim]-1))/2;}
 		else{return edges_.first[dim];}
     }
 
@@ -260,7 +258,7 @@ public:
     {
 		std::vector<double> upper(dimension_);
 		for(size_t i = 0; i<dimension_;++i) 
-			if(GetPeriodic(i)) {upper[i] = edges_.second[i] + ((edges_.first[i] - edges_.second[i]) / numPoints_[i])/2;}
+			if(GetPeriodic(i)) {upper[i] = edges_.second[i] + ((edges_.first[i] - edges_.second[i]) / (numPoints_[i]))/2;}
 			else {upper[i] = edges_.second[i];}
         return upper;
     }
@@ -280,7 +278,7 @@ public:
                          "than the grid dimensionality!\n";
             return 0.0;
         }
-		if(GetPeriodic(dim)){return edges_.second[dim] + ((edges_.first[dim] - edges_.second[dim]) / numPoints_[dim])/2;}
+		if(GetPeriodic(dim)){return edges_.second[dim] + ((edges_.first[dim] - edges_.second[dim]) / (numPoints_[dim]))/2;}
 		else{return edges_.second[dim];}
     }
 
@@ -375,21 +373,27 @@ public:
         }
 
         std::vector<int> indices(dimension_);
-        for (size_t i = 0; i < dimension_; ++i) {
-            double xpos = x.at(i);
-            if (!GetPeriodic(i)) {
-                if (xpos < edges_.first[i]) {
-                    indices.at(i) = -1;
-                    continue;
-                } else if (xpos > edges_.second[i]) {
-                    indices.at(i) = numPoints_[i];
-                    continue;
-                }
-            }
+        for (size_t i = 0; i < dimension_; ++i) 
+	{
+           	double xpos = x.at(i);
+            	if (!GetPeriodic(i)) 
+		{
+                	if (xpos < edges_.first[i]) 
+			{
+                    		indices.at(i) = -1;
+                    		continue;
+                	} 
+			else if (xpos > edges_.second[i]) 
+			{
+                    		indices.at(i) = numPoints_[i];
+                    		continue;
+                	}
 
-            // To make sure, the value is rounded in the correct direction.
-            double spacing = (edges_.second[i] - edges_.first[i]) / numPoints_[i];
-            indices.at(i) = std::floor( (xpos - edges_.first[i]) / spacing);
+            	}
+
+            	// To make sure, the value is rounded in the correct direction.
+		double spacing = (edges_.second[i] - edges_.first[i]) / (numPoints_[i]);
+            	indices.at(i) = std::floor( (xpos - edges_.first[i]) / spacing);
         }
 		
         return wrapIndices(indices);
@@ -502,7 +506,7 @@ public:
         std::vector<double> v(dimension_);
 
         for (size_t i = 0; i < dimension_; ++i) {
-            double spacing = (edges_.second[i] - edges_.first[i]) / numPoints_[i];
+            double spacing = (edges_.second[i] - edges_.first[i]) / (numPoints_[i]);
             v.at(i) = edges_.first[i] + (indices[i] + 0.5)*spacing;
         }
 
