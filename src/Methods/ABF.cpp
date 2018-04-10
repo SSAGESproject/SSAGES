@@ -316,7 +316,8 @@ namespace SSAGES
 		if(validator.HasErrors())
 			throw BuildException(validator.GetErrors());
 
-		uint wid = mxx::comm(world).rank()/mxx::comm(comm).size(); 
+		uint wid = mxx::comm(world).rank()/mxx::comm(comm).size();   // walker ID
+		uint wrank = mxx::comm(world).rank()%mxx::comm(comm).size(); // walker rank
 
 		//bool multiwalkerinput = false;
 
@@ -504,7 +505,7 @@ namespace SSAGES
 		//}
 
 		// Check if previously saved grids exist. If so, check that data match and load grids.
-		if(std::ifstream(Nworld_filename) && std::ifstream(Fworld_filename+std::to_string(0)) && wid == 0)
+		if(std::ifstream(Nworld_filename) && std::ifstream(Fworld_filename+std::to_string(0)) && wrank == 0)
 		{
 			std::cout << "Attempting to load data from a previous run of ABF." << std::endl;
 			N->LoadFromFile(Nworld_filename);
