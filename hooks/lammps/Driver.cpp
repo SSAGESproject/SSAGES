@@ -57,7 +57,7 @@ namespace SSAGES
             }
             else
             {
-                line = linebuffer + line;
+                line = linebuffer + " " + line;
                 lammps_->input->one(line.c_str());
                 
                 // Only look for fix if it wasn't previously found.
