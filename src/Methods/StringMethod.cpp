@@ -219,11 +219,14 @@ namespace SSAGES
 	{
 		ObjectRequirement validator;
 		Value schema;
-		Reader reader;
-
+		CharReaderBuilder rbuilder;
+		CharReader* reader = rbuilder.newCharReader();
+		
 		StringMethod* m = nullptr;
 
-		reader.parse(JsonSchema::StringMethod, schema);
+		reader->parse(JsonSchema::StringMethod.c_str(),
+		              JsonSchema::StringMethod.c_str() + JsonSchema::StringMethod.size(),
+		              &schema, NULL);
 		validator.Parse(schema, path);
 
 		// Validate inputs.
@@ -248,7 +251,9 @@ namespace SSAGES
 		std::string flavor = json.get("flavor", "none").asString();
 		if(flavor == "ElasticBand")
 		{
-			reader.parse(JsonSchema::ElasticBandMethod, schema);
+			reader->parse(JsonSchema::ElasticBandMethod.c_str(),
+			              JsonSchema::ElasticBandMethod.c_str() + JsonSchema::ElasticBandMethod.size(),
+			              &schema, NULL);
 			validator.Parse(schema, path);
 
 			// Validate inputs.
@@ -278,7 +283,9 @@ namespace SSAGES
 		}
 		else if(flavor == "FTS")
 		{
-			reader.parse(JsonSchema::FTSMethod, schema);
+			reader->parse(JsonSchema::FTSMethod.c_str(),
+			              JsonSchema::FTSMethod.c_str() + JsonSchema::FTSMethod.size(),
+			              &schema, NULL);
 			validator.Parse(schema, path);
 
 			// Validate inputs.
@@ -306,7 +313,9 @@ namespace SSAGES
 		}
 		else if(flavor == "SWARM")
 		{
-			reader.parse(JsonSchema::SwarmMethod, schema);
+			reader->parse(JsonSchema::SwarmMethod.c_str(),
+			              JsonSchema::SwarmMethod.c_str() + JsonSchema::SwarmMethod.size(),
+			              &schema, NULL);
 			validator.Parse(schema, path);
 			
 			//Validate input

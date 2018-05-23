@@ -141,12 +141,15 @@ public:
      */
     static Grid<T>* BuildGrid(const Json::Value& json, const std::string& path)
     {
-        Json::ObjectRequirement validator;
-        Json::Value schema;
-        Json::Reader reader;
+		Json::ObjectRequirement validator;
+		Json::Value schema;
+		Json::CharReaderBuilder rbuilder;
+		Json::CharReader* reader = rbuilder.newCharReader();
 
-        reader.parse(JsonSchema::grid, schema);
-        validator.Parse(schema, path);
+		reader->parse(JsonSchema::grid.c_str(),
+		              JsonSchema::grid.c_str() + JsonSchema::grid.size(),
+		              &schema, NULL);
+		validator.Parse(schema, path);
 
         // Validate inputs.
         validator.Validate(json, path);

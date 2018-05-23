@@ -55,12 +55,15 @@ namespace SSAGES
 	{
 		ObjectRequirement validator;
 		Value schema;
-		Reader reader;
+		CharReaderBuilder rbuilder;
+		CharReader* reader = rbuilder.newCharReader();
 
 		// Parse and validate top level schema. This just 
 		// makes sure the proper fields exist and the correct 
 		// types are specified in the input files.
-		reader.parse(JsonSchema::Simulation, schema);
+		reader->parse(JsonSchema::Simulation.c_str(),
+		              JsonSchema::Simulation.c_str() + JsonSchema::Simulation.size(),
+		              &schema, NULL);
 		validator.Parse(schema, "#");
 		validator.Validate(json, "#");
 		if(validator.HasErrors())

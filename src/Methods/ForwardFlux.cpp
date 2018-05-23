@@ -632,9 +632,12 @@ namespace SSAGES
 	{
 		ObjectRequirement validator;
 		Value schema;
-		Reader reader;
+		CharReaderBuilder rbuilder;
+		CharReader* reader = rbuilder.newCharReader();
 
-		reader.parse(JsonSchema::ForwardFluxMethod, schema);
+		reader->parse(JsonSchema::ForwardFluxMethod.c_str(),
+		              JsonSchema::ForwardFluxMethod.c_str() + JsonSchema::ForwardFluxMethod.size(),
+		              &schema, NULL);
 		validator.Parse(schema, path);
 
 		// Validate inputs.
