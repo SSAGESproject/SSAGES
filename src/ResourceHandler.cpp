@@ -69,6 +69,13 @@ namespace SSAGES
 		if(validator.HasErrors())
 			throw BuildException(validator.GetErrors());
 		
+		// Check to make sure all inputs are valid members
+		std::vector<std::string> validmembers = {"input","args","walkers","CVs","methods","logger"};
+		std::vector<std::string> members = json.getMemberNames();
+		for(auto& m : members)
+			if(std::find(validmembers.begin(), validmembers.end(), m) == validmembers.end())
+				throw BuildException({"#: JSON member \"" + m + "\" is not supported."});
+		
 		// Get number of desired walkers and create array of input files.
 		auto nwalkers = json.get("walkers", 1).asInt();
 		if(json["input"].isArray() && json["input"].size() != nwalkers)
