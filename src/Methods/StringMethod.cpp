@@ -213,9 +213,9 @@ namespace SSAGES
 
 	//! \copydoc Method::BuildMethod()
 	StringMethod* StringMethod::Build(const Value& json, 
-		                                  const MPI_Comm& world,
-		                                  const MPI_Comm& comm,
-					                      const std::string& path)
+	                                  const MPI_Comm& world,
+	                                  const MPI_Comm& comm,
+	                                  const std::string& path)
 	{
 		ObjectRequirement validator;
 		Value schema;
@@ -268,9 +268,9 @@ namespace SSAGES
 			auto tau = json.get("time_step", 0.1).asDouble();
 
 			m = new ElasticBand(world, comm, centers, 
-								maxiterator, isteps,
-								tau, ksprings, eqsteps,
-								evsteps, stringspring, freq);
+			                    maxiterator, isteps,
+			                    tau, ksprings, eqsteps,
+			                    evsteps, stringspring, freq);
 
 			if(json.isMember("tolerance"))
 			{
@@ -298,9 +298,9 @@ namespace SSAGES
 			auto kappa = json.get("kappa", 0.1).asDouble();
 			auto springiter = json.get("umbrella_iterations",2000).asDouble();
 			m = new FiniteTempString(world, comm, centers, 
-								     maxiterator, isteps,
-								     tau, ksprings, kappa,
-								     springiter, freq);
+			                         maxiterator, isteps,
+			                         tau, ksprings, kappa,
+			                         springiter, freq);
 
 			if(json.isMember("tolerance"))
 			{
