@@ -91,7 +91,6 @@ namespace SSAGES
 					filename + ": " + errors
 				);
 			}
-			std::cout << filename << " : " << errors << std::endl;
 			delete reader;
 			return root;
 		}
