@@ -13,7 +13,7 @@ vary between supported engines.
 +==========+=======================+==============+================+
 | LAMMPS   |     2010 or newer     |    yes       |   yes          |
 +----------+-----------------------+--------------+----------------+ 
-| Gromacs  | 5.1.x, 2016.x, 2018.x |    yes       |   yes          |
+| GROMACS  | 5.1.x, 2016.x, 2018.x |    yes       |   yes          |
 +----------+-----------------------+--------------+----------------+
 | OpenMD   |       2.4, 2.5        |    no        |   no           |
 +----------+-----------------------+--------------+----------------+
@@ -39,7 +39,7 @@ For example,
 	cmake -DLAMMPS=YES .. 
 	make
 
-will automatically download a recent version of LAMMPS (tagged ``r15407``) 
+will automatically download LAMMPS (version 30 Jul 2016, tagged ``r15407``)
 and compile SSAGES. Because many users may take advantage of optional LAMMPS
 packages, SSAGES forwards the make commands necessary to do so, such 
 as 
@@ -49,7 +49,14 @@ as
 	make yes-molecule
 	make yes-user-drude
 
-If a user is interested in using a different version of LAMMPS or one with 
+If a user is interested in using a different version of LAMMPS, SSAGES can
+download a specific stable release (must be supported) with
+
+.. code:: bash
+
+	cmake -DLAMMPS="5 Nov 2016" ..
+
+If a user is interested in using an already-downloaded source or one with
 personal modifications, then SSAGES can be pointed to that particular source 
 repository.
 
@@ -95,15 +102,15 @@ The only LAMMPS-specific property required in a SSAGES input file is the ``input
 property which points to the LAMMPS input script. Details can be found on the 
 :ref:`input files page <inputfiles>`.
 
-Gromacs
+GROMACS
 ^^^^^^^
 
 Building
 ~~~~~~~~
 
-SSAGES supports Gromacs versions 5.1.x, 2016.x, and 2018.x. To compile SSAGES
-with a compatible version of Gromacs, either ``-DGROMACS=YES`` or 
-``-DGROMACS_SRC=/path/to/Gromacs`` must be specified in the cmake command. 
+SSAGES supports GROMACS versions 5.1.x, 2016.x, and 2018.x. To compile SSAGES
+with a compatible version of GROMACS, either ``-DGROMACS=YES`` or 
+``-DGROMACS_SRC=/path/to/GROMACS`` must be specified in the cmake command. 
 For example, 
 
 .. code:: bash 
@@ -111,8 +118,8 @@ For example,
 	cmake -DGROMACS=YES .. 
 	make
 
-will automatically download Gromacs 5.1.3 and compile SSAGES. 
-If a user is interested in using a different version of Gromacs, SSAGES can
+will automatically download GROMACS 5.1.3 and compile SSAGES. 
+If a user is interested in using a different version of GROMACS, SSAGES can
 download a specific release (must be supported) with
 
 .. code:: bash
@@ -129,15 +136,15 @@ repository.
 
 .. warning:: 
 
-	Once you link SSAGES to a particular Gromacs source, you will be 
-	**unable** to compile that Gromacs source outside of SSAGES because of 
+	Once you link SSAGES to a particular GROMACS source, you will be 
+	**unable** to compile that GROMACS source outside of SSAGES because of 
 	SSAGES dependencies which are introduced. Be sure to backup your 
 	repository accordingly. 
 
 Running 
 ~~~~~~~
 
-SSAGES forwards arguments to the Gromacs **mdrun** library. The 
+SSAGES forwards arguments to the GROMACS **mdrun** library. The 
 ``args`` property must specified in the SSAGES input file as 
 described on the :ref:`input files page <inputfiles>`.
 
