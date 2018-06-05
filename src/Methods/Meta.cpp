@@ -360,7 +360,7 @@ namespace SSAGES
 				"must be defined if grid is not being used."});
 
 		// Assume all vectors are the same size. 
-		for(int i = 0; i < (int)json["lower_bound_restraints"].size(); ++i)
+		for(int i = 0; i < static_cast<int>(json["lower_bound_restraints"].size()); ++i)
 		{
 			lowerk.push_back(json["lower_bound_restraints"][i].asDouble());
 			upperk.push_back(json["upper_bound_restraints"][i].asDouble());

@@ -105,8 +105,8 @@ namespace nnet
 
     f_type neural_net::loss(const matrix_t& X, const matrix_t& Y)
     {
-        assert(layers_.front().size == (size_t)X.cols());
-        assert(layers_.back().size == (size_t)Y.cols());
+        assert(layers_.front().size == static_cast<size_t>(X.cols()));
+        assert(layers_.back().size == static_cast<size_t>(Y.cols()));
         assert(X.rows() == Y.rows());
         
         // number of samples and output dim. 
@@ -332,8 +332,8 @@ namespace nnet
 
     void neural_net::autoscale(const matrix_t& X, const matrix_t& Y) 
     {
-        assert(layers_.front().size == (size_t)X.cols());
-        assert(layers_.back().size == (size_t)Y.cols());
+        assert(layers_.front().size == static_cast<size_t>(X.cols()));
+        assert(layers_.back().size == static_cast<size_t>(Y.cols()));
         assert(X.rows() == Y.rows());
         
         x_shift_ = 0.5*(X.colwise().minCoeff().array() + X.colwise().maxCoeff().array());

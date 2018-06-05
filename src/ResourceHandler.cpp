@@ -75,7 +75,7 @@ namespace SSAGES
 		for(size_t i = 0; i < nwalkers; ++i)
 		{
 			if(json["input"].isArray())
-				inputs.push_back(json["input"][(int)i].asString());
+				inputs.push_back(json["input"][static_cast<int>(i)].asString());
 			else
 				inputs.push_back(json["input"].asString());
 		}

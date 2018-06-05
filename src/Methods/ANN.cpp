@@ -259,7 +259,7 @@ namespace SSAGES
 		VectorXi topol(nlayers);
 		topol[0] = fgrid->GetDimension();
 		topol[nlayers-1] = 1;
-		for(int i = 0; i < (int)json["topology"].size(); ++i)
+		for(int i = 0; i < static_cast<int>(json["topology"].size()); ++i)
 			topol[i+1] = json["topology"][i].asInt();
 		
 		auto weight = json.get("weight", 1.).asDouble();
@@ -268,7 +268,7 @@ namespace SSAGES
 
 		// Assume all vectors are the same size. 
 		std::vector<double> lowerb, upperb, lowerk, upperk;
-		for(int i = 0; i < (int)json["lower_bound_restraints"].size(); ++i)
+		for(int i = 0; i < static_cast<int>(json["lower_bound_restraints"].size()); ++i)
 		{
 			lowerk.push_back(json["lower_bound_restraints"][i].asDouble());
 			upperk.push_back(json["upper_bound_restraints"][i].asDouble());
