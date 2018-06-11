@@ -37,9 +37,14 @@ also work with most other LAMMPS versions.
 
 * 10 Aug 2015
 * 7 Dec 2015
+* 16 Feb 2016
 * 14 May 2016
-* 15 Jul 2016
 * 30 Jul 2016
+* 5 Nov 2016
+* 17 Nov 2016
+* 31 Mar 2017
+* 11 Aug 2017
+* 16 Mar 2018
 
 The following versions of GROMACS are supported
 
