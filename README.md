@@ -5,16 +5,16 @@ SSAGES
 It is designed to be easy to use, extendable and extremely versatile. It is currently pre-beta, meaning that there are many rough edges, but we are working rapidly 
 to expand its features and fix any bugs. Keep an eye on this page for future updates and see below on how to contribute!
 
-## What's New (v0.8.0)
-- Added ANN sampling! 
-- More documentation updates
-- Updates to examples 
-- Added Fourier and Chebyshev basis sets to BFS 
-- Added 3D ABF integrator
-- Improved periodicity handling on grid
-- Secondary structure CV bug fixes 
-- Improved Qbox integration
-
+## What's New (v0.8.1)
+- GROMACS support for all 5.1.x, 2016.x, 2018.x!
+- Better CMake handling for Hooks
+- Handling of LAMMPS line continuations (&)
+- Correct handling of multiprocessor ABF method
+- BFS method cleanup
+- Minor documentation updates
+- Eigen include update (3.3.4)
+- googletest include update (1.8.0)
+- jsoncpp include update
 
 <a id="features"></a>
 ## Features
@@ -146,6 +146,17 @@ or
 ```bash
 $ firefox doc/Manual/index.html
 ```
+
+## What's Old (v0.8.0)
+- Added ANN sampling!
+- More documentation updates
+- Updates to examples
+- Added Fourier and Chebyshev basis sets to BFS
+- Added 3D ABF integrator
+- Improved periodicity handling on grid
+- Secondary structure CV bug fixes
+- Improved Qbox integration
+
 ## What's Old (v0.7.5)
 - Major documentation update!
 - Major examples update! 
