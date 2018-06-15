@@ -230,9 +230,12 @@ namespace SSAGES
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
-			Json::Reader reader;
+			Json::CharReaderBuilder rbuilder;
+			Json::CharReader* reader = rbuilder.newCharReader();
 
-			reader.parse(JsonSchema::TorsionalCV, schema);
+			reader->parse(JsonSchema::TorsionalCV.c_str(),
+			              JsonSchema::TorsionalCV.c_str() + JsonSchema::TorsionalCV.size(),
+			              &schema, NULL);
 			validator.Parse(schema, path);
 
 			// Validate inputs.

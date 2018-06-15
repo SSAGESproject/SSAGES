@@ -55,16 +55,26 @@ namespace SSAGES
 	{
 		ObjectRequirement validator;
 		Value schema;
-		Reader reader;
+		CharReaderBuilder rbuilder;
+		CharReader* reader = rbuilder.newCharReader();
 
 		// Parse and validate top level schema. This just 
 		// makes sure the proper fields exist and the correct 
 		// types are specified in the input files.
-		reader.parse(JsonSchema::Simulation, schema);
+		reader->parse(JsonSchema::Simulation.c_str(),
+		              JsonSchema::Simulation.c_str() + JsonSchema::Simulation.size(),
+		              &schema, NULL);
 		validator.Parse(schema, "#");
 		validator.Validate(json, "#");
 		if(validator.HasErrors())
 			throw BuildException(validator.GetErrors());
+		
+		// Check to make sure all inputs are valid members
+		std::vector<std::string> validmembers = {"input","args","walkers","CVs","methods","logger"};
+		std::vector<std::string> members = json.getMemberNames();
+		for(auto& m : members)
+			if(std::find(validmembers.begin(), validmembers.end(), m) == validmembers.end())
+				throw BuildException({"#: JSON member \"" + m + "\" is not supported."});
 		
 		// Get number of desired walkers and create array of input files.
 		auto nwalkers = json.get("walkers", 1).asUInt();
