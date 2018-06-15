@@ -85,7 +85,7 @@ namespace nnet
 
     void neural_net::forward_pass(const matrix_t& X) 
     {
-        assert(layers_.front().size == (size_t)X.cols());
+        assert(layers_.front().size == static_cast<size_t>(X.cols()));
         
         // copy and scale data matrix
         layers_[0].a.noalias() = (X.rowwise() - x_shift_.transpose())*x_scale_.asDiagonal();
