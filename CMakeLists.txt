@@ -73,7 +73,7 @@ set(GROMACS_SRC "" CACHE STRING "GROMACS source directory.")
 set(QBOX NO CACHE BOOL "Use QBox simulation engine.")
 set(OPENMD_SRC "" CACHE STRING "OpenMD source directory.")
 
-### Determine which simulation engine to use.
+# Determine which simulation engine to use.
 if(LAMMPS_SRC OR LAMMPS)
     add_subdirectory(hooks/lammps/)
 elseif(GROMACS OR GROMACS_SRC)
@@ -86,7 +86,8 @@ else()
     message( FATAL_ERROR "You cannot build SSAGES without specifying an engine." )
 endif()
 
-if(LAMMPS OR GROMACS)
+# Ensure Git is installed, if needed.
+if(LAMMPS OR GROMACS OR BUILD_TESTS)
     find_package(Git REQUIRED)
 endif()
 
@@ -163,7 +164,7 @@ if (BUILD_TESTS)
         googletest
         DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
         GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG 800f542
+        GIT_TAG release-1.8.0
         # TIMEOUT 10
         # # Force separate output paths for debug and release builds to allow easy
         # # identification of correct lib in subsequent TARGET_LINK_LIBRARIES commands
@@ -180,11 +181,11 @@ if (BUILD_TESTS)
 
     # Specify include dir
     ExternalProject_Get_Property(googletest source_dir)
-    set(GTEST_INCLUDE_DIR ${source_dir}/include)
+    set(GTEST_INCLUDE_DIR ${source_dir}/googletest/include)
 
     ExternalProject_Get_Property(googletest binary_dir)
-    set(GTEST_LIBRARY_PATH ${binary_dir}/${CMAKE_FIND_LIBRARY_PREFIXES}gtest.a)
-    set(GTEST_LIBRARY_MAIN_PATH ${binary_dir}/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main.a)
+    set(GTEST_LIBRARY_PATH ${binary_dir}/googlemock/gtest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest.a)
+    set(GTEST_LIBRARY_MAIN_PATH ${binary_dir}/googlemock/gtest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main.a)
     set(GTEST_LIBRARY gtest)
     add_library(${GTEST_LIBRARY} UNKNOWN IMPORTED)
     set_property(TARGET ${GTEST_LIBRARY} PROPERTY IMPORTED_LOCATION
