@@ -37,27 +37,43 @@ namespace SSAGES
         Hook* hook;
         int fid = -1;
         std::string line;
+        std::string linebuffer = "";
+        size_t stridx;
         std::ifstream file(rh_->GetInput());
         
         // File doesn't exist or other error. 
         if(!file)
             throw std::runtime_error("Error opening file \"" + rh_->GetInput() + "\". Please check that the file exists.");
         
-		// Execute file. 
+        // Execute file. 
         while(std::getline(file, line))
         {
-            lammps_->input->one(line.c_str());
-            
-            // Only look for fix if it wasn't previously found.
-            if(fid < 0)
+            // If line(s) needs continuation, strip trailing
+            // whitespace and "&" and stitch them together.
+            stridx = line.find_last_not_of(" \t");
+            if((stridx != -1) && (line.at(stridx) == '&'))
             {
-                fid = lammps_->modify->find_fix("ssages");
-                if(fid >= 0)
+                linebuffer.append(line,0,stridx);
+            }
+            else
+            {
+                line = linebuffer + " " + line;
+                lammps_->input->one(line.c_str());
+                
+                // Only look for fix if it wasn't previously found.
+                if(fid < 0)
                 {
-                    if(!(hook = dynamic_cast<Hook*>(lammps_->modify->fix[fid])))
-                        throw std::runtime_error("Unable to dynamic cast hook on node " + std::to_string(rh_->GetWalkerID()));
-                    rh_->ConfigureHook(hook);
+                    fid = lammps_->modify->find_fix("ssages");
+                    if(fid >= 0)
+                    {
+                        if(!(hook = dynamic_cast<Hook*>(lammps_->modify->fix[fid])))
+                            throw std::runtime_error("Unable to dynamic cast hook on node " + std::to_string(rh_->GetWalkerID()));
+                        rh_->ConfigureHook(hook);
+                    }
                 }
+                
+                // Reset buffer
+                linebuffer = "";
             }
         }
         
