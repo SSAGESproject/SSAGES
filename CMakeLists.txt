@@ -9,19 +9,16 @@ set(SSAGES_VERSION_TINY "0")
 # Default type is release
 if (NOT CMAKE_BUILD_TYPE)
     if (BUILD_TESTS)
-		set(CMAKE_BUILD_TYPE "Debug")
+        set(CMAKE_BUILD_TYPE "Debug")
     else (BUILD_TESTS)
-		set(CMAKE_BUILD_TYPE "Release")
+        set(CMAKE_BUILD_TYPE "Release")
     endif (BUILD_TESTS)
 endif()
 
 string (TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE_NAME)
 
 # Resolve dependencies
-find_package(MPI 
-	1.6 
-	REQUIRED
-)
+find_package(MPI 1.6 REQUIRED)
 
 # Schema builder.
 add_subdirectory(schema)
@@ -38,29 +35,29 @@ link_directories(${MPI_CXX_LIBRARIES})
 
 # General source files
 set(SOURCE
-	src/Methods/ABF.cpp
-	src/Methods/ANN.cpp
-  	src/Methods/BasisFunc.cpp
-	src/Methods/DirectForwardFlux.cpp
-	src/Methods/ElasticBand.cpp
-	src/Methods/FiniteTempString.cpp
-	src/Methods/ForwardFlux.cpp
-	src/Methods/Meta.cpp
-	src/Methods/Method.cpp
-	src/Methods/StringMethod.cpp
-  	src/Methods/Swarm.cpp
-	src/Methods/Umbrella.cpp
-#	src/Constraints/Constraint.cpp
-#	src/Constraints/COPSSImage.cpp
-	src/CVs/CollectiveVariable.cpp
-	src/Loggers/Logger.cpp
-	src/Validator/RequirementLoader.cpp
-	src/JSON/jsoncpp.cpp
-	src/Utility/PairwiseKernel.cpp
+    src/Methods/ABF.cpp
+    src/Methods/ANN.cpp
+    src/Methods/BasisFunc.cpp
+    src/Methods/DirectForwardFlux.cpp
+    src/Methods/ElasticBand.cpp
+    src/Methods/FiniteTempString.cpp
+    src/Methods/ForwardFlux.cpp
+    src/Methods/Meta.cpp
+    src/Methods/Method.cpp
+    src/Methods/StringMethod.cpp
+    src/Methods/Swarm.cpp
+    src/Methods/Umbrella.cpp
+#    src/Constraints/Constraint.cpp
+#    src/Constraints/COPSSImage.cpp
+    src/CVs/CollectiveVariable.cpp
+    src/Loggers/Logger.cpp
+    src/Validator/RequirementLoader.cpp
+    src/JSON/jsoncpp.cpp
+    src/Utility/PairwiseKernel.cpp
     src/Utility/Basis.cpp
-	src/Hook.cpp
-	src/ResourceHandler.cpp
-	"include/nnet/nnet.cpp"
+    src/Hook.cpp
+    src/ResourceHandler.cpp
+    "include/nnet/nnet.cpp"
 )
 
 ####################### MD ENGINES #########################
@@ -76,25 +73,30 @@ set(GROMACS_SRC "" CACHE STRING "GROMACS source directory.")
 set(QBOX NO CACHE BOOL "Use QBox simulation engine.")
 set(OPENMD_SRC "" CACHE STRING "OpenMD source directory.")
 
-### Determine which simulation engine to use.
+# Determine which simulation engine to use.
 if(LAMMPS_SRC OR LAMMPS)
-	add_subdirectory(hooks/lammps/)
+    add_subdirectory(hooks/lammps/)
 elseif(GROMACS OR GROMACS_SRC)
     add_subdirectory(hooks/gromacs/)
 elseif(QBOX) 
-	add_subdirectory(hooks/qbox/)
+    add_subdirectory(hooks/qbox/)
 elseif(OPENMD_SRC)
-	add_subdirectory(hooks/openmd/)
+    add_subdirectory(hooks/openmd/)
 else() 
-	message( FATAL_ERROR "You cannot build SSAGES without specifying an engine." )
+    message( FATAL_ERROR "You cannot build SSAGES without specifying an engine." )
+endif()
+
+# Ensure Git is installed, if needed.
+if(LAMMPS OR GROMACS OR BUILD_TESTS)
+    find_package(Git REQUIRED)
 endif()
 
 ################### END MD ENGINES ######################
 
 # Configure header.
 configure_file (
-	"${PROJECT_SOURCE_DIR}/src/config.h.in"
-	"${PROJECT_BINARY_DIR}/config.h"
+    "${PROJECT_SOURCE_DIR}/src/config.h.in"
+    "${PROJECT_BINARY_DIR}/config.h"
 )
 
 # SSAGES library.
@@ -115,8 +117,8 @@ set_property(TARGET libssages PROPERTY CXX_STANDARD_REQUIRED ON)
 
 # SSAGES executable.
 add_executable(ssages
-	src/main.cpp
-	${DRIVERSRC}
+    src/main.cpp
+    ${DRIVERSRC}
 )
 
 # Call MD engine configuration.
@@ -131,70 +133,72 @@ elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
     set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-O2 -g")
 else ()
     set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-O3")
-
 endif ()
 
 # Configure flags 
 # - Globals
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -pthread -std=c++11")
+if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
+endif()
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -std=c++11")
 
 if (SSAGES_PERF)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -march=native")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -march=native")
 endif()
 
 # Add doc subdirectory for building the documentation
 add_subdirectory(doc)
 
 if (BUILD_TESTS)
-	message(STATUS "")
+    message(STATUS "")
 
-	# Find Google Test Framework
-	include(ExternalProject)
+    # Find Google Test Framework
+    include(ExternalProject)
 
-	# Set default ExternalProject root directory
-	set_directory_properties(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/extern)
+    # Set default ExternalProject root directory
+    set_directory_properties(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/extern)
 
-	# Add gtest
-	# http://stackoverflow.com/questions/9689183/cmake-googletest
-	ExternalProject_Add(
-		googletest
+    # Add gtest
+    # http://stackoverflow.com/questions/9689183/cmake-googletest
+    ExternalProject_Add(
+        googletest
         DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
-		GIT_REPOSITORY https://github.com/google/googletest.git
-		GIT_TAG 800f542
-		# TIMEOUT 10
-		# # Force separate output paths for debug and release builds to allow easy
-		# # identification of correct lib in subsequent TARGET_LINK_LIBRARIES commands
-		# CMAKE_ARGS -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG:PATH=DebugLibs
-		# -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE:PATH=ReleaseLibs
-		# -Dgtest_force_shared_crt=ON
-		# Disable install step
-		INSTALL_COMMAND ""
-		# Wrap download, configure and build steps in a script to log output
-		LOG_DOWNLOAD ON
-		LOG_CONFIGURE ON
-		LOG_BUILD ON
-	)
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG release-1.8.0
+        # TIMEOUT 10
+        # # Force separate output paths for debug and release builds to allow easy
+        # # identification of correct lib in subsequent TARGET_LINK_LIBRARIES commands
+        # CMAKE_ARGS -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG:PATH=DebugLibs
+        # -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE:PATH=ReleaseLibs
+        # -Dgtest_force_shared_crt=ON
+        # Disable install step
+        INSTALL_COMMAND ""
+        # Wrap download, configure and build steps in a script to log output
+        LOG_DOWNLOAD ON
+        LOG_CONFIGURE ON
+        LOG_BUILD ON
+    )
 
-	# Specify include dir
-	ExternalProject_Get_Property(googletest source_dir)
-	set(GTEST_INCLUDE_DIR ${source_dir}/include)
+    # Specify include dir
+    ExternalProject_Get_Property(googletest source_dir)
+    set(GTEST_INCLUDE_DIR ${source_dir}/googletest/include)
 
-	ExternalProject_Get_Property(googletest binary_dir)
-	set(GTEST_LIBRARY_PATH ${binary_dir}/${CMAKE_FIND_LIBRARY_PREFIXES}gtest.a)
-	set(GTEST_LIBRARY_MAIN_PATH ${binary_dir}/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main.a)
-	set(GTEST_LIBRARY gtest)
-	add_library(${GTEST_LIBRARY} UNKNOWN IMPORTED)
-	set_property(TARGET ${GTEST_LIBRARY} PROPERTY IMPORTED_LOCATION
-	${GTEST_LIBRARY_PATH} )
-	add_dependencies(${GTEST_LIBRARY} googletest)
+    ExternalProject_Get_Property(googletest binary_dir)
+    set(GTEST_LIBRARY_PATH ${binary_dir}/googlemock/gtest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest.a)
+    set(GTEST_LIBRARY_MAIN_PATH ${binary_dir}/googlemock/gtest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main.a)
+    set(GTEST_LIBRARY gtest)
+    add_library(${GTEST_LIBRARY} UNKNOWN IMPORTED)
+    set_property(TARGET ${GTEST_LIBRARY} PROPERTY IMPORTED_LOCATION
+    ${GTEST_LIBRARY_PATH} )
+    add_dependencies(${GTEST_LIBRARY} googletest)
 
-	message(STATUS "")
-	message(STATUS "*** Google Test Framework will be used for unit tests")
-	message(STATUS "*** GTEST_LIBRARY_PATH = ${GTEST_LIBRARY_PATH}")
-	message(STATUS "*** GTEST_INCLUDE_DIR  = ${GTEST_INCLUDE_DIR}")
-	message(STATUS "")
-	# End gtest
+    message(STATUS "")
+    message(STATUS "*** Google Test Framework will be used for unit tests")
+    message(STATUS "*** GTEST_LIBRARY_PATH = ${GTEST_LIBRARY_PATH}")
+    message(STATUS "*** GTEST_INCLUDE_DIR  = ${GTEST_INCLUDE_DIR}")
+    message(STATUS "")
+    # End gtest
 
-	enable_testing()
-	add_subdirectory(test)
+    enable_testing()
+    add_subdirectory(test)
 endif (BUILD_TESTS)

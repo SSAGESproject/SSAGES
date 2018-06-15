@@ -18,7 +18,7 @@ to expand its features and fix any bugs. Keep an eye on this page for future upd
 
 <a id="features"></a>
 ## Features
-**SSAGES** currently works with LAMMPS and Gromacs molecular dynamics engines. It contains a variety of collective variables (CVs) and advanced sampling methods. 
+**SSAGES** currently works with multiple molecular dynamics engines. It contains a variety of collective variables (CVs) and advanced sampling methods. 
 
 ### Highlights 
 - Engine agnostic framework 
@@ -28,7 +28,7 @@ to expand its features and fix any bugs. Keep an eye on this page for future upd
 - Much more!
 
 ### Engines 
-- Gromacs 5.x.x, 2016.3
+- GROMACS 5.1.x, 2016.x, 2018.x
 - LAMMPS (Most recent versions)
 - OpenMD (2.4+)
 - QBox (1.63+)

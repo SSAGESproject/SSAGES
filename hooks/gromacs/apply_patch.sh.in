@@ -1,9 +1,14 @@
+#!/usr/bin/env bash
+
 patch -N -p2 --dry-run --silent -d ${GROMACS_SRC} < ${PROJECT_SOURCE_DIR}/hooks/gromacs/$1 2>/dev/null
 
-#If the patch has not been applied then the $? which is the exit status 
-#for last command would have a success status code = 0
-if [ $? -eq 0 ];
+# If the patch has not been applied, then the $? (exit code) 
+# for the last command would have a successful exit code = 0.
+# If parts have already been applied, then the exit code = 1.
+# Any higher error code indicates a more substantial error.
+if [ $? -le 1 ];
 then
     #apply the patch
     patch -N -p2 -d ${GROMACS_SRC} < ${PROJECT_SOURCE_DIR}/hooks/gromacs/$1
+    exit 0
 fi
