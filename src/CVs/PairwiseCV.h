@@ -222,15 +222,10 @@ namespace SSAGES
 			return new PairwiseCV(group1, group2, PairwiseKernel::Build(json["kernel"], path));
 		}
 
+		//! Destructor
 		~PairwiseCV()
 		{
 			delete pk_;
-			/*
-			 * deleting object of abstract class type ‘SSAGES::PairwiseKernel’
-			 * which has non-virtual destructor will cause undefined behaviour
-			 * [-Wdelete-non-virtual-dtor]
-			 *
-			 */
 		}
 	};
 }

@@ -60,7 +60,6 @@ namespace SSAGES
 		auto cvs = cvmanager.GetCVs(cvmask_);
 		auto& forces = snapshot->GetForces();
 		auto& virial = snapshot->GetVirial();
-		auto& H = snapshot->GetHMatrix();
 
 		for(size_t i = 0; i < cvs.size(); ++i)
 		{
@@ -90,7 +89,7 @@ namespace SSAGES
 			umbrella_.close();
 	}
 
-	void Umbrella::PrintUmbrella(const CVList& cvs, uint iteration)
+	void Umbrella::PrintUmbrella(const CVList& cvs, size_t iteration)
 	{
 		if(comm_.rank() ==0)
 		{
@@ -215,7 +214,7 @@ namespace SSAGES
 
 		auto freq = json.get("frequency", 1).asInt();
 
-		uint timesteps = 0; 
+		size_t timesteps = 0; 
 		if(json.isMember("timesteps"))
 		{
 			if(json["timesteps"].isArray())

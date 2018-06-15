@@ -41,7 +41,7 @@ namespace nnet
             for(int i = 0; i < y_shift_.size(); ++i) file >> y_shift_[i];
             
             // weights
-            for (int i = 1; i < layers_.size(); ++i) 
+            for (size_t i = 1; i < layers_.size(); ++i) 
             {
                 auto& layer = layers_[i];
                 for(int j = 0; j < layer.b.size(); ++j) file >> layer.b(j);
@@ -74,7 +74,7 @@ namespace nnet
 
     void neural_net::init_weights(f_type sd) 
     {
-        for (int i = 1; i < layers_.size(); ++i) 
+        for (size_t i = 1; i < layers_.size(); ++i) 
         {
             layers_[i].W.setRandom();
             layers_[i].b.setRandom();
@@ -85,11 +85,11 @@ namespace nnet
 
     void neural_net::forward_pass(const matrix_t& X) 
     {
-        assert(layers_.front().size == X.cols());
+        assert(layers_.front().size == static_cast<size_t>(X.cols()));
         
         // copy and scale data matrix
         layers_[0].a.noalias() = (X.rowwise() - x_shift_.transpose())*x_scale_.asDiagonal();
-        for (int i = 1; i < layers_.size(); ++i)
+        for (size_t i = 1; i < layers_.size(); ++i)
         {
             // compute input for current layer
             layers_[i].z.noalias() = layers_[i-1].a * layers_[i].W.transpose();
@@ -105,8 +105,8 @@ namespace nnet
 
     f_type neural_net::loss(const matrix_t& X, const matrix_t& Y)
     {
-        assert(layers_.front().size == X.cols());
-        assert(layers_.back().size == Y.cols());
+        assert(layers_.front().size == static_cast<size_t>(X.cols()));
+        assert(layers_.back().size == static_cast<size_t>(Y.cols()));
         assert(X.rows() == Y.rows());
         
         // number of samples and output dim. 
@@ -290,7 +290,7 @@ namespace nnet
     void neural_net::set_wb(const vector_t& wb)
     {
         int k = 0;
-        for (int i = 1; i < layers_.size(); ++i) 
+        for (size_t i = 1; i < layers_.size(); ++i) 
         {
             auto& layer = layers_[i];
             for(int j = 0; j < layer.b.size(); ++j)
@@ -311,7 +311,7 @@ namespace nnet
     {
         int k = 0;
         vector_t wb(nparam_);
-        for (int i = 1; i < layers_.size(); ++i) 
+        for (size_t i = 1; i < layers_.size(); ++i) 
         {
             auto& layer = layers_[i];
             for(int j = 0; j < layer.b.size(); ++j)
@@ -332,8 +332,8 @@ namespace nnet
 
     void neural_net::autoscale(const matrix_t& X, const matrix_t& Y) 
     {
-        assert(layers_.front().size == X.cols());
-        assert(layers_.back().size == Y.cols());
+        assert(layers_.front().size == static_cast<size_t>(X.cols()));
+        assert(layers_.back().size == static_cast<size_t>(Y.cols()));
         assert(X.rows() == Y.rows());
         
         x_shift_ = 0.5*(X.colwise().minCoeff().array() + X.colwise().maxCoeff().array());
@@ -366,7 +366,7 @@ namespace nnet
             file << static_cast<int>(layers_.size()) << std::endl;
 
             // topology
-            for (int i = 0; i < layers_.size() - 1; ++i) 
+            for (size_t i = 0; i < layers_.size() - 1; ++i) 
                 file << static_cast<int>(layers_[i].size) << " ";
             file << static_cast<int>(layers_.back().size) << std::endl;
 
@@ -383,7 +383,7 @@ namespace nnet
             file << y_shift_[y_shift_.size()-1] << std::endl;
             
             // weights
-            for (int i = 1; i < layers_.size(); ++i) 
+            for (size_t i = 1; i < layers_.size(); ++i) 
             {
                 auto& layer = layers_[i];
                 for(int j = 0; j < layer.b.size(); ++j) file << layer.b(j) << std::endl;

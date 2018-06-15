@@ -83,23 +83,23 @@ namespace SSAGES
 				chain = line.substr(21, 1);
 				resnum = line.substr(22, 4);
 				record.erase( std::remove( record.begin(), record.end(), ' '), record.end());
-				if((record == "ATOM") && ((std::stoul(resnum) - resids[0]) <= (resids.back() - resids[0]))){
+				if((record == "ATOM") && ((std::stoi(resnum) - resids[0]) <= (resids.back() - resids[0]))){
 					atomtype.erase( std::remove( atomtype.begin(), atomtype.end(), ' '), atomtype.end());
 					resname.erase( std::remove( resname.begin(), resname.end(), ' '), resname.end());
 					if(resname == "GLY" && std::find(glycineAtoms.begin(), glycineAtoms.end(), atomtype) != glycineAtoms.end()){
-						//atomnums.push_back(std::stoul(atomnum));
+						//atomnums.push_back(std::stoi(atomnum));
 						atomnums.push_back(atomnum);
 						atomtypes.push_back(atomtype);
 						resnames.push_back(resname);
 						chains.push_back(chain);
-						resnums.push_back(std::stoul(resnum));
+						resnums.push_back(std::stoi(resnum));
 					} else if(std::find(backboneAtoms.begin(), backboneAtoms.end(), atomtype) != backboneAtoms.end()){
-						//atomnums.push_back(std::stoul(atomnum));
+						//atomnums.push_back(std::stoi(atomnum));
 						atomnums.push_back(atomnum);
 						atomtypes.push_back(atomtype);
 						resnames.push_back(resname);
 						chains.push_back(chain);
-						resnums.push_back(std::stoul(resnum));
+						resnums.push_back(std::stoi(resnum));
 					}
 				}
 			}

@@ -147,9 +147,6 @@ namespace SSAGES
         //! Current Interface
         unsigned int _current_interface;
 
-        //! random number generator
-        std::default_random_engine _generator;
-
         /*! Queue
          *  When a given processor reaches an interface, it pulls a config from this Queue to figure out what it should do next
          *  This object should be syncronized between all FFS walkers (is walker the correct terminology here?)
@@ -162,6 +159,9 @@ namespace SSAGES
 
         //! file to which the current trajectory is written to
         std::ofstream _trajectory_file;
+        
+        //! random number generator
+        std::default_random_engine _generator;
 
 		//! Method iteration counter/
 		uint iteration_;
@@ -368,7 +368,7 @@ namespace SSAGES
 		 * \param snapshot Current simulation snapshot.
          * \param cvmanager Collective variable manager.
 		 */
-		virtual void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) = 0;
+		virtual void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override = 0;
 
 		//! Post-simulation hook.
 		/*!

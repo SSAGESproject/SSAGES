@@ -67,7 +67,7 @@ namespace SSAGES
 		void ClearCVs()
 		{
 			for(auto& cv : cvs_)
-            	delete cv;
+				delete cv;
 			cvs_.clear();
 		}
 
@@ -118,7 +118,7 @@ namespace SSAGES
 		~CVManager()
 		{
 			for(auto& cv : cvs_)
-            	delete cv;
+				delete cv;
 		}
 	};
 }

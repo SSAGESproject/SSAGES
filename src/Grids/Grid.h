@@ -70,7 +70,7 @@ private:
     size_t mapTo1d(const std::vector<int> &indices) const override
     {
         // Check if an index is out of bounds
-        for (size_t i=0; i < GridBase<T>::GetDimension(); ++i) {
+        for (size_t i = 0; i < GridBase<T>::GetDimension(); ++i) {
             int index = indices.at(i);
             int numpoints = GridBase<T>::numPoints_[i];
             if ( index < 0 || index >= numpoints )
@@ -81,7 +81,7 @@ private:
 
         size_t idx = 0;
         size_t fac = 1;
-        for (size_t i=0; i < GridBase<T>::GetDimension(); ++i) {
+        for (size_t i = 0; i < GridBase<T>::GetDimension(); ++i) {
             idx += indices.at(i) * fac;
             fac *= GridBase<T>::numPoints_[i];
         }
@@ -633,7 +633,7 @@ public:
 
         // Get dimension.
         {
-            int dim = 0;
+            size_t dim = 0;
             std::getline(file, line);
             std::istringstream iss(line);
             iss >> buff >> buff >> dim; 
@@ -733,7 +733,7 @@ public:
             std::istringstream iss(line);
             
             // Skip coordinates.
-            for(int i = 0; i < GridBase<T>::dimension_; ++i) 
+            for(size_t i = 0; i < GridBase<T>::dimension_; ++i) 
                 iss >> buff;
             
             iss >> d;

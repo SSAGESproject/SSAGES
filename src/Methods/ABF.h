@@ -39,23 +39,7 @@ namespace SSAGES
 	 */
 	class ABF : public Method
 	{
-	private:	
-		//! To store running total of the local walker. 
-		/*!
-		 * This is a grid that holds dF/dCVx where x is 
-		 * one of the CVs. For N CVs, there will be N grids,
-		 * and thus this vector will be N long.
-		 */
-		std::vector<Grid<double>*> F_;
-	
-		//! Will hold the global total, synced across walkers at every time step. 
-		/*!
-		 * This is a grid that holds dF/dCVx where x is 
-		 * one of the CVs. For N CVs, there will be N grids,
-		 * and thus this vector will be N long. Global version.
-		 */
-		std::vector<Grid<double>*> Fworld_;
-
+	private:
 		//! To store number of local hits at a given CV bin.
 		/*!
 		 * Stores the number of times each bin was visited
@@ -69,6 +53,21 @@ namespace SSAGES
 		 * in CV space. Global version.
 		 */
 		Grid<int> *Nworld_;
+		//! To store running total of the local walker. 
+		/*!
+		 * This is a grid that holds dF/dCVx where x is 
+		 * one of the CVs. For N CVs, there will be N grids,
+		 * and thus this vector will be N long.
+		 */
+		std::vector<Grid<double>*> F_;
+
+		//! Will hold the global total, synced across walkers at every time step. 
+		/*!
+		 * This is a grid that holds dF/dCVx where x is 
+		 * one of the CVs. For N CVs, there will be N grids,
+		 * and thus this vector will be N long. Global version.
+		 */
+		std::vector<Grid<double>*> Fworld_;
 		
 		//! Information for a harmonic restraint to keep CV in the region of interest. 
 		/*!

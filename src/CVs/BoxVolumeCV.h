@@ -41,7 +41,7 @@ namespace SSAGES
         {}
 
         //! Initialize the CV.
-        void Initialize(const Snapshot& snapshot) override
+        void Initialize(const Snapshot& /* snapshot */) override
         {
         }
 

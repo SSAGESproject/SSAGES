@@ -2,6 +2,8 @@
 #include "json/json.h"
 #include "../Grids/Grid.h"
 
+#define UNUSED(x) (void)(x)
+
 namespace SSAGES
 {
     //! Look-up table for basis functions.
@@ -61,10 +63,10 @@ namespace SSAGES
     protected:
         uint polyOrd_; //!< Order of the polynomial.
         uint nbins_; //!< Number of bins.
-        double boundLow_; //!< Lower bound on CV.
-        double boundUp_; //!< Upper bound on CV.
         bool isFinite_; //!< Flag for finite-range polynomials.
         bool zeroOrder_; //!< Flag for constant-order polynomials.
+        double boundLow_; //!< Lower bound on CV.
+        double boundUp_; //!< Upper bound on CV.
 
     public:
         //! Constructor
@@ -85,7 +87,7 @@ namespace SSAGES
                       bool zeroOrder,
                       double boundLow,
                       double boundUp) :
-        polyOrd_(polyOrd), isFinite_(isFinite), zeroOrder_(zeroOrder), nbins_(nbins),
+        polyOrd_(polyOrd), nbins_(nbins), isFinite_(isFinite), zeroOrder_(zeroOrder),
         boundLow_(boundLow), boundUp_(boundUp)
         {
         }
@@ -121,7 +123,10 @@ namespace SSAGES
          *
          * \return Norm of a specific order of polynomial.
          */
-        virtual double GetNorm(int order) {return 1.0;}
+        virtual double GetNorm(int order) {
+            UNUSED(order);
+            return 0;
+        }
 
         //! Calculates the output of the basis function.
         /*!
@@ -130,7 +135,11 @@ namespace SSAGES
          *
          * \return Output value for function.
          */
-        virtual double Evaluate(double val, int order) {return 0;}
+        virtual double Evaluate(double val, int order) {
+            UNUSED(val);
+            UNUSED(order);
+            return 0;
+        }
 
         //! Calculates the gradient of the basis function.
         /*!
@@ -139,7 +148,11 @@ namespace SSAGES
          *
          * \return Gradient for function.
          */
-        virtual double EvalGrad(double val, int order) {return 0;}
+        virtual double EvalGrad(double val, int order) {
+            UNUSED(val);
+            UNUSED(order);
+            return 0;
+        }
 
         //! Calculates the gradient of the basis function.
         /*!
@@ -147,7 +160,10 @@ namespace SSAGES
          *
          * \return Gradient of function.
          */
-        virtual double Weight(double val) {return 1;}
+        virtual double Weight(double val) {
+            UNUSED(val);
+            return 1;
+        }
 
         //! Build BasisFunction from JSON value. 
         /*!
@@ -211,7 +227,7 @@ namespace SSAGES
             return 1.0/sqrt(1.0-xMod*xMod);
         }
 
-        double GetNorm(int n)
+        double GetNorm(int /* n */)
         {
             return 2.0/M_PI;
         }
@@ -302,7 +318,7 @@ namespace SSAGES
                      (2.0*floor(double(n)*0.5)*M_PI/(boundUp_-boundLow_))*std::cos(2.0*floor(double(n)*0.5)*M_PI*x/(boundUp_-boundLow_));
         }
 
-        double GetNorm(int n)
+        double GetNorm(int /* n */)
         {
             //Assumes the period of the function is the range of the CV
             return 2.0/(boundUp_-boundLow_);

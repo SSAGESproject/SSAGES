@@ -60,7 +60,6 @@ namespace SSAGES
             }
         	
         	auto& Pos = snapshot->GetPositions();
-        	auto& IDs = snapshot->GetAtomIDs();
 
         	for(size_t i = 0; i < prev_IDs_[0].size(); i++)
         	{
@@ -140,7 +139,6 @@ namespace SSAGES
 				force.setZero();
 
 			auto& Pos = snapshot->GetPositions();
-			auto& IDs = snapshot->GetAtomIDs();
 
 			for(size_t i = 0; i < prev_IDs_[0].size(); i++)
 			{

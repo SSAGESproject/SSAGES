@@ -31,7 +31,7 @@ using namespace Json;
 
 namespace SSAGES
 {
-	void Logger::PreSimulation(Snapshot* snapshot, const CVManager& cvmanager)
+	void Logger::PreSimulation(Snapshot* /* snapshot */, const CVManager& cvmanager)
 	{
 		if(comm_.rank() == 0)
 		{
@@ -68,7 +68,7 @@ namespace SSAGES
 		}
 	}
 
-	void Logger::PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager)
+	void Logger::PostSimulation(Snapshot* /* snapshot */, const class CVManager& /* cvmanager */)
 	{
 	}
 

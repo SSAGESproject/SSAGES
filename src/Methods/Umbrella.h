@@ -44,7 +44,7 @@ namespace SSAGES
 		//!@}
 
 		//! Amount of time over which to scale centers.
-		int time_;
+		size_t time_;
 
 		//! Output filename.
 		std::string filename_;
@@ -65,7 +65,7 @@ namespace SSAGES
 		 *
 		 * \return Center of umbrella at current iteration
 		 */
-		double GetCurrentCenter(int iteration, unsigned i)
+		double GetCurrentCenter(size_t iteration, size_t i)
 		{
 			// We are at the end.
 			if(iteration >= time_) return centers1_[i];
@@ -79,7 +79,7 @@ namespace SSAGES
 		 * \param cvs List of CVs.
 		 * \param iteration Current iteration.
 		 */
-		void PrintUmbrella(const CVList& cvs, uint iteration);
+		void PrintUmbrella(const CVList& cvs, size_t iteration);
 
 	public:
 		//! Constructor.
@@ -126,7 +126,7 @@ namespace SSAGES
 				 const std::vector<double>& kspring,
 				 const std::vector<double>& centers0,
 				 const std::vector<double>& centers1,
-				 int timesteps,
+				 size_t timesteps,
 				 std::string name,
 				 unsigned int frequency) : 
 		Method(frequency, world, comm), kspring_(kspring), centers0_(centers0),

@@ -51,9 +51,6 @@ namespace SSAGES
 
 		// Size and initialize Fold_
 		Fold_.setZero(dim_);
-		
-		// Size and initialize Fworld_ and Nworld_		
-		auto nel = 1;
 
 		// Initialize biases.
 		biases_.resize(snapshot->GetPositions().size(), Vector3{0, 0, 0});
@@ -95,7 +92,7 @@ namespace SSAGES
 		std::vector<double> cvVals(dim_);
 
 		// Fill J and CV. Each column represents grad(CV) with flattened Cartesian elements. 
-		for(int i = 0; i < dim_; ++i)
+		for(size_t i = 0; i < dim_; ++i)
 		{
 			auto& grad = cvs[i]->GetGradient();
 			for(size_t j = 0; j < n; ++j)
@@ -134,13 +131,13 @@ namespace SSAGES
 		// If we are in bounds, sum force into running total.
 		if(boundsCheck(cvVals))
 		{
-			for(size_t i=0; i<dim_; ++i)
+			for(size_t i = 0; i < dim_; ++i)
 				F_[i]->at(cvVals) += dwdotpdt[i];
 			N_->at(cvVals)++;				
 		}
 		
 		// Reduce data across processors.
-		for(size_t i=0; i<dim_; ++i)				
+		for(size_t i = 0; i < dim_; ++i)				
 			MPI_Allreduce(F_[i]->data(), Fworld_[i]->data(), (F_[i]->size()), MPI_DOUBLE, MPI_SUM, world_);	
 		MPI_Allreduce(N_->data(), Nworld_->data(), N_->size(), MPI_INT, MPI_SUM, world_);
 
@@ -186,7 +183,7 @@ namespace SSAGES
 		// Compute bias if within bounds.
 		if(boundsCheck(cvVals))
 		{
-			for(int i = 0; i < dim_; ++i)
+			for(size_t i = 0; i < dim_; ++i)
 			{
 				auto& grad = cvs[i]->GetGradient();
 				for(size_t j = 0; j < biases_.size(); ++j)
@@ -196,7 +193,7 @@ namespace SSAGES
 		// Otherwise, apply harmonic restraint if enabled.
 		else
 		{
-			for(int i = 0; i < dim_; ++i)
+			for(size_t i = 0; i < dim_; ++i)
 			{
 				double cvVal = cvs[i]->GetValue();
 				auto k = 0.;
@@ -411,7 +408,7 @@ namespace SSAGES
 					throw BuildException({"If any CV is defined as periodic, please define the full upper and lower bound vectors. They should both have the same number of entries as CV lower bounds, upper bounds... Entries corresponding to non-periodic CVs will not be used."});
 			}
 
-		int dim = binsCV.size();
+		size_t dim = binsCV.size();
 		
 		// Read in JSON info.
 		auto FBackupInterv = json.get("output_frequency", 1000).asInt();
@@ -478,19 +475,19 @@ namespace SSAGES
 		
 		// Appropriately size the grids.
 		
-			N= new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);
-			Nworld= new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);
+			N = new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);
+			Nworld = new Grid<int>(binsCV, minsCV, maxsCV, isperiodic);
 			
 			for(auto& grid : F)
 			{
-				grid= new Grid<double>(binsCV, minsCV, maxsCV, isperiodic);
+				grid = new Grid<double>(binsCV, minsCV, maxsCV, isperiodic);
 			}
 			for(auto& grid : Fworld)
 			{
-				grid= new Grid<double>(binsCV, minsCV, maxsCV, isperiodic);
+				grid = new Grid<double>(binsCV, minsCV, maxsCV, isperiodic);
 			}
 
-			for(size_t i=0; i<dim; ++i)
+			for(size_t i = 0; i < dim; ++i)
 			{
 				temp1 = {minsCV[i], maxsCV[i], double(binsCV[i])};
 				temp2 = {minsrestCV[i], maxsrestCV[i], springkrestCV[i]};
@@ -509,7 +506,7 @@ namespace SSAGES
 		{
 			std::cout << "Attempting to load data from a previous run of ABF." << std::endl;
 			N->LoadFromFile(Nworld_filename);
-			for(size_t i=0; i<dim; ++i)
+			for(size_t i = 0; i < dim; ++i)
 				if(std::ifstream(Fworld_filename+std::to_string(i)))
 					F[i]->LoadFromFile(Fworld_filename+std::to_string(i));
 				else

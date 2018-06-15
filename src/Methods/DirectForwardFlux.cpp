@@ -291,7 +291,7 @@ namespace SSAGES
 		if(world_.rank() == 0)
 		{
 			std::uniform_int_distribution<int> distribution(0,_N[0]-1);
-		  	for (int i=0; i < npicks ; i++)
+		  	for (unsigned int i=0; i < npicks ; i++)
 				picks[i] = distribution(_generator);
 		}
 		MPI_Bcast(picks.data(),npicks,MPI_UNSIGNED,0,world_);

@@ -57,7 +57,7 @@ namespace SSAGES
 		{}
 
 		//! Destructor.
-		virtual ~CollectiveVariable(){}
+		virtual ~CollectiveVariable() {}
 
 		//! Initialize CV.
 		/*!
@@ -181,6 +181,5 @@ namespace SSAGES
 		 * \warning Object lifetime is the caller's responsibility.		 
 		 */
 		static CollectiveVariable* BuildCV(const Json::Value& json, const std::string& path);
-
 	};
 }
