@@ -246,7 +246,7 @@ public:
                          "than the grid dimensionality!\n";
             return 0.0;
         }
-        if(GetPeriodic(dim)){return edges_.first[dim] - ((edges_.first[dim] - edges_.second[dim]) / (numPoints_[dim]-1))/2;}
+        if(GetPeriodic(dim)){return edges_.first[dim] - ((edges_.first[dim] - edges_.second[dim]) / (numPoints_[dim]))/2;}
 		else{return edges_.first[dim];}
     }
 
