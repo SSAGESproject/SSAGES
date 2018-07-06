@@ -20,7 +20,7 @@ def main():
 	parser.add_argument('-i','--input',default='F_out',help='name of the file containing the force')
 	parser.add_argument('-o','--output',default='G',help='file containing the free energy surface')
 	parser.add_argument('-p','--periodicity',nargs='*',default=[False,False,False],help='periodicity of the CVs (True is periodic, False is not)')
-	parser.add_argument('-n','--npoints',type=int,default=200,help='number of points for the interpolation')
+	parser.add_argument('-n','--npoints',nargs='*',default=[200,200,200],help='number of points for the interpolation')
 	parser.add_argument('-s','--scale',type=float,default=1,help='scale for the interpolation')
 
 	args=parser.parse_args()
@@ -76,9 +76,9 @@ def main():
 			b = vfield[:,1]
 			
 		else:
-			A=np.zeros((interpolate,interpolate))
-			dx = (vfield[-1,0]-vfield[0,0])/interpolate
-			X = np.linspace(vfield[0,0],vfield[-1,0],interpolate)
+			A=np.zeros((interpolate[0],interpolate[0]))
+			dx = (vfield[-1,0]-vfield[0,0])/interpolate[0]
+			X = np.linspace(vfield[0,0],vfield[-1,0],interpolate[0])
 			b = np.interp(X,vfield[:,0],vfield[:,1])
 			
 		for i in range (1,A.shape[0]-1):
@@ -136,30 +136,32 @@ def main():
 
 		if interpolate != 0:
 
-			grid_x, grid_y = np.mgrid[boundx[0]:boundx[1]:interpolate*1j,boundy[0]:boundy[1]:interpolate*1j]
+			grid_x, grid_y = np.mgrid[boundx[0]:boundx[1]:interpolate[0]*1j,boundy[0]:boundy[1]:interpolate[1]*1j]
 		
-			dx = (boundx[1]-boundx[0])/interpolate
-			dy = (boundy[1]-boundy[0])/interpolate
+			dx = (boundx[1]-boundx[0])/interpolate[0]
+			dy = (boundy[1]-boundy[0])/interpolate[1]
 	
-			nx = interpolate
-			ny = interpolate
+			nx = interpolate[0]
+			ny = interpolate[1]
 
+			fx=interp.griddata(vfield[:,0:2], vfield[:,2],(grid_x,grid_y), method='cubic')
+			fy=interp.griddata(vfield[:,0:2], vfield[:,3],(grid_x,grid_y), method='cubic')
 
-			#Caution, grid_y and grid_x are flipped here.
-			fx=interp.griddata(vfield[:,0:2], vfield[:,2],(grid_y,grid_x), method='cubic')
-			fy=interp.griddata(vfield[:,0:2], vfield[:,3],(grid_y,grid_x), method='cubic')
-
+			fx=fx.T
+			fy=fy.T
+	
 		else:			
-		
-			fx = vfield[:,2]
-			fy = vfield[:,3]		
+
+			fy = vfield[:,3]
+			fx = vfield[:,2]		
 
 			dx = vfield[1,0] - vfield[0,0]
 			dy = vfield[nx,1] - vfield[0,1]
 
 			grid_x = vfield[:,0].reshape((nx,ny),order='F')
-			grid_y = vfield[:,1].reshape((nx,ny),order='F')
-		
+			grid_y = vfield[:,1].reshape((nx,ny),order='F')		
+			
+
 		fhat = intgrad2(fx,fy,nx,ny,dx,dy,1,periodic[0],periodic[1])
 		fhat = fhat*scale
 
@@ -217,9 +219,9 @@ def main():
 
 		if interpolate != 0:
 
-			grid_x, grid_y, grid_z = np.mgrid[0:nx:interpolate*1j,0:ny:interpolate*1j,0:nz:interpolate*1j]
+			grid_x, grid_y, grid_z = np.mgrid[0:nx:interpolate[0]*1j,0:ny:interpolate[1]*1j,0:nz:interpolate[2]*1j]
 
-			X, Y, Z = np.mgrid[boundx[0]:boundx[1]:interpolate*1j,boundy[0]:boundy[1]:interpolate*1j,boundz[0]:boundz[1]:interpolate*1j]
+			X, Y, Z = np.mgrid[boundx[0]:boundx[1]:interpolate[0]*1j,boundy[0]:boundy[1]:interpolate[1]*1j,boundz[0]:boundz[1]:interpolate[2]*1j]
 
 			dx = X[1,0,0]-X[0,0,0]
 			dy = Y[0,1,0]-Y[0,0,0]
@@ -233,9 +235,9 @@ def main():
 			datay = vfield[:,4].reshape((nx,ny,nz))
 			dataz = vfield[:,5].reshape((nx,ny,nz))
 	
-			nx = interpolate
-			ny = interpolate
-			nz = interpolate
+			nx = interpolate[0]
+			ny = interpolate[1]
+			nz = interpolate[2]
 		
 			fx= interp2.map_coordinates(datax,np.vstack((np.ravel(grid_x),np.ravel(grid_y),np.ravel(grid_z))),order=3,mode='nearest')
 			fy= interp2.map_coordinates(datay,np.vstack((np.ravel(grid_x),np.ravel(grid_y),np.ravel(grid_z))),order=3,mode='nearest')
