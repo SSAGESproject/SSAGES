@@ -53,9 +53,6 @@ namespace SSAGES
 		/*!
 		 * \param atomids Vector of atom ID's.
 		 * \param position Point in (1,2,3)D space for the distance calculation.
-		 * \param dimx If \c True, include x dimension.
-		 * \param dimy If \c True, include y dimension.
-		 * \param dimz If \c True, include z dimension.
 		 *
 		 * Construct a particle position CV.
 		 *
