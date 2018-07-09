@@ -46,26 +46,40 @@ namespace SSAGES
 		Vector3 point_;
 
 		//! Each dimension determines if a constraint is applied by the CV.
-		Bool3 fix_; 
+		Bool3 dim_;
 	
 	public:
 		//! Constructor
 		/*!
 		 * \param atomids Vector of atom ID's.
 		 * \param position Point in (1,2,3)D space for the distance calculation.
-		 * \param fixx If \c False, constrain x dimension.
-		 * \param fixy If \c False, constrain y dimension.
-		 * \param fixz If \c False, constrain z dimension.
+		 * \param dimx If \c True, include x dimension.
+		 * \param dimy If \c True, include y dimension.
+		 * \param dimz If \c True, include z dimension.
 		 *
-		 * Construct a particle position CV. If a dimension is constrained, this
-		 * dimension does not contribute to the distance calculation. For
-		 * example, if the y- and z-dimension are constrained, the CV calculates
-		 * only the distance in x-direction.
+		 * Construct a particle position CV.
 		 *
 		 * \todo Bounds needs to be an input.
 		 */
-		ParticlePositionCV(const Label& atomids, const Vector3& position, bool fixx, bool fixy, bool fixz) : 
-		atomids_(atomids), point_(position), fix_{fixx, fixy, fixz}
+		ParticlePositionCV(const Label& atomids, const Vector3& position) :
+		atomids_(atomids), point_(position), dim_{true, true, true}
+		{
+		}
+
+		//! Constructor
+		/*!
+		 * \param atomids Vector of atom ID's.
+		 * \param position Point in (1,2,3)D space for the distance calculation.
+		 * \param dimx If \c True, include x dimension.
+		 * \param dimy If \c True, include y dimension.
+		 * \param dimz If \c True, include z dimension.
+		 *
+		 * Construct a particle position CV.
+		 *
+		 * \todo Bounds needs to be an input.
+		 */
+		ParticlePositionCV(const Label& atomids, const Vector3& position, bool dimx, bool dimy, bool dimz) :
+		atomids_(atomids), point_(position), dim_{dimx, dimy, dimz}
 		{
 		}
 
@@ -122,7 +136,7 @@ namespace SSAGES
 
 			// Compute difference between point and account for requested 
 			// dimensions only.
-			Vector3 dx = snapshot.ApplyMinimumImage(com - point_).cwiseProduct(fix_.cast<double>());
+			Vector3 dx = snapshot.ApplyMinimumImage(com - point_).cwiseProduct(dim_.cast<double>());
 			val_ = dx.norm();
 
 			// If distance is zero, we have nothing to do.
@@ -160,11 +174,11 @@ namespace SSAGES
 			position[1] = json["position"][1].asDouble();
 			position[2] = json["position"][2].asDouble();
 
-			auto fixx = json["fix"][0].asBool();
-			auto fixy = json["fix"][1].asBool();
-			auto fixz = json["fix"][2].asBool();
+			auto dimx = json["dimension"][0].asBool();
+			auto dimy = json["dimension"][1].asBool();
+			auto dimz = json["dimension"][2].asBool();
 
-			return new ParticlePositionCV(atomids, position, fixx, fixy, fixz);
+			return new ParticlePositionCV(atomids, position, dimx, dimy, dimz);
 		}
 	};
 }

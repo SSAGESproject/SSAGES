@@ -42,6 +42,6 @@
 			"type" : "string"
 		}
 	},
-	"required": ["type", "group1", "group2"],
-	"additionalProperties": false
+	"required" : ["type", "group1", "group2"],
+	"additionalProperties" : false
 }

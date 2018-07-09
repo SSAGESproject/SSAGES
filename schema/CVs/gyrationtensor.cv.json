@@ -33,6 +33,14 @@
 			"items" : {
 				"type" : "number"
 					}
+		},
+		"dimension" : {
+			"type" : "array",
+			"minItems" : 3,
+			"maxItems" : 3,
+			"items" : {
+				"type" : "boolean"
+			}
 		}, 
 		"name" : {
 			"type" : "string"
