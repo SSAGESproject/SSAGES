@@ -52,6 +52,50 @@ TEST_F(GridTest, ReadWriteGrid)
 
 }
 
+
+TEST_F(GridTest, GridBounds)
+{
+	// Fill grid with random numbers.
+	std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(-1000., 1000.);
+
+	auto* data1 = grid->data(); 
+	auto size = grid->size();
+	for(size_t i = 0; i < size; ++i)
+		data1[i] = dis(gen);
+
+	// Test GetLower, GetUpper with periodic and non-periodic bounds.
+	EXPECT_NEAR(grid->GetLower(0),-1.5, 1e-8);	
+	EXPECT_NEAR(grid->GetLower(1),-2.0, 1e-8);
+
+	EXPECT_NEAR(grid->GetUpper(0),10.0, 1e-8);	
+	EXPECT_NEAR(grid->GetUpper(1),6.7, 1e-8);
+
+	// Test GetLower, GetUpper with periodic and non-periodic bounds with vector output.
+	std::vector<double> lower = {-1.5,-2.0};
+	std::vector<double> upper = {10.0,6.7};
+
+	for(size_t i = 0; i < lower.size(); ++i)
+	{
+		EXPECT_NEAR(grid->GetLower()[i],lower[i], 1e-8);
+		EXPECT_NEAR(grid->GetUpper()[i],upper[i], 1e-8);
+	} 
+
+}
+
+TEST_F(GridTest, GridCenters)
+{
+	//To Do.
+}
+
+TEST_F(GridTest, GridNumberOfBins)
+{
+	//To Do.
+}
+
+
+
 /*TEST_F(GridTest, Interpolation)
 {
 	// Fill grid with random numbers.

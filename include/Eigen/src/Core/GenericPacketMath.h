@@ -524,10 +524,10 @@ inline void palign(PacketType& first, const PacketType& second)
 #ifndef __CUDACC__
 
 template<> inline std::complex<float> pmul(const std::complex<float>& a, const std::complex<float>& b)
-{ return std::complex<float>(real(a)*real(b) - imag(a)*imag(b), imag(a)*real(b) + real(a)*imag(b)); }
+{ return std::complex<float>(numext::real(a)*numext::real(b) - numext::imag(a)*numext::imag(b), numext::imag(a)*numext::real(b) + numext::real(a)*numext::imag(b)); }
 
 template<> inline std::complex<double> pmul(const std::complex<double>& a, const std::complex<double>& b)
-{ return std::complex<double>(real(a)*real(b) - imag(a)*imag(b), imag(a)*real(b) + real(a)*imag(b)); }
+{ return std::complex<double>(numext::real(a)*numext::real(b) - numext::imag(a)*numext::imag(b), numext::imag(a)*numext::real(b) + numext::real(a)*numext::imag(b)); }
 
 #endif
 
