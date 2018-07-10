@@ -100,11 +100,6 @@ TEST_F(GridTest, GridCenters)
 	
 }
 
-TEST_F(GridTest, GridNumberOfBins)
-{
-	//To Do.
-}
-
 TEST_F(GridTest, SyncGrid)
 {
 	grid->at({-1.49,-1.9}) = 1.0;

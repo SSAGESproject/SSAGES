@@ -20,8 +20,9 @@ def main():
 	parser.add_argument('-i','--input',default='F_out',help='name of the file containing the force')
 	parser.add_argument('-o','--output',default='G',help='file containing the free energy surface')
 	parser.add_argument('-p','--periodicity',nargs='*',default=[False,False,False],help='periodicity of the CVs (True is periodic, False is not)')
-	parser.add_argument('-n','--npoints',nargs='*',default=[200,200,200],help='number of points for the interpolation')
+	parser.add_argument('-n','--npoints',nargs='*',type=int,default=[200,200,200],help='number of points for the interpolation')
 	parser.add_argument('-s','--scale',type=float,default=1,help='scale for the interpolation')
+	parser.add_argument('-c','--contours',type=int,default=10,help='number of contours on final plot')
 
 	args=parser.parse_args()
 
@@ -30,8 +31,12 @@ def main():
 	periodic=args.periodicity
 	interpolate=args.npoints
 	scale=args.scale
+	ncontours=args.contours
 
+	if interpolate == [0]:
+		interpolate = 0
 
+	periodic = [False if x == 'False' else x for x in periodic]	
 
 	if not (os.path.isfile(inputfile)):
 		print('Input file is missing. Aborting! Please use -h to ask for help!')
@@ -43,7 +48,8 @@ def main():
 		print('CV2 periodicity is set to (if it exists) \n',periodic[1],' \n')
 	if(len(periodic)>2):
 		print('CV3 periodicity is set to (if it exists) \n',periodic[2],' \n')
-	print('Free energy will be interpolate with \n',interpolate,'\n points')
+	print('Free energy will be interpolated with \n',interpolate,'\n points \n')
+	print('Free energy will be plotted with \n',ncontours,'\n contours')
 	f = open(outputname+'_integrated.txt','w')	
 
 	vfield = []
@@ -189,13 +195,13 @@ def main():
 		plot4.savefig(outputname+'_contourmap.png')
 		
 		plot5 = plt.figure()
-		c_black=np.linspace(0,100,11)
-		g_black=c_black+5
+		black_contours=np.linspace(0,np.amax(-fhat-np.amin(-fhat)),ncontours+1)
+		gray_contours=black_contours+np.amax(-fhat-np.amin(-fhat))/(2*(ncontours+1))
 		plt.pcolormesh(X,Y,-fhat-np.amin(-fhat))
 		plt.colorbar(label='kJ/mol')
 		plt.axis([min(vfield[:,0]),max(vfield[:,0]),min(vfield[:,1]),max(vfield[:,1])])
-		plt.contour(X,Y,(-fhat-np.amin(-fhat)),c_black,colors='black',linewidths=0.75)
-		plt.contour(X,Y,(-fhat-np.amin(-fhat)),g_black,colors='grey',linewidths=0.75)
+		plt.contour(X,Y,(-fhat-np.amin(-fhat)),black_contours,colors='black',linewidths=0.75)
+		plt.contour(X,Y,(-fhat-np.amin(-fhat)),gray_contours,colors='grey',linewidths=0.75)
 		plt.tight_layout()
 		plot5.savefig(outputname+'_merged.png')
 
