@@ -28,8 +28,8 @@ An excellent write-up on the method can be found
 Details on the specific implementation used in SSAGES can be found
 `here <http://mc.stanford.edu/cgi-bin/images/0/06/Darve_2008.pdf>`__.
 
-An integrator for 1D and 2D surfaces are provided in SSAGES/Tools/ABF_integrator (requires numpy, scipy and matplotlib).
-ABF_integrator.py -i <inputfile> -o <outputname> --periodic1 <True/False> --periodic2 <True/False> --interpolate <integer> --scale <float>
+An integrator for 1D, 2D and 3D surfaces are provided in SSAGES/Tools/ABF_integrator (requires numpy, scipy and matplotlib).
+ABF_integrator.py -i <inputfile> -o <outputname> -p <bool> (<bool> <bool>) --interpolate <integer> (<integer> <integer>) --scale <float>
 
 
 Options & Parameters
@@ -42,10 +42,9 @@ Adaptive Biasing Force Method
 * Define a CV range. Outside of the CV range, there will be no bias, and no
   histogram hits will be collected.
 * Can restart from a previous run. Simply include Fworld_cvX and Nworld outputs
-  in your working directory at runtime. IMPORTANT! If you want to start a clean run,
-  or if you've made changes to the grid, these files must NOT BE PRESENT in the working
-  directory, otherwise SSAGES will give you a warning, or worse, you will merge your 
-  histogram into another one on accident.
+  in your working directory at runtime, and set 'restart' to true.
+* Multiple walkers will read from and write to the same histogram during runtime,
+  and this histogram will be saved the same way a single walker histogram is saved.
 * Can optionally define a restraint range. Outside this range, a harmonic
   restraint of user-chosen spring constant(s) will drive the CV(s) back into the
   range. This range should be WIDER than the CV range by at least one bin size
@@ -146,6 +145,11 @@ Nworld_output_file
 output_frequency
     *integer*.
     Saves the histogram of generalized force every this many timesteps.
+
+restart
+	*boolean*
+	Default = false
+	If set to true, ABF will attempt to load a previous state from Nworld and Fworld files.
 
 unit_conversion
     *double*.
