@@ -14,6 +14,7 @@ protected:
 	virtual void SetUp()
 	{
     	cv = new GyrationTensorCV({1,2,3}, Rg);
+		cv_xy = new GyrationTensorCV({1,2,3}, Rg, true, true, false);
 
     	// Set up snapshot No. 1
         snapshot1 = new Snapshot(comm, 0);
@@ -53,11 +54,13 @@ protected:
 
 	virtual void TearDown() 
 	{
-		delete cv; 
+		delete cv;
+		delete cv_xy;
 		delete snapshot1;
 	}
 
-	GyrationTensorCV* cv; 
+	GyrationTensorCV* cv;
+	GyrationTensorCV* cv_xy;
 	mxx::comm comm;
 	Snapshot* snapshot1;
 };
@@ -78,6 +81,21 @@ TEST_F(GyrationTensorCVTests, CompareRg)
     EXPECT_NEAR(cv->GetGradient()[2][0], 0.2222222222, eps);
     EXPECT_NEAR(cv->GetGradient()[2][1], 0.2222222222, eps);
     EXPECT_NEAR(cv->GetGradient()[2][2], 0.2222222222, eps);
+
+	cv_xy->Initialize(*snapshot1);
+	cv_xy->Evaluate(*snapshot1);
+	EXPECT_NEAR(cv_xy->GetValue(), 0.3333333333, eps);
+    EXPECT_NEAR(cv_xy->GetGradient()[0][0], -0.2222222222, eps);
+    EXPECT_NEAR(cv_xy->GetGradient()[0][1], -0.2222222222, eps);
+    EXPECT_NEAR(cv_xy->GetGradient()[0][2], 0., eps);
+
+    EXPECT_NEAR(cv_xy->GetGradient()[1][0], 0., eps);
+    EXPECT_NEAR(cv_xy->GetGradient()[1][1], 0., eps);
+    EXPECT_NEAR(cv_xy->GetGradient()[1][2], 0., eps);
+
+    EXPECT_NEAR(cv_xy->GetGradient()[2][0], 0.2222222222, eps);
+    EXPECT_NEAR(cv_xy->GetGradient()[2][1], 0.2222222222, eps);
+    EXPECT_NEAR(cv_xy->GetGradient()[2][2], 0., eps);
 }
 
 int main(int argc, char *argv[])
