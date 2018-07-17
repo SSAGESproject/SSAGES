@@ -512,38 +512,30 @@ namespace SSAGES
 		{
 		
 			std::cout << "Attempting to load data from a previous run of ABF..." << std::endl;
-			if(std::ifstream(Nworld_filename))
+			N->LoadFromFile(Nworld_filename);
+			for(size_t i = 0; i < dim; ++i)
 			{
-			
-				N->LoadFromFile(Nworld_filename);
-				for(size_t i = 0; i < dim; ++i)
-				{
-					if(std::ifstream(Fworld_filename+std::to_string(i)))
-						F[i]->LoadFromFile(Fworld_filename+std::to_string(i));
-					else
-						throw BuildException({"Restart requested, but some Fworld files are missing."});
-				}
+				F[i]->LoadFromFile(Fworld_filename+std::to_string(i));
 			}
-			else
-				throw BuildException({"Restart requested, but no Nworld found."});
+
 		}
 		else if (wrank == 0)
 		{
-			if(std::ifstream(Nworld_filename))
+			std::ifstream  Nworldbackupsource(Nworld_filename, std::ios::binary);
+			if(Nworldbackupsource)
 			{
 				std::cout << "Backing up previous copy of Nworld." << std::endl;
-				std::ifstream  Nworldbackupsource(Nworld_filename, std::ios::binary);
-    			std::ofstream  Nworldbackuptarget(Nworld_filename+"_backup", std::ios::binary);
+    				std::ofstream  Nworldbackuptarget(Nworld_filename+"_backup", std::ios::binary);
 				Nworldbackuptarget << Nworldbackupsource.rdbuf();
 			}
 			for(size_t i = 0; i < dim; ++i)
 			{
-				if(std::ifstream(Fworld_filename+std::to_string(i)))
+				std::ifstream  Fworldbackupsource(Fworld_filename+std::to_string(i), std::ios::binary);
+				if(Fworldbackupsource)
 				{
 					std::cout << "Backing up previous copy of Fworld"+std::to_string(i)+"." << std::endl;
-					std::ifstream  Fworldbackupsource(Fworld_filename+std::to_string(i), std::ios::binary);
-    				std::ofstream  Fworldbackuptarget(Fworld_filename+std::to_string(i)+"_backup", std::ios::binary);
-    				Fworldbackuptarget << Fworldbackupsource.rdbuf();
+					std::ofstream  Fworldbackuptarget(Fworld_filename+std::to_string(i)+"_backup", std::ios::binary);
+    					Fworldbackuptarget << Fworldbackupsource.rdbuf();
 				}
 			}
 		}

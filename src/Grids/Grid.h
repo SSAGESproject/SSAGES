@@ -629,6 +629,9 @@ public:
     void LoadFromFile(const std::string& filename)
     {
         std::ifstream file(filename);
+	if (!file)
+		throw BuildException ({"Attempt to load grid " + filename + " unsuccessful."});
+
         std::string line, buff; 
 
         // Skip type for now. 
