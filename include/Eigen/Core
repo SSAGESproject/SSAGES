@@ -286,6 +286,8 @@
 /** \brief Namespace containing all symbols from the %Eigen library. */
 namespace Eigen {
 
+using std::real;
+
 inline static const char *SimdInstructionSetsInUse(void) {
 #if defined(EIGEN_VECTORIZE_AVX512)
   return "AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
