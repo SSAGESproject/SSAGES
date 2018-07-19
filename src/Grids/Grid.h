@@ -654,13 +654,8 @@ public:
             auto counts = GridBase<T>::numPoints_;
             iss >> buff >> buff;
             for(int i = 0; iss >> count; ++i)
-            {
-				int period = 0;
-				if(GridBase<T>::isPeriodic_[i])
-				{
-					period++;
-				}				
-                if((count+period) != counts[i])
+            {				
+                if((count) != counts[i])
                     throw std::invalid_argument(filename + 
                     ": Expected count " + std::to_string(counts[i]) + 
                     " on dimension " + std::to_string(i) + " but got " + 
@@ -680,7 +675,7 @@ public:
 				double spacing = 0;
 				if(GridBase<T>::isPeriodic_[i])
 				{
-					spacing = (GridBase<T>::edges_.second[i] - GridBase<T>::edges_.first[i]) / GridBase<T>::numPoints_[i];
+					spacing = (GridBase<T>::edges_.second[i] - GridBase<T>::edges_.first[i]) / (GridBase<T>::numPoints_[i]);
 				}				
                 if(std::abs(lower-spacing/2 - lowers[i]) > 1e-8)
                     throw std::invalid_argument(filename + 
@@ -702,7 +697,7 @@ public:
 				double spacing = 0;
 				if(GridBase<T>::isPeriodic_[i])
 				{
-					spacing = (GridBase<T>::edges_.second[i] - GridBase<T>::edges_.first[i]) / GridBase<T>::numPoints_[i];
+					spacing = (GridBase<T>::edges_.second[i] - GridBase<T>::edges_.first[i]) / (GridBase<T>::numPoints_[i]);
 				}
                 if(std::abs((upper+spacing/2) - uppers[i]) > 1e-8)
                     throw std::invalid_argument(filename + 

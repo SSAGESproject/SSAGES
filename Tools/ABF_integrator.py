@@ -20,8 +20,9 @@ def main():
 	parser.add_argument('-i','--input',default='F_out',help='name of the file containing the force')
 	parser.add_argument('-o','--output',default='G',help='file containing the free energy surface')
 	parser.add_argument('-p','--periodicity',nargs='*',default=[False,False,False],help='periodicity of the CVs (True is periodic, False is not)')
-	parser.add_argument('-n','--npoints',type=int,default=200,help='number of points for the interpolation')
+	parser.add_argument('-n','--npoints',nargs='*',type=int,default=[200,200,200],help='number of points for the interpolation')
 	parser.add_argument('-s','--scale',type=float,default=1,help='scale for the interpolation')
+	parser.add_argument('-c','--contours',type=int,default=10,help='number of contours on final plot')
 
 	args=parser.parse_args()
 
@@ -30,8 +31,12 @@ def main():
 	periodic=args.periodicity
 	interpolate=args.npoints
 	scale=args.scale
+	ncontours=args.contours
 
+	if interpolate == [0]:
+		interpolate = 0
 
+	periodic = [False if x == 'False' else x for x in periodic]	
 
 	if not (os.path.isfile(inputfile)):
 		print('Input file is missing. Aborting! Please use -h to ask for help!')
@@ -43,7 +48,8 @@ def main():
 		print('CV2 periodicity is set to (if it exists) \n',periodic[1],' \n')
 	if(len(periodic)>2):
 		print('CV3 periodicity is set to (if it exists) \n',periodic[2],' \n')
-	print('Free energy will be interpolate with \n',interpolate,'\n points')
+	print('Free energy will be interpolated with \n',interpolate,'\n points \n')
+	print('Free energy will be plotted with \n',ncontours,'\n contours')
 	f = open(outputname+'_integrated.txt','w')	
 
 	vfield = []
@@ -76,9 +82,9 @@ def main():
 			b = vfield[:,1]
 			
 		else:
-			A=np.zeros((interpolate,interpolate))
-			dx = (vfield[-1,0]-vfield[0,0])/interpolate
-			X = np.linspace(vfield[0,0],vfield[-1,0],interpolate)
+			A=np.zeros((interpolate[0],interpolate[0]))
+			dx = (vfield[-1,0]-vfield[0,0])/interpolate[0]
+			X = np.linspace(vfield[0,0],vfield[-1,0],interpolate[0])
 			b = np.interp(X,vfield[:,0],vfield[:,1])
 			
 		for i in range (1,A.shape[0]-1):
@@ -136,30 +142,32 @@ def main():
 
 		if interpolate != 0:
 
-			grid_x, grid_y = np.mgrid[boundx[0]:boundx[1]:interpolate*1j,boundy[0]:boundy[1]:interpolate*1j]
+			grid_x, grid_y = np.mgrid[boundx[0]:boundx[1]:interpolate[0]*1j,boundy[0]:boundy[1]:interpolate[1]*1j]
 		
-			dx = (boundx[1]-boundx[0])/interpolate
-			dy = (boundy[1]-boundy[0])/interpolate
+			dx = (boundx[1]-boundx[0])/interpolate[0]
+			dy = (boundy[1]-boundy[0])/interpolate[1]
 	
-			nx = interpolate
-			ny = interpolate
+			nx = interpolate[0]
+			ny = interpolate[1]
 
+			fx=interp.griddata(vfield[:,0:2], vfield[:,2],(grid_x,grid_y), method='cubic')
+			fy=interp.griddata(vfield[:,0:2], vfield[:,3],(grid_x,grid_y), method='cubic')
 
-			#Caution, grid_y and grid_x are flipped here.
-			fx=interp.griddata(vfield[:,0:2], vfield[:,2],(grid_y,grid_x), method='cubic')
-			fy=interp.griddata(vfield[:,0:2], vfield[:,3],(grid_y,grid_x), method='cubic')
-
+			fx=fx.T
+			fy=fy.T
+	
 		else:			
-		
-			fx = vfield[:,2]
-			fy = vfield[:,3]		
+
+			fy = vfield[:,3]
+			fx = vfield[:,2]		
 
 			dx = vfield[1,0] - vfield[0,0]
 			dy = vfield[nx,1] - vfield[0,1]
 
 			grid_x = vfield[:,0].reshape((nx,ny),order='F')
-			grid_y = vfield[:,1].reshape((nx,ny),order='F')
-		
+			grid_y = vfield[:,1].reshape((nx,ny),order='F')		
+			
+
 		fhat = intgrad2(fx,fy,nx,ny,dx,dy,1,periodic[0],periodic[1])
 		fhat = fhat*scale
 
@@ -187,13 +195,13 @@ def main():
 		plot4.savefig(outputname+'_contourmap.png')
 		
 		plot5 = plt.figure()
-		c_black=np.linspace(0,100,11)
-		g_black=c_black+5
+		black_contours=np.linspace(0,np.amax(-fhat-np.amin(-fhat)),ncontours+1)
+		gray_contours=black_contours+np.amax(-fhat-np.amin(-fhat))/(2*(ncontours+1))
 		plt.pcolormesh(X,Y,-fhat-np.amin(-fhat))
 		plt.colorbar(label='kJ/mol')
 		plt.axis([min(vfield[:,0]),max(vfield[:,0]),min(vfield[:,1]),max(vfield[:,1])])
-		plt.contour(X,Y,(-fhat-np.amin(-fhat)),c_black,colors='black',linewidths=0.75)
-		plt.contour(X,Y,(-fhat-np.amin(-fhat)),g_black,colors='grey',linewidths=0.75)
+		plt.contour(X,Y,(-fhat-np.amin(-fhat)),black_contours,colors='black',linewidths=0.75)
+		plt.contour(X,Y,(-fhat-np.amin(-fhat)),gray_contours,colors='grey',linewidths=0.75)
 		plt.tight_layout()
 		plot5.savefig(outputname+'_merged.png')
 
@@ -217,9 +225,9 @@ def main():
 
 		if interpolate != 0:
 
-			grid_x, grid_y, grid_z = np.mgrid[0:nx:interpolate*1j,0:ny:interpolate*1j,0:nz:interpolate*1j]
+			grid_x, grid_y, grid_z = np.mgrid[0:nx:interpolate[0]*1j,0:ny:interpolate[1]*1j,0:nz:interpolate[2]*1j]
 
-			X, Y, Z = np.mgrid[boundx[0]:boundx[1]:interpolate*1j,boundy[0]:boundy[1]:interpolate*1j,boundz[0]:boundz[1]:interpolate*1j]
+			X, Y, Z = np.mgrid[boundx[0]:boundx[1]:interpolate[0]*1j,boundy[0]:boundy[1]:interpolate[1]*1j,boundz[0]:boundz[1]:interpolate[2]*1j]
 
 			dx = X[1,0,0]-X[0,0,0]
 			dy = Y[0,1,0]-Y[0,0,0]
@@ -233,9 +241,9 @@ def main():
 			datay = vfield[:,4].reshape((nx,ny,nz))
 			dataz = vfield[:,5].reshape((nx,ny,nz))
 	
-			nx = interpolate
-			ny = interpolate
-			nz = interpolate
+			nx = interpolate[0]
+			ny = interpolate[1]
+			nz = interpolate[2]
 		
 			fx= interp2.map_coordinates(datax,np.vstack((np.ravel(grid_x),np.ravel(grid_y),np.ravel(grid_z))),order=3,mode='nearest')
 			fy= interp2.map_coordinates(datay,np.vstack((np.ravel(grid_x),np.ravel(grid_y),np.ravel(grid_z))),order=3,mode='nearest')
