@@ -43,6 +43,9 @@ Adaptive Biasing Force Method
   histogram hits will be collected.
 * Can restart from a previous run. Simply include Fworld_cvX and Nworld outputs
   in your working directory at runtime, and set 'restart' to true.
+* ABF will keep a single backup of old files, and will overwrite older backups with new
+  if they already exist. If restarting, a backup will not be created, instead
+  ABF will read from and update the newest files.
 * Multiple walkers will read from and write to the same histogram during runtime,
   and this histogram will be saved the same way a single walker histogram is saved.
 * Can optionally define a restraint range. Outside this range, a harmonic
