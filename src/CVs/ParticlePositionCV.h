@@ -181,7 +181,7 @@ namespace SSAGES
 				c = new ParticlePositionCV(atomids, position, dimx, dimy, dimz);
 			}
 			else
-				c = new ParticlePositionCV(atomids, position, dimx, dimy, dimz);
+				c = new ParticlePositionCV(atomids, position);
 
 			return c;
 		}
