@@ -181,7 +181,7 @@ namespace SSAGES
 			switch(component_)
 			{
 				case Rg:
-					val_ = l1 + l2 + l3;
+					val_ = sum;
 					break;
 				case principal1:
 					val_ = l1;
