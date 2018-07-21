@@ -42,6 +42,6 @@
 			"type" : "string"
 		}
 	},
-	"required" : ["type", "atom_ids", "position", "fix"],
+	"required" : ["type", "atom_ids", "position"],
 	"additionalProperties" : false
 }

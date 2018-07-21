@@ -171,11 +171,19 @@ namespace SSAGES
 			position[1] = json["position"][1].asDouble();
 			position[2] = json["position"][2].asDouble();
 
-			auto dimx = json["dimension"][0].asBool();
-			auto dimy = json["dimension"][1].asBool();
-			auto dimz = json["dimension"][2].asBool();
+			ParticlePositionCV* c;
 
-			return new ParticlePositionCV(atomids, position, dimx, dimy, dimz);
+			if(json.isMember("dimension"))
+			{
+				auto dimx = json["dimension"][0].asBool();
+				auto dimy = json["dimension"][1].asBool();
+				auto dimz = json["dimension"][2].asBool();
+				c = new ParticlePositionCV(atomids, position, dimx, dimy, dimz);
+			}
+			else
+				c = new ParticlePositionCV(atomids, position, dimx, dimy, dimz);
+
+			return c;
 		}
 	};
 }
