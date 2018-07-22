@@ -30,7 +30,7 @@ namespace SSAGES
 	 * \ingroup Methods
 	 *
 	 * Implementation of the Artificial Neural Network Method based on
-	 * \cite SIDKY2017ARXIV
+	 * \cite SIDKY2018104111
 	 */
 	class ANN : public Method
 	{
