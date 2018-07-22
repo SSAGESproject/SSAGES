@@ -59,7 +59,10 @@ namespace SSAGES
 		Label atomids_; //!< IDs of the atoms used for calculation
 		GyrationTensor component_; //!< Component of gyration tensor to compute.
 
-	public: 
+		//! Each dimension determines if it is applied by the CV.
+		Bool3 dim_;
+
+	public:
 		//! Constructor.
 		/*!
 		 * \param atomids IDs of the atoms defining gyration tensor.
@@ -69,7 +72,23 @@ namespace SSAGES
 		 *
 		 */
 		GyrationTensorCV(const Label& atomids, GyrationTensor component) :
-		atomids_(atomids), component_(component)
+		atomids_(atomids), component_(component), dim_{true, true, true}
+		{
+		}
+
+		//! Constructor.
+		/*!
+		 * \param atomids IDs of the atoms defining gyration tensor.
+		 * \param component Specification of component to compute.
+		 * \param dimx If \c True, include x dimension.
+		 * \param dimy If \c True, include y dimension.
+		 * \param dimz If \c True, include z dimension.
+		 *
+		 * Construct a GyrationTensorCV.
+		 *
+		 */
+		GyrationTensorCV(const Label& atomids, GyrationTensor component, bool dimx, bool dimy, bool dimz) :
+		atomids_(atomids), component_(component), dim_{dimx, dimy, dimz}
 		{
 		}
 
@@ -133,7 +152,7 @@ namespace SSAGES
 			ris.reserve(idx.size());
 			for(auto& i : idx)
 			{
-				ris.emplace_back(snapshot.ApplyMinimumImage(pos[i] - com));
+				ris.emplace_back(snapshot.ApplyMinimumImage(pos[i] - com).cwiseProduct(dim_.cast<double>()));
 				S.noalias() += masses[i]*ris.back()*ris.back().transpose();
 			}
 
@@ -156,9 +175,36 @@ namespace SSAGES
 			            n2 = eigvecs.col(1), 
 			            n3 = eigvecs.col(0);
 
+			val_ = 0;
+			auto sum = l1 + l2 + l3;
+			auto sqsum = l1*l1 + l2*l2 + l3*l3;
+			switch(component_)
+			{
+				case Rg:
+					val_ = sum;
+					break;
+				case principal1:
+					val_ = l1;
+					break;
+				case principal2:
+					val_ = l2;
+					break;
+				case principal3:
+					val_ = l3;
+					break;
+				case asphericity:
+					val_ = l1 - 0.5*(l2 + l3);
+					break;
+				case acylindricity:
+					val_ = l2 - l3;
+					break;
+				case shapeaniso:
+					val_ = 1.5*sqsum/(sum*sum) - 0.5;
+					break;
+			}
+
 			// Compute gradient.
 			size_t j = 0;
-			val_ = 0;
 			for(auto& i : idx)
 			{
 				// Compute derivative of each eigenvalue and use combos in components. 
@@ -166,41 +212,29 @@ namespace SSAGES
 				auto dl2 = 2.*masses[i]/masstot*(1.-masses[i]/masstot)*ris[j].dot(n2)*n2;
 				auto dl3 = 2.*masses[i]/masstot*(1.-masses[i]/masstot)*ris[j].dot(n3)*n3;
 
-				// It is inefficient to keep reassigning val, but it's better than having two 
-				// switches, and the compiler will probably optimize it out anyways.
 				switch(component_)
 				{
 					case Rg:
 						grad_[i] = dl1 + dl2 + dl3;
-						val_ = l1 + l2 + l3; 
 						break;
 					case principal1:
 						grad_[i] = dl1;
-						val_ = l1;
 						break;
 					case principal2:
 						grad_[i] = dl2;
-						val_ = l2;
 						break;
 					case principal3:
 						grad_[i] = dl3;
-						val_ = l3;
 						break;
 					case asphericity:
 						grad_[i] = dl1 - 0.5*(dl2 + dl3);
-						val_ = l1 - 0.5*(l2 + l3);
 						break;
 					case acylindricity:
 						grad_[i] = dl2 - dl3;
-						val_ = l2 - l3; 
 						break;
 					case shapeaniso:
-						auto l1_2 = l1*l1, l2_2 = l2*l2, l3_2 = l3*l3; 
-						auto sum = l1 + l2 + l3;
-						auto sqsum = l1_2 + l2_2 + l3_2;
 						grad_[i] = 3.*(l1*dl1+l2*dl2+l3*dl3)/(sum*sum) - 
 						           3.*sqsum*(dl1+dl2+dl3)/(sum*sum*sum);
-						val_ = 1.5*sqsum/(sum*sum) - 0.5;
 						break;
 				}
 
@@ -248,7 +282,18 @@ namespace SSAGES
 			else if(comp == "shapeaniso")
 				component = shapeaniso;
 
-			return new GyrationTensorCV(atomids, component);
+			GyrationTensorCV* c;
+			if(json.isMember("dimension"))
+			{
+				auto dimx = json["dimension"][0].asBool();
+				auto dimy = json["dimension"][1].asBool();
+				auto dimz = json["dimension"][2].asBool();
+				c = new GyrationTensorCV(atomids, component, dimx, dimy, dimz);
+			}
+			else
+				c = new GyrationTensorCV(atomids, component);
+
+			return c;
 		}
 	};
 }

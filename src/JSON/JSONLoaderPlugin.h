@@ -46,6 +46,8 @@ namespace SSAGES
 		 * filters to it.
 		 */
 		virtual void ApplyFilter(std::string& contents, const std::string& path) = 0;
+
+		virtual ~JSONLoaderPlugin() = default;
 	};
 
 	//! Class for JSON loader include plugin.
