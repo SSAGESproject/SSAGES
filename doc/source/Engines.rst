@@ -15,7 +15,7 @@ vary between supported engines.
 +----------+-----------------------+--------------+----------------+ 
 | GROMACS  | 5.1.x, 2016.x, 2018.x |    yes       |   yes          |
 +----------+-----------------------+--------------+----------------+
-| OpenMD   |       2.4, 2.5        |    no        |   no           |
+| OpenMD   |          2.5          |    no        |   no           |
 +----------+-----------------------+--------------+----------------+
 | Qbox     |     1.60 or newer     |    yes       |   no           |
 +----------+-----------------------+--------------+----------------+
@@ -151,9 +151,30 @@ described on the :ref:`input files page <inputfiles>`.
 OpenMD
 ^^^^^^^
 
-.. note:: 
+Building
+~~~~~~~~
 
-	Coming soon. 
+SSAGES supports OpenMD version 2.5. To compile SSAGES with a compatible 
+version of OpenMD, the location of the already-downloaded source must be 
+specified in the cmake command.
+
+.. code:: bash
+
+    cmake -DOPENMD_SRC=/path/to/OpenMD ..
+
+.. warning::
+
+	Once you link SSAGES to a particular OpenMD source, you will be 
+	**unable** to compile that OpenMD source outside of SSAGES because of  
+	SSAGES dependencies which are introduced. Be sure to backup your 
+	repository accordingly.
+
+Running
+~~~~~~~
+
+The only OpenMD-specific property required in a SSAGES input file is the ``input`` 
+property which points to the OpenMD input script. Details can be found on the 
+:ref:`input files page <inputfiles>`.
 
 Qbox
 ^^^^
