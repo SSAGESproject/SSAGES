@@ -92,7 +92,8 @@ the run command, which will begin the advanced sampling simulation.
 .. note::
 
 	Due to the nature of how SSAGES forwards commands to LAMMPS, the use 
-	of ``include`` within a LAMMPS input script is currently not supported.
+	of ``include`` and ``label/jump`` within a LAMMPS input script is 
+	currently not supported.
 
 SSAGES is compatible with typical LAMMPS workflows that include equilibration 
 or energy minimzation steps before production. So long as the SSAGES fix is not 
