@@ -318,6 +318,7 @@ namespace SSAGES
 
 		uint wid = mxx::comm(world).rank()/mxx::comm(comm).size();   // walker ID
 		uint wrank = mxx::comm(world).rank()%mxx::comm(comm).size(); // walker rank
+		bool iorank = mxx::comm(world).rank == 0;
 
 		//bool multiwalkerinput = false;
 
@@ -508,7 +509,7 @@ namespace SSAGES
 		bool restart = json.get("restart",false).asBool();
 	
 		// Either load previous grid, or back it up.
-		if (wrank == 0 && restart)
+		if (iorank && restart)
 		{
 		
 			std::cout << "Attempting to load data from a previous run of ABF..." << std::endl;
@@ -519,7 +520,7 @@ namespace SSAGES
 			}
 
 		}
-		else if (wrank == 0)
+		else if (iorank)
 		{
 			std::ifstream  Nworldbackupsource(Nworld_filename, std::ios::binary);
 			if(Nworldbackupsource)
@@ -533,7 +534,7 @@ namespace SSAGES
 				std::ifstream  Fworldbackupsource(Fworld_filename+std::to_string(i), std::ios::binary);
 				if(Fworldbackupsource)
 				{
-					std::cout << "Backing up previous copy of Fworld"+std::to_string(i)+"." << std::endl;
+					std::cout << "Backing up previous copy of Fworld_cv"+std::to_string(i)+"." << std::endl;
 					std::ofstream  Fworldbackuptarget(Fworld_filename+std::to_string(i)+"_backup", std::ios::binary);
     					Fworldbackuptarget << Fworldbackupsource.rdbuf();
 				}
