@@ -70,7 +70,11 @@ namespace SSAGES
 			throw BuildException(validator.GetErrors());
 		
 		// Check to make sure all inputs are valid members
-		std::vector<std::string> validmembers = {"input","args","walkers","CVs","methods","logger"};
+		std::vector<std::string> validmembers =
+		{
+			"input","args","walkers","CVs","methods","logger",
+			"md_iterations","qm_iterations","wf_iterations"
+		};
 		std::vector<std::string> members = json.getMemberNames();
 		for(auto& m : members)
 			if(std::find(validmembers.begin(), validmembers.end(), m) == validmembers.end())
