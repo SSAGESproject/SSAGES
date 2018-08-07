@@ -34,8 +34,8 @@ namespace SSAGES
 {
 	ResourceHandler::ResourceHandler(
 		mxx::comm&& world, mxx::comm&& comm, size_t walkerid,
-		const std::vector<Method*>& methods, CVManager* cvmanager) : 
-	world_(std::move(world)), comm_(std::move(comm)), walkerid_(walkerid), nwalkers_(1), 
+		const std::vector<Method*>& methods, CVManager* cvmanager) :
+	world_(std::move(world)), comm_(std::move(comm)), walkerid_(walkerid), nwalkers_(1),
 	methods_(methods), cvmanager_(cvmanager), hook_(nullptr), inputs_(0)
 	{
 		snapshot_ = new Snapshot(comm_, walkerid);
@@ -58,8 +58,8 @@ namespace SSAGES
 		CharReaderBuilder rbuilder;
 		CharReader* reader = rbuilder.newCharReader();
 
-		// Parse and validate top level schema. This just 
-		// makes sure the proper fields exist and the correct 
+		// Parse and validate top level schema. This just
+		// makes sure the proper fields exist and the correct
 		// types are specified in the input files.
 		reader->parse(JsonSchema::Simulation.c_str(),
 		              JsonSchema::Simulation.c_str() + JsonSchema::Simulation.size(),
@@ -68,7 +68,7 @@ namespace SSAGES
 		validator.Validate(json, "#");
 		if(validator.HasErrors())
 			throw BuildException(validator.GetErrors());
-		
+
 		// Check to make sure all inputs are valid members
 		std::vector<std::string> validmembers =
 		{
@@ -79,12 +79,12 @@ namespace SSAGES
 		for(auto& m : members)
 			if(std::find(validmembers.begin(), validmembers.end(), m) == validmembers.end())
 				throw BuildException({"#: JSON member \"" + m + "\" is not supported."});
-		
+
 		// Get number of desired walkers and create array of input files.
 		auto nwalkers = json.get("walkers", 1).asUInt();
 		if(json["input"].isArray() && json["input"].size() != nwalkers)
 			throw BuildException({"#/input: Number of inputs do not match requested walkers."});
-		
+
 		std::vector<std::string> inputs;
 		for(size_t i = 0; i < nwalkers; ++i)
 		{
@@ -94,18 +94,18 @@ namespace SSAGES
 				inputs.push_back(json["input"].asString());
 		}
 
-		// Get basic MPI info and verify that the total number of 
-		// cores are divisble by number of walkers. 
+		// Get basic MPI info and verify that the total number of
+		// cores are divisble by number of walkers.
 		auto wcomm = mxx::comm(world);
-		if(wcomm.size() % nwalkers != 0) 
+		if(wcomm.size() % nwalkers != 0)
 			throw BuildException({"#/walkers: Allocated processors not divisible by number of walkers."});
-		
+
 		// Split communicators.
 		int ppw = wcomm.size()/nwalkers;
 		int walkerid = wcomm.rank()/ppw;
 		auto comm = wcomm.split(walkerid);
 
-		// Build collective variables. 
+		// Build collective variables.
 		auto* cvmanager = new CVManager();
 		int icv = 0;
 		for(auto& cv : json["CVs"])
@@ -119,13 +119,28 @@ namespace SSAGES
 			++icv;
 		}
 
-		// Build methods. 
-		std::vector<Method*> methods; 
+		// Build methods.
+		std::vector<Method*> methods;
 		for(auto& m : json["methods"])
+		{
+			// Check CVs specified in each method.
+			for(auto& cv : m["cvs"])
+			{
+				if(typeid(cv) == typeid(std::string))
+				{
+					CVManager::LookupCV(cv.asString());
+				}
+				else if(cv >= icv)
+				{
+					throw BuildException({"#/methods: CV mask index of " + cv.asString() + " does not exist. " +
+					                      "Index must be less than " + std::to_string(icv) + "."});
+				}
+			}
 			methods.push_back(Method::BuildMethod(m, world, comm, "#/methods"));
-		
-		// Build logger. 
-		Logger* l = nullptr; 
+		}
+
+		// Build logger.
+		Logger* l = nullptr;
 		if(json.isMember("logger"))
 			l = Logger::Build(json["logger"], world, comm, "#/logger");
 
@@ -138,9 +153,9 @@ namespace SSAGES
 
 	ResourceHandler::~ResourceHandler()
 	{
-		delete snapshot_; 
+		delete snapshot_;
 		delete cvmanager_;
 		for(auto& m : methods_)
-			delete m; 
+			delete m;
 	}
 }
