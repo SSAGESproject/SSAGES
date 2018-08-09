@@ -80,19 +80,33 @@ namespace SSAGES
 		 */
 		virtual void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) = 0;
 
-		//! Return walker ID number.
+		//! Get walker ID number of specified communicator.
+		/*!
+		 * \param world MPI communicator for the whole simulation.
+		 * \param comm MPI communicator for the local walker.
+		 * \return Walker ID number.
+		 */
 		static unsigned int GetWalkerID(const MPI_Comm& world, const MPI_Comm& comm)
 		{
 			return mxx::comm(world).rank()/mxx::comm(comm).size();
 		}
 
-		//! Return total number of walkers.
+		//! Get total number of walkers in the simulation.
+		/*!
+		 * \param world MPI communicator for the whole simulation.
+		 * \param comm MPI communicator for the local walker.
+		 * \return Total number of walkers in the simulation.
+		 */
 		static unsigned int GetNumWalkers(const MPI_Comm& world, const MPI_Comm& comm)
 		{
 			return mxx::comm(world).size()/mxx::comm(comm).size();
 		}
 
 		//! Check if current processor is master.
+		/*!
+		 * \param comm MPI communicator to check.
+		 * \return Whether the current MPI rank is the first in the communicator.
+		 */
 		static bool IsMasterRank(const MPI_Comm& comm)
 		{
 			return mxx::comm(comm).rank() == 0;
