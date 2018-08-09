@@ -90,7 +90,7 @@ namespace SSAGES
 				pweight_ = 1.0;
 			
 			TrainNetwork();
-			if(world_.rank() == 0)
+			if(IsMasterRank(world_))
 				WriteBias();
 		}
 
@@ -117,7 +117,7 @@ namespace SSAGES
 			// Record histogram hit and get gradient. 
 			// Only record hits on master processes since we will 
 			// reduce later. 
-			if(comm_.rank() == 0)
+			if(IsMasterRank(comm_))
 				hgrid_->at(val) += 1;
 			//derivatives = (*fgrid_)[val];
 			net_.forward_pass(vec);
@@ -125,7 +125,7 @@ namespace SSAGES
 		}
 		else
 		{
-			if(comm_.rank() == 0)
+			if(IsMasterRank(comm_))
 			{
 				std::cerr << "ANN (" << snapshot->GetIteration() << "): out of bounds ( ";
 				for(auto& v : val)
@@ -189,7 +189,7 @@ namespace SSAGES
 		
 		// Train network.
 		net_.autoscale(hist_, bias_);
-		if(world_.rank() == 0)
+		if(IsMasterRank(world_))
 		{
 			net_.train(hist_, bias_, true);
 		}

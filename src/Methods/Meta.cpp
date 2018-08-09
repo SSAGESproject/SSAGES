@@ -63,7 +63,7 @@ namespace SSAGES
 	{
 		auto cvs = cvmanager.GetCVs(cvmask_);
 		// Write ouput file header.
-		if(world_.rank() == 0)
+		if(IsMasterRank(world_))
 		{
 			hillsout_.open("hills.out");
 			hillsout_ << "#Iteration "; 
@@ -176,9 +176,9 @@ namespace SSAGES
 		// and to each proc on a walker.	
 		std::vector<double> cvals(n*nwalkers, 0);
 
-		if(comm_.rank() == 0)
+		if(IsMasterRank(comm_))
 		{
-			for(size_t i = 0, j = world_.rank()/comm_.size()*n; i < n; ++i,++j)
+			for(size_t i = 0, j = GetWalkerID(world_,comm_)*n; i < n; ++i,++j)
 				cvals[j] = cvs[i]->GetValue();
 		}
 
@@ -191,7 +191,7 @@ namespace SSAGES
 			hills_.emplace_back(cval, widths_, height_);
 			
 			// Write hill to file.
-			if(world_.rank() == 0)
+			if(IsMasterRank(world_))
 				PrintHill(hills_.back(), iteration);
 		}
 
@@ -279,7 +279,7 @@ namespace SSAGES
 			}
 			else
 			{
-				if(comm_.rank() == 0)
+				if(IsMasterRank(comm_))
 				{
 					std::cerr << "Metadynamics: out of bounds ( ";
 					for(auto& v : val)

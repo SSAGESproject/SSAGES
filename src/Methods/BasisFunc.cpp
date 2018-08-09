@@ -202,7 +202,7 @@ namespace SSAGES
         //Update both the gradient and the bias on the grids
         evaluator_.UpdateBias(b_,f_);
 
-        if(world_.rank() == 0) {
+        if(IsMasterRank(world_)) {
             // Write coeff at this step, but only one walker
             std::cout<<"Coefficient difference is: " <<sum<<std::endl;
             PrintBias(cvs,beta);

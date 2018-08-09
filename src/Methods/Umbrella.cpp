@@ -32,7 +32,7 @@ namespace SSAGES
 {
 	void Umbrella::PreSimulation(Snapshot* /* snapshot */, const CVManager& cvmanager)
 	{
-		if(comm_.rank() == 0)
+		if(IsMasterRank(comm_))
 		{
 			if(append_)
 		 		umbrella_.open(filename_.c_str(), std::ofstream::out | std::ofstream::app);
@@ -85,13 +85,13 @@ namespace SSAGES
 
 	void Umbrella::PostSimulation(Snapshot*, const CVManager&)
 	{
-		if(comm_.rank() ==0)
+		if(IsMasterRank(comm_))
 			umbrella_.close();
 	}
 
 	void Umbrella::PrintUmbrella(const CVList& cvs, size_t iteration)
 	{
-		if(comm_.rank() ==0)
+		if(IsMasterRank(comm_))
 		{
 			umbrella_.precision(8);
 			umbrella_ << iteration << " ";
@@ -128,12 +128,10 @@ namespace SSAGES
 		validator.Validate(json, path);
 		if(validator.HasErrors())
 			throw BuildException(validator.GetErrors());
-		
-		//TODO walker id should be obtainable in method as
-		//     opposed to calculated like this. 
-		uint wid = mxx::comm(world).rank()/mxx::comm(comm).size(); 
-		bool ismulti = mxx::comm(world).size() > mxx::comm(comm).size();
-		uint wcount = mxx::comm(world).size() / mxx::comm(comm).size();
+
+		uint wid = GetWalkerID(world, comm);
+		uint wcount = GetNumWalkers(world, comm);
+		bool ismulti = wcount > 1;
 
 		std::vector<std::vector<double>> ksprings;
 		for(auto& s : json["ksprings"])

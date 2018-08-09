@@ -226,7 +226,7 @@ namespace SSAGES
 				unsigned int npicks = _M[_current_interface];
 				std::vector<unsigned int> picks;
 				picks.resize(npicks);
-				if (world_.rank() == 0)
+				if (IsMasterRank(world_))
 				{
 					std::uniform_int_distribution<int> distribution(0,_N[_current_interface]-1);
 					for (unsigned int i=0; i < npicks ; i++)
@@ -288,7 +288,7 @@ namespace SSAGES
 		std::vector<unsigned int> picks;
 		picks.resize(npicks);
 
-		if(world_.rank() == 0)
+		if(IsMasterRank(world_))
 		{
 			std::uniform_int_distribution<int> distribution(0,_N[0]-1);
 		  	for (unsigned int i=0; i < npicks ; i++)

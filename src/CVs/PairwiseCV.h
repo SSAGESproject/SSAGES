@@ -189,7 +189,7 @@ namespace SSAGES
 					if(lid2 != -1)
 						grad_[lid2] -= df*rij/r;
 
-					// Only sum box gradient on a single proc. 
+					// Only sum box gradient on a single proc.
 					if(comm.rank() == 0)
 						boxgrad_ += df*rij/r*rij.transpose();
 				}

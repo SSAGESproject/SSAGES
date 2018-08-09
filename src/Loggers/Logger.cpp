@@ -33,7 +33,7 @@ namespace SSAGES
 {
 	void Logger::PreSimulation(Snapshot* /* snapshot */, const CVManager& cvmanager)
 	{
-		if(comm_.rank() == 0)
+		if(IsMasterRank(comm_))
 		{
 			if(append_)
 		 		log_.open(filename_.c_str(), std::ofstream::out | std::ofstream::app);	
@@ -56,7 +56,7 @@ namespace SSAGES
 	{
 		// Get necessary info. 
 		auto cvs = cvmanager.GetCVs(cvmask_);
-		if(comm_.rank() ==0)
+		if(IsMasterRank(comm_))
 		{
 			log_.precision(8);
 			log_ << snapshot->GetIteration() << " ";
@@ -94,11 +94,9 @@ namespace SSAGES
 		
 		auto freq = json.get("frequency", 1).asInt();
 		std::string name = "cvlog.dat";
-		
-		//TODO walker id should be obtainable in method as
-		//     opposed to calculated like this. 
-		bool ismulti = mxx::comm(world).size() > mxx::comm(comm).size(); 
-		uint wid = mxx::comm(world).rank()/mxx::comm(comm).size();
+
+		bool ismulti = GetNumWalkers(world, comm) > 1; 
+		uint wid = GetWalkerID(world, comm);
 		if(json["output_file"].isArray())
 			name = json["output_file"][wid].asString(); 
 		else if(ismulti)
