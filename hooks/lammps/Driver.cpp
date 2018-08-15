@@ -51,7 +51,7 @@ namespace SSAGES
             // If line(s) needs continuation, strip trailing
             // whitespace and "&" and stitch them together.
             stridx = line.find_last_not_of(" \t");
-            if((stridx != -1) && (line.at(stridx) == '&'))
+            if((stridx != std::string::npos) && (line.at(stridx) == '&'))
             {
                 linebuffer.append(line,0,stridx);
             }
