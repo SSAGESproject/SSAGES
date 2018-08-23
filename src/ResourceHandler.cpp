@@ -130,10 +130,10 @@ namespace SSAGES
 				{
 					CVManager::LookupCV(cv.asString());
 				}
-				else if(cv >= icv)
+				else if(cv >= icv || cv < 0)
 				{
 					throw BuildException({"#/methods: CV mask index of " + cv.asString() + " does not exist. " +
-					                      "Index must be less than " + std::to_string(icv) + "."});
+					                      "Index must be nonnegative and less than " + std::to_string(icv) + "."});
 				}
 			}
 			methods.push_back(Method::BuildMethod(m, world, comm, "#/methods"));
