@@ -201,9 +201,12 @@ namespace SSAGES
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
-			Json::Reader reader;
+			Json::CharReaderBuilder rbuilder;
+			Json::CharReader* reader = rbuilder.newCharReader();
 
-			reader.parse(JsonSchema::PairwiseCV, schema);
+			reader->parse(JsonSchema::PairwiseCV.c_str(),
+			              JsonSchema::PairwiseCV.c_str() + JsonSchema::PairwiseCV.size(),
+			              &schema, NULL);
 			validator.Parse(schema, path);
 
 			// Validate inputs.
@@ -222,15 +225,10 @@ namespace SSAGES
 			return new PairwiseCV(group1, group2, PairwiseKernel::Build(json["kernel"], path));
 		}
 
+		//! Destructor
 		~PairwiseCV()
 		{
 			delete pk_;
-			/*
-			 * deleting object of abstract class type ‘SSAGES::PairwiseKernel’
-			 * which has non-virtual destructor will cause undefined behaviour
-			 * [-Wdelete-non-virtual-dtor]
-			 *
-			 */
 		}
 	};
 }

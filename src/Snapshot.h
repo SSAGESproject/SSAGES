@@ -70,8 +70,8 @@ namespace SSAGES
 		Label types_; //!< List of Atom types
 		std::vector<std::vector<double> > sigma_; //!< Sigma
 
-		int iteration_; //!< Iteration of Simulation
-		int targetiter_; //!< Iteration target of simulation.
+		size_t iteration_; //!< Iteration of Simulation
+		size_t targetiter_; //!< Iteration target of simulation.
 		double temperature_; //!< Current temperature
 		double energy_; //!< Average per-particle energy
 		double kb_; //!< Kb from the MD driver
@@ -100,13 +100,13 @@ namespace SSAGES
 		/*!
 		 * \return Current Iteration
 		 */
-		int GetIteration() const {return iteration_; }
+		size_t GetIteration() const {return iteration_; }
 		
 		//! Get target iterations
 		/*!
 		 * \return Target Iterations
 		 */
-		int GetTargetIterations() const {return targetiter_; }
+		size_t GetTargetIterations() const {return targetiter_; }
 
 		//! Get current temperature
 		/*!
@@ -203,7 +203,7 @@ namespace SSAGES
 		/*!
 		 * \param iteration New value for the iteration
 		 */
-		void SetIteration(int iteration) 
+		void SetIteration(size_t iteration) 
 		{
 			iteration_ = iteration; 
 			changed_ = true; 

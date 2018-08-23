@@ -184,6 +184,17 @@ Property ``component`` must be a string defining the gyration tensor component o
 Valid options are ``"Rg"``, ``"principal1"``, ``"principal2"``, ``"principal3"``, ``"asphericity"``, 
 ``"acylindricity"``, or ``"shapeaniso"``.
 
+Optional
+~~~~~~~~
+
+.. code-block:: javascript
+
+    "dimension"
+
+Property ``dimension`` is a 3-element array of booleans specifying which
+Cartesian components to include in the calculation. If left unspecified, all
+three xyz components will be used.
+
 Particle Coordinate
 -------------------
 
@@ -378,7 +389,7 @@ Example
 	{
 		"type" : "ParticlePosition", 
 		"atom_ids" : [1, 5, 6, 10],
-		"fix" : [true, false, true],
+		"dimension" : [true, false, true],
 		"position" : [3.51, 6.66, 2.14]
 	}
 
@@ -411,15 +422,19 @@ will enter the calculation.
 
 	"position" 
 
-Property ``position`` must be a 3-dimensional array of numbers defining the reference 
+Property ``position`` must be a 3-element array of numbers defining the reference
 point in the simulation box. 
 
-.. code-block:: javascript 
+Optional
+~~~~~~~~
 
-	"fix" 
+.. code-block:: javascript
 
-Property ``fix`` must be a 3-dimensional array of booleans specifying the components 
-of the distance vector to include in the calculation.
+    "dimension"
+
+Property ``dimension`` is a 3-element array of booleans specifying which
+Cartesian components to include in the calculation. If left unspecified, all
+three xyz components will be used.
 
 Particle Separation
 -------------------
@@ -476,7 +491,7 @@ Optional
 
     "dimension"
 
-Property ``dimension`` is a 3-dimensional array of booleans specifying which
+Property ``dimension`` is a 3-element array of booleans specifying which
 Cartesian components to include in the calculation. If left unspecified, all
 three xyz components will be used.
 

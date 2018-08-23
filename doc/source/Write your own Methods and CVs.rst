@@ -189,3 +189,5 @@ To include your new method, you have to edit the file
    should parse and validate the JSON schema, read the required properties and
    create the method. A pointer to the newly created object should
    be stored in the variable named ``method``.
+
+Finally, add the method .cpp to CMakeLists.txt as a source.

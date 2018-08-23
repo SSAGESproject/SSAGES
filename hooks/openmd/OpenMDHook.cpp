@@ -3,7 +3,7 @@
 
 #include "brains/SnapshotManager.hpp"
 #include "brains/Thermo.hpp"
-#include "utils/PhysicalConstants.hpp"
+#include "utils/Constants.hpp"
 #include "primitives/Molecule.hpp"
 
 using namespace OpenMD;
@@ -63,7 +63,7 @@ namespace SSAGES
 		snapshot_->SetIteration(snapshot_->GetIteration()+1);
 		snapshot_->SetTemperature(thermo.getTemperature());
 		snapshot_->SetEnergy(thermo.getTotalEnergy());
-		snapshot_->SetKb(PhysicalConstants::kB);
+		snapshot_->SetKb(Constants::kB);
 
 		// Loop through and get atom properties.
 		size_t index = 0;

@@ -33,7 +33,7 @@ using namespace Json;
 namespace SSAGES
 {
 	ResourceHandler::ResourceHandler(
-		mxx::comm&& world, mxx::comm&& comm, uint walkerid,
+		mxx::comm&& world, mxx::comm&& comm, size_t walkerid,
 		const std::vector<Method*>& methods, CVManager* cvmanager) : 
 	world_(std::move(world)), comm_(std::move(comm)), walkerid_(walkerid), nwalkers_(1), 
 	methods_(methods), cvmanager_(cvmanager), hook_(nullptr), inputs_(0)
@@ -55,27 +55,41 @@ namespace SSAGES
 	{
 		ObjectRequirement validator;
 		Value schema;
-		Reader reader;
+		CharReaderBuilder rbuilder;
+		CharReader* reader = rbuilder.newCharReader();
 
 		// Parse and validate top level schema. This just 
 		// makes sure the proper fields exist and the correct 
 		// types are specified in the input files.
-		reader.parse(JsonSchema::Simulation, schema);
+		reader->parse(JsonSchema::Simulation.c_str(),
+		              JsonSchema::Simulation.c_str() + JsonSchema::Simulation.size(),
+		              &schema, NULL);
 		validator.Parse(schema, "#");
 		validator.Validate(json, "#");
 		if(validator.HasErrors())
 			throw BuildException(validator.GetErrors());
 		
+		// Check to make sure all inputs are valid members
+		std::vector<std::string> validmembers =
+		{
+			"input","args","walkers","CVs","methods","logger",
+			"md_iterations","qm_iterations","wf_iterations"
+		};
+		std::vector<std::string> members = json.getMemberNames();
+		for(auto& m : members)
+			if(std::find(validmembers.begin(), validmembers.end(), m) == validmembers.end())
+				throw BuildException({"#: JSON member \"" + m + "\" is not supported."});
+		
 		// Get number of desired walkers and create array of input files.
-		auto nwalkers = json.get("walkers", 1).asInt();
+		auto nwalkers = json.get("walkers", 1).asUInt();
 		if(json["input"].isArray() && json["input"].size() != nwalkers)
 			throw BuildException({"#/input: Number of inputs do not match requested walkers."});
 		
 		std::vector<std::string> inputs;
-		for(int i = 0; i < nwalkers; ++i)
+		for(size_t i = 0; i < nwalkers; ++i)
 		{
 			if(json["input"].isArray())
-				inputs.push_back(json["input"][i].asString());
+				inputs.push_back(json["input"][static_cast<int>(i)].asString());
 			else
 				inputs.push_back(json["input"].asString());
 		}

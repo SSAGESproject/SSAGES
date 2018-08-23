@@ -57,7 +57,6 @@ namespace SSAGES
 		size_t i = 0;
 		for(auto it = hgrid_->begin(); it != hgrid_->end(); ++it)
 		{
-			auto& val = *it; 
 			auto coord = it.coordinates(); 
 			for(size_t j = 0; j < coord.size(); ++j)
 				hist_(i, j) = coord[j]; 
@@ -240,9 +239,12 @@ namespace SSAGES
 	{
 		ObjectRequirement validator;
 		Value schema;
-		Reader reader;
-		
-		reader.parse(JsonSchema::ANNMethod, schema);
+		CharReaderBuilder rbuilder;
+		CharReader* reader = rbuilder.newCharReader();
+
+		reader->parse(JsonSchema::ANNMethod.c_str(),
+		              JsonSchema::ANNMethod.c_str() + JsonSchema::ANNMethod.size(),
+		              &schema, NULL);
 		validator.Parse(schema, path);
 
 		// Validate inputs.
@@ -260,7 +262,7 @@ namespace SSAGES
 		VectorXi topol(nlayers);
 		topol[0] = fgrid->GetDimension();
 		topol[nlayers-1] = 1;
-		for(int i = 0; i < json["topology"].size(); ++i)
+		for(int i = 0; i < static_cast<int>(json["topology"].size()); ++i)
 			topol[i+1] = json["topology"][i].asInt();
 		
 		auto weight = json.get("weight", 1.).asDouble();
@@ -269,7 +271,7 @@ namespace SSAGES
 
 		// Assume all vectors are the same size. 
 		std::vector<double> lowerb, upperb, lowerk, upperk;
-		for(int i = 0; i < json["lower_bound_restraints"].size(); ++i)
+		for(int i = 0; i < static_cast<int>(json["lower_bound_restraints"].size()); ++i)
 		{
 			lowerk.push_back(json["lower_bound_restraints"][i].asDouble());
 			upperk.push_back(json["upper_bound_restraints"][i].asDouble());

@@ -23,12 +23,15 @@ namespace SSAGES
                               const std::string& path,
                               uint nbin)
     {
-        Json::ObjectRequirement validator;
-        Json::Value schema;
-        Json::Reader reader;
-        
-        reader.parse(JsonSchema::ChebyshevBasis, schema);
-        validator.Parse(schema, path);
+		Json::ObjectRequirement validator;
+		Json::Value schema;
+		Json::CharReaderBuilder rbuilder;
+		Json::CharReader* reader = rbuilder.newCharReader();
+
+		reader->parse(JsonSchema::ChebyshevBasis.c_str(),
+		              JsonSchema::ChebyshevBasis.c_str() + JsonSchema::ChebyshevBasis.size(),
+		              &schema, NULL);
+		validator.Parse(schema, path);
 
         //Validate Inputs
         validator.Validate(json, path);
@@ -47,12 +50,15 @@ namespace SSAGES
                             const std::string& path,
                             uint nbin)
     {
-        Json::ObjectRequirement validator;
-        Json::Value schema;
-        Json::Reader reader;
-        
-        reader.parse(JsonSchema::FourierBasis, schema);
-        validator.Parse(schema, path);
+		Json::ObjectRequirement validator;
+		Json::Value schema;
+		Json::CharReaderBuilder rbuilder;
+		Json::CharReader* reader = rbuilder.newCharReader();
+
+		reader->parse(JsonSchema::FourierBasis.c_str(),
+		              JsonSchema::FourierBasis.c_str() + JsonSchema::FourierBasis.size(),
+		              &schema, NULL);
+		validator.Parse(schema, path);
 
         //Validate Inputs
         validator.Validate(json, path);
@@ -70,12 +76,15 @@ namespace SSAGES
                               const std::string& path,
                               uint nbin)
     {
-        Json::ObjectRequirement validator;
-        Json::Value schema;
-        Json::Reader reader;
-        
-        reader.parse(JsonSchema::LegendreBasis, schema);
-        validator.Parse(schema, path);
+		Json::ObjectRequirement validator;
+		Json::Value schema;
+		Json::CharReaderBuilder rbuilder;
+		Json::CharReader* reader = rbuilder.newCharReader();
+
+		reader->parse(JsonSchema::LegendreBasis.c_str(),
+		              JsonSchema::LegendreBasis.c_str() + JsonSchema::LegendreBasis.size(),
+		              &schema, NULL);
+		validator.Parse(schema, path);
 
         //Validate Inputs
         validator.Validate(json, path);

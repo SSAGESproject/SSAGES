@@ -91,7 +91,7 @@ namespace SSAGES
 
 			std::cout << "AlphaRMSDCV: Calculating alpha helix character from residue " << resids[0] << " to " << resids[1]  << "." << std::endl;
 
-			for(unsigned int i = resids[0]; i <= resids[1]; i++){
+			for(int i = resids[0]; i <= resids[1]; i++){
 				resids_.push_back(i);
 			}
 		}
@@ -110,7 +110,7 @@ namespace SSAGES
 			using std::to_string;
 			std::vector<int> found;
 			snapshot.GetLocalIndices(ids_only_, &found);
-			int nfound = found.size();
+			size_t nfound = found.size();
 			MPI_Allreduce(MPI_IN_PLACE, &nfound, 1, MPI_INT, MPI_SUM, snapshot.GetCommunicator());
 			if(nfound != resids_.size() * 5)
 				throw BuildException({
@@ -175,7 +175,7 @@ namespace SSAGES
 			auto& comm = snapshot.GetCommunicator();
 
 			double rmsd, dist_norm, dxgrouprmsd;
-			unsigned int localidx;
+			int localidx;
 			Vector3 dist_xyz, dist_ref;
 			std::vector<Vector3> refxyz;
 			std::vector< std::vector< Vector3 > > deriv(30, std::vector<Vector3>(30, Vector3{0,0,0}));
@@ -234,9 +234,12 @@ namespace SSAGES
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
-			Json::Reader reader;
+			Json::CharReaderBuilder rbuilder;
+			Json::CharReader* reader = rbuilder.newCharReader();
 
-			reader.parse(JsonSchema::AlphaRMSDCV, schema);
+			reader->parse(JsonSchema::AlphaRMSDCV.c_str(),
+			              JsonSchema::AlphaRMSDCV.c_str() + JsonSchema::AlphaRMSDCV.size(),
+			              &schema, NULL);
 			validator.Parse(schema, path);
 
 			//Validate inputs

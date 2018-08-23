@@ -167,7 +167,7 @@ namespace SSAGES
 	// Drop a new hill.
 	void Meta::AddHill(const CVList& cvs, int iteration)
 	{
-		int n = cvs.size();
+		size_t n = cvs.size();
 
 		// Assume we have the same number of procs per walker.
 		int nwalkers = world_.size()/comm_.size();
@@ -178,14 +178,14 @@ namespace SSAGES
 
 		if(comm_.rank() == 0)
 		{
-			for(auto i = 0, j = world_.rank()/comm_.size()*n; i < n; ++i,++j)
+			for(size_t i = 0, j = world_.rank()/comm_.size()*n; i < n; ++i,++j)
 				cvals[j] = cvs[i]->GetValue();
 		}
 
 		// Reduce across all processors and add hills.
 		MPI_Allreduce(MPI_IN_PLACE, cvals.data(), n*nwalkers, MPI_DOUBLE, MPI_SUM, world_);
 		
-		for(int i = 0; i < n*nwalkers; i += n)
+		for(size_t i = 0; i < n*nwalkers; i += n)
 		{
 			std::vector<double> cval(cvals.begin() + i, cvals.begin() + i + n);
 			hills_.emplace_back(cval, widths_, height_);
@@ -336,9 +336,12 @@ namespace SSAGES
 	{
 		ObjectRequirement validator;
 		Value schema;
-		Reader reader;
-		
-		reader.parse(JsonSchema::MetadynamicsMethod, schema);
+		CharReaderBuilder rbuilder;
+		CharReader* reader = rbuilder.newCharReader();
+
+		reader->parse(JsonSchema::MetadynamicsMethod.c_str(),
+		              JsonSchema::MetadynamicsMethod.c_str() + JsonSchema::MetadynamicsMethod.size(),
+		              &schema, NULL);
 		validator.Parse(schema, path);
 
 		// Validate inputs.
@@ -360,7 +363,7 @@ namespace SSAGES
 				"must be defined if grid is not being used."});
 
 		// Assume all vectors are the same size. 
-		for(int i = 0; i < json["lower_bound_restraints"].size(); ++i)
+		for(int i = 0; i < static_cast<int>(json["lower_bound_restraints"].size()); ++i)
 		{
 			lowerk.push_back(json["lower_bound_restraints"][i].asDouble());
 			upperk.push_back(json["upper_bound_restraints"][i].asDouble());

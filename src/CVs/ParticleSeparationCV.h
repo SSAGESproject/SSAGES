@@ -55,7 +55,7 @@ namespace SSAGES
 		 *
 		 * \todo bounds needs to be an input.
 		 */
-		ParticleSeparationCV(const Label& group1, const Label& group2) : 
+		ParticleSeparationCV(const Label& group1, const Label& group2) :
 		group1_(group1), group2_(group2), dim_{true, true, true}
 		{}
 
@@ -63,16 +63,16 @@ namespace SSAGES
 		/*!
 		 * \param group1 Vector of atom ID's of the first particle.
 		 * \param group2 Vector of atom ID's of the second particle.
-		 * \param fixx If \c False, include x dimension.
-		 * \param fixy If \c False, include y dimension.
-		 * \param fixz If \c False, include z dimension.
+		 * \param dimx If \c True, include x dimension.
+		 * \param dimy If \c True, include y dimension.
+		 * \param dimz If \c True, include z dimension.
 		 *
-		 * Construct a paarticle separation CV.
+		 * Construct a particle separation CV.
 		 *
-		 * \todo bounds needs to be an input.
+		 * \todo Bounds needs to be an input.
 		 */
-		ParticleSeparationCV(const Label& group1, const Label& group2, bool fixx, bool fixy, bool fixz) : 
-		group1_(group1), group2_(group2), dim_{fixx, fixy, fixz}
+		ParticleSeparationCV(const Label& group1, const Label& group2, bool dimx, bool dimy, bool dimz) :
+		group1_(group1), group2_(group2), dim_{dimx, dimy, dimz}
 		{}
 
 		//! Initialize necessary variables.
@@ -168,9 +168,12 @@ namespace SSAGES
 		{
 			Json::ObjectRequirement validator;
 			Json::Value schema;
-			Json::Reader reader;
+			Json::CharReaderBuilder rbuilder;
+			Json::CharReader* reader = rbuilder.newCharReader();
 
-			reader.parse(JsonSchema::ParticleSeparationCV, schema);
+			reader->parse(JsonSchema::ParticleSeparationCV.c_str(),
+			              JsonSchema::ParticleSeparationCV.c_str() + JsonSchema::ParticleSeparationCV.size(),
+			              &schema, NULL);
 			validator.Parse(schema, path);
 
 			// Validate inputs.

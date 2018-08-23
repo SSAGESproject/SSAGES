@@ -70,7 +70,7 @@ private:
     size_t mapTo1d(const std::vector<int> &indices) const override
     {
         // Check if an index is out of bounds
-        for (size_t i=0; i < GridBase<T>::GetDimension(); ++i) {
+        for (size_t i = 0; i < GridBase<T>::GetDimension(); ++i) {
             int index = indices.at(i);
             int numpoints = GridBase<T>::numPoints_[i];
             if ( index < 0 || index >= numpoints )
@@ -81,7 +81,7 @@ private:
 
         size_t idx = 0;
         size_t fac = 1;
-        for (size_t i=0; i < GridBase<T>::GetDimension(); ++i) {
+        for (size_t i = 0; i < GridBase<T>::GetDimension(); ++i) {
             idx += indices.at(i) * fac;
             fac *= GridBase<T>::numPoints_[i];
         }
@@ -141,12 +141,15 @@ public:
      */
     static Grid<T>* BuildGrid(const Json::Value& json, const std::string& path)
     {
-        Json::ObjectRequirement validator;
-        Json::Value schema;
-        Json::Reader reader;
+		Json::ObjectRequirement validator;
+		Json::Value schema;
+		Json::CharReaderBuilder rbuilder;
+		Json::CharReader* reader = rbuilder.newCharReader();
 
-        reader.parse(JsonSchema::grid, schema);
-        validator.Parse(schema, path);
+		reader->parse(JsonSchema::grid.c_str(),
+		              JsonSchema::grid.c_str() + JsonSchema::grid.size(),
+		              &schema, NULL);
+		validator.Parse(schema, path);
 
         // Validate inputs.
         validator.Validate(json, path);
@@ -626,6 +629,9 @@ public:
     void LoadFromFile(const std::string& filename)
     {
         std::ifstream file(filename);
+	if (!file)
+		throw BuildException ({"Attempt to load grid " + filename + " unsuccessful."});
+
         std::string line, buff; 
 
         // Skip type for now. 
@@ -633,7 +639,7 @@ public:
 
         // Get dimension.
         {
-            int dim = 0;
+            size_t dim = 0;
             std::getline(file, line);
             std::istringstream iss(line);
             iss >> buff >> buff >> dim; 
@@ -651,13 +657,8 @@ public:
             auto counts = GridBase<T>::numPoints_;
             iss >> buff >> buff;
             for(int i = 0; iss >> count; ++i)
-            {
-				int period = 0;
-				if(GridBase<T>::isPeriodic_[i])
-				{
-					period++;
-				}				
-                if((count+period) != counts[i])
+            {				
+                if((count) != counts[i])
                     throw std::invalid_argument(filename + 
                     ": Expected count " + std::to_string(counts[i]) + 
                     " on dimension " + std::to_string(i) + " but got " + 
@@ -677,7 +678,7 @@ public:
 				double spacing = 0;
 				if(GridBase<T>::isPeriodic_[i])
 				{
-					spacing = (GridBase<T>::edges_.second[i] - GridBase<T>::edges_.first[i]) / GridBase<T>::numPoints_[i];
+					spacing = (GridBase<T>::edges_.second[i] - GridBase<T>::edges_.first[i]) / (GridBase<T>::numPoints_[i]);
 				}				
                 if(std::abs(lower-spacing/2 - lowers[i]) > 1e-8)
                     throw std::invalid_argument(filename + 
@@ -699,7 +700,7 @@ public:
 				double spacing = 0;
 				if(GridBase<T>::isPeriodic_[i])
 				{
-					spacing = (GridBase<T>::edges_.second[i] - GridBase<T>::edges_.first[i]) / GridBase<T>::numPoints_[i];
+					spacing = (GridBase<T>::edges_.second[i] - GridBase<T>::edges_.first[i]) / (GridBase<T>::numPoints_[i]);
 				}
                 if(std::abs((upper+spacing/2) - uppers[i]) > 1e-8)
                     throw std::invalid_argument(filename + 
@@ -733,7 +734,7 @@ public:
             std::istringstream iss(line);
             
             // Skip coordinates.
-            for(int i = 0; i < GridBase<T>::dimension_; ++i) 
+            for(size_t i = 0; i < GridBase<T>::dimension_; ++i) 
                 iss >> buff;
             
             iss >> d;

@@ -73,7 +73,6 @@ namespace SSAGES
         auto& forces = snapshot->GetForces();
         auto& positions = snapshot->GetPositions();
         auto& velocities = snapshot->GetVelocities();
-        auto& atomids = snapshot->GetAtomIDs();
 
         //First check if a previous snapshot was stored; the system is definitely initialized if so
         if(snapshot_stored)

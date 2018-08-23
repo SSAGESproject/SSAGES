@@ -52,6 +52,75 @@ TEST_F(GridTest, ReadWriteGrid)
 
 }
 
+
+TEST_F(GridTest, GridBounds)
+{
+
+	// Test GetLower, GetUpper with periodic and non-periodic bounds.
+	EXPECT_NEAR(grid->GetLower(0),-1.5, 1e-8);	
+	EXPECT_NEAR(grid->GetLower(1),-2.0, 1e-8);
+
+	EXPECT_NEAR(grid->GetUpper(0),10.0, 1e-8);	
+	EXPECT_NEAR(grid->GetUpper(1),6.7, 1e-8);
+
+	// Test GetLower, GetUpper with periodic and non-periodic bounds with vector output.
+	std::vector<double> lower = {-1.5,-2.0};
+	std::vector<double> upper = {10.0,6.7};
+
+	for(size_t i = 0; i < lower.size(); ++i)
+	{
+		EXPECT_NEAR(grid->GetLower()[i],lower[i], 1e-8);
+		EXPECT_NEAR(grid->GetUpper()[i],upper[i], 1e-8);
+	} 
+
+}
+
+TEST_F(GridTest, GridCenters)
+{
+	std::vector<double> bin00center = {1.375,-2.0};
+	std::vector<double> bin01center = {1.375,6.7};
+	std::vector<double> bin10center = {7.125,-2.0};
+	std::vector<double> bin11center = {7.125,6.7};
+
+	std::vector<double> output = grid->GetCoordinates({0,0});
+	for(size_t i = 0; i < output.size(); ++i)
+		EXPECT_NEAR(bin00center[i],output[i], 1e-8);
+
+	output = grid->GetCoordinates({0,1});
+	for(size_t i = 0; i < output.size(); ++i)
+		EXPECT_NEAR(bin01center[i],output[i], 1e-8);
+
+	output = grid->GetCoordinates({1,0});
+	for(size_t i = 0; i < output.size(); ++i)
+		EXPECT_NEAR(bin10center[i],output[i], 1e-8);
+
+	output = grid->GetCoordinates({1,1});
+	for(size_t i = 0; i < output.size(); ++i)
+		EXPECT_NEAR(bin11center[i],output[i], 1e-8);
+	
+}
+
+TEST_F(GridTest, SyncGrid)
+{
+	grid->at({-1.49,-1.9}) = 1.0;
+
+	auto* data1 = grid->data();
+	EXPECT_NEAR(data1[0],1.0, 1e-8);
+	EXPECT_NEAR(data1[1],0.0, 1e-8);
+	EXPECT_NEAR(data1[2],0.0, 1e-8);
+	EXPECT_NEAR(data1[3],0.0, 1e-8);
+
+	grid->syncGrid();
+
+	EXPECT_NEAR(data1[0],1.0, 1e-8);
+	EXPECT_NEAR(data1[1],0.0, 1e-8);
+	EXPECT_NEAR(data1[2],1.0, 1e-8);
+	EXPECT_NEAR(data1[3],0.0, 1e-8);
+
+}
+
+
+
 /*TEST_F(GridTest, Interpolation)
 {
 	// Fill grid with random numbers.

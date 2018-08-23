@@ -31,7 +31,7 @@ using namespace Json;
 
 namespace SSAGES
 {
-	void Logger::PreSimulation(Snapshot* snapshot, const CVManager& cvmanager)
+	void Logger::PreSimulation(Snapshot* /* snapshot */, const CVManager& cvmanager)
 	{
 		if(comm_.rank() == 0)
 		{
@@ -68,7 +68,7 @@ namespace SSAGES
 		}
 	}
 
-	void Logger::PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager)
+	void Logger::PostSimulation(Snapshot* /* snapshot */, const class CVManager& /* cvmanager */)
 	{
 	}
 
@@ -79,9 +79,12 @@ namespace SSAGES
 	{
 		ObjectRequirement validator;
 		Value schema;
-		Reader reader;
+		CharReaderBuilder rbuilder;
+		CharReader* reader = rbuilder.newCharReader();
 
-		reader.parse(JsonSchema::Logger, schema);
+		reader->parse(JsonSchema::Logger.c_str(),
+		              JsonSchema::Logger.c_str() + JsonSchema::Logger.size(),
+		              &schema, NULL);
 		validator.Parse(schema, path);
 		
 		// Validate inputs.

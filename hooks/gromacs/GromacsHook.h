@@ -70,15 +70,15 @@ namespace SSAGES
 			double potenergy,
 			double kb);
 
- 		template<typename T>
- 		void PushToGromacs(
- 			int natoms,
- 			int* indices, 
- 			int* types,
- 			T masses[],
- 			T positions[][3], 
- 			T velocities[][3],
- 			T forces[][3],
+		template<typename T>
+		void PushToGromacs(
+			int natoms,
+			int* indices,
+			int* types,
+			T masses[],
+			T positions[][3],
+			T velocities[][3],
+			T forces[][3],
 			T virial[3][3]);
 
 		~GromacsHook(){}

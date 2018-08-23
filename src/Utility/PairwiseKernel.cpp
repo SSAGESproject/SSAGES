@@ -48,9 +48,12 @@ namespace SSAGES
 	{
 		Json::ObjectRequirement validator;
 		Json::Value schema;
-		Json::Reader reader;
+		Json::CharReaderBuilder rbuilder;
+		Json::CharReader* reader = rbuilder.newCharReader();
 
-		reader.parse(JsonSchema::GaussianPK, schema);
+		reader->parse(JsonSchema::GaussianPK.c_str(),
+		              JsonSchema::GaussianPK.c_str() + JsonSchema::GaussianPK.size(),
+		              &schema, NULL);
 		validator.Parse(schema, path);
 
 		// Validate inputs.
@@ -75,9 +78,12 @@ namespace SSAGES
 	{
 		Json::ObjectRequirement validator;
 		Json::Value schema;
-		Json::Reader reader;
+		Json::CharReaderBuilder rbuilder;
+		Json::CharReader* reader = rbuilder.newCharReader();
 
-		reader.parse(JsonSchema::RationalSwitchPK, schema);
+		reader->parse(JsonSchema::RationalSwitchPK.c_str(),
+		              JsonSchema::RationalSwitchPK.c_str() + JsonSchema::RationalSwitchPK.size(),
+		              &schema, NULL);
 		validator.Parse(schema, path);
 
 		// Validate inputs.

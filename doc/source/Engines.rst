@@ -8,17 +8,17 @@ features between MD engines. This may be the result of engine limitations
 or work in progress. The table below summarizes the main features that 
 vary between supported engines. 
 
-+----------+---------------------+--------------+----------------+
-| Engine   | Supported versions  | Multi-walker | NPT virial     |
-+==========+=====================+==============+================+
-| LAMMPS   |    2010 or newer    |    yes       |   yes          |
-+----------+---------------------+--------------+----------------+ 
-| Gromacs  |    5.1.x, 2016.3    |    yes       |   yes          |
-+----------+---------------------+--------------+----------------+
-| OpenMD   |      2.4, 2.5       |    no        |   no           |
-+----------+---------------------+--------------+----------------+
-| Qbox     |   1.60 or newer     |    yes       |   no           |
-+----------+---------------------+--------------+----------------+
++----------+-----------------------+--------------+----------------+
+| Engine   |  Supported versions   | Multi-walker | NPT virial     |
++==========+=======================+==============+================+
+| LAMMPS   |     2010 or newer     |    yes       |   yes          |
++----------+-----------------------+--------------+----------------+ 
+| GROMACS  | 5.1.x, 2016.x, 2018.x |    yes       |   yes          |
++----------+-----------------------+--------------+----------------+
+| OpenMD   |          2.5          |    no        |   no           |
++----------+-----------------------+--------------+----------------+
+| Qbox     |     1.60 or newer     |    yes       |   no           |
++----------+-----------------------+--------------+----------------+
 
 Special instructions on how to use SSAGES with a particular engine are
 listed under the appropriate section. 
@@ -39,7 +39,7 @@ For example,
 	cmake -DLAMMPS=YES .. 
 	make
 
-will automatically download a recent version of LAMMPS (tagged ``r15407``) 
+will automatically download LAMMPS (version 30 Jul 2016, tagged ``r15407``)
 and compile SSAGES. Because many users may take advantage of optional LAMMPS
 packages, SSAGES forwards the make commands necessary to do so, such 
 as 
@@ -49,7 +49,14 @@ as
 	make yes-molecule
 	make yes-user-drude
 
-If a user is interested in using a different version of LAMMPS or one with 
+If a user is interested in using a different version of LAMMPS, SSAGES can
+download a specific stable release (must be supported) with
+
+.. code:: bash
+
+	cmake -DLAMMPS="5 Nov 2016" ..
+
+If a user is interested in using an already-downloaded source or one with
 personal modifications, then SSAGES can be pointed to that particular source 
 repository.
 
@@ -85,7 +92,8 @@ the run command, which will begin the advanced sampling simulation.
 .. note::
 
 	Due to the nature of how SSAGES forwards commands to LAMMPS, the use 
-	of ``include`` within a LAMMPS input script is currently not supported.
+	of ``include`` and ``label/jump`` within a LAMMPS input script is 
+	currently not supported.
 
 SSAGES is compatible with typical LAMMPS workflows that include equilibration 
 or energy minimzation steps before production. So long as the SSAGES fix is not 
@@ -95,15 +103,15 @@ The only LAMMPS-specific property required in a SSAGES input file is the ``input
 property which points to the LAMMPS input script. Details can be found on the 
 :ref:`input files page <inputfiles>`.
 
-Gromacs
+GROMACS
 ^^^^^^^
 
 Building
 ~~~~~~~~
 
-SSAGES supports Gromacs versions 5.1.x and 2016.3. To compile SSAGES with a 
-compatible version of Gromacs, either ``-DGROMACS=YES`` or 
-``-DGROMACS_SRC=/path/to/Gromacs`` must be specified in the cmake command. 
+SSAGES supports GROMACS versions 5.1.x, 2016.x, and 2018.x. To compile SSAGES
+with a compatible version of GROMACS, either ``-DGROMACS=YES`` or 
+``-DGROMACS_SRC=/path/to/GROMACS`` must be specified in the cmake command. 
 For example, 
 
 .. code:: bash 
@@ -111,8 +119,15 @@ For example,
 	cmake -DGROMACS=YES .. 
 	make
 
-will automatically download Gromacs 5.1.3 and compile SSAGES. 
-If a user is interested in using a different version of Gromacs or one with 
+will automatically download GROMACS 5.1.3 and compile SSAGES. 
+If a user is interested in using a different version of GROMACS, SSAGES can
+download a specific release (must be supported) with
+
+.. code:: bash
+
+	cmake -DGROMACS=2016.4 ..
+
+If a user is interested in using an already-downloaded source or one with
 personal modifications, then SSAGES can be pointed to that particular source 
 repository.
 
@@ -122,24 +137,45 @@ repository.
 
 .. warning:: 
 
-	Once you link SSAGES to a particular Gromacs source, you will be 
-	**unable** to compile that Gromacs source outside of SSAGES because of 
+	Once you link SSAGES to a particular GROMACS source, you will be 
+	**unable** to compile that GROMACS source outside of SSAGES because of 
 	SSAGES dependencies which are introduced. Be sure to backup your 
 	repository accordingly. 
 
 Running 
 ~~~~~~~
 
-SSAGES forwards arguments to the Gromacs **mdrun** library. The 
+SSAGES forwards arguments to the GROMACS **mdrun** library. The 
 ``args`` property must specified in the SSAGES input file as 
 described on the :ref:`input files page <inputfiles>`.
 
 OpenMD
 ^^^^^^^
 
-.. note:: 
+Building
+~~~~~~~~
 
-	Coming soon. 
+SSAGES supports OpenMD version 2.5. To compile SSAGES with a compatible 
+version of OpenMD, the location of the already-downloaded source must be 
+specified in the cmake command.
+
+.. code:: bash
+
+    cmake -DOPENMD_SRC=/path/to/OpenMD ..
+
+.. warning::
+
+	Once you link SSAGES to a particular OpenMD source, you will be 
+	**unable** to compile that OpenMD source outside of SSAGES because of  
+	SSAGES dependencies which are introduced. Be sure to backup your 
+	repository accordingly.
+
+Running
+~~~~~~~
+
+The only OpenMD-specific property required in a SSAGES input file is the ``input`` 
+property which points to the OpenMD input script. Details can be found on the 
+:ref:`input files page <inputfiles>`.
 
 Qbox
 ^^^^

@@ -158,6 +158,10 @@
 			"type" : "boolean"
 		},
 
+		"restart" : {
+			"type" : "boolean"
+		},
+
 		"frequency" : {
 			"type" : "integer",
 			"minimum" : 1

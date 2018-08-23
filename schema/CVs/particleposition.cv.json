@@ -1,5 +1,5 @@
 {
-	"typename" : "object",
+	"type" : "object",
 	"varname" : "ParticlePositionCV",
 	"properties" : {
 		"type" : { 
@@ -12,14 +12,6 @@
 			"maxItems" : 3,
 			"items" : {
 				"type" : "number"
-			}
-		},
-		"fix" : {
-			"type" : "array",
-			"minItems" : 3,
-			"maxItems" : 3,
-			"items" : {
-				"type" : "boolean"
 			}
 		},
 		"atom_ids" : {
@@ -38,10 +30,18 @@
 				"type" : "number"
 			}
 		}, 
+		"dimension" : {
+			"type" : "array",
+			"minItems" : 3,
+			"maxItems" : 3,
+			"items" : {
+				"type" : "boolean"
+			}
+		},
 		"name" : {
 			"type" : "string"
 		}
 	},
-	"required" : ["type", "atom_ids", "position", "fix"],
+	"required" : ["type", "atom_ids", "position"],
 	"additionalProperties" : false
 }

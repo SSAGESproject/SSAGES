@@ -31,6 +31,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <iomanip>
+#include <unistd.h>
 
 namespace SSAGES
 {
@@ -80,7 +81,14 @@ namespace SSAGES
 	 */
 	inline void PrintBoldNotice(const std::string& notice, int msgw)
 	{
-		std::cout << std::setw(msgw + 8) << std::left << "\033[1m" + notice + "\033[0m";
+		if(isatty(fileno(stdout)))
+		{
+			std::cout << std::setw(msgw + 8) << std::left << "\033[1m" + notice + "\033[0m";
+		}
+		else
+		{
+			std::cout << std::setw(msgw + 8) << std::left << notice;
+		}
 	}
 
 	//! Print a list of errors
@@ -93,7 +101,14 @@ namespace SSAGES
 	 */
 	inline int DumpErrorsToConsole(const std::vector<std::string>& msgs, int notw)
 	{
-		std::cout << std::setw(notw) << std::right << "\033[1;31mError(s)! See below.\033[0m\n";
+		if(isatty(fileno(stdout)))
+		{
+			std::cout << std::setw(notw) << std::right << "\033[1;31mError(s)! See below.\033[0m\n";
+		}
+		else
+		{
+			std::cout << std::setw(notw) << std::right << "Error(s)! See below.\n";
+		}
 		for(auto& msg : msgs)
 				std::cout << " * " << msg << "\n";
 		return -1;
@@ -107,7 +122,14 @@ namespace SSAGES
 	 */
 	inline void DumpNoticesToConsole(const std::vector<std::string>& msgs, std::string prefix, int notw)
 	{
-		std::cout << std::setw(notw) << std::right << "\033[32mOK!\033[0m\n";
+		if(isatty(fileno(stdout)))
+		{
+			std::cout << std::setw(notw) << std::right << "\033[32mOK!\033[0m\n";
+		}
+		else
+		{
+			std::cout << std::setw(notw) << std::right << "OK!\n";
+		}
 		if(msgs.size() == 0)
 			return;
 		

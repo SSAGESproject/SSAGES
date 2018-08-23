@@ -130,7 +130,7 @@ namespace SSAGES
         MPI_Allgather(&success_local,1,MPI_UNSIGNED,successes.data(),1,MPI_UNSIGNED,world_);
 
         int success_count = 0;
-        for (size_t i = 0; i < world_.size(); i++)
+        for (int i = 0; i < world_.size(); i++)
 		{
 			// Since we are in State A, the values of lprev, nprev, aprev are all zero.
 			if (successes[i] == true)
@@ -632,9 +632,12 @@ namespace SSAGES
 	{
 		ObjectRequirement validator;
 		Value schema;
-		Reader reader;
+		CharReaderBuilder rbuilder;
+		CharReader* reader = rbuilder.newCharReader();
 
-		reader.parse(JsonSchema::ForwardFluxMethod, schema);
+		reader->parse(JsonSchema::ForwardFluxMethod.c_str(),
+		              JsonSchema::ForwardFluxMethod.c_str() + JsonSchema::ForwardFluxMethod.size(),
+		              &schema, NULL);
 		validator.Parse(schema, path);
 
 		// Validate inputs.

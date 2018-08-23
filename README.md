@@ -5,20 +5,17 @@ SSAGES
 It is designed to be easy to use, extendable and extremely versatile. It is currently pre-beta, meaning that there are many rough edges, but we are working rapidly 
 to expand its features and fix any bugs. Keep an eye on this page for future updates and see below on how to contribute!
 
-## What's New (v0.8.0)
-- Added ANN sampling! 
-- More documentation updates
-- Updates to examples 
-- Added Fourier and Chebyshev basis sets to BFS 
-- Added 3D ABF integrator
-- Improved periodicity handling on grid
-- Secondary structure CV bug fixes 
-- Improved Qbox integration
-
+## What's New (v0.8.2)
+- Grid internal updates
+- ABF Integrator handles interpolation in each direction independently
+- ABF restarts now handled with JSON member
+- GyrationTensorCV can be projected into any number of dimensions
+- Documentation updates
+- Several bugfixes (See commits)
 
 <a id="features"></a>
 ## Features
-**SSAGES** currently works with LAMMPS and Gromacs molecular dynamics engines. It contains a variety of collective variables (CVs) and advanced sampling methods. 
+**SSAGES** currently works with multiple molecular dynamics engines. It contains a variety of collective variables (CVs) and advanced sampling methods. 
 
 ### Highlights 
 - Engine agnostic framework 
@@ -28,9 +25,9 @@ to expand its features and fix any bugs. Keep an eye on this page for future upd
 - Much more!
 
 ### Engines 
-- Gromacs 5.x.x, 2016.3
+- GROMACS 5.1.x, 2016.x, 2018.x
 - LAMMPS (Most recent versions)
-- OpenMD (2.4+)
+- OpenMD (2.5+)
 - QBox (1.63+)
 
 ### CVs
@@ -146,6 +143,28 @@ or
 ```bash
 $ firefox doc/Manual/index.html
 ```
+
+## What's Old (v0.8.1)
+- GROMACS support for all 5.1.x, 2016.x, 2018.x!
+- Better CMake handling for Hooks
+- Handling of LAMMPS line continuations (&)
+- Correct handling of multiprocessor ABF method
+- BFS method cleanup
+- Minor documentation updates
+- Eigen include update (3.3.4)
+- googletest include update (1.8.0)
+- jsoncpp include update
+
+## What's Old (v0.8.0)
+- Added ANN sampling!
+- More documentation updates
+- Updates to examples
+- Added Fourier and Chebyshev basis sets to BFS
+- Added 3D ABF integrator
+- Improved periodicity handling on grid
+- Secondary structure CV bug fixes
+- Improved Qbox integration
+
 ## What's Old (v0.7.5)
 - Major documentation update!
 - Major examples update! 

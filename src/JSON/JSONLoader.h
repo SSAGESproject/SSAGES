@@ -81,12 +81,17 @@ namespace SSAGES
 				plugin->ApplyFilter(contents, path);
 
 			// Read JSON.
-			Json::Reader reader;
 			Json::Value root;
-			if(!reader.parse(contents, root))
+			std::string errors;
+			Json::CharReaderBuilder rbuilder;
+			Json::CharReader* reader = rbuilder.newCharReader();
+			if(!reader->parse(contents.c_str(), contents.c_str() + contents.size(), &root, &errors))
+			{
 				throw std::invalid_argument(
-					filename + ": " + reader.getFormattedErrorMessages()
+					filename + ": " + errors
 				);
+			}
+			delete reader;
 			return root;
 		}
 	};
