@@ -1,22 +1,29 @@
 {
-	"logfile" : "node-1",
+	"logger" :
+	{
+		"output_file" :
+		[
+			"node-0",
+			"node-1"
+		]
+	},
 	"walkers" : 2,
 	"input" : ["in.NaCl_ABF_example0","in.NaCl_ABF_example1"],
-	"CVs":   [
-                {
-                    "type" : "ParticleSeparation",
-                    "group1" : [319],
-                    "group2" : [320]
-                }
-            ],
-            "methods" : [{
-                "type" : "ABF",
+	"CVs":
+	[{
+		"type" : "ParticleSeparation",
+		"group1" : [319],
+		"group2" : [320]
+	}],
+	"methods" :
+	[{
+		"type" : "ABF",
 		"cvs" : [0],
-  		"CV_lower_bounds" : [2.2],
-                "CV_upper_bounds" : [7.0],
+		"CV_lower_bounds" : [2.2],
+		"CV_upper_bounds" : [7.0],
 		"CV_bins" : [40],
-  		"CV_restraint_minimums" : [2.0],
-                "CV_restraint_maximums" : [7.2],
+		"CV_restraint_minimums" : [2.0],
+		"CV_restraint_maximums" : [7.2],
 		"CV_restraint_spring_constants" : [1000],
 		"CV_isperiodic" : [false],
 		"timestep" : 2,
@@ -25,7 +32,7 @@
 		"output_frequency" : 1000,
 		"unit_conversion" : 2390.06,
 		"frequency" : 1
-            }]
+	}]
 }
-    
+
 

@@ -1,20 +1,30 @@
 {
-    "args" : ["-v","-deffnm","adp"],
-	"logfile" : "log",
+	"args" : ["-v","-deffnm","adp"],
+	"logger" :
+	{
+		"output_file" :
+		[
+			"log0",
+			"log1",
+		]
+	},
 	"walkers": 2,
-	"CVs" : [
+	"CVs" :
+	[
 		{
 			"type" : "Torsional",
 			"periodic" : true,
-			"atom_ids" : [
+			"atom_ids" :
+			[
 				5,
 				7,
 				9,
 				15
 			]
 		}
-    ],
-	"methods" : [
+	],
+	"methods" :
+	[
 		{
 			"type" : "ForwardFlux",
 			"flavor" : "DirectForwardFlux",

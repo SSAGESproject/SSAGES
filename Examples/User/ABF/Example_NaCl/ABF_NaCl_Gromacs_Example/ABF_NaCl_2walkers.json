@@ -1,22 +1,29 @@
 {
-	"logfile" : "node-1",
+	"logger" :
+	{
+		"output_file" :
+		[
+			"node-0",
+			"node-1"
+		]
+	},
 	"walkers" : 2,
 	"args" : ["-v","-deffnm","example_NaCl"],
-	"CVs":   [
-                {
-                    "type" : "ParticleSeparation",
-                    "group1" : [318],
-                    "group2" : [319]
-                }
-            ],
-            "methods" : [{
-                "type" : "ABF",
+	"CVs":
+	[{
+		"type" : "ParticleSeparation",
+		"group1" : [318],
+		"group2" : [319]
+	}],
+	"methods" :
+	[{
+		"type" : "ABF",
 		"cvs" : [0],
-  		"CV_lower_bounds" : [0.24],
-                "CV_upper_bounds" : [0.68],
+		"CV_lower_bounds" : [0.24],
+		"CV_upper_bounds" : [0.68],
 		"CV_bins" : [40],
-  		"CV_restraint_minimums" : [0.22],
-                "CV_restraint_maximums" : [0.70],
+		"CV_restraint_minimums" : [0.22],
+		"CV_restraint_maximums" : [0.70],
 		"CV_restraint_spring_constants" : [1000],
 		"CV_isperiodic" : [false],
 		"timestep" : 0.002,
@@ -25,7 +32,7 @@
 		"output_frequency" : 1000,
 		"unit_conversion" : 1,
 		"frequency" : 1
-            }]
+	}]
 }
-    
+
 
