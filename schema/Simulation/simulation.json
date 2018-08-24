@@ -6,10 +6,10 @@
 			"oneOf" : [
 				{
 					"type" : "string"
-				}, 
+				},
 				{
-					"type" : "array", 
-					"minItems" : 1, 
+					"type" : "array",
+					"minItems" : 1,
 					"items" : {
 						"type" : "string"
 					}
@@ -17,7 +17,7 @@
 			]
 		},
 		"walkers" : {
-			"type" : "integer", 
+			"type" : "integer",
 			"minimum" : 1
 		},
 		"CVs" : {
@@ -37,12 +37,24 @@
 			"type" : "object"
 		},
 		"args" : {
-			"type" : "array", 
-			"minItems" : 1, 
+			"type" : "array",
+			"minItems" : 1,
 			"items" : {
 				"type" : "string"
 			}
+		},
+		"md_iterations" : {
+			"type" : "integer",
+			"minimum" : 1
+		},
+		"qm_iterations" : {
+			"type" : "integer",
+			"minimum" : 1
+		},
+		"wf_iterations" : {
+			"type" : "integer",
+			"minimum" : 1
 		}
 	},
-	"additionalProperties": true
+	"additionalProperties": false
 }
