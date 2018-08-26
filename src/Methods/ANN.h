@@ -86,6 +86,9 @@ namespace SSAGES
 		//! Output filename. 
 		std::string outfile_;
 
+		//! Is the network preloaded?
+		bool preloaded_;
+
 		//! Overwrite outputs? 
 		bool overwrite_;
 

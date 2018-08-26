@@ -48,7 +48,7 @@ namespace SSAGES
 	citers_(0), net_(topol), pweight_(1.), weight_(weight), temp_(temperature), 
 	kbt_(0), fgrid_(fgrid), hgrid_(hgrid), ugrid_(ugrid), hist_(), bias_(),
 	lowerb_(lowerb), upperb_(upperb), lowerk_(lowerk), upperk_(upperk),
-	outfile_("ann.out"), overwrite_(true)
+	outfile_("ann.out"), preloaded_(false), overwrite_(true)
 	{
 		// Create histogram grid matrix.
 		hist_.resize(hgrid_->size(), hgrid_->GetDimension());
@@ -77,7 +77,16 @@ namespace SSAGES
 		// Zero out forces and histogram. 
 		VectorXd vec = VectorXd::Zero(ndim);
 		std::fill(hgrid_->begin(), hgrid_->end(), 0);
-		std::fill(ugrid_->begin(), ugrid_->end(), 1.0);
+
+		if(preloaded_)
+		{
+			net_.forward_pass(hist_);
+			bias_.array() = net_.get_activation().col(0).array();
+			TrainNetwork();
+		}
+		else
+			std::fill(ugrid_->begin(), ugrid_->end(), 1.0);
+		
 		std::fill(fgrid_->begin(), fgrid_->end(), vec);
 	}
 
@@ -234,7 +243,7 @@ namespace SSAGES
 	void ANN::ReadBias(const std::string& netstate, const std::string& filename)
 	{
 		net_ = nnet::neural_net(netstate.c_str());
-		
+	
 		std::ifstream file(filename, std::ios::in);
 		if(file)
 		{
@@ -242,14 +251,13 @@ namespace SSAGES
 			{
 				double burn = 0.0;
 				for(int j = 0; j < hist_.cols(); ++j)
-				{
 					file >> burn;
-				}
+				
 				file >> ugrid_->data()[i]; 
 				file >> burn;
 			}
-			
-			TrainNetwork();
+
+			preloaded_ = true;		
 		}		
 	}
 

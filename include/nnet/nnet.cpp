@@ -2,6 +2,7 @@
 #include <fstream>
 #include <assert.h>
 #include <cmath>
+#include <random>
 #include <Eigen/Dense>
 #include "nnet.h"
 
@@ -13,7 +14,7 @@ namespace nnet
     {
         assert(topology.size()>1);
         init_layers(topology);
-        init_weights(0.5);
+        init_weights();
         autoscale_reset();
     }
 
@@ -72,14 +73,25 @@ namespace nnet
         tparams_ = {0.005, 1.e10, 10.0, 1.e-7, 0, 1000};
     }
 
-    void neural_net::init_weights(f_type sd) 
+    void neural_net::init_weights() 
     {
-        for (size_t i = 1; i < layers_.size(); ++i) 
+        std::random_device rd{};
+        std::mt19937 gen{rd()};
+
+        for (int i = 1; i < layers_.size(); ++i) 
         {
-            layers_[i].W.setRandom();
-            layers_[i].b.setRandom();
-            layers_[i].W *= sd;
-            layers_[i].b *= sd;
+            f_type beta = 0.7*std::pow(layers_[i].size, 1.0/layers_[i-1].size);
+            f_type range = 2.0;
+            
+            std::uniform_real_distribution<> d{-1, 1};
+            layers_[i].W = layers_[i].W.unaryExpr([&](f_type x){ return d(gen); });
+            layers_[i].W.rowwise().normalize();
+            layers_[i].W *= range*beta;
+
+            if(layers_[i].size == 1)
+                layers_[i].b.setZero();
+            else 
+                layers_[i].b = range*beta*layers_[i].b.unaryExpr([&](f_type x){ return d(gen); });
         }
     }
 
@@ -366,7 +378,7 @@ namespace nnet
             file << static_cast<int>(layers_.size()) << std::endl;
 
             // topology
-            for (size_t i = 0; i < layers_.size() - 1; ++i) 
+            for (int i = 0; i < layers_.size() - 1; ++i) 
                 file << static_cast<int>(layers_[i].size) << " ";
             file << static_cast<int>(layers_.back().size) << std::endl;
 
@@ -383,7 +395,7 @@ namespace nnet
             file << y_shift_[y_shift_.size()-1] << std::endl;
             
             // weights
-            for (size_t i = 1; i < layers_.size(); ++i) 
+            for (int i = 1; i < layers_.size(); ++i) 
             {
                 auto& layer = layers_[i];
                 for(int j = 0; j < layer.b.size(); ++j) file << layer.b(j) << std::endl;
