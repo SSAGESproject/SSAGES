@@ -190,6 +190,9 @@ namespace SSAGES
 			net_.set_train_params(params);			
 		}
 
+		//! Load network state and bias from file. 
+		void ReadBias(const std::string&, const std::string&);
+
 		//! \copydoc Method::BuildMethod()
 		static ANN* Build(
 			const Json::Value& json,

@@ -231,6 +231,28 @@ namespace SSAGES
 		file.close();
 	}
 
+	void ANN::ReadBias(const std::string& netstate, const std::string& filename)
+	{
+		net_ = nnet::neural_net(netstate.c_str());
+		
+		std::ifstream file(filename, std::ios::in);
+		if(file)
+		{
+			for(size_t i = 0; i < hist_.rows(); ++i)
+			{
+				double burn = 0.0;
+				for(int j = 0; j < hist_.cols(); ++j)
+				{
+					file >> burn;
+				}
+				file >> ugrid_->data()[i]; 
+				file >> burn;
+			}
+			
+			TrainNetwork();
+		}		
+	}
+
 	ANN* ANN::Build(
 		const Json::Value& json, 
 		const MPI_Comm& world,
@@ -288,6 +310,9 @@ namespace SSAGES
 		m->SetConvergeIters(json.get("converge_iters", 0).asUInt());
 		m->SetMaxIters(json.get("max_iters", 1000).asUInt());
 		m->SetMinLoss(json.get("min_loss", 0).asDouble());
+
+		if(json.isMember("net_state") && json.isMember("load_bias"))
+			m->ReadBias(json["net_state"].asString(), json["load_bias"].asString());
 
 		return m;
 	}
