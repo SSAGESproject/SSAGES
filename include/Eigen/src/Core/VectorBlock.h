@@ -13,23 +13,13 @@
 
 namespace Eigen { 
 
-namespace internal {
-template<typename VectorType, int Size>
-struct traits<VectorBlock<VectorType, Size> >
-  : public traits<Block<VectorType,
-                     traits<VectorType>::Flags & RowMajorBit ? 1 : Size,
-                     traits<VectorType>::Flags & RowMajorBit ? Size : 1> >
-{
-};
-}
-
 /** \class VectorBlock
   * \ingroup Core_Module
   *
   * \brief Expression of a fixed-size or dynamic-size sub-vector
   *
-  * \tparam VectorType the type of the object in which we are taking a sub-vector
-  * \tparam Size size of the sub-vector we are taking at compile time (optional)
+  * \param VectorType the type of the object in which we are taking a sub-vector
+  * \param Size size of the sub-vector we are taking at compile time (optional)
   *
   * This class represents an expression of either a fixed-size or dynamic-size sub-vector.
   * It is the return type of DenseBase::segment(Index,Index) and DenseBase::segment<int>(Index) and
@@ -53,6 +43,17 @@ struct traits<VectorBlock<VectorType, Size> >
   *
   * \sa class Block, DenseBase::segment(Index,Index,Index,Index), DenseBase::segment(Index,Index)
   */
+
+namespace internal {
+template<typename VectorType, int Size>
+struct traits<VectorBlock<VectorType, Size> >
+  : public traits<Block<VectorType,
+                     traits<VectorType>::Flags & RowMajorBit ? 1 : Size,
+                     traits<VectorType>::Flags & RowMajorBit ? Size : 1> >
+{
+};
+}
+
 template<typename VectorType, int Size> class VectorBlock
   : public Block<VectorType,
                      internal::traits<VectorType>::Flags & RowMajorBit ? 1 : Size,
@@ -71,7 +72,6 @@ template<typename VectorType, int Size> class VectorBlock
 
     /** Dynamic-size constructor
       */
-    EIGEN_DEVICE_FUNC
     inline VectorBlock(VectorType& vector, Index start, Index size)
       : Base(vector,
              IsColVector ? start : 0, IsColVector ? 0 : start,
@@ -82,7 +82,6 @@ template<typename VectorType, int Size> class VectorBlock
 
     /** Fixed-size constructor
       */
-    EIGEN_DEVICE_FUNC
     inline VectorBlock(VectorType& vector, Index start)
       : Base(vector, IsColVector ? start : 0, IsColVector ? 0 : start)
     {

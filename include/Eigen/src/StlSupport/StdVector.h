@@ -44,9 +44,6 @@ namespace std \
   }; \
 }
 
-// Don't specialize if containers are implemented according to C++11
-#if !EIGEN_HAS_CXX11_CONTAINERS
-
 namespace std {
 
 #define EIGEN_STD_VECTOR_SPECIALIZATION_BODY \
@@ -125,7 +122,5 @@ namespace std {
 #endif
   };
 }
-#endif // !EIGEN_HAS_CXX11_CONTAINERS
-
 
 #endif // EIGEN_STDVECTOR_H
