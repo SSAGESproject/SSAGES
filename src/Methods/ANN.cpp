@@ -241,12 +241,12 @@ namespace SSAGES
 	}
 
 	void ANN::ReadBias(const std::string& netstate, const std::string& filename)
-	{
-		net_ = nnet::neural_net(netstate.c_str());
-	
+	{	
 		std::ifstream file(filename, std::ios::in);
 		if(file)
 		{
+			net_ = nnet::neural_net(netstate.c_str());
+			
 			for(size_t i = 0; i < hist_.rows(); ++i)
 			{
 				double burn = 0.0;
