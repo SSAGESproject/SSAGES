@@ -1,0 +1,18 @@
+{
+    "input": "Butane_SSAGES.py",
+    "hoomd_args": "",
+    "hoomd_steps": 1000000,
+    "walkers": 1,
+    "CVs": [{
+        "type": "Torsional",
+        "atom_ids": [0, 4, 7, 10],
+        "periodic": true
+    }],
+    "methods": [{
+        "type" : "Umbrella",
+        "ksprings" : [20],
+        "centers" : [1.0],
+        "output_file" : ["umbrella.dat1"],
+        "output_frequency" : 100
+    }]
+}

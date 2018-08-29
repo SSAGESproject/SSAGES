@@ -73,7 +73,8 @@ namespace SSAGES
 		std::vector<std::string> validmembers =
 		{
 			"input","args","walkers","CVs","methods","logger",
-			"md_iterations","qm_iterations","wf_iterations"
+			"md_iterations","qm_iterations","wf_iterations",
+			"hoomd_args","hoomd_steps"
 		};
 		std::vector<std::string> members = json.getMemberNames();
 		for(auto& m : members)
