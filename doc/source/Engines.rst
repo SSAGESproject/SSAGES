@@ -302,7 +302,7 @@ HOOMD-blue
 Building
 ~~~~~~~~
 
-HOOMD-blue supports SSAGES on the current ``master`` branch as of 2018-08-01, and will be supported in releases v2.4.0 and later.
+HOOMD-blue supports SSAGES on the current ``master`` branch as of 2018-08-01, and will be supported in releases v2.4.0 and later. HOOMD-blue must be built with **MPI support enabled**.
 Specify the ``cmake`` flag ``-DHOOMD_SRC=/path/to/hoomd/include``, pointing to the HOOMD-blue ``include`` path.
 
 Running
@@ -316,4 +316,4 @@ This script should contain necessary ``import`` statements, configure the simula
 However, the simulation user script should *not* call ``hoomd.run(steps)`` as this will be called for the user by SSAGES.
 
 To set `HOOMD-blue command-line options <http://hoomd-blue.readthedocs.io/en/stable/command-line-options.html>`_, use the SSAGES JSON input file.
-Set the key ``"cmd_args"`` with a string of command line options that will be passed to ``hoomd.context.initialize()``.
+Set the key ``"hoomd_args"`` with a string of command line options that will be passed to ``hoomd.context.initialize()``.

@@ -2,7 +2,7 @@
  * This file is part of
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
- * Copyright 2017 Hythem Sidky <hsidky@nd.edu>
+ * Copyright 2018 Bradley Dice <bdice@bradleydice.com>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,8 +21,8 @@
 
 #include <mpi.h>
 #include "json/json.h"
-#include "SSAGESHOOMDHook.h"
-#include <hoomd/ExecutionConfiguration.h>
+#include "HOOMDHook.h"
+#include "hoomd/ExecutionConfiguration.h"
 
 
 namespace py = pybind11;
@@ -40,7 +40,7 @@ namespace SSAGES
         class ResourceHandler* rh_;
 
 		//! HOOMD hook.
-		class std::shared_ptr<SSAGESHOOMDHook> hook_;
+		class std::shared_ptr<HOOMDHook> hook_;
 
         //! HOOMD ExecutionConfiguration
         class std::shared_ptr<ExecutionConfiguration> exec_conf_;
@@ -52,7 +52,7 @@ namespace SSAGES
         std::string cmd_args_;
 
     public:
-        Driver(class ResourceHandler* rh, std::shared_ptr<SSAGESHOOMDHook> hook,
+        Driver(class ResourceHandler* rh, std::shared_ptr<HOOMDHook> hook,
                std::shared_ptr<ExecutionConfiguration> exec_conf) :
         rh_(rh), hook_(hook), exec_conf_(exec_conf)
         {}

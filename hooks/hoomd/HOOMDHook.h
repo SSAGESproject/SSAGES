@@ -9,7 +9,7 @@
 
 
 // SSAGES Hook class for HOOMD
-class SSAGESHOOMDHook : public SSAGES::Hook, public HalfStepHook
+class HOOMDHook : public SSAGES::Hook, public HalfStepHook
 {
     private:
         // HOOMD Timestep
@@ -29,7 +29,7 @@ class SSAGESHOOMDHook : public SSAGES::Hook, public HalfStepHook
         void SyncToSnapshot() override;
 
     public:
-        SSAGESHOOMDHook();
+        HOOMDHook();
 
         // Sets SystemDefinition to enable particle data access
         void setSystemDefinition(std::shared_ptr<SystemDefinition> sysdef)
@@ -46,7 +46,7 @@ class SSAGESHOOMDHook : public SSAGES::Hook, public HalfStepHook
         // Synchronize snapshot with SSAGES after computing forces
         void update(unsigned int timestep);
 
-        ~SSAGESHOOMDHook();
+        ~HOOMDHook();
 };
 
 #endif

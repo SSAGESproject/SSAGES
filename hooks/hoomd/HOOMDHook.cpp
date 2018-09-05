@@ -1,25 +1,25 @@
 #include <iostream>
 #include <numeric>
-#include "SSAGESHOOMDHook.h"
+#include "HOOMDHook.h"
 #include "Snapshot.h"
 
 using namespace SSAGES;
 
-SSAGESHOOMDHook::SSAGESHOOMDHook() :
+HOOMDHook::HOOMDHook() :
 Hook(), HalfStepHook()
 {
   std::cerr << "Installing SSAGES HOOMD-blue hook." << std::endl;
 }
 
 
-void SSAGESHOOMDHook::update(unsigned int timestep)
+void HOOMDHook::update(unsigned int timestep)
 {
     timestep_ = timestep;
     SyncToSnapshot();
     Hook::PostIntegrationHook();
 }
 
-void SSAGESHOOMDHook::SyncToSnapshot() //put HOOMD values -> Snapshot
+void HOOMDHook::SyncToSnapshot() //put HOOMD values -> Snapshot
 {
     const auto pdata = sysdef_->getParticleData();
     unsigned int n = pdata->getN();
@@ -129,7 +129,7 @@ void SSAGESHOOMDHook::SyncToSnapshot() //put HOOMD values -> Snapshot
 
 }
 
-void SSAGESHOOMDHook::SyncToEngine() //put Snapshot values -> HOOMD
+void HOOMDHook::SyncToEngine() //put Snapshot values -> HOOMD
 {
     // Obtain local const reference to snapshot variables.
     // Const will ensure that snapshot_ variables are
@@ -206,4 +206,4 @@ void SSAGESHOOMDHook::SyncToEngine() //put Snapshot values -> HOOMD
     }
 }
 
-SSAGESHOOMDHook::~SSAGESHOOMDHook() {}
+HOOMDHook::~HOOMDHook() {}

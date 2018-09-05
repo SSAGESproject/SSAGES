@@ -1,5 +1,5 @@
 # List of supported versions of HOOMD
-#set (SUPPORTED_HOOMD_VERSIONS "2.x")
+#set(SUPPORTED_HOOMD_VERSIONS "2.x")
 
 if (HOOMD_SRC)
     # Get absolute path in case user specified relative path
@@ -19,7 +19,7 @@ if (HOOMD_SRC)
     if (NOT EXISTS ${HOOMD_SRC}/ExecutionConfiguration.h)
         # Check if subdirectory was not specified
         if (EXISTS ${HOOMD_SRC}/hoomd/ExecutionConfiguration.h)
-            set (HOOMD_SRC ${HOOMD_SRC}/hoomd)
+            set(HOOMD_SRC ${HOOMD_SRC}/hoomd PARENT_SCOPE)
         else (EXISTS ${HOOMD_SRC}/hoomd/ExecutionConfiguration.h)
             # Directory does not contain HOOMD source
             message (FATAL_ERROR "\nERROR: Directory ${HOOMD_SRC} does not "
@@ -32,7 +32,7 @@ else ()
 endif ()
 
 set(HOOKSRC
-    hooks/hoomd/SSAGESHOOMDHook.cpp
+    hooks/hoomd/HOOMDHook.cpp
     PARENT_SCOPE
 )
 

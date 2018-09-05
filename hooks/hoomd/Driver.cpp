@@ -2,7 +2,7 @@
  * This file is part of
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
- * Copyright 2017 Hythem Sidky <hsidky@nd.edu>
+ * Copyright 2018 Bradley Dice <bdice@bradleydice.com>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,10 +22,10 @@
 #include "Driver.h"
 #include "ResourceHandler.h"
 #include <Python.h>
-#include <hoomd/extern/pybind/include/pybind11/pybind11.h>
-#include <hoomd/extern/pybind/include/pybind11/embed.h>
-#include <hoomd/SystemDefinition.h>
-#include <hoomd/Integrator.h>
+#include "hoomd/extern/pybind/include/pybind11/pybind11.h"
+#include "hoomd/extern/pybind/include/pybind11/embed.h"
+#include "hoomd/SystemDefinition.h"
+#include "hoomd/Integrator.h"
 
 
 namespace py = pybind11;
@@ -52,12 +52,12 @@ namespace SSAGES
         py::eval_file(rh_->GetInput().c_str());
         py::object context = hoomd_module.attr("context").attr("current");
 
-        // Get the current C++ SystemDefinition and update the SSAGESHOOMDHook
+        // Get the current C++ SystemDefinition and update the HOOMDHook
         py::object sysdef_obj = context.attr("system_definition");
         std::shared_ptr<SystemDefinition> sysdef = sysdef_obj.cast<std::shared_ptr<SystemDefinition> >();
         hook_->setSystemDefinition(sysdef);
 
-        // Get the current C++ Integrator and set the SSAGESHOOMDHook
+        // Get the current C++ Integrator and set the HOOMDHook
         py::object integrator_obj = context.attr("integrator").attr("cpp_integrator");
         std::shared_ptr<Integrator> integrator = integrator_obj.cast<std::shared_ptr<Integrator> >();
         integrator->setHalfStepHook(hook_);
@@ -99,7 +99,7 @@ namespace SSAGES
           execution_mode, -1, false, false,
           std::shared_ptr<Messenger>(), 0, rh->GetLocalComm());
 
-        auto hook = std::make_shared<SSAGESHOOMDHook>();
+        auto hook = std::make_shared<HOOMDHook>();
         // This uses .get() on a shared_ptr because SSAGES doesn't accept
         // shared pointers. There may be a better way to do this
         rh->ConfigureHook(dynamic_cast<Hook*>(hook.get()));

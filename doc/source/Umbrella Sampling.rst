@@ -189,7 +189,7 @@ Sample output files from this example code are in the ``Examples/User/Umbrella/H
    b) ``umbrella_input.json``
 
       * ``ksprings`` gives the bias potential spring strength.
-      * ``steps`` changes the length of the run.
+      * ``hoomd_steps`` changes the length of the run.
 
    Most of the other parameters are used to define the system and collective variables and should not be changed.
 
