@@ -14,7 +14,7 @@
 # as a convenience (for the intended purpose of this find script), all include directories and definitions needed
 # to compile with all the various libs (boost, python, winsoc, etc...) are set within this script
 
-set(HOOMD_ROOT "" CACHE FILEPATH "Directory containing a hoomd installation (i.e. _hoomd.so)")
+set(HOOMD_ROOT "" CACHE FILEPATH "Directory containing a HOOMD installation (i.e. _hoomd.so)")
 
 # Let HOOMD_ROOT take precedence, but if unset, try letting Python find a hoomd package in its default paths.
 if(HOOMD_ROOT)
@@ -40,10 +40,10 @@ find_path(FOUND_HOOMD_ROOT
         )
 
 if(FOUND_HOOMD_ROOT)
-  set(HOOMD_ROOT ${FOUND_HOOMD_ROOT} CACHE FILEPATH "Directory containing a hoomd installation (i.e. _hoomd.so)" FORCE)
-  message(STATUS "Found hoomd installation at " ${HOOMD_ROOT})
+  set(HOOMD_ROOT ${FOUND_HOOMD_ROOT} CACHE FILEPATH "Directory containing a HOOMD installation (i.e. _hoomd.so)" FORCE)
+  message(STATUS "Found HOOMD installation at " ${HOOMD_ROOT})
 else(FOUND_HOOMD_ROOT)
-  message(FATAL_ERROR "Could not find hoomd installation, either set HOOMD_ROOT or set PYTHON_EXECUTABLE to a python which can find hoomd")
+  message(FATAL_ERROR "Could not find HOOMD installation, either set HOOMD_ROOT or set PYTHON_EXECUTABLE to a Python which can find HOOMD.")
 endif(FOUND_HOOMD_ROOT)
 
 # search for the hoomd include directory
@@ -64,7 +64,7 @@ if (HOOMD_INCLUDE_DIR AND HOOMD_ROOT)
 endif (HOOMD_INCLUDE_DIR AND HOOMD_ROOT)
 
 if (NOT HOOMD_FOUND)
-    message(SEND_ERROR "HOOMD Not found. Please specify the location of your hoomd installation in HOOMD_ROOT")
+    message(SEND_ERROR "HOOMD Not found. Please specify the location of your HOOMD installation in HOOMD_ROOT.")
 endif (NOT HOOMD_FOUND)
 
 #############################################################
