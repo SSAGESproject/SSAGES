@@ -141,6 +141,10 @@ Args
 
 	"args" : ["-v", "-deffnm", "runfile"]
 
+.. code-block:: javascript
+
+	"args" : "-v -deffnm runfile"
+
 SSAGES invokes the **mdrun** library within Gromacs. Similar to how a standard simulation
 is invoked with Gromacs using ``gmx mdrun -deffnm runfile`` to execute a ``runfile.tpr`` 
 binary, the equivalent arguments must be specified in the ``args`` property. This provides 
