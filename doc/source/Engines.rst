@@ -316,4 +316,4 @@ This script should contain necessary ``import`` statements, configure the simula
 However, the simulation user script should *not* call ``hoomd.run(steps)`` as this will be called for the user by SSAGES.
 
 To set `HOOMD-blue command-line options <http://hoomd-blue.readthedocs.io/en/stable/command-line-options.html>`_, use the SSAGES JSON input file.
-Set the key ``"hoomd_args"`` with a string of command line options that will be passed to ``hoomd.context.initialize()``.
+Set the key ``"args"`` with a string of command line options that will be passed to ``hoomd.context.initialize()``.

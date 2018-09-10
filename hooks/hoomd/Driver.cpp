@@ -83,7 +83,29 @@ namespace SSAGES
     {
         auto* rh = ResourceHandler::Build(json, world);
 
-        auto cmd_args = json.get("hoomd_args", "").asString();
+
+        std::string cmd_args;
+
+        if (json.isMember("args"))
+            {
+            if (json["args"].isArray())
+                {
+                cmd_args = json["args"][0].asString();
+                for (unsigned int i=1; i<json["args"].size(); i++)
+                    {
+                    cmd_args += " " + json["args"][i].asString();
+                    }
+                }
+            else
+                {
+                cmd_args = json["args"].asString();
+                }
+            }
+        else
+            {
+            cmd_args = "";
+            }
+
         auto execution_mode = ExecutionConfiguration::executionMode::AUTO;
 
         if (cmd_args.find("--mode=cpu") != std::string::npos)

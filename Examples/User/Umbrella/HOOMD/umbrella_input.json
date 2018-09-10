@@ -1,6 +1,6 @@
 {
     "input": "Butane_SSAGES.py",
-    "hoomd_args": "",
+    "args": "",
     "hoomd_steps": 1000000,
     "walkers": 1,
     "CVs": [{
