@@ -34,7 +34,7 @@
 			"type" : "array"
 		},
 		"logger" : {
-	  "type" : "object"
+			"type" : "object"
 		},
 		"args" : {
 			"oneOf" : [
