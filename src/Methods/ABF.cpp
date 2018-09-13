@@ -129,7 +129,7 @@ namespace SSAGES
 		Eigen::VectorXd dwdotpdt = unitconv_*(1.5*wdotp - 2.0*wdotp1_ + 0.5*wdotp2_)/timestep_ + Fold_;
 
 		// If we are in bounds, sum force into running total.
-		if(boundsCheck(cvVals) && comm_.rank() == 0)
+		if(boundsCheck(cvVals) && IsMasterRank(comm_))
 		{
 			for(size_t i = 0; i < dim_; ++i)
 				F_[i]->at(cvVals) += dwdotpdt[i];
