@@ -126,7 +126,7 @@ namespace SSAGES
 			// Check CVs specified in each method.
 			for(auto& cv : m["cvs"])
 			{
-				if(typeid(cv) == typeid(std::string))
+				if(cv.isString())
 				{
 					CVManager::LookupCV(cv.asString());
 				}
