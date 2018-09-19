@@ -49,7 +49,23 @@
 					}
 				}
 			]
+		},
+		"md_iterations" : {
+			"type" : "integer",
+			"minimum" : 1
+		},
+		"qm_iterations" : {
+			"type" : "integer",
+			"minimum" : 1
+		},
+		"wf_iterations" : {
+			"type" : "integer",
+			"minimum" : 1
+		},
+		"hoomd_steps" : {
+			"type" : "integer",
+			"minimum" : 1
 		}
 	},
-	"additionalProperties": true
+	"additionalProperties": false
 }

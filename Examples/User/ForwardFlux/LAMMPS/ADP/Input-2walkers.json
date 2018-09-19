@@ -3,6 +3,14 @@
         "in.ADP_Test-0",
         "in.ADP_Test-1"
     ],
+    "logger" :
+    {
+        "output_file" :
+        [
+            "log0",
+            "log1",
+        ]
+    },
     "CVs": [
         {
             "atom_ids": [

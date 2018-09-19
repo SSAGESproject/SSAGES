@@ -1,5 +1,12 @@
 {
-    "logfile": "log",
+    "logger" :
+    {
+        "output_file" :
+        [
+            "log0",
+            "log1",
+        ]
+    },
     "args": [
         "-v",
         "-deffnm",
