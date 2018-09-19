@@ -363,6 +363,33 @@ namespace SSAGES
             ii++;
         }
 
+        // If restraints were not specified then set them equal to zero
+        if (restrCV.size() == 0) {
+            // Choose simplest array that should have equivalent size
+            for(size_t i = 0; i<functions.size(); i++)
+                restrCV.push_back(0); // Push back value of 0
+        }
+
+        // This also needs to be the same for upper bounds and lower bounds
+        if (boundLow.size() == 0) {
+            // Choose simplest array that should have equivalent size
+            for(size_t i = 0; i<functions.size(); i++)
+                boundLow.push_back(0); // Push back value of 0
+        }
+
+        // This also needs to be the same for upper bounds and lower bounds
+        if (boundUp.size() == 0) {
+            // Choose simplest array that should have equivalent size
+            for(size_t i = 0; i<functions.size(); i++)
+                boundUp.push_back(0); // Push back value of 0
+        }
+
+        // Check to make sure that the arrays for boundaries and restraints are of the same length
+        if (boundUp.size() != boundLow.size() && boundLow.size() != restrCV.size()) {
+            std::cerr<<"ERROR: Number of restraint boundaries do not match number of spring constants."<<std::endl;
+            std::cerr<<"Boundary size is " << boundUp.size() << " boundary low size is " << boundLow.size() << " restraints size is" << restrCV.size() << std::endl;
+            MPI_Abort(world, EXIT_FAILURE);
+        }
 
         auto* m = new BFS(world, comm, h, f, b, functions, restrCV, boundUp, boundLow,
                             cyclefreq, freq, bnme, temp, tol, wght,

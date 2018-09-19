@@ -72,6 +72,14 @@ $ make
 
 This will build a SSAGES executable which will reside in the build directory.
 
+If you want to use a specific compiler (or if your default compiler is not supported),
+set the C and C++ compilers with `CMAKE_C_COMPILER` and `CMAKE_CXX_COMPILER`, respectively.
+For example, to use gcc/g++, replace the cmake command with
+
+```bash
+$ cmake -DLAMMPS_SRC=/path/to/lammps/src -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ ..
+```
+
 If you want to compile and run unit and integration tests, replace the cmake command
 in the example above with
 
