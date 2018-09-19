@@ -61,8 +61,8 @@ namespace SSAGES
     class BasisFunction
     {
     protected:
-        uint polyOrd_; //!< Order of the polynomial.
-        uint nbins_; //!< Number of bins.
+        unsigned int polyOrd_; //!< Order of the polynomial.
+        unsigned int nbins_; //!< Number of bins.
         bool isFinite_; //!< Flag for finite-range polynomials.
         bool zeroOrder_; //!< Flag for constant-order polynomials.
         double boundLow_; //!< Lower bound on CV.
@@ -81,8 +81,8 @@ namespace SSAGES
          * Constructs an instance of the Basis function class, which can
          * have multiple different inherited forms.
          */ 
-        BasisFunction(uint polyOrd,
-                      uint nbins,
+        BasisFunction(unsigned int polyOrd,
+                      unsigned int nbins,
                       bool isFinite,
                       bool zeroOrder,
                       double boundLow,
@@ -93,10 +93,10 @@ namespace SSAGES
         }
 
         //! Gets the order of the current polynomial.
-        uint GetOrder() {return polyOrd_;}
+        unsigned int GetOrder() {return polyOrd_;}
 
         //! Gets the number of bins for the discretization.
-        uint GetBins() {return nbins_;}
+        unsigned int GetBins() {return nbins_;}
 
         //! Gets the flag for constant-order polynomials.
         bool GetZeroOrder() {return zeroOrder_;}
@@ -173,7 +173,7 @@ namespace SSAGES
          * 
          * \return Pointer to new BasisFunction.
          */
-        static BasisFunction* Build(const Json::Value& json, const std::string& path, uint nbins);
+        static BasisFunction* Build(const Json::Value& json, const std::string& path, unsigned int nbins);
 
         //! Destructor
         virtual ~BasisFunction() {}
@@ -233,7 +233,7 @@ namespace SSAGES
         }
         
         //! Build the Chebyshev polynomial
-        static Chebyshev* Build(const Json::Value& json, const std::string& path, uint nbins);
+        static Chebyshev* Build(const Json::Value& json, const std::string& path, unsigned int nbins);
 
     };
 
@@ -277,7 +277,7 @@ namespace SSAGES
         }
 
         //! Build the Legendre polynomial
-        static Legendre* Build(const Json::Value& json, const std::string& path, uint nbins);
+        static Legendre* Build(const Json::Value& json, const std::string& path, unsigned int nbins);
     };
 
     //! Defines the class of Fourier polynomials
@@ -325,7 +325,7 @@ namespace SSAGES
         }
 
         //! Build the Fourier polynomial
-        static Fourier* Build(const Json::Value& json, const std::string& path, uint nbins);
+        static Fourier* Build(const Json::Value& json, const std::string& path, unsigned int nbins);
     };
     
     //! Calculates the inner product of all the basis functions and the histogram
@@ -364,9 +364,9 @@ namespace SSAGES
          * \param array Basis set.
          * \param hist Biased histrogram.
          *
-         * \return Inner product of the basis set and th biased histogram.
+         * \return Inner product of the basis set and the biased histogram.
          */
-		double UpdateCoeff(const std::vector<double> &array, Grid<uint> *hist);
+		double UpdateCoeff(const std::vector<double> &array, Grid<unsigned int> *hist);
 
         //! Gets the coefficient array
         std::vector<double> GetCoeff(void)

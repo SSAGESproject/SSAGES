@@ -36,10 +36,10 @@ using namespace Json;
 
 namespace SSAGES
 {
-	Method* Method::BuildMethod(const Value& json, 
-		                        const MPI_Comm& world, 
-							    const MPI_Comm& comm, 
-							    const std::string& path)
+	Method* Method::BuildMethod(const Value& json,
+	                            const MPI_Comm& world,
+	                            const MPI_Comm& comm,
+	                            const std::string& path)
 	{
 		ObjectRequirement validator;
 		Value schema;
@@ -73,8 +73,8 @@ namespace SSAGES
 		else
 			throw std::invalid_argument(path + ": Unknown method type specified.");
 
-		// Load cv mask. 
-		std::vector<uint> cvmask; 
+		// Load cv mask.
+		std::vector<unsigned int> cvmask;
 		for(auto& v : json["cvs"])
 		{
 			if(v.isString())

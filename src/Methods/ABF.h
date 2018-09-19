@@ -169,7 +169,7 @@ namespace SSAGES
 		double timestep_;
 
 		//! Iteration counter. 
-		uint iteration_;
+		unsigned int iteration_;
 
 		//! Mass vector. Empty unless required.
 		Eigen::VectorXd mass_;

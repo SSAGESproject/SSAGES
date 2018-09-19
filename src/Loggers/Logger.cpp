@@ -36,7 +36,7 @@ namespace SSAGES
 		if(IsMasterRank(comm_))
 		{
 			if(append_)
-		 		log_.open(filename_.c_str(), std::ofstream::out | std::ofstream::app);	
+				log_.open(filename_.c_str(), std::ofstream::out | std::ofstream::app);
 			else
 			{
 				// Write out header.
@@ -44,7 +44,7 @@ namespace SSAGES
 				log_ << "#"; 
 				log_ << "Iteration "; 
 
-				auto cvs = cvmanager.GetCVs(cvmask_); 
+				auto cvs = cvmanager.GetCVs(cvmask_);
 				for(size_t i = 0; i < cvs.size() - 1; ++i)
 					log_ << "cv_" + std::to_string(i) << " ";
 				log_ << "cv_" + std::to_string(cvs.size() - 1) << std::endl;
@@ -96,7 +96,8 @@ namespace SSAGES
 		std::string name = "cvlog.dat";
 
 		bool ismulti = GetNumWalkers(world, comm) > 1; 
-		uint wid = GetWalkerID(world, comm);
+		unsigned int wid = GetWalkerID(world, comm);
+    
 		if(json["output_file"].isArray())
 			name = json["output_file"][wid].asString(); 
 		else if(ismulti)
@@ -108,7 +109,7 @@ namespace SSAGES
 		l->SetAppend(json.get("append", false).asBool());
 
 		// Load cv mask. 
-		std::vector<uint> cvmask; 
+		std::vector<unsigned int> cvmask;
 		for(auto& v : json["cvs"])
 		{
 			if(v.isString())

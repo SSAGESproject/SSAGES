@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8.8)
 # SSAGES version number.
 set(SSAGES_VERSION_MAJOR "0")
 set(SSAGES_VERSION_MINOR "8")
-set(SSAGES_VERSION_TINY "2") 
+set(SSAGES_VERSION_TINY "2")
 
 # Default type is release
 if (NOT CMAKE_BUILD_TYPE)
@@ -62,7 +62,7 @@ set(SOURCE
 
 ####################### MD ENGINES #########################
 
-# The MD Engine variable will be set if an engine has been initialized successfully. 
+# The MD Engine variable will be set if an engine has been initialized successfully.
 set(MD_ENGINE "" CACHE STRING "Active MD engine.")
 
 # Set variables for supported engines.
@@ -72,17 +72,22 @@ set(LAMMPS_SRC "" CACHE STRING "LAMMPS source directory.")
 set(GROMACS_SRC "" CACHE STRING "GROMACS source directory.")
 set(QBOX NO CACHE BOOL "Use QBox simulation engine.")
 set(OPENMD_SRC "" CACHE STRING "OpenMD source directory.")
+set(HOOMD_SRC "" CACHE STRING "HOOMD-blue source directory")
+set(HOOMD_INCLUDE_DIR "" CACHE STRING "HOOMD-blue include directory")
 
 # Determine which simulation engine to use.
 if(LAMMPS_SRC OR LAMMPS)
     add_subdirectory(hooks/lammps/)
 elseif(GROMACS OR GROMACS_SRC)
     add_subdirectory(hooks/gromacs/)
-elseif(QBOX) 
+elseif(QBOX)
     add_subdirectory(hooks/qbox/)
 elseif(OPENMD_SRC)
-    add_subdirectory(hooks/openmd/)
-else() 
+	add_subdirectory(hooks/openmd/)
+elseif(HOOMD_SRC OR HOOMD_INCLUDE_DIR)
+	include(hooks/hoomd/FindHOOMD.cmake)
+	add_subdirectory(hooks/hoomd/)
+else()
     message( FATAL_ERROR "You cannot build SSAGES without specifying an engine." )
 endif()
 
@@ -135,7 +140,7 @@ else ()
     set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-O3")
 endif ()
 
-# Configure flags 
+# Configure flags
 # - Globals
 if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")

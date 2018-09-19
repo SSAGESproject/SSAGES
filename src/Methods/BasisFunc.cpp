@@ -168,7 +168,7 @@ namespace SSAGES
         double sum  = 0.0;
 
         // For multiple walkers, the struct is unpacked
-        Grid<uint> histlocal(*h_);
+        Grid<unsigned int> histlocal(*h_);
 
         // Summed between all walkers
         MPI_Allreduce(histlocal.data(), h_->data(), h_->size(), MPI_INT, MPI_SUM, world_);
@@ -177,7 +177,7 @@ namespace SSAGES
 
         // Construct the biased histogram
         size_t i = 0;
-        for (Grid<uint>::iterator it2 = h_->begin(); it2 != h_->end(); ++it2, ++i)
+        for (Grid<unsigned int>::iterator it2 = h_->begin(); it2 != h_->end(); ++it2, ++i)
         {
             /* The evaluation of the biased histogram which projects the histogram to the
              * current bias of CV space.
@@ -345,7 +345,7 @@ namespace SSAGES
         auto tol  = json.get("tolerance", 1e-6).asDouble();
         auto conv = json.get("convergence_exit", false).asBool();
 
-        Grid<uint> *h = Grid<uint>::BuildGrid(
+        Grid<unsigned int> *h = Grid<unsigned int>::BuildGrid(
                                         json.get("grid", Json::Value()) );
 
         Grid<std::vector<double>> *f = Grid<std::vector<double>>::BuildGrid(
@@ -363,6 +363,33 @@ namespace SSAGES
             ii++;
         }
 
+        // If restraints were not specified then set them equal to zero
+        if (restrCV.size() == 0) {
+            // Choose simplest array that should have equivalent size
+            for(size_t i = 0; i<functions.size(); i++)
+                restrCV.push_back(0); // Push back value of 0
+        }
+
+        // This also needs to be the same for upper bounds and lower bounds
+        if (boundLow.size() == 0) {
+            // Choose simplest array that should have equivalent size
+            for(size_t i = 0; i<functions.size(); i++)
+                boundLow.push_back(0); // Push back value of 0
+        }
+
+        // This also needs to be the same for upper bounds and lower bounds
+        if (boundUp.size() == 0) {
+            // Choose simplest array that should have equivalent size
+            for(size_t i = 0; i<functions.size(); i++)
+                boundUp.push_back(0); // Push back value of 0
+        }
+
+        // Check to make sure that the arrays for boundaries and restraints are of the same length
+        if (boundUp.size() != boundLow.size() && boundLow.size() != restrCV.size()) {
+            std::cerr<<"ERROR: Number of restraint boundaries do not match number of spring constants."<<std::endl;
+            std::cerr<<"Boundary size is " << boundUp.size() << " boundary low size is " << boundLow.size() << " restraints size is" << restrCV.size() << std::endl;
+            MPI_Abort(world, EXIT_FAILURE);
+        }
 
         auto* m = new BFS(world, comm, h, f, b, functions, restrCV, boundUp, boundLow,
                             cyclefreq, freq, bnme, temp, tol, wght,

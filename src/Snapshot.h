@@ -46,8 +46,8 @@ namespace SSAGES
 		//! Local snapshot (walker) communicator.
 		mxx::comm comm_;
 
-		uint wid_; //!< Walker ID.
-		uint nlocal_; //!< Number of atoms located on this snapshot
+		unsigned int wid_; //!< Walker ID.
+		unsigned int nlocal_; //!< Number of atoms located on this snapshot
 
 		std::string ID_; //!< ID string
 
@@ -89,7 +89,7 @@ namespace SSAGES
 		 * Initialize a snapshot with MPI communicator and a
 		 * correpsonding walker ID.
 		 */
-		Snapshot(const MPI_Comm& comm, uint wid) :
+		Snapshot(const MPI_Comm& comm, unsigned int wid) :
 		comm_(comm), wid_(wid), H_(), Hinv_(), virial_(Matrix3::Zero()), 
 		origin_({0,0,0}), isperiodic_({true, true, true}), positions_(0), 
 		images_(0), velocities_(0), forces_(0), masses_(0), atomids_(0), 

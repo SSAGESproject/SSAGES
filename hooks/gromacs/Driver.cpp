@@ -25,6 +25,7 @@
 #include "gmxpre.h"
 #include "gromacs/commandline/cmdlinemodulemanager.h"
 #include "programs/mdrun/mdrun_main.h"
+#include <sstream>
 
 namespace SSAGES
 {
@@ -55,15 +56,24 @@ namespace SSAGES
 		auto& hook = GromacsHook::Instance();
 		rh->ConfigureHook(dynamic_cast<Hook*>(&hook));
 
-		std::vector<std::string> args; 
-		for(auto& s : json["args"])
-			args.push_back(s.asString());
+		std::vector<std::string> args;
+		if(json["args"].isArray())
+		{
+			for(auto& s : json["args"])
+				args.push_back(s.asString());
+		}
+		else
+		{
+			std::istringstream iss(json["args"].asString());
+			args = std::vector<std::string>(std::istream_iterator<std::string>{iss},
+			                                std::istream_iterator<std::string>());
+		}
 
 		return new Driver(rh, args);
-	}   
+	}
 
 	Driver::~Driver()
 	{
 		delete rh_;
-	} 
+	}
 }

@@ -71,5 +71,5 @@ namespace SSAGES
 			throw std::invalid_argument(path + ": Unknown CV type specified.");
 	}
 
-	std::map<std::string, uint> CVManager::cvmap_ = {};
+	std::map<std::string, unsigned int> CVManager::cvmap_ = {};
 }

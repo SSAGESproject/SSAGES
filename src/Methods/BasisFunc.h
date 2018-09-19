@@ -43,7 +43,7 @@ namespace SSAGES
         /*!
          * Grid is stored locally.
          */
-        Grid<uint> *h_;
+        Grid<unsigned int> *h_;
 
         //! Stored bias potential
         /*!
@@ -144,7 +144,7 @@ namespace SSAGES
         std::string bnme_;
 
         //! Iteration counter. 
-        uint iteration_;
+        unsigned int iteration_;
 
 	public:
         //! Constructor
@@ -173,7 +173,7 @@ namespace SSAGES
          */
 		BFS(const MPI_Comm& world,
 		    const MPI_Comm& comm,
-		    Grid<uint> *h,
+		    Grid<unsigned int> *h,
 		    Grid<std::vector<double>> *f,
 		    Grid<double> *b,
 		    const std::vector<BasisFunction*>& functions,

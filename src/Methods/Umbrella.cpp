@@ -19,7 +19,7 @@
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "Umbrella.h"
-#include "Snapshot.h" 
+#include "Snapshot.h"
 #include "CVs/CVManager.h"
 #include "Validator/ObjectRequirement.h"
 #include "Drivers/DriverException.h"
@@ -40,15 +40,15 @@ namespace SSAGES
 			{
 				// Write out header.
 				umbrella_.open(filename_.c_str(), std::ofstream::out);
-				umbrella_ << "#"; 
-				umbrella_ << "Iteration "; 
+				umbrella_ << "#";
+				umbrella_ << "Iteration ";
 
-				auto cvs = cvmanager.GetCVs(cvmask_); 
+				auto cvs = cvmanager.GetCVs(cvmask_);
 				for(size_t i = 0; i < cvs.size(); ++i)
 					umbrella_ << "cv_" + std::to_string(i) << " ";
 
 				for(size_t i = 0; i < cvs.size() - 1; ++i)
-					umbrella_ << "center_" + std::to_string(i) << " ";  
+					umbrella_ << "center_" + std::to_string(i) << " ";
 				umbrella_ << "center_" + std::to_string(cvs.size() - 1) << std::endl;
 			}
 		}
@@ -56,7 +56,7 @@ namespace SSAGES
 
 	void Umbrella::PostIntegration(Snapshot* snapshot, const CVManager& cvmanager)
 	{
-		// Get necessary info. 
+		// Get necessary info.
 		auto cvs = cvmanager.GetCVs(cvmask_);
 		auto& forces = snapshot->GetForces();
 		auto& virial = snapshot->GetVirial();
@@ -75,7 +75,7 @@ namespace SSAGES
 			for(size_t j = 0; j < forces.size(); ++j)
 				forces[j] -= D*grad[j];
 			
-			// Update virial. 
+			// Update virial.
 			virial += D*boxgrad;
 		}
 
@@ -100,19 +100,19 @@ namespace SSAGES
 			for(auto& cv : cvs)
 				umbrella_ << cv->GetValue() << " ";
 			
-			// Print out target (center) of each CV. 
+			// Print out target (center) of each CV.
 			for(size_t i = 0; i < cvs.size() - 1; ++i)
-				umbrella_ << GetCurrentCenter(iteration, i) << " "; 
+				umbrella_ << GetCurrentCenter(iteration, i) << " ";
 			umbrella_ << GetCurrentCenter(iteration, cvs.size() - 1);
 
 			umbrella_ << std::endl;
 		}
 	}
 
-	Umbrella* Umbrella::Build(const Json::Value& json, 
-			    		          const MPI_Comm& world,
-					              const MPI_Comm& comm,
-					              const std::string& path)
+	Umbrella* Umbrella::Build(const Json::Value& json,
+	                          const MPI_Comm& world,
+	                          const MPI_Comm& comm,
+	                          const std::string& path)
 	{
 		ObjectRequirement validator;
 		Value schema;
@@ -129,8 +129,8 @@ namespace SSAGES
 		if(validator.HasErrors())
 			throw BuildException(validator.GetErrors());
 
-		uint wid = GetWalkerID(world, comm);
-		uint wcount = GetNumWalkers(world, comm);
+		unsigned int wid = GetWalkerID(world, comm);
+		unsigned int wcount = GetNumWalkers(world, comm);
 		bool ismulti = wcount > 1;
 
 		std::vector<std::vector<double>> ksprings;
@@ -215,7 +215,7 @@ namespace SSAGES
 
 		auto freq = json.get("frequency", 1).asInt();
 
-		size_t timesteps = 0; 
+		size_t timesteps = 0;
 		if(json.isMember("timesteps"))
 		{
 			if(json["timesteps"].isArray())
@@ -224,9 +224,9 @@ namespace SSAGES
 				timesteps = json["timesteps"].asUInt();
 		}
 
-		std::string name = "umbrella.dat"; 
+		std::string name = "umbrella.dat";
 		if(json["output_file"].isArray())
-			name = json["output_file"][wid].asString(); 
+			name = json["output_file"][wid].asString();
 		else if(ismulti)
 			throw std::invalid_argument(path + ": Multi-walker simulations require a separate output file for each.");
 		else

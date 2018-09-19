@@ -6,7 +6,7 @@
 
 namespace SSAGES
 {
-    BasisFunction* BasisFunction::Build(const Json::Value& json, const std::string& path, uint nbins)
+    BasisFunction* BasisFunction::Build(const Json::Value& json, const std::string& path, unsigned int nbins)
     {
         auto type = json.get("type","none").asString();
         if(type == "Legendre")
@@ -20,8 +20,8 @@ namespace SSAGES
     }
 
     Chebyshev* Chebyshev::Build(const Json::Value& json,
-                              const std::string& path,
-                              uint nbin)
+                                const std::string& path,
+                                unsigned int nbin)
     {
 		Json::ObjectRequirement validator;
 		Json::Value schema;
@@ -48,7 +48,7 @@ namespace SSAGES
 
     Fourier* Fourier::Build(const Json::Value& json,
                             const std::string& path,
-                            uint nbin)
+                            unsigned int nbin)
     {
 		Json::ObjectRequirement validator;
 		Json::Value schema;
@@ -74,7 +74,7 @@ namespace SSAGES
     }
     Legendre* Legendre::Build(const Json::Value& json,
                               const std::string& path,
-                              uint nbin)
+                              unsigned int nbin)
     {
 		Json::ObjectRequirement validator;
 		Json::Value schema;
@@ -133,8 +133,8 @@ namespace SSAGES
     {
         for (size_t i=0; i<functions_.size(); i++)
         {
-            uint poly = functions_[i]->GetOrder()+1;
-            uint nbin = functions_[i]->GetBins();
+            unsigned int poly = functions_[i]->GetOrder()+1;
+            unsigned int nbin = functions_[i]->GetBins();
             std::vector<double> dervs(nbin*poly,0);
             std::vector<double> vals(nbin*poly,0);
 
@@ -191,7 +191,7 @@ namespace SSAGES
 
     //Calculates the inner product of the basis set and the biased histogram
     //This function then returns the coefficients from this calculation
-    double BasisEvaluator::UpdateCoeff(const std::vector<double> &array, Grid<uint> *hist)
+    double BasisEvaluator::UpdateCoeff(const std::vector<double> &array, Grid<unsigned int> *hist)
     {
         double coeffTemp = 0;
         double sum = 0;
@@ -202,7 +202,7 @@ namespace SSAGES
             size_t j = 0;
             coeffTemp = coeff.value;
             coeff.value = 0.0;
-            for(Grid<uint>::iterator it2 = hist->begin(); it2 != hist->end(); ++it2, ++j)
+            for(Grid<unsigned int>::iterator it2 = hist->begin(); it2 != hist->end(); ++it2, ++j)
             { 
 
                 double weight = std::pow(2.0,functions_.size());

@@ -96,7 +96,7 @@ protected:
 		mass2[0] = 2.0;
 		mass3[0] = 2.0;
 
-        h = new Grid<uint>({10,10}, {-1.5,-2.0}, {2.0,1.5}, {true, false});
+        h = new Grid<unsigned int>({10,10}, {-1.5,-2.0}, {2.0,1.5}, {true, false});
         b = new Grid<double>({10,10}, {-1.5,-2.0}, {2.0,1.5}, {true, false});
         f = new Grid<std::vector<double>> ({10,10}, {-1.5,-2.0}, {2.0,1.5}, {true, false});
         std::vector<BasisFunction*> functions;
@@ -140,7 +140,7 @@ protected:
 	Snapshot* snapshot2;
 	Snapshot* snapshot3;
 
-    Grid<uint>* h;
+    Grid<unsigned int>* h;
     Grid<double>* b;
     Grid<std::vector<double>>* f;
 
@@ -169,7 +169,7 @@ TEST_F(BasisFuncTest,Initialization)
 
     // Check to make sure all histograms have a zero initialization
     size_t i = 0;
-	for(Grid<uint>::iterator it = Method->h_->begin(); it != Method->h_->end(); ++it, ++i)
+	for(Grid<unsigned int>::iterator it = Method->h_->begin(); it != Method->h_->end(); ++it, ++i)
 	{
 		EXPECT_TRUE(Method->b_->at(it.coordinates()) == 0);
 		EXPECT_TRUE(Method->h_->at(it.coordinates()) == 0);
@@ -218,7 +218,7 @@ TEST_F(BasisFuncTest,OutBounds)
 
     EXPECT_FALSE(Method->bounds_);
 
-	for(Grid<uint>::iterator it = Method->h_->begin(); it != Method->h_->end(); ++it)
+	for(Grid<unsigned int>::iterator it = Method->h_->begin(); it != Method->h_->end(); ++it)
 	{
 		EXPECT_TRUE(Method->h_->at(it.coordinates()) == 0);
 	}

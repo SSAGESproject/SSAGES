@@ -32,11 +32,11 @@ namespace SSAGES
 {
 	//! Interface for Method implementations.
 	/*!
-	 * The base method class from which advanced sampling routines derive. 
-	 * A method is allowed to manipulate a simulation at three points: 
-	 * before the simulation begins (usually initialization), after each 
-	 * integration step by the simulation engine, and after the integration 
-	 * steps are complete (usually cleanup). 
+	 * The base method class from which advanced sampling routines derive.
+	 * A method is allowed to manipulate a simulation at three points:
+	 * before the simulation begins (usually initialization), after each
+	 * integration step by the simulation engine, and after the integration
+	 * steps are complete (usually cleanup).
 	 *
 	 * \ingroup Methods
 	 */
@@ -47,7 +47,7 @@ namespace SSAGES
 		mxx::comm comm_; //!< Local MPI communicator
 
 		//! Mask which identifies which CVs to act on.
-		std::vector<uint> cvmask_; 
+		std::vector<unsigned int> cvmask_;
 
 	public:
 		//! Constructor
@@ -58,7 +58,7 @@ namespace SSAGES
 		 *
 		 * Frequency of sampling must be specified by all methods.
 		 */
-		Method(uint frequency, const MPI_Comm& world, const MPI_Comm& comm) : 
+		Method(unsigned int frequency, const MPI_Comm& world, const MPI_Comm& comm) :
 		EventListener(frequency), world_(world), comm_(comm), cvmask_()
 		{}
 
@@ -88,9 +88,9 @@ namespace SSAGES
 		 * This function will be called after the end of the simulation run.
 		 */
 		virtual void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override = 0;
-		
-		//! Set the collective variable mask.
-		void SetCVMask(const std::vector<uint>& mask)
+
+		//! Sets the collective variable mask.
+		void SetCVMask(const std::vector<unsigned int>& mask)
 		{
 			cvmask_ = mask;
 		}

@@ -30,16 +30,16 @@ Core Development
 Methods
 -------
 
-* Cody Bezik 
+* Cody Bezik
 * Yamil J. Colón
-* Ashley Guo 
+* Ashley Guo
 * Joshua Lequieu
 * Jiyuan Li
 * Joshua Moller
 * Hadi Ramezani-Dakhel
-* Emre Sevgen 
-* Hythem Sidky 
-* Ben Sikora 
+* Emre Sevgen
+* Hythem Sidky
+* Ben Sikora
 * Jonathan Whitmer
 
 Collective Variables
@@ -50,7 +50,7 @@ Collective Variables
 * Michael Quevillon
 * Hythem Sidky
 * Ben Sikora
-* Mike Webb 
+* Mike Webb
 
 Documentation
 -------------
@@ -70,7 +70,9 @@ Engine Adapters
 * Emre Sevgen
 * Hythem Sidky
 * Ben Sikora
+* Bradley Dice
+* Carl Simon Adorf
 
 Former Team Members
 -------------------
-* Ben Sikora 
+* Ben Sikora

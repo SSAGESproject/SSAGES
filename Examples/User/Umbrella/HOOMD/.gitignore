@@ -1,0 +1,12 @@
+[0-9][0-9][0-9]_umbrella.dat
+multiwalker_umbrella_input.json
+dump.gsd
+dump.log
+umbrella.dat1
+wham_freefile
+wham_metafile
+wham_output
+*.png
+!sample_outputs/*
+ssages
+wham

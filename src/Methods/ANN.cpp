@@ -25,17 +25,17 @@
 #include "Drivers/DriverException.h"
 #include "Validator/ObjectRequirement.h"
 
-using namespace Eigen; 
+using namespace Eigen;
 using namespace nnet;
 using namespace Json;
 
 namespace SSAGES
 {
-	ANN::ANN(const MPI_Comm& world, 
-	         const MPI_Comm& comm, 
+	ANN::ANN(const MPI_Comm& world,
+	         const MPI_Comm& comm,
 	         const VectorXi& topol,
 	         Grid<VectorXd>* fgrid,
-	         Grid<uint>* hgrid,
+	         Grid<unsigned int>* hgrid,
 	         Grid<double>* ugrid,
 	         const std::vector<double>& lowerb,
 	         const std::vector<double>& upperb,
@@ -43,9 +43,9 @@ namespace SSAGES
 	         const std::vector<double>& upperk,
 	         double temperature,
 	         double weight,
-	         uint nsweep) : 
-	Method(1, world, comm), topol_(topol), sweep_(0), nsweep_(nsweep),  
-	citers_(0), net_(topol), pweight_(1.), weight_(weight), temp_(temperature), 
+	         unsigned int nsweep) :
+	Method(1, world, comm), topol_(topol), sweep_(0), nsweep_(nsweep),
+	citers_(0), net_(topol), pweight_(1.), weight_(weight), temp_(temperature),
 	kbt_(0), fgrid_(fgrid), hgrid_(hgrid), ugrid_(ugrid), hist_(), bias_(),
 	lowerb_(lowerb), upperb_(upperb), lowerk_(lowerk), upperk_(upperk),
 	outfile_("ann.out"), overwrite_(true)
@@ -53,13 +53,13 @@ namespace SSAGES
 		// Create histogram grid matrix.
 		hist_.resize(hgrid_->size(), hgrid_->GetDimension());
 
-		// Fill it up. 
+		// Fill it up.
 		size_t i = 0;
 		for(auto it = hgrid_->begin(); it != hgrid_->end(); ++it)
 		{
-			auto coord = it.coordinates(); 
+			auto coord = it.coordinates();
 			for(size_t j = 0; j < coord.size(); ++j)
-				hist_(i, j) = coord[j]; 
+				hist_(i, j) = coord[j];
 			++i;
 		}
 
@@ -69,7 +69,7 @@ namespace SSAGES
 		bias_.array() = net_.get_activation().col(0).array();
 	}
 
-	void ANN::PreSimulation(Snapshot* snapshot, const CVManager&) 
+	void ANN::PreSimulation(Snapshot* snapshot, const CVManager&)
 	{
 		auto ndim = hgrid_->GetDimension();
 		kbt_ = snapshot->GetKb()*temp_;
@@ -172,13 +172,13 @@ namespace SSAGES
 		++sweep_;
 
 		// Reduce histogram across procs. 
-		mxx::allreduce(hgrid_->data(), hgrid_->size(), std::plus<uint>(), world_);
+		mxx::allreduce(hgrid_->data(), hgrid_->size(), std::plus<unsigned int>(), world_);
 
 		// Synchronize grid in case it's periodic. 
 		hgrid_->syncGrid();
 	
 		// Update FES estimator. Synchronize unbiased histogram.
-		Map<Array<uint, Dynamic, 1>> hist(hgrid_->data(), hgrid_->size());
+		Map<Array<unsigned int, Dynamic, 1>> hist(hgrid_->data(), hgrid_->size());
 		Map<Matrix<double, Dynamic, 1>> uhist(ugrid_->data(), ugrid_->size());
 		uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_;
 		ugrid_->syncGrid();
@@ -254,7 +254,7 @@ namespace SSAGES
 		
 		// Grid. 
 		auto* fgrid = Grid<VectorXd>::BuildGrid(json.get("grid", Json::Value()));
-		auto* hgrid = Grid<uint>::BuildGrid(json.get("grid", Json::Value()));
+		auto* hgrid = Grid<unsigned int>::BuildGrid(json.get("grid", Json::Value()));
 		auto* ugrid = Grid<double>::BuildGrid(json.get("grid", Json::Value()));
 
 		// Topology. 
