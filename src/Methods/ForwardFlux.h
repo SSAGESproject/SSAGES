@@ -164,7 +164,7 @@ namespace SSAGES
         std::default_random_engine _generator;
 
 		//! Method iteration counter/
-		uint iteration_;
+		unsigned int iteration_;
 
         //-----------------------------------------------------------------
         // Private Functions

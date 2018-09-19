@@ -168,7 +168,7 @@ namespace SSAGES
         double sum  = 0.0;
 
         // For multiple walkers, the struct is unpacked
-        Grid<uint> histlocal(*h_);
+        Grid<unsigned int> histlocal(*h_);
 
         // Summed between all walkers
         MPI_Allreduce(histlocal.data(), h_->data(), h_->size(), MPI_INT, MPI_SUM, world_);
@@ -177,7 +177,7 @@ namespace SSAGES
 
         // Construct the biased histogram
         size_t i = 0;
-        for (Grid<uint>::iterator it2 = h_->begin(); it2 != h_->end(); ++it2, ++i)
+        for (Grid<unsigned int>::iterator it2 = h_->begin(); it2 != h_->end(); ++it2, ++i)
         {
             /* The evaluation of the biased histogram which projects the histogram to the
              * current bias of CV space.
@@ -345,7 +345,7 @@ namespace SSAGES
         auto tol  = json.get("tolerance", 1e-6).asDouble();
         auto conv = json.get("convergence_exit", false).asBool();
 
-        Grid<uint> *h = Grid<uint>::BuildGrid(
+        Grid<unsigned int> *h = Grid<unsigned int>::BuildGrid(
                                         json.get("grid", Json::Value()) );
 
         Grid<std::vector<double>> *f = Grid<std::vector<double>>::BuildGrid(

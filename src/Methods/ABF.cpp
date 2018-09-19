@@ -316,8 +316,8 @@ namespace SSAGES
 		if(validator.HasErrors())
 			throw BuildException(validator.GetErrors());
 
-		uint wid = mxx::comm(world).rank()/mxx::comm(comm).size();   // walker ID
-		uint wrank = mxx::comm(world).rank()%mxx::comm(comm).size(); // walker rank
+		unsigned int wid = mxx::comm(world).rank()/mxx::comm(comm).size();   // walker ID
+		unsigned int wrank = mxx::comm(world).rank()%mxx::comm(comm).size(); // walker rank
 
 		//bool multiwalkerinput = false;
 

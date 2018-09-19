@@ -40,23 +40,23 @@ namespace SSAGES
 	 */
 	class Logger : public EventListener
 	{
-	protected: 
+	protected:
 		mxx::comm world_; //!< Global MPI communicator
 		mxx::comm comm_; //!< Local MPI communicator
 
 		//! Mask which identifies which CVs to log.
-		std::vector<uint> cvmask_; 
+		std::vector<unsigned int> cvmask_;
 
 		//! Name of logfile.
-		std::string filename_; 
+		std::string filename_;
 
-		//! Log file stream. 
+		//! Log file stream.
 		std::ofstream log_;
 
-		//! Append mode? 
+		//! Append mode?
 		bool append_;
 
-	public: 
+	public:
 		//! Constructor
 		/*!
 		 * \param frequency Frequency of logging.
@@ -64,9 +64,9 @@ namespace SSAGES
 		 * \param world Global MPI communicator.
 		 * \param comm MPI communicator of walker.
 		 * 
-		 * \todo wid should be obtainable from somewhere. 
+		 * \todo wid should be obtainable from somewhere.
 		 */
-		Logger(uint frequency, const std::string& filename, const MPI_Comm& world, const MPI_Comm& comm) : 
+		Logger(unsigned int frequency, const std::string& filename, const MPI_Comm& world, const MPI_Comm& comm) :
 		EventListener(frequency), world_(world), comm_(comm), cvmask_(), filename_(filename),
 		append_(false)
 		{}
@@ -99,7 +99,7 @@ namespace SSAGES
 		virtual void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 		
 		//! Sets the collective variable mask.
-		void SetCVMask(const std::vector<uint>& mask)
+		void SetCVMask(const std::vector<unsigned int>& mask)
 		{
 			cvmask_ = mask;
 		}

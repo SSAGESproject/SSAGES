@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once 
+#pragma once
 
 #include "Method.h"
 #include "Grids/Grid.h"
@@ -35,55 +35,55 @@ namespace SSAGES
 	class ANN : public Method
 	{
 	private:
-		//! Neural network topology. 
+		//! Neural network topology.
 		Eigen::VectorXi topol_;
 
 		//!@{
-		//! Number of iterations per sweep. 
-		uint sweep_, nsweep_;
+		//! Number of iterations per sweep.
+		unsigned int sweep_, nsweep_;
 		//!@}
 
-		//! Number of iterations after which we turn on full weight. 
-		uint citers_; 
+		//! Number of iterations after which we turn on full weight.
+		unsigned int citers_;
 
 		//! Neural network.
 		nnet::neural_net net_;
 
 		//!@{
-		//! Previous and current histogram weight. 
+		//! Previous and current histogram weight.
 		double pweight_, weight_;
 		//!@}
 
 		//!@{
-		//! System temperature and energy units. 
+		//! System temperature and energy units.
 		double temp_, kbt_;
 		//!@}
 
-		//! Force grid. 
+		//! Force grid.
 		Grid<Eigen::VectorXd>* fgrid_;
 
 		//! Histogram grid.
-		Grid<uint>* hgrid_;
+		Grid<unsigned int>* hgrid_;
 
-		//! Unbiased histogram grid. 
+		//! Unbiased histogram grid.
 		Grid<double>* ugrid_;
 
 		//!@{
-		//! Eigen matrices of grids. 
+		//! Eigen matrices of grids.
 		Eigen::MatrixXd hist_, bias_;
 		//!@}
 
 		//!@{
-		//! Bounds 
+		//! Bounds
 		std::vector<double> lowerb_, upperb_;
 		//!@}
 
 		//!@{
-		//! Bound restraints. 
+		//! Bound restraints.
 		std::vector<double> lowerk_, upperk_;
 		//!@}
 
-		//! Output filename. 
+		//! Output filename.
 		std::string outfile_;
 
 		//! Overwrite outputs? 
@@ -92,7 +92,7 @@ namespace SSAGES
 		//! Trains the neural network.
 		void TrainNetwork();
 
-		//! Writes out the bias to file. 
+		//! Writes out the bias to file.
 		void WriteBias();
 
 	public: 
@@ -118,7 +118,7 @@ namespace SSAGES
 		    const MPI_Comm& comm, 
 		    const Eigen::VectorXi& topol,
 		    Grid<Eigen::VectorXd>* fgrid,
-		    Grid<uint>* hgrid,
+		    Grid<unsigned int>* hgrid,
 		    Grid<double>* ugrid,
 		    const std::vector<double>& lowerb,
 		    const std::vector<double>& upperb,
@@ -126,7 +126,7 @@ namespace SSAGES
 		    const std::vector<double>& upperk,
 		    double temperature,
 		    double weight,
-		    uint nsweep
+		    unsigned int nsweep
 		);
 
 		//! Pre-simulation hook.
@@ -169,13 +169,13 @@ namespace SSAGES
 		}
 
 		//! Set number of iterations after which we turn on full weight. 
-		void SetConvergeIters(uint citers)
+		void SetConvergeIters(unsigned int citers)
 		{
 			citers_ = citers;
 		}
 
 		//! Set maximum number of training iterations per sweep.
-		void SetMaxIters(uint iters)
+		void SetMaxIters(unsigned int iters)
 		{
 			auto params = net_.get_train_params();
 			params.max_iter = iters;

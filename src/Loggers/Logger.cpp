@@ -36,7 +36,7 @@ namespace SSAGES
 		if(comm_.rank() == 0)
 		{
 			if(append_)
-		 		log_.open(filename_.c_str(), std::ofstream::out | std::ofstream::app);	
+				log_.open(filename_.c_str(), std::ofstream::out | std::ofstream::app);
 			else
 			{
 				// Write out header.
@@ -44,7 +44,7 @@ namespace SSAGES
 				log_ << "#"; 
 				log_ << "Iteration "; 
 
-				auto cvs = cvmanager.GetCVs(cvmask_); 
+				auto cvs = cvmanager.GetCVs(cvmask_);
 				for(size_t i = 0; i < cvs.size() - 1; ++i)
 					log_ << "cv_" + std::to_string(i) << " ";
 				log_ << "cv_" + std::to_string(cvs.size() - 1) << std::endl;
@@ -98,7 +98,7 @@ namespace SSAGES
 		//TODO walker id should be obtainable in method as
 		//     opposed to calculated like this. 
 		bool ismulti = mxx::comm(world).size() > mxx::comm(comm).size(); 
-		uint wid = mxx::comm(world).rank()/mxx::comm(comm).size();
+		unsigned int wid = mxx::comm(world).rank()/mxx::comm(comm).size();
 		if(json["output_file"].isArray())
 			name = json["output_file"][wid].asString(); 
 		else if(ismulti)
@@ -110,7 +110,7 @@ namespace SSAGES
 		l->SetAppend(json.get("append", false).asBool());
 
 		// Load cv mask. 
-		std::vector<uint> cvmask; 
+		std::vector<unsigned int> cvmask;
 		for(auto& v : json["cvs"])
 		{
 			if(v.isString())

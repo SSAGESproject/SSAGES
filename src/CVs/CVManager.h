@@ -44,7 +44,7 @@ namespace SSAGES
 	std::vector<CollectiveVariable*> cvs_;
 
 	//! Map between CV names and ID's. 
-	static std::map<std::string, uint> cvmap_;
+	static std::map<std::string, unsigned int> cvmap_;
 
 	public:
 		CVManager() = default;
@@ -77,7 +77,7 @@ namespace SSAGES
 		  *        which CV to include in the container. 
 		  * \return Vector containing pointers to requested CVs.
 		  */
-		std::vector<CollectiveVariable*> GetCVs(const std::vector<uint>& mask = std::vector<uint>()) const
+		std::vector<CollectiveVariable*> GetCVs(const std::vector<unsigned int>& mask = std::vector<unsigned int>()) const
 		{
 			if(mask.empty())
 				return cvs_; 
@@ -97,7 +97,7 @@ namespace SSAGES
 		  * 
 		  * \note If a previous name is already used, it will override the old entry.
 		  */
-		static void AddCVtoMap(const std::string& name, uint id)
+		static void AddCVtoMap(const std::string& name, unsigned int id)
 		{
 			cvmap_[name] = id;
 		}

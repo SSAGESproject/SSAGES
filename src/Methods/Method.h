@@ -32,11 +32,11 @@ namespace SSAGES
 {
 	//! Interface for Method implementations.
 	/*!
-	 * The base method class from which advanced sampling routines derive. 
-	 * A method is allowed to manipulate a simulation at three points: 
-	 * before the simulation begins (usually initialization), after each 
-	 * integration step by the simulation engine, and after the integration 
-	 * steps are complete (usually cleanup). 
+	 * The base method class from which advanced sampling routines derive.
+	 * A method is allowed to manipulate a simulation at three points:
+	 * before the simulation begins (usually initialization), after each
+	 * integration step by the simulation engine, and after the integration
+	 * steps are complete (usually cleanup).
 	 *
 	 * \ingroup Methods
 	 */
@@ -47,7 +47,7 @@ namespace SSAGES
 		mxx::comm comm_; //!< Local MPI communicator
 
 		//! Mask which identifies which CVs to act on.
-		std::vector<uint> cvmask_; 
+		std::vector<unsigned int> cvmask_;
 
 	public:
 		//! Constructor
@@ -58,7 +58,7 @@ namespace SSAGES
 		 *
 		 * Frequency of sampling must be specified by all methods.
 		 */
-		Method(uint frequency, const MPI_Comm& world, const MPI_Comm& comm) : 
+		Method(unsigned int frequency, const MPI_Comm& world, const MPI_Comm& comm) :
 		EventListener(frequency), world_(world), comm_(comm), cvmask_()
 		{}
 
@@ -90,7 +90,7 @@ namespace SSAGES
 		virtual void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override = 0;
 		
 		//! Sets the collective variable mask.
-		void SetCVMask(const std::vector<uint>& mask)
+		void SetCVMask(const std::vector<unsigned int>& mask)
 		{
 			cvmask_ = mask;
 		}
@@ -104,18 +104,18 @@ namespace SSAGES
 		 * \return Pointer to the Method built. nullptr if an unknown error occurred.
 		 *
 		 * This function builds a registered method from a JSON node. The difference
-		 * between this function and "Build" is that this automatically determines the 
+		 * between this function and "Build" is that this automatically determines the
 		 * appropriate derived type based on the JSON node information.
 		 *
 		 * \note Object lifetime is the caller's responsibility.
 		 */
-		static Method* BuildMethod(const Json::Value& json, 
-		                           const MPI_Comm& world, 
-		                           const MPI_Comm& comm, 
+		static Method* BuildMethod(const Json::Value& json,
+		                           const MPI_Comm& world,
+		                           const MPI_Comm& comm,
 		                           const std::string& path);
 
 		//! Destructor
-		virtual ~Method() 
+		virtual ~Method()
 		{
 		}
 	};

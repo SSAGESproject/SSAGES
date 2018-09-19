@@ -43,7 +43,7 @@ namespace nnet
 		vector_t je_;
 
 		/** Number of adjustable parameters. */
-		uint nparam_;
+		unsigned int nparam_;
 
 		/** Scaling parameters. */
 		vector_t x_shift_;

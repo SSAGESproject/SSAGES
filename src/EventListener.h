@@ -34,14 +34,14 @@ namespace SSAGES
 	class EventListener
 	{
 	private:
-		uint frequency_; //!< Frequency for listening.
+		unsigned int frequency_; //!< Frequency for listening.
 	
 	public:
 		//! Constructor
 		/*!
 		 * \param frequency Frequency for listening.
 		 */
-		EventListener(uint frequency) : 
+		EventListener(unsigned int frequency) :
 		frequency_(frequency)
 		{
 		}
@@ -50,7 +50,7 @@ namespace SSAGES
 		/*!
 		 * \return Frequency of event listener.
 		 */
-		uint GetFrequency() const { return frequency_; }
+		unsigned int GetFrequency() const { return frequency_; }
 
 		//! Method call prior to simulation initiation.
 		/*!

@@ -70,7 +70,7 @@ namespace SSAGES
 		unsigned int iterator_;
 
 		//! The global method iteration.
-		uint iteration_;
+		unsigned int iteration_;
 
 		//! Output stream for string data.
 		std::ofstream stringout_;
