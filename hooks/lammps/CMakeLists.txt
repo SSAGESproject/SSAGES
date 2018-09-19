@@ -4,7 +4,7 @@ set (SUPPORTED_LAMMPS_VERSIONS
      "16 Feb 2016" "14 May 2016" "30 Jul 2016"
      "5 Nov 2016" "17 Nov 2016"
      "31 Mar 2017" "11 Aug 2017"
-     "16 Mar 2018"
+     "16 Mar 2018" "22 Aug 2018"
     )
 # List of git tags for above versions
 # Starting with version 15 Sep 2016, the tags are named by date
