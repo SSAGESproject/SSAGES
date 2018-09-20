@@ -131,7 +131,7 @@ namespace SSAGES
 		
 		//TODO walker id should be obtainable in method as
 		//     opposed to calculated like this.
-		unsigned int wid = mxx::comm(world).rank/mxx::comm(comm).size();
+		unsigned int wid = mxx::comm(world).rank()/mxx::comm(comm).size();
 		bool ismulti = mxx::comm(world).size() > mxx::comm(comm).size();
 		unsigned int wcount = mxx::comm(world).size() / mxx::comm(comm).size();
 
