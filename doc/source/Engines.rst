@@ -303,7 +303,7 @@ Building
 ~~~~~~~~
 
 HOOMD-blue supports SSAGES on the current ``master`` branch as of 2018-08-01, and will be supported in releases v2.4.0 and later. HOOMD-blue must be built with **MPI support enabled**.
-Specify the ``cmake`` flag ``-DHOOMD_INCLUDE_DIR=/path/to/hoomd/include``, pointing to the HOOMD-blue ``include`` path.
+Specify the ``cmake`` flag ``-DHOOMD_INCLUDE_DIR=/path/to/hoomd``, pointing to the ``hoomd`` directory within the HOOMD-blue installation.
 
 Running
 ~~~~~~~
