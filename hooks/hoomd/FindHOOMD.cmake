@@ -14,8 +14,6 @@
 # as a convenience (for the intended purpose of this find script), all include directories and definitions needed
 # to compile with all the various libs (boost, python, winsoc, etc...) are set within this script
 
-set(HOOMD_ROOT "" CACHE FILEPATH "Directory containing a HOOMD installation (i.e. _hoomd.so)")
-
 # Let HOOMD_ROOT take precedence, but if unset, try letting Python find a hoomd package in its default paths.
 if(HOOMD_ROOT)
   set(hoomd_installation_guess ${HOOMD_ROOT})
@@ -35,41 +33,35 @@ endif(HOOMD_ROOT)
 
 message(STATUS "Looking for a HOOMD installation at " ${hoomd_installation_guess})
 find_path(FOUND_HOOMD_ROOT
-        NAMES _hoomd.so __init__.py
-        HINTS ${hoomd_installation_guess}
-        )
+          NAMES _hoomd.so __init__.py
+          HINTS ${hoomd_installation_guess}
+          )
 
 if(FOUND_HOOMD_ROOT)
-  set(HOOMD_ROOT ${FOUND_HOOMD_ROOT} CACHE FILEPATH "Directory containing a HOOMD installation (i.e. _hoomd.so)" FORCE)
+  set(HOOMD_ROOT ${FOUND_HOOMD_ROOT} CACHE PATH "Directory containing a HOOMD installation (i.e. _hoomd.so)" FORCE)
   message(STATUS "Found HOOMD installation at " ${HOOMD_ROOT})
 else(FOUND_HOOMD_ROOT)
   message(FATAL_ERROR "Could not find HOOMD installation, either set HOOMD_ROOT or set PYTHON_EXECUTABLE to a Python which can find HOOMD.")
 endif(FOUND_HOOMD_ROOT)
 
 # search for the hoomd include directory
-find_path(HOOMD_INCLUDE_DIR
+find_path(FOUND_HOOMD_INCLUDE_DIR
           NAMES HOOMDVersion.h
           HINTS ${HOOMD_ROOT}/include
           )
 
-if (HOOMD_INCLUDE_DIR)
+if(FOUND_HOOMD_INCLUDE_DIR)
+    set(HOOMD_INCLUDE_DIR ${FOUND_HOOMD_INCLUDE_DIR} CACHE FILEPATH "Directory containing HOOMD include files (i.e. HOOMDVersion.h)" FORCE)
     message(STATUS "Found HOOMD include directory: ${HOOMD_INCLUDE_DIR}")
     mark_as_advanced(HOOMD_INCLUDE_DIR)
-endif (HOOMD_INCLUDE_DIR)
+else(FOUND_HOOMD_INCLUDE_DIR)
+    message(FATAL_ERROR "Could not find HOOMD installation, either set HOOMD_ROOT or set PYTHON_EXECUTABLE to a Python which can find HOOMD.")
+endif(FOUND_HOOMD_INCLUDE_DIR)
 
-set(HOOMD_FOUND FALSE)
-if (HOOMD_INCLUDE_DIR AND HOOMD_ROOT)
-    set(HOOMD_FOUND TRUE)
-    mark_as_advanced(HOOMD_ROOT)
-endif (HOOMD_INCLUDE_DIR AND HOOMD_ROOT)
-
-if (NOT HOOMD_FOUND)
-    message(SEND_ERROR "HOOMD Not found. Please specify the location of your HOOMD installation in HOOMD_ROOT.")
-endif (NOT HOOMD_FOUND)
+set(FOUND_HOOMD TRUE)
 
 #############################################################
 ## Now that we've found hoomd, lets do some setup
-if (HOOMD_FOUND)
 
 include_directories(${HOOMD_INCLUDE_DIR})
 
@@ -115,5 +107,3 @@ set(HOOMD_METAL_LIB ${HOOMD_ROOT}/metal/_metal${PYTHON_MODULE_EXTENSION})
 set(HOOMD_DEPRECATED_LIB ${HOOMD_ROOT}/deprecated/_deprecated${PYTHON_MODULE_EXTENSION})
 
 set(HOOMD_LIBRARIES ${HOOMD_LIB} ${HOOMD_COMMON_LIBS})
-
-endif (HOOMD_FOUND)
