@@ -303,7 +303,8 @@ Building
 ~~~~~~~~
 
 HOOMD-blue supports SSAGES on the current ``master`` branch as of 2018-08-01, and will be supported in releases v2.4.0 and later. HOOMD-blue must be built with **MPI support enabled**.
-Specify the ``cmake`` flag ``-DHOOMD_ROOT=/path/to/hoomd``, pointing to the ``hoomd`` directory within the HOOMD-blue installation.
+If the HOOMD-blue module is globally accessible within Python, specify the ``cmake`` flag ``-DHOOMD_INCLUDE_DIR=/path/to/hoomd/include``, pointing to the ``include`` directory within the HOOMD-blue installation. SSAGES will automatically detect the main HOOMD-blue installation from your environment.
+If the HOOMD-blue module must be explicitly set, specify the ``cmake`` flag ``-DHOOMD_ROOT=/path/to/hoomd``, pointing to the ``hoomd`` directory within the HOOMD-blue installation. SSAGES will automaticallly find the ``include`` directory from the given path. 
 
 Running
 ~~~~~~~
