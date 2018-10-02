@@ -70,7 +70,7 @@ namespace SSAGES
 
 		//!@{
 		//! Eigen matrices of grids. 
-		Eigen::MatrixXd hist_, bias_;
+		Eigen::MatrixXd hist_, bias_, rbias_;
 		//!@}
 
 		//!@{

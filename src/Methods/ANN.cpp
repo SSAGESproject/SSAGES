@@ -63,13 +63,17 @@ namespace SSAGES
 			++i;
 		}
 
+		// Initialize restraint reweight vector.
+		rbias_.resize(hgrid_->size(), hgrid_->GetDimension());
+		rbias_.fill(0);
+
 		// Initialize FES vector.
 		bias_.resize(hgrid_->size(), 1);
 		net_.forward_pass(hist_);
 		bias_.array() = net_.get_activation().col(0).array();
 	}
 
-	void ANN::PreSimulation(Snapshot* snapshot, const CVManager&) 
+	void ANN::PreSimulation(Snapshot* snapshot, const CVManager& cvmanager) 
 	{
 		auto ndim = hgrid_->GetDimension();
 		kbt_ = snapshot->GetKb()*temp_;
@@ -86,7 +90,23 @@ namespace SSAGES
 		}
 		else
 			std::fill(ugrid_->begin(), ugrid_->end(), 1.0);
-		
+
+		// Fill in the reweighting matrix for restraints.
+		auto cvs = cvmanager.GetCVs(cvmask_);
+		auto ncvs = cvs.size();
+
+		for(size_t i = 0; i < hist_.rows(); ++i)
+		{
+			auto cval = hist_.row(i);
+			for(size_t j = 0; j < ncvs; ++j)
+			{
+				if(cval[j] < lowerb_[j])
+					rbias_(i,j) = lowerk_[j]*(cval[j] - lowerb_[j])*(cval[j] - lowerb_[j]);
+				else if(cval[j] > upperb_[j])
+					rbias_(i,j) = upperk_[j]*(cval[j] - upperb_[j])*(cval[j] - upperb_[j]);
+			}
+		}
+
 		std::fill(fgrid_->begin(), fgrid_->end(), vec);
 	}
 
@@ -148,9 +168,9 @@ namespace SSAGES
 		{
 			auto cval = cvs[i]->GetValue();
 			if(cval < lowerb_[i])
-				derivatives[i] += lowerk_[i]*cvs[i]->GetDifference(cval - lowerb_[i]);
+				derivatives[i] += lowerk_[i]*cvs[i]->GetDifference(lowerb_[i]);
 			else if(cval > upperb_[i])
-				derivatives[i] += upperk_[i]*cvs[i]->GetDifference(cval - upperb_[i]);
+				derivatives[i] += upperk_[i]*cvs[i]->GetDifference(upperb_[i]);
 		}
 
 		// Apply bias to atoms. 
@@ -188,6 +208,7 @@ namespace SSAGES
 	
 		// Update FES estimator. Synchronize unbiased histogram.
 		Map<Array<uint, Dynamic, 1>> hist(hgrid_->data(), hgrid_->size());
+		Map<Array<double, Dynamic, 1>> rbias(rbias_.data(), rbias_.size());
 		Map<Matrix<double, Dynamic, 1>> uhist(ugrid_->data(), ugrid_->size());
 		uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_;
 		ugrid_->syncGrid();
