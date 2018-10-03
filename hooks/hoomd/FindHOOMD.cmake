@@ -14,37 +14,23 @@
 # as a convenience (for the intended purpose of this find script), all include directories and definitions needed
 # to compile with all the various libs (boost, python, winsoc, etc...) are set within this script
 
-# Let HOOMD_ROOT determine the installation guess
 if(HOOMD_ROOT)
-  set(hoomd_installation_guess ${HOOMD_ROOT})
+  message(STATUS "Using HOOMD installation at " ${HOOMD_ROOT})
+else(HOOMD_ROOT)
+  message(FATAL_ERROR "HOOMD_ROOT must be set to the HOOMD installation path.")
 endif(HOOMD_ROOT)
 
-message(STATUS "Looking for a HOOMD installation at " ${hoomd_installation_guess})
-find_path(FOUND_HOOMD_ROOT
-          NAMES _hoomd.so __init__.py
-          HINTS ${hoomd_installation_guess}
-          )
-
-if(FOUND_HOOMD_ROOT)
-  set(HOOMD_ROOT ${FOUND_HOOMD_ROOT} CACHE PATH "Directory containing a HOOMD installation (i.e. _hoomd.so)" FORCE)
-  message(STATUS "Found HOOMD installation at " ${HOOMD_ROOT})
-else(FOUND_HOOMD_ROOT)
-  message(FATAL_ERROR "Could not find HOOMD installation at the specified path HOOMD_ROOT.")
-endif(FOUND_HOOMD_ROOT)
-
 # search for the hoomd include directory
-find_path(FOUND_HOOMD_INCLUDE_DIR
+find_path(HOOMD_INCLUDE_DIR
           NAMES HOOMDVersion.h
           HINTS ${HOOMD_ROOT}/include
           )
 
-if(FOUND_HOOMD_INCLUDE_DIR)
-    set(HOOMD_INCLUDE_DIR ${FOUND_HOOMD_INCLUDE_DIR} CACHE FILEPATH "Directory containing HOOMD include files (i.e. HOOMDVersion.h)" FORCE)
+if(HOOMD_INCLUDE_DIR)
     message(STATUS "Found HOOMD include directory: ${HOOMD_INCLUDE_DIR}")
-    mark_as_advanced(HOOMD_INCLUDE_DIR)
-else(FOUND_HOOMD_INCLUDE_DIR)
+else(HOOMD_INCLUDE_DIR)
     message(FATAL_ERROR "Could not find HOOMD include files at HOOMD_ROOT/include.")
-endif(FOUND_HOOMD_INCLUDE_DIR)
+endif(HOOMD_INCLUDE_DIR)
 
 set(FOUND_HOOMD TRUE)
 
