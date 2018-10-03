@@ -14,21 +14,9 @@
 # as a convenience (for the intended purpose of this find script), all include directories and definitions needed
 # to compile with all the various libs (boost, python, winsoc, etc...) are set within this script
 
-# Let HOOMD_ROOT take precedence, but if unset, try letting Python find a hoomd package in its default paths.
+# Let HOOMD_ROOT determine the installation guess
 if(HOOMD_ROOT)
   set(hoomd_installation_guess ${HOOMD_ROOT})
-else(HOOMD_ROOT)
-  find_package(PythonInterp)
-
-  set(find_hoomd_script "
-from __future__ import print_function;
-import sys, os; sys.stdout = open(os.devnull, 'w')
-import hoomd
-print(os.path.dirname(hoomd.__file__), file=sys.stderr, end='')")
-
-  execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "${find_hoomd_script}"
-                  ERROR_VARIABLE hoomd_installation_guess)
-  message(STATUS "Python output: " ${hoomd_installation_guess})
 endif(HOOMD_ROOT)
 
 message(STATUS "Looking for a HOOMD installation at " ${hoomd_installation_guess})
@@ -41,7 +29,7 @@ if(FOUND_HOOMD_ROOT)
   set(HOOMD_ROOT ${FOUND_HOOMD_ROOT} CACHE PATH "Directory containing a HOOMD installation (i.e. _hoomd.so)" FORCE)
   message(STATUS "Found HOOMD installation at " ${HOOMD_ROOT})
 else(FOUND_HOOMD_ROOT)
-  message(FATAL_ERROR "Could not find HOOMD installation, either set HOOMD_ROOT or set PYTHON_EXECUTABLE to a Python which can find HOOMD.")
+  message(FATAL_ERROR "Could not find HOOMD installation at the specified path HOOMD_ROOT.")
 endif(FOUND_HOOMD_ROOT)
 
 # search for the hoomd include directory
@@ -55,7 +43,7 @@ if(FOUND_HOOMD_INCLUDE_DIR)
     message(STATUS "Found HOOMD include directory: ${HOOMD_INCLUDE_DIR}")
     mark_as_advanced(HOOMD_INCLUDE_DIR)
 else(FOUND_HOOMD_INCLUDE_DIR)
-    message(FATAL_ERROR "Could not find HOOMD installation, either set HOOMD_ROOT or set PYTHON_EXECUTABLE to a Python which can find HOOMD.")
+    message(FATAL_ERROR "Could not find HOOMD include files at HOOMD_ROOT/include.")
 endif(FOUND_HOOMD_INCLUDE_DIR)
 
 set(FOUND_HOOMD TRUE)

@@ -302,9 +302,30 @@ HOOMD-blue
 Building
 ~~~~~~~~
 
-HOOMD-blue supports SSAGES on the current ``master`` branch as of 2018-08-01, and will be supported in releases v2.4.0 and later. HOOMD-blue must be built with **MPI support enabled**.
-If the HOOMD-blue module is globally accessible within Python, specify the ``cmake`` flag ``-DHOOMD_INCLUDE_DIR=/path/to/hoomd/include``, pointing to the ``include`` directory within the HOOMD-blue installation. SSAGES will automatically detect the main HOOMD-blue installation from your environment.
-If the HOOMD-blue module must be explicitly set, specify the ``cmake`` flag ``-DHOOMD_ROOT=/path/to/hoomd``, pointing to the ``hoomd`` directory within the HOOMD-blue installation. SSAGES will automaticallly find the ``include`` directory from the given path. 
+HOOMD-blue supports SSAGES on the current ``master`` branch as of 2018-08-01, and will be supported in releases v2.4.0 and later. HOOMD-blue must be built with **MPI support enabled**, using the HOOMD cmake flag ``-DMPI_ENABLED=ON``.
+If building HOOMD from source, there are two ways to create a valid installation, which contains the ``include`` files needed by SSAGES.
+
+1. HOOMD can be installed with ``make install`` to the location specified by the HOOMD cmake flag ``-DCMAKE_INSTALL_PREFIX``.
+2. HOOMD can be built using ``make`` (without installation) using the HOOMD cmake flag ``-DCOPY_HEADERS=ON``.
+
+For more information on HOOMD cmake flags, see `the HOOMD documentation <https://hoomd-blue.readthedocs.io/en/stable/compiling.html>`_.
+After installing HOOMD, specify the SSAGES cmake flag ``-DHOOMD_ROOT=/path/to/hoomd_installation/hoomd``, pointing to the ``hoomd`` directory within the HOOMD-blue installation prefix.
+For example,
+
+.. code:: bash
+
+        cd /path/to/hoomd
+        mkdir build
+        cd build
+        cmake ../ -DENABLE_MPI=on -DCMAKE_INSTALL_PREFIX=/path/to/hoomd_installation
+        make install -j 8
+
+        cd /path/to/SSAGES
+        mkdir build
+        cd build
+        # Note that this path adds a suffix .../hoomd
+        cmake ../ -DHOOMD_ROOT=/path/to/hoomd_installation/hoomd
+        make -j 8
 
 Running
 ~~~~~~~

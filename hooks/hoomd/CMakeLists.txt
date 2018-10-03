@@ -11,16 +11,6 @@ if (HOOMD_ROOT)
     set(HOOMD_ROOT ${HOOMD_ROOT} PARENT_SCOPE)
 endif ()
 
-if (HOOMD_INCLUDE_DIR)
-    if (IS_ABSOLUTE ${HOOMD_INCLUDE_DIR})
-        get_filename_component(HOOMD_INCLUDE_DIR ${HOOMD_INCLUDE_DIR} ABSOLUTE)
-    else ()
-        get_filename_component(HOOMD_INCLUDE_DIR ${PROJECT_BINARY_DIR}/${HOOMD_INCLUDE_DIR}
-                               ABSOLUTE)
-    endif ()
-    set(HOOMD_INCLUDE_DIR ${HOOMD_INCLUDE_DIR} PARENT_SCOPE)
-endif ()
-
 set(HOOKSRC
     hooks/hoomd/HOOMDHook.cpp
     PARENT_SCOPE
