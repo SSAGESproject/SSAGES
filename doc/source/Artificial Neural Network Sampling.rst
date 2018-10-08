@@ -18,12 +18,12 @@ an ANN is fit to the statistics to determine the optimal bias which is then appl
 subsequent sweep. This proceeeds until the free energy landscape has converged. 
 
 Detailed information on the method and implementation can be found in
-the `publication <https://arxiv.org/abs/1712.02840>`__. 
+the publication [1]_. 
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
 
-ANN sampling is selected by defining ``type" : "ANN"`` as the 
+ANN sampling is selected by defining ``"type" : "ANN"`` as the 
 method in the JSON input file. It supports the following options:
 
 topology
@@ -176,7 +176,7 @@ MATLAB. An exmaple of how to load data in Python for a 2D CV is shown below.
 
 .. code-block:: python 
 
-	# Load data.
+    # Load data.
     X = np.loadtxt("ann.dat")
     xg = np.reshape(X[:,0], (61, 61))
     yg = np.reshape(X[:,1], (61, 61))
@@ -184,7 +184,7 @@ MATLAB. An exmaple of how to load data in Python for a 2D CV is shown below.
     zg = zg - np.max(zg)
     
     # Plot data.
-	fig = plt.figure(figsize=(5,5))
+    fig = plt.figure(figsize=(5,5))
     plt.contour(xg, yg, zg, linewidths=0.5, colors="k")
     plt.contourf(xg, yg, zg)
 
@@ -275,4 +275,9 @@ Hythem Sidky.
 
 .. warning:: 
 	
-	Please make sure to cite the paper if you use this method!
+	Please make sure to cite the paper [1]_ if you use this method!
+
+References
+^^^^^^^^^^
+
+.. [1]  `H. Sidky and J. K. Whitmer`, J. Chem. Phys. **148**, 104111 (2018).
