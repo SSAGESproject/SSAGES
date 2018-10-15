@@ -17,9 +17,10 @@ namespace internal {
 template<typename ExpressionType, typename Scalar>
 inline void stable_norm_kernel(const ExpressionType& bl, Scalar& ssq, Scalar& scale, Scalar& invScale)
 {
+  using std::max;
   Scalar maxCoeff = bl.cwiseAbs().maxCoeff();
   
-  if(maxCoeff>scale)
+  if (maxCoeff>scale)
   {
     ssq = ssq * numext::abs2(scale/maxCoeff);
     Scalar tmp = Scalar(1)/maxCoeff;
@@ -28,20 +29,11 @@ inline void stable_norm_kernel(const ExpressionType& bl, Scalar& ssq, Scalar& sc
       invScale = NumTraits<Scalar>::highest();
       scale = Scalar(1)/invScale;
     }
-    else if(maxCoeff>NumTraits<Scalar>::highest()) // we got a INF
-    {
-      invScale = Scalar(1);
-      scale = maxCoeff;
-    }
     else
     {
       scale = maxCoeff;
       invScale = tmp;
     }
-  }
-  else if(maxCoeff!=maxCoeff) // we got a NaN
-  {
-    scale = maxCoeff;
   }
   
   // TODO if the maxCoeff is much much smaller than the current scale,
@@ -55,12 +47,15 @@ inline typename NumTraits<typename traits<Derived>::Scalar>::Real
 blueNorm_impl(const EigenBase<Derived>& _vec)
 {
   typedef typename Derived::RealScalar RealScalar;  
+  typedef typename Derived::Index Index;
   using std::pow;
+  using std::min;
+  using std::max;
   using std::sqrt;
   using std::abs;
   const Derived& vec(_vec.derived());
   static bool initialized = false;
-  static RealScalar b1, b2, s1m, s2m, rbig, relerr;
+  static RealScalar b1, b2, s1m, s2m, overfl, rbig, relerr;
   if(!initialized)
   {
     int ibeta, it, iemin, iemax, iexp;
@@ -89,6 +84,7 @@ blueNorm_impl(const EigenBase<Derived>& _vec)
     iexp  = - ((iemax+it)/2);
     s2m   = RealScalar(pow(RealScalar(ibeta),RealScalar(iexp)));    // scaling factor for upper range
 
+    overfl  = rbig*s2m;                                             // overflow boundary for abig
     eps     = RealScalar(pow(double(ibeta), 1-it));
     relerr  = sqrt(eps);                                            // tolerance for neglecting asml
     initialized = true;
@@ -105,13 +101,13 @@ blueNorm_impl(const EigenBase<Derived>& _vec)
     else if(ax < b1) asml += numext::abs2(ax*s1m);
     else             amed += numext::abs2(ax);
   }
-  if(amed!=amed)
-    return amed;  // we got a NaN
   if(abig > RealScalar(0))
   {
     abig = sqrt(abig);
-    if(abig > rbig) // overflow, or *this contains INF values
-      return abig;  // return INF
+    if(abig > overfl)
+    {
+      return rbig;
+    }
     if(amed > RealScalar(0))
     {
       abig = abig/s2m;
@@ -132,8 +128,8 @@ blueNorm_impl(const EigenBase<Derived>& _vec)
   }
   else
     return sqrt(amed);
-  asml = numext::mini(abig, amed);
-  abig = numext::maxi(abig, amed);
+  asml = (min)(abig, amed);
+  abig = (max)(abig, amed);
   if(asml <= abig*relerr)
     return abig;
   else
@@ -156,35 +152,21 @@ template<typename Derived>
 inline typename NumTraits<typename internal::traits<Derived>::Scalar>::Real
 MatrixBase<Derived>::stableNorm() const
 {
+  using std::min;
   using std::sqrt;
-  using std::abs;
   const Index blockSize = 4096;
   RealScalar scale(0);
   RealScalar invScale(1);
   RealScalar ssq(0); // sum of square
-  
-  typedef typename internal::nested_eval<Derived,2>::type DerivedCopy;
-  typedef typename internal::remove_all<DerivedCopy>::type DerivedCopyClean;
-  DerivedCopy copy(derived());
-  
   enum {
-    CanAlign = (   (int(DerivedCopyClean::Flags)&DirectAccessBit)
-                || (int(internal::evaluator<DerivedCopyClean>::Alignment)>0) // FIXME Alignment)>0 might not be enough
-               ) && (blockSize*sizeof(Scalar)*2<EIGEN_STACK_ALLOCATION_LIMIT)
-                 && (EIGEN_MAX_STATIC_ALIGN_BYTES>0) // if we cannot allocate on the stack, then let's not bother about this optimization
+    Alignment = (int(Flags)&DirectAccessBit) || (int(Flags)&AlignedBit) ? 1 : 0
   };
-  typedef typename internal::conditional<CanAlign, Ref<const Matrix<Scalar,Dynamic,1,0,blockSize,1>, internal::evaluator<DerivedCopyClean>::Alignment>,
-                                                   typename DerivedCopyClean::ConstSegmentReturnType>::type SegmentWrapper;
   Index n = size();
-  
-  if(n==1)
-    return abs(this->coeff(0));
-  
-  Index bi = internal::first_default_aligned(copy);
+  Index bi = internal::first_aligned(derived());
   if (bi>0)
-    internal::stable_norm_kernel(copy.head(bi), ssq, scale, invScale);
+    internal::stable_norm_kernel(this->head(bi), ssq, scale, invScale);
   for (; bi<n; bi+=blockSize)
-    internal::stable_norm_kernel(SegmentWrapper(copy.segment(bi,numext::mini(blockSize, n - bi))), ssq, scale, invScale);
+    internal::stable_norm_kernel(this->segment(bi,(min)(blockSize, n - bi)).template forceAlignedAccessIf<Alignment>(), ssq, scale, invScale);
   return scale * sqrt(ssq);
 }
 

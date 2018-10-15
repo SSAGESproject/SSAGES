@@ -13,24 +13,25 @@
 
 namespace Eigen {
 
-namespace internal {
-template<typename ExpressionType>
-struct traits<NestByValue<ExpressionType> > : public traits<ExpressionType>
-{};
-}
-
 /** \class NestByValue
   * \ingroup Core_Module
   *
   * \brief Expression which must be nested by value
   *
-  * \tparam ExpressionType the type of the object of which we are requiring nesting-by-value
+  * \param ExpressionType the type of the object of which we are requiring nesting-by-value
   *
   * This class is the return type of MatrixBase::nestByValue()
   * and most of the time this is the only way it is used.
   *
   * \sa MatrixBase::nestByValue()
   */
+
+namespace internal {
+template<typename ExpressionType>
+struct traits<NestByValue<ExpressionType> > : public traits<ExpressionType>
+{};
+}
+
 template<typename ExpressionType> class NestByValue
   : public internal::dense_xpr_base< NestByValue<ExpressionType> >::type
 {
@@ -39,29 +40,29 @@ template<typename ExpressionType> class NestByValue
     typedef typename internal::dense_xpr_base<NestByValue>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(NestByValue)
 
-    EIGEN_DEVICE_FUNC explicit inline NestByValue(const ExpressionType& matrix) : m_expression(matrix) {}
+    inline NestByValue(const ExpressionType& matrix) : m_expression(matrix) {}
 
-    EIGEN_DEVICE_FUNC inline Index rows() const { return m_expression.rows(); }
-    EIGEN_DEVICE_FUNC inline Index cols() const { return m_expression.cols(); }
-    EIGEN_DEVICE_FUNC inline Index outerStride() const { return m_expression.outerStride(); }
-    EIGEN_DEVICE_FUNC inline Index innerStride() const { return m_expression.innerStride(); }
+    inline Index rows() const { return m_expression.rows(); }
+    inline Index cols() const { return m_expression.cols(); }
+    inline Index outerStride() const { return m_expression.outerStride(); }
+    inline Index innerStride() const { return m_expression.innerStride(); }
 
-    EIGEN_DEVICE_FUNC inline const CoeffReturnType coeff(Index row, Index col) const
+    inline const CoeffReturnType coeff(Index row, Index col) const
     {
       return m_expression.coeff(row, col);
     }
 
-    EIGEN_DEVICE_FUNC inline Scalar& coeffRef(Index row, Index col)
+    inline Scalar& coeffRef(Index row, Index col)
     {
       return m_expression.const_cast_derived().coeffRef(row, col);
     }
 
-    EIGEN_DEVICE_FUNC inline const CoeffReturnType coeff(Index index) const
+    inline const CoeffReturnType coeff(Index index) const
     {
       return m_expression.coeff(index);
     }
 
-    EIGEN_DEVICE_FUNC inline Scalar& coeffRef(Index index)
+    inline Scalar& coeffRef(Index index)
     {
       return m_expression.const_cast_derived().coeffRef(index);
     }
@@ -90,7 +91,7 @@ template<typename ExpressionType> class NestByValue
       m_expression.const_cast_derived().template writePacket<LoadMode>(index, x);
     }
 
-    EIGEN_DEVICE_FUNC operator const ExpressionType&() const { return m_expression; }
+    operator const ExpressionType&() const { return m_expression; }
 
   protected:
     const ExpressionType m_expression;
