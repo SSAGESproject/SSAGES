@@ -13,7 +13,7 @@ set (SUPPORTED_LAMMPS_TAGS
      "r14624" "r15061" "r15407"
      "stable_5Nov2016"  "stable_17Nov2016"
      "stable_31Mar2017" "stable_11Aug2017"
-     "stable_16Mar2018"
+     "stable_16Mar2018" "stable_22Aug2018"
     )
 if (LAMMPS_SRC)
     # Get absolute path in case user specified relative path
