@@ -3,22 +3,36 @@
 Collective Variables
 ====================
 
-Collective variables (CVs) are arbitrary differentiable functions of the 3N Cartesian 
-coordinates of the atoms in a simulation. They usually represent some chemically 
-meaningful pathway along which advanced sampling can be performed. Listed below 
-are the collective variables currently supported in SSAGES. In addition to 
-specific properties for each CV, a name property can be defined for any CV 
-which can be used to reference the CV from a method or other supported location. 
+Collective variables (CVs) are arbitrary differentiable functions of the
+:math:`3N` Cartesian  coordinates of the atoms in a simulation [1]_. These
+usually represent some structurally, thermodynamically, or chemically
+meaningful quantity along which advanced sampling can be performed. Listed
+below are the collective variables currently supported in SSAGES, along with a
+brief description and information on how the syntax is implemented in SSAGES.
+In addition to specific properties for each CV, a name property may be
+defined for any CV which is used to reference the CV within the methods of SSAGES.
 
 .. code-block:: javascript
 
 	"name" : "mycvname"
 
-Specified names for CVs must be unique. It is possible to omit a name and reference 
-a CV by its index as well. 
+The name specified for a CV must be unique. It is possible, however, to omit
+this and simply reference a CV by its numerical index. 
+
 
 Angle
 -----
+
+Description 
+^^^^^^^^^^^
+
+This CV calculates the bend angle, in radians, formed between three selected atoms :math:`i,j,k`,
+
+.. math::
+
+	\xi = \cos^{-1}\left(\frac{\mathbf{r}_{ij} \cdot \mathbf{r}_{kj}}{\Vert \mathbf{r}_{ij} \Vert \Vert \mathbf{r}_{kj} \Vert} \right).
+
+This can be helpful when probing the conformations of a molecule to understand its stable and metastable states. Angles do not have to be defined between bonded atoms.
 
 Example 
 ^^^^^^^
@@ -30,14 +44,12 @@ Example
 		"atom_ids" : [0, 1, 2]
 	}
 
-Description 
-^^^^^^^^^^^
 
-This CV calculates the bend angle, in radians, formed between three selected atoms :math:`i,j,k`,
 
-.. math::
+.. warning::
 
-	\xi = \cos^{-1}\left(\frac{\mathbf{r}_{ij} \cdot \mathbf{r}_{kj}}{\Vert \mathbf{r}_{ij} \Vert \Vert \mathbf{r}_{kj} \Vert} \right).
+    The angle must be between three individual particles rather than the centers-of-mass of particle groups.
+
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -60,13 +72,16 @@ Property ``atom_ids`` must contain three integers consisting of the atom ID form
 
 Box Volume
 ----------
-.. warning:: 
 
-	Non-orthorhombic boxes are currently not supported. 
 
-.. note:: 
+Description 
+^^^^^^^^^^^
 
-	Currently supported only in Gromacs and LAMMPS.
+The current volume of a simulation box is an important parameter determining the thermodynamic state. Constant-pressure simulations where volume information is recorded may be reweighted according to standard methods [R1]_. This CV calculates the box volume as the determinant of the Parrinello-Rahman matrix :math:`\mathbf{H}`,
+
+.. math::
+
+	\xi = \det\left( H_{ij} \right)
 
 Example 
 ^^^^^^^
@@ -77,14 +92,9 @@ Example
 		"type" : "BoxVolume"
 	}
 
-Description 
-^^^^^^^^^^^
+.. warning:: 
 
-This CV calculates the box volume as the determinant of the Parrinello-Rahman matrix :math:`\mathbf{H}`,
-
-.. math::
-
-	\xi = \det\left( H_{ij} \right)
+	Non-orthorhombic boxes are currently not supported. Only Gromacs and LAMMPS are currently supported
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -101,27 +111,17 @@ Property ``type`` must be set to string ``"BoxVolume"``.
 Gyration Tensor
 ---------------
 
-Example 
-^^^^^^^
-
-.. code-block:: javascript 
-
-	"type" : "GyrationTensor", 
-	"atom_ids" : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 
-	"component" : "shapeaniso"
-
 Description 
 ^^^^^^^^^^^
 
-This CV calculates components of the *mass-weighted** gyration tensor defined as, 
+This CV calculates quantities derived from the *mass-weighted** gyration tensor defined as, 
 
 .. math::
 
 	S_{mn} = \frac{1}{N}\sum_{i=1}^{N}{r_m^i r_n^i}
 
 where :math:`r_m` is the coordinate of the :math:`m^{\mathrm{th}}` atom in the interial 
-frame. With eigenvalues of :math:`\lambda_x^2, \lambda_y^2, \lambda_z^2`, possible components to 
-use as a CV include: 
+frame. The eigenvalues of the radius of gyration tensor are particularly useful as collective variables which quantify the conformation of a molecule (such as a long polymer) or the shape of a given assembly of molecules. With eigenvalues of :math:`\lambda_x^2, \lambda_y^2, \lambda_z^2` defined in the frame of the principal axes of inertia, the following quantities may be computed:
 
 Radius of Gyration (Squared)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -157,6 +157,19 @@ Shape Anisotropy
 .. math::
 
 	\kappa^2 = \frac{3}{2}\frac{\lambda_x^4+\lambda_y^4+\lambda_z^4}{\left(\lambda_x^2+\lambda_y^2+\lambda_z^2\right)^2}-\frac{1}{2}
+
+
+
+Example 
+^^^^^^^
+
+This example computes the shape anisotropy of a ten-atom group.
+
+.. code-block:: javascript 
+
+	"type" : "GyrationTensor", 
+	"atom_ids" : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 
+	"component" : "shapeaniso"
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -198,6 +211,16 @@ three xyz components will be used.
 Particle Coordinate
 -------------------
 
+Description 
+^^^^^^^^^^^
+
+This CV calculates the :math:`x`, :math:`y` or :math:`z` position of the center of mass for a
+group of atoms. 
+ 
+.. math::
+
+	\xi = \frac{1}{\sum_i{m^i}}\sum_{i=1}^{N}{r_\alpha^i}\ \ \ \alpha \in {x,y,z}
+
 Example 
 ^^^^^^^
 
@@ -209,15 +232,6 @@ Example
 		"dimension" : "x"
 	}
 
-Description 
-^^^^^^^^^^^
-
-This CV calculates the :math:`x`, :math:`y` or :math:`z` component center of mass of a
-group of atoms. 
- 
-.. math::
-
-	\xi = \frac{1}{\sum_i{m^i}}\sum_{i=1}^{N}{r_\alpha^i}\ \ \ \alpha \in {x,y,z}
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -246,8 +260,21 @@ Property ``dimension`` must be a string defining the Cartesian component of inte
 Pairwise
 --------
 
+Description 
+^^^^^^^^^^^
+
+This CV calculates a variety of pairwise properties. The functions (kernels) used are continous analogs for otherwise discontinuous CVs. If parameters are chosen judiciously, these kernels can be used in place of some standard, discontinuous CVs. A Gaussian kernel can emulate a count of nearest neighbors; a switching function kernel can emulate a coordination number.
+
+.. math::
+
+	\xi = \sum_{i \in A}\sum_{i \in B}{f_{ij}}
+
+where :math:`f_{ij}` is a pairwise function for atoms :math:`i` and :math:`j`. are at a distance of the center of the Gaussian, :math:`r_{ij}=\mu`, and decreases to zero as the distance deviates away from :math:`\mu`.
+
 Example
 ^^^^^^^
+
+This example uses a Gaussian pairwise kernel to compute contributions from contact-type interactions between two atoms of size 1.0.
 
 .. code-block:: javascript 
 	
@@ -262,16 +289,6 @@ Example
 		}
 	}
 
-Description 
-^^^^^^^^^^^
-
-This CV calculates a variety of pairwise properties. The functions (kernels) used are continous analogs for otherwise discontinuous CVs. If parameters are chosen judiciously, these kernels can be used in place of some standard, discontinuous CVs. A Gaussian kernel can emulate a count of nearest neighbors; a switching function kernel can emulate a coordination number.
-
-.. math::
-
-	\xi = \sum_{i \in A}\sum_{i \in B}{f_{ij}}
-
-where :math:`f_{ij}` is a pairwise function for atoms :math:`i` and :math:`j`. are at a distance of the center of the Gaussian, :math:`r_{ij}=\mu`, and decreases to zero as the distance deviates away from :math:`\mu`.
 
 
 Options & Parameters
@@ -321,6 +338,8 @@ The Gaussian function is defined as:
 
 	g_{ij} = e^{-\frac{\left(r_{ij} - \mu\right)^2}{2\sigma^2}}.
 
+This type of kernel is useful to select between conformations which have a different position of (e.g.) neighbors and next nearest neighbors in a particle cluster. Selection of particle separations approximates a math:`\delta` distribution.
+
 Properties
 ++++++++++
 
@@ -344,6 +363,8 @@ The rational switching function is defined as:
 .. math::
 
 	s_{ij} = \frac{1-\left(\frac{r_{ij} - d_0}{r_0}\right)^n}{1-\left(\frac{r_{ij} - d_0}{r_0}\right)^m}.
+
+This quantity is useful for measuring how many atoms in group 2 occupy a spherical shell around atoms in group 1. The form is chosen so that the variable is continuous and differentiable. Through tuning :math:`n` and :math:`m` this can be made arbitrarily close to a Heaviside switching function.
 
 Properties
 ++++++++++
@@ -439,6 +460,13 @@ three xyz components will be used.
 Particle Separation
 -------------------
 
+
+Description
+^^^^^^^^^^^
+
+This CV calculates the distance between the centers of mass of two groups of
+atoms. The variable is unsigned, as the distance is a magnitude.
+
 Example
 ^^^^^^^
 
@@ -450,11 +478,6 @@ Example
         "group2" : [5, 6, 10]
     }
 
-Description
-^^^^^^^^^^^
-
-This CV calculates the distance between the centers of mass of two groups of
-atoms.
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -498,6 +521,24 @@ three xyz components will be used.
 Polymer Rouse Modes
 -------------------
 
+Description
+^^^^^^^^^^^
+
+This CV calculates the magnitude of a given Rouse mode for a set of atoms as
+
+.. math::
+
+    X_p = \sqrt{\mathbf{X}_p\cdot\mathbf{X}_p},
+
+with the :math: `p` th Rouse mode defined as
+
+.. math::
+
+    \mathbf{X}_p = \sqrt{\frac{c_p}{N}}\sum_{i=1}^N \mathbf{R}_i \cos \Bigl[\frac{p\pi}{N}\bigl(i-\frac{1}{2}\bigr) \Bigr],
+
+where :math: `N` is the number of groups or beads comprising the polymer, :math: `\mathbf{R}_i` is the center-of-mass of the :math: `i` th bead, and :math: `c_p` is a constant equal to 1 for :math: `p=0` and equal to 2 for :math: `p=1,\cdots,N-1`. This CV can be helpful to bias the conformations of both moderate-size and long-chain proteins and polymers.
+
+
 Example
 ^^^^^^^
 
@@ -520,22 +561,6 @@ Example
                    ]
     }
 
-Description
-^^^^^^^^^^^
-
-This CV calculates the magnitude of a given Rouse mode for a set of atoms as
-
-.. math::
-
-    X_p = \sqrt{\mathbf{X}_p\cdot\mathbf{X}_p},
-
-with the :math: `p` th Rouse mode defined as
-
-.. math::
-
-    \mathbf{X}_p = \sqrt{\frac{c_p}{N}}\sum_{i=1}^N \mathbf{R}_i \cos \Bigl[\frac{p\pi}{N}\bigl(i-\frac{1}{2}\bigr) \Bigr],
-
-where :math: `N` is the number of groups or beads comprising the polymer, :math: `\mathbf{R}_i` is the center-of-mass of the :math: `i` th bead, and :math: `c_p` is a constant equal to 1 for :math: `p=0` and equal to 2 for :math: `p=1,\cdots,N-1`.
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -564,16 +589,6 @@ Property ``mode`` is an integer indicating the index of the desired Rouse mode. 
 Torsional Angle
 ---------------
 
-Example 
-^^^^^^^
-
-.. code-block:: javascript 
-
-	{
-		"type" : "Torsional", 
-		"atom_ids" : [1, 5, 6, 10]
-	}
-
 Description 
 ^^^^^^^^^^^
 
@@ -585,6 +600,23 @@ It is computed as,
 	\xi = \tan^{-1}\left( \frac{\left[(r_{lk} \times r_{jk}) \times (r_{ij} \times r_{jk}) \right] \cdot \frac{r_{jk}}{\Vert r_{jk}\Vert}}{(r_{lk} \times r_{jk}) \cdot (r_{ij} \times r_{jk}) } \right).
 
 Specifically, the function ``atan2`` is used for the inverse tangent calculation to yield a four-quadrant angle.
+
+.. warning:: 
+
+	The torsional angle can only be defined between four atoms rather than four groups of atoms.
+
+
+
+Example 
+^^^^^^^
+
+.. code-block:: javascript 
+
+	{
+		"type" : "Torsional", 
+		"atom_ids" : [1, 5, 6, 10]
+	}
+
 
 
 Options & Parameters
@@ -609,18 +641,6 @@ form the dihedral.
 Alpha Helix RMSD
 ----------------
 
-Example
-^^^^^^^
-
-.. code-block:: javascript
-
-	{
-            "type" : "AlphaRMSD",
-            "residue_ids" : [3, 21],
-            "reference" : "reference_structure.pdb",
-            "unitconv" : 10
-	}
-
 Description
 ^^^^^^^^^^^
 
@@ -641,9 +661,30 @@ backbone atom.
 
 .. note::
 
-	Note that this CV is basically a summation of a switching function; in the
-	future the user will be able to choose custom parameters for the switching
-	function.
+	Note that this CV is basically a summation of switching functions applied to the RMSD rather than to coordinates; in future versions, the user will be able to choose custom parameters for the switching function.
+
+.. note::
+
+	Unlike the simpler CVs discussed above, this one takes atomic labels in the form of a reference PDB structure. This is true of all protein-like CVs below which compare to a reference structure.
+
+.. warning::
+
+	Since the definition of this CV uses nanometers as a unit length, you must specify the ``unitconv`` parameter, as outlined below, in order to apply this CV when that is not the base unit of length.
+
+
+
+Example
+^^^^^^^
+
+.. code-block:: javascript
+
+	{
+            "type" : "AlphaRMSD",
+            "residue_ids" : [3, 21],
+            "reference" : "reference_structure.pdb",
+            "unitconv" : 10
+	}
+
 
 
 Options & Parameters
@@ -696,19 +737,6 @@ length is in angstroms, ``unitconv`` will be set to 10.
 Anti Beta RMSD
 ----------------
 
-Example
-^^^^^^^
-
-.. code-block:: javascript
-
-	{
-            "type" : "AntiBetaRMSD",
-            "residue_ids" : [3, 21],
-            "reference" : "reference_structure.pdb",
-            "unitconv" : 10,
-            "mode" : 0
-	}
-
 Description
 ^^^^^^^^^^^
 
@@ -729,9 +757,30 @@ backbone atom.
 
 .. note::
 
-	Note that this CV is basically a summation of a switching function; in the
-	future the user will be able to choose custom parameters for the switching
-	function.
+	Note that this CV is basically a summation of switching functions applied to the RMSD rather than to coordinates; in future versions, the user will be able to choose custom parameters for the switching function.
+
+.. note::
+
+	Unlike the simpler CVs discussed above, this one takes atomic labels in the form of a reference PDB structure. This is true of all protein-like CVs below which compare to a reference structure.
+
+.. warning::
+
+	Since the definition of this CV uses nanometers as a unit length, you must specify the ``unitconv`` parameter, as outlined below, in order to apply this CV when that is not the base unit of length.
+
+
+Example
+^^^^^^^
+
+.. code-block:: javascript
+
+	{
+            "type" : "AntiBetaRMSD",
+            "residue_ids" : [3, 21],
+            "reference" : "reference_structure.pdb",
+            "unitconv" : 10,
+            "mode" : 0
+	}
+
 
 
 Options & Parameters
@@ -794,19 +843,6 @@ A value of 1 selects for the intra mode; a value of 2 selects for inter mode.
 Parallel Beta RMSD
 ------------------
 
-Example
-^^^^^^^
-
-.. code-block:: javascript
-
-	{
-            "type" : "ParallelBetaRMSD",
-            "residue_ids" : [3, 21],
-            "reference" : "reference_structure.pdb",
-            "unitconv" : 10,
-            "mode" : 0
-	}
-
 Description
 ^^^^^^^^^^^
 
@@ -827,9 +863,30 @@ backbone atom.
 
 .. note::
 
-	Note that this CV is basically a summation of a switching function; in the
-	future the user will be able to choose custom parameters for the switching
-	function.
+	Note that this CV is basically a summation of switching functions applied to the RMSD rather than to coordinates; in future versions, the user will be able to choose custom parameters for the switching function.
+
+.. note::
+
+	Unlike the simpler CVs discussed above, this one takes atomic labels in the form of a reference PDB structure. This is true of all protein-like CVs below which compare to a reference structure.
+
+.. warning::
+
+	Since the definition of this CV uses nanometers as a unit length, you must specify the ``unitconv`` parameter, as outlined below, in order to apply this CV when that is not the base unit of length.
+
+
+
+Example
+^^^^^^^
+
+.. code-block:: javascript
+
+	{
+            "type" : "ParallelBetaRMSD",
+            "residue_ids" : [3, 21],
+            "reference" : "reference_structure.pdb",
+            "unitconv" : 10,
+            "mode" : 0
+	}
 
 
 Options & Parameters
@@ -889,5 +946,13 @@ formed only between residues on the same chain (intra) or only between residues
 on separate chains (inter). If ``mode`` is set to 0, both modes will be used.
 A value of 1 selects for the intra mode; a value of 2 selects for inter mode.
 
+Footnotes
+^^^^^^^^^
 
+.. [F1] We tacitly assume we are working with spherical atoms that join together to form molecules.
+
+References
+^^^^^^^^^^
+
+.. [R1]  `P. B. Conrad and J. J. de Pablo,` Fluid Phase Equilibria **150**-**151**, 51--61, 1998.
 
