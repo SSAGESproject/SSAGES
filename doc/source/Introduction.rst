@@ -1,40 +1,44 @@
 Introduction
 ============
 
-Welcome to SSAGES, our new and shiny advanced sampling package.
+
+Welcome to SSAGES, our extensive advanced sampling package. You might be
+wondering---what is SSAGES and what can it do for my research?
 
 Over the past several decades, molecular simulation has emerged as a powerful
-tool for investigating a wide range of physical phenomena. Molecular simulation
-is, in essence, a computational "microscope" whereby computers are used to "look
-at" the properties of a system that are difficult to observe or measure through
-traditional experimental setups. The comparison between simulations and the
-corresponding experimental systems can sometimes be challenging, usually due to
-factors such as the length and time scales explored. In simulation, a molecular
-model must have sufficient temporal and spatial accuracy to resolve the fastest
-time scales and shortest length scales within a system. Unfortunately, due to
-computational constraints, this detailed resolution has limited the length of
-time and number of particles that a model can simulate, typically simulating
-systems that are smaller than analogous experimental setups in laboratory
-environments for much shorter times than the duration of the experiments.
-However in recent years, advancements in computational processing power,
-including custom built computer architectures, have continued to increase the
-time and length scales accessible by molecular simulation, with current
-state-of-the-art simulations able to analyze systems for milliseconds (10-3s). 
+tool for investigating a wide range of physical phenomena. Molecular
+simulation is, in essence, a computational "microscope" whereby computers are
+used to "look at" the properties of a system that are difficult to observe or
+measure through traditional experimental setups. The comparison between
+simulations and the corresponding experimental systems can sometimes be
+challenging, usually due to factors such as the length and time scales
+explored. In simulation, a molecular model must have sufficient temporal and
+spatial accuracy to resolve the fastest time scales and shortest length scales
+within a system. Unfortunately, due to computational constraints, this
+detailed resolution has limited the length of time and number of particles
+that a model can simulate, typically simulating systems that are smaller than
+analogous experimental setups in laboratory environments for much shorter
+times than the duration of the experiments. Recent advancements in processing
+power, including custom built computer architectures and GPU-based computing,
+have continued to increase the time and length scales accessible by molecular
+simulation, with current state-of-the-art simulations able to analyze systems
+for milliseconds (:math:`10^{-3}` s) or more :cite:`Shaw2013`.
 
-Another challenge arises from the difficulty in obtaining good statistics from
-molecular simulations.  Thermal fluctuations dominate motion at the nano-scale
-and result in motion that appears random (i.e. Brownian), with no two molecular
-trajectories being identical. As a result, statistically meaningful averages are
-necessary in order to calculate thermodynamic and kinetic quantities of interest
-in these systems.  An incredibly powerful thermodynamic quantity referred to as
-the relative free energy of a system can be calculated in this way. The relative
-free energy can characterize underlying system behavior in the presence of the
-thermal-induced random noise. Performing this necessary averaging within
-simulations is challenging. In essence, the requirement of averaging compounds
-the issue of time scales described previously; not only must long simulations be
-performed, but they must be performed a prohibitively large number of times in
-order to extract sufficient statistics. It is therefore necessary to develop
-efficient techniques to calculate meaningful averages from simulations.
+However, other challenges arise in obtaining good statistics from molecular
+simulations.  Thermal fluctuations dominate motion at the nano-scale and
+result in motion that appears random (i.e. Brownian), with no two molecular
+trajectories being identical. As a result, statistically meaningful averages
+are necessary in order to calculate thermodynamic and kinetic quantities of
+interest in these systems :cite:`Frenkel2002`. An incredibly powerful
+thermodynamic quantity referred to as the relative free energy of a system can
+be calculated in this way. The relative free energy can characterize
+underlying system behavior in the presence of the thermal-induced random
+noise. Performing this necessary averaging within simulations is challenging.
+In essence, the requirement of averaging compounds the issue of time scales
+described previously; not only must long simulations be performed, but they
+must be performed a prohibitively large number of times in order to extract
+sufficient statistics. It is therefore necessary to develop efficient
+techniques to calculate meaningful averages from simulations.
 
 Advanced sampling methods represent a class of simulation techniques that seek
 to improve this improper averaging and accelerate the extraction of useful
@@ -63,19 +67,24 @@ As a result, the same methods are implemented again and again by different
 members of the community. Sadly, in molecular simulation, it is quite common to
 "reinvent the wheel". 
 
-SSAGES is an answer to this problem. SSAGES (Suite for Advanced Generalized
-Ensemble Simulations) is a free, open-source software package that allows users
-to easily apply advanced sampling techniques to any molecular system of
-interest. Simply put, SSAGES is a wrapper that converts a molecular simulation
-engine (e.g. LAMMPS, NAMD) into an advanced sampling engine. SSAGES contains a
-library of widely used enhanced sampling methods that can be used to calculate
-everything from free energies to transition pathways. Importantly, SSAGES works
-with many of the widely used simulation packages, and can simply be added on top
-of the simulations a researcher is already running. SSAGES is implemented in a
-highly modular way, and is easily extended to incorporate a new method or to
-modify an existing one and has been rigorously tested to ensure the accuracy of
-its calculations. 
+SSAGES is an answer to this problem :cite:`Sidky2018`. SSAGES (Suite for
+Advanced General Ensemble Simulations) is a free, open-source software package
+that allows users to easily apply advanced sampling techniques to any
+molecular system of interest. Simply put, SSAGES is a wrapper that converts a
+molecular simulation engine (e.g. LAMMPS, NAMD) into an advanced sampling
+engine. SSAGES contains a library of widely used enhanced sampling methods
+that can be used to calculate everything from free energies to transition
+pathways. Importantly, SSAGES works with many of the widely used simulation
+packages, and can simply be added on top of the simulations a researcher is
+already running. SSAGES is implemented in a highly modular way, and is easily
+extended to incorporate a new method or to modify an existing one and has been
+rigorously tested to ensure the accuracy of its calculations.
 
 In short, SSAGES makes advanced sampling methods easy. We hope that it will do
 just that for your research.
 
+.. Rubric References
+
+.. bibliography references.bib
+	:list: enumerated
+	:all:
