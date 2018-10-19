@@ -18,14 +18,21 @@ Project Supervisors
 Project Leads
 -------------
 
-* Yamil J. Colón
-* Hythem Sidky
+* Michael Quevillon
+* Emre Sevgen
+
+Past Project Leads
+------------------
+
+* Yamil J. Colón (2015-2018)
+* Hythem Sidky (2015-2018)
 
 Core Development
 ----------------
 
 * Julian Helfferich
 * Hythem Sidky
+* Benjamin Sikora
 
 Methods
 -------
@@ -39,7 +46,7 @@ Methods
 * Hadi Ramezani-Dakhel
 * Emre Sevgen
 * Hythem Sidky
-* Ben Sikora
+* Benjamin Sikora
 * Jonathan Whitmer
 
 Collective Variables
@@ -49,7 +56,7 @@ Collective Variables
 * Ashley Guo
 * Michael Quevillon
 * Hythem Sidky
-* Ben Sikora
+* Benjamin Sikora
 * Mike Webb
 
 Documentation
@@ -69,10 +76,6 @@ Engine Adapters
 
 * Emre Sevgen
 * Hythem Sidky
-* Ben Sikora
+* Benjamin Sikora
 * Bradley Dice
 * Carl Simon Adorf
-
-Former Team Members
--------------------
-* Ben Sikora
