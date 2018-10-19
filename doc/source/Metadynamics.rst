@@ -34,12 +34,12 @@ reconstructed by summing over all applied biases thusly
 Here, :math:`n(t)` refers to the number of biases applied before time
 :math:`t`. The time-dependent FES can be used to determine whether or
 not a simulation has reached a converged FES by computing block
-averages of the applied bias (see [Singh2012]_).
+averages of the applied bias (see :cite:`SINGH2012369`).
 
 Metadynamics can be applied to unbounded regions of CV space, or to
 bounded regions. For the case of bounded, non-periodic CVs, boundary
 corrections must be applied which alter the structure of the hills
-:math:`g(\vec{\xi},\vec{s}_i)` (see [McGovern2013]_)
+:math:`g(\vec{\xi},\vec{s}_i)` (see :cite:`MCGOVERN2013084102`)
 
 Metadynamics exists in many flavors, in which :math:`W_i` and
 :math:`\sigma_i` are altered in a time- or trajectory- dependent
@@ -169,22 +169,7 @@ To run this example:
 3) After the run is complete use the provided ``analysis.m`` script to generate 
    a representation of the underlying free energy surface.
 
-
 Developer
 ^^^^^^^^^
 
-Hythem Sidky.
-
-References Cited
-^^^^^^^^^^^^^^^^
-
-.. [Singh2012] Singh, Sadanand, Manan Chopra, and Juan J. de
-               Pablo. "Density of states–based molecular simulations."
-               Annual review of chemical and biomolecular engineering
-               3 (2012): 369-394.
-
-.. [McGovern2013] McGovern, Michael, and Juan de Pablo. "A boundary
-                  correction algorithm for metadynamics in multiple
-                  dimensions." The Journal of chemical physics 139.8
-                  (2013): 084102.
-
+Hythem Sidky
