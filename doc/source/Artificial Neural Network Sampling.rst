@@ -18,7 +18,7 @@ an ANN is fit to the statistics to determine the optimal bias which is then appl
 subsequent sweep. This proceeeds until the free energy landscape has converged. 
 
 Detailed information on the method and implementation can be found in
-the publication [1]_. 
+the publication :cite:`SIDKY2018104111`.
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -274,10 +274,5 @@ Developer
 Hythem Sidky.
 
 .. warning:: 
-	
-	Please make sure to cite the paper [1]_ if you use this method!
 
-References
-^^^^^^^^^^
-
-.. [1]  `H. Sidky and J. K. Whitmer`, J. Chem. Phys. **148**, 104111 (2018).
+	Please make sure to cite the paper :cite:`SIDKY2018104111` if you use this method!

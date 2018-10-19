@@ -19,10 +19,10 @@ visits to each bin. Concurrently, a running sum of the instantaneous
 generalized force experienced by the system. Putting these together gives an
 estimate for the mean generalized force, and integrating this quantity yields
 the free energy. Note that this means ABF returns a vector field rather than a
-free energy surface (which is the output of most methods.) Ref [R1]_ contains
+free energy surface (which is the output of most methods.) Ref.
+:cite:`COMER20141129` contains
 an excellent write-up on the method in general. The specific implementation in
-SSAGES is discussed in Ref. [R2]_.
-
+SSAGES is discussed in Ref. :cite:`DARVE2008144120`.
 
 .. note::
 
@@ -214,7 +214,7 @@ Defines the unit conversion from d(momentum)/d(time) to force for the simulation
 This is the number of hits required to a bin in the general histogram before
 the full bias is active. Below this value, the bias linearly decreases to
 equal 0 at hits = 0. Default = 200, but user should provide a reasonable
-value for their system. See [R1]_ and [R2]_ for more details.
+value for their system. See :cite:`COMER20141129` and :cite:`DARVE2008144120` for more details.
 
 **Output parameters**
 
@@ -236,7 +236,7 @@ This is a string value defining the file name for the adaptive vector force fiel
 
 *Optional*: This is the name of the file to backup raw Fworld force output for use in restarts. There will be separate outputs for each CV. The default filename is Fworld_cv, which saves each CV's output to Fworld_cvX.
 
-.. code-block:: javsscript
+.. code-block:: javascript
     
     "Nworld_output_file" : "Nworld"
 
@@ -489,10 +489,3 @@ Developers
 
 Emre Sevgen
 Hythem Sidky
-
-References
-^^^^^^^^^^
-
-.. [R1] `J. Comer, et al.` J. Phys. Chem. B., **119**, 1129--1151 (2015). `Link <http://pubs.acs.org/doi/abs/10.1021/jp506633n>`__.
-
-.. [R2] `E. Darve, D. Rodriguez-Gomez and A. Pohorille,` J. Chem. Phys., **128**, 144120 (2008). `Link <http://mc.stanford.edu/cgi-bin/images/0/06/Darve_2008.pdf>`__.
