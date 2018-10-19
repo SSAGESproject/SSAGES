@@ -1,3 +1,5 @@
+:orphan:
+
 .. image_method:
 
 Image Method

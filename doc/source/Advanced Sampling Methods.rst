@@ -15,8 +15,9 @@ List of Advanced Sampling Methods (alphabetical order):
    Finite Temperature String
    Forward-Flux
    Metadynamics
-   Image Method
-   Replica Exchange
    Swarm of Trajectories
    Umbrella Sampling
 
+.. The following are :orphan: pages
+..   Image Method
+..   Replica Exchange
