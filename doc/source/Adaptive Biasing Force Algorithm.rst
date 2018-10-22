@@ -63,9 +63,9 @@ and force data are saved in the same way as single-walker simulations.
 ABF can optionally define a restraint range, which biases simulations back
 toward the region of interest using a harmonic restraint with user-chosen
 spring constant(s). To disable restraints, enter a spring constant k equal to
-or less than zero. 
+or less than zero.
 
-.. warning ::
+.. warning::
 
   The restraint range should be WIDER than the CV range by at least one bin size
   in each direction. 
