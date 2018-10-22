@@ -487,5 +487,5 @@ outputs given in the examples folders:
 Developers
 ^^^^^^^^^^
 
-Emre Sevgen
-Hythem Sidky
+* Emre Sevgen
+* Hythem Sidky

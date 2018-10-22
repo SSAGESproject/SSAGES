@@ -190,7 +190,9 @@ has curved away from the energy barrier at the origin.
 Developers
 ^^^^^^^^^^
 
-Ashley Guo, Ben Sikora, Yamil Colón
+* Ashley Guo
+* Benjamin Sikora
+* Yamil J. Colón
 
 References
 ^^^^^^^^^^

@@ -221,4 +221,4 @@ this tutorial.
 Developer
 ^^^^^^^^^
 
-Cody Bezik.
+* Cody Bezik

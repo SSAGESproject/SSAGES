@@ -195,7 +195,7 @@ positons of each image of the elastic band.
 Developer
 ^^^^^^^^^
 
-Ben Sikora.
+* Benjamin Sikora
 
 .. _elastic-band-references:
 

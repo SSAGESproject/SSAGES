@@ -240,9 +240,8 @@ restart.out
 This holds all the coefficient values after each bias projection update, as well
 as the biased histogram. This file is entirely used for restart runs.
 
-Developer
-^^^^^^^^^
+Developers
+^^^^^^^^^^
 
-Joshua Moller
-Julian Helfferich
-
+* Joshua Moller
+* Julian Helfferich

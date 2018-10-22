@@ -266,12 +266,12 @@ The network can then be evaluated on a high resolution grid and plotted.
 	plt.xlabel("$\phi$")
 	plt.ylabel("$\psi$")
 
-These examples and more are also found in the `online repository <https://github.com/hsidky/ann_sampling>`__.
+These examples and more are also found in the `online repository <https://github.com/hsidky/ann_sampling>`_.
 
 Developer
 ^^^^^^^^^
 
-Hythem Sidky.
+* Hythem Sidky
 
 .. warning:: 
 

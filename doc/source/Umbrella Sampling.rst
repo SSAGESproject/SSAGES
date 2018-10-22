@@ -235,3 +235,8 @@ Sample output files from this example code are in the ``Examples/User/Umbrella/H
 	* ``wham_free_energy.png`` is the free energy as a function of the dihedral
 	  angle.
 
+Developers
+^^^^^^^^^^
+
+* Hythem Sidky
+* Benjamin Sikora

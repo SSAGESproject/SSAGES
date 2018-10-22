@@ -324,18 +324,20 @@ you have everything you need to perform a simulation.  Simply run:
 
 This should run a quick FFS calculation and generate the necessary output.
 
-
 Developers
 ^^^^^^^^^^
 
-Joshua Lequieu, Hadi Ramezani-Dakhel, Ben Sikora, Vikram Thapar.
+* Joshua Lequieu
+* Hadi Ramezani-Dakhel
+* Benjamin Sikora
+* Vikram Thapar
 
 References
 ^^^^^^^^^^
 
 .. [1] R. J. Allen, C. Valeriani, P. R. ten Wolde, *Forward Flux Sampling for
        Rare Event Simulations*. J Phys-Condens Mat 2009, 21 (46).
-       
+
 .. [2] F. A. Escobedo, E. E. Borrero, J. C. Araque, *Transition Path Sampling
        and Forward Flux Sampling. Applications to Biological Systems*.
        J Phys-Condens Mat 2009, 21 (33).
