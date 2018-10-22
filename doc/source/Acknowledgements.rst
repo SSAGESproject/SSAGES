@@ -16,7 +16,7 @@ Project Supervisors
 * Jonathan Whitmer
 
 Project Leads
----------------------
+-------------
 
 * Michael Quevillon
 * Emre Sevgen

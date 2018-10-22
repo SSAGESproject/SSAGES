@@ -3,7 +3,7 @@ Contribute to SSAGES
 
 The SSAGES project is built by an inclusive and welcoming group of physicists,
 chemists, and chemical engineers working on complex Molecular Dynamics (MD)
-simulations employing enhanced sampling techniques. Advanced sampling is an
+simulations employing advanced sampling techniques. Advanced sampling is an
 exciting and rapidly developing field. Similarly, this project is designed to
 facilitate the usage and implementation of a wide array of sampling methods.
 We welcome you heartily to join us as we embark on this great adventure.
@@ -346,7 +346,7 @@ however, does not work for the plural, "Methods". Instead, you can write
 ``\link Method Methods \endlink``. On the other hand, if you want to prevent
 Doxygen from creating an autolink, put a ``%`` in front of the word.
 
-What to document
+What to Document
 ^^^^^^^^^^^^^^^^
 
 We strive for a comprehensive documentation of all the methods available in
@@ -362,7 +362,7 @@ should include:
 
 .. _add_your_method:
 
-Adding your method to SSAGES
+Adding your Method to SSAGES
 ----------------------------
 
 .. seealso::
