@@ -73,7 +73,7 @@ molecular system of interest. Simply put, SSAGES is a wrapper that converts a
 molecular simulation engine (e.g. LAMMPS, GROMACS) into an advanced sampling
 engine. SSAGES contains a library of widely used advanced sampling methods
 that can be used to calculate everything from free energies to transition
-pathways. Importantly, SSAGES works with many widely-used simulation
+pathways. Importantly, SSAGES works with many widely used simulation
 packages, and can simply be added on top of the simulations a researcher is
 already running. SSAGES is implemented in a highly modular way, and is easily
 extended to incorporate a new method or to modify an existing one and has been

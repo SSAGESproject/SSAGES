@@ -1,7 +1,7 @@
 SSAGES
 ============
 
-**SSAGES** (**S**oftware **S**uite for **A**dvanced **G**eneralized **E**nsemble **S**imulations) is an open-source, engine agnostic, C++11 based advanced sampling package. 
+**SSAGES** (**S**oftware **S**uite for **A**dvanced **G**eneral **E**nsemble **S**imulations) is an open-source, engine agnostic, C++11 based advanced sampling package. 
 It is designed to be easy to use, extendable and extremely versatile. It is currently pre-beta, meaning that there are many rough edges, but we are working rapidly 
 to expand its features and fix any bugs. Keep an eye on this page for future updates and see below on how to contribute!
 
