@@ -54,8 +54,12 @@ Contents:
    Contribute to SSAGES
    The SSAGES Cookbook
    Acknowledgements
-   References
+   zReferences
    Copyright and License
+
+.. Developer's note: References is named "zReferences.rst" to appear at the
+   end of the file list, as sphinxcontrib-bibtex must have the references
+   file compiled *last*.
 
 Indices and tables
 ==================
