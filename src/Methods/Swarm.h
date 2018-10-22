@@ -1,6 +1,6 @@
 /**        
 - * This file is part of        
-- * SSAGES - Suite for Advanced Generalized Ensemble Simulations        
+- * SSAGES - Software Suite for Advanced General Ensemble Simulations        
 - *     
 - * Copyright 2016 Cody Bezik <bezik@uchicago.edu>      
 - *     

@@ -63,7 +63,7 @@ As a result, the same methods are implemented again and again by different
 members of the community. Sadly, in molecular simulation, it is quite common to
 "reinvent the wheel". 
 
-SSAGES is an answer to this problem. SSAGES (Suite for Advanced Generalized
+SSAGES is an answer to this problem. SSAGES (Software Suite for Advanced General
 Ensemble Simulations) is a free, open-source software package that allows users
 to easily apply advanced sampling techniques to any molecular system of
 interest. Simply put, SSAGES is a wrapper that converts a molecular simulation

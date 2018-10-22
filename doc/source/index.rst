@@ -23,7 +23,7 @@ limitations, MC and MD simulations must be supplemented with advanced sampling
 techniques. These methods are critical for the efficient simulation of complex
 assembly processes.
 
-SSAGES (Software Suite for Advanced Generalized Ensemble Simulations) is
+SSAGES (Software Suite for Advanced General Ensemble Simulations) is
 designed to perform these calculations. The framework is designed to treat
 molecular simulation routines as a black box, using the coordinates of the
 system as evolved by an MC or MD engine to compute collective variables which

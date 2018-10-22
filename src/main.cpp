@@ -1,6 +1,6 @@
 /**
  * This file is part of
- * SSAGES - Suite for Advanced Generalized Ensemble Simulations
+ * SSAGES - Software Suite for Advanced General Ensemble Simulations
  *
  * Copyright 2017 Hythem Sidky <hsidky@nd.edu>
  *                Ben Sikora <bsikora906@gmail.com>
@@ -42,12 +42,12 @@ int main(int argc, char* argv[])
 
 	std::stringstream helpStream;
 	helpStream
-		<< "Welcome to SSAGES - Suite for Advanced Generalized Ensemble Simulations\n"
+		<< "Welcome to SSAGES - Software Suite for Advanced General Ensemble Simulations\n"
 		<< "\n"
 		<< argv[0] << " [-h | --help] [ --version ] InputFile.json\n"
 		<< "\n"
 		<< "Required parameters:\n"
-		<< "InputFile.json - Input file specifying the generalized ensemble method and\n"
+		<< "InputFile.json - Input file specifying the general ensemble method and\n"
 		<< "                 all required input parameters in the JSON format. For more\n"
 		<< "                 information on the input file, confer the user manual.\n"
 		<< "\n"
