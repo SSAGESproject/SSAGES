@@ -1,7 +1,7 @@
 Acknowledgments
 ================
 
-We are grateful to Argonne National Labs for initiating this project and
+We are grateful to Argonne National Laboratory for initiating this project and
 their continued support. Julian Helfferich acknowledges financial support from
 the DFG research fellowship program, grant No. HE 7429/1.
 
@@ -16,7 +16,7 @@ Project Supervisors
 * Jonathan Whitmer
 
 Project Leads
--------------
+---------------------
 
 * Michael Quevillon
 * Emre Sevgen
@@ -67,6 +67,7 @@ Documentation
 * Ashley Guo
 * Julian Helfferich
 * Joshua Moller
+* Michael Quevillon
 * Hadi Ramezani-Dakhel
 * Emre Sevgen
 * Hythem Sidky
@@ -74,8 +75,9 @@ Documentation
 Engine Adapters
 ---------------
 
+* Carl Simon Adorf
+* Bradley Dice
+* Michael Quevillon
 * Emre Sevgen
 * Hythem Sidky
 * Benjamin Sikora
-* Bradley Dice
-* Carl Simon Adorf
