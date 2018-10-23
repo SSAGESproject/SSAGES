@@ -81,12 +81,13 @@ between ``centers0`` and ``centers1`` in ``timesteps`` iterations.
 LAMMPS Tutorial
 ^^^^^^^^^^^^^^^
 
-This tutorial will go through running Umbrella Sampling on an atomistic model of butane using LAMMPS as the
-MD engine.
+This tutorial will go through running Umbrella Sampling on an atomistic model
+of butane using LAMMPS as the MD engine.
 Umbrella sampling will be performed on the torsional CV of the butane C atoms.
 
-The butane implementation in LAMMPS requires several modules to be added before being linked to SSAGES.
-To do this, return to your LAMMPS ``src`` directory and issue the following commands
+The butane implementation in LAMMPS requires several modules to be added
+before being linked to SSAGES.
+To do this, return to your build directory and issue the following commands:
 
 .. code-block:: bash
 
