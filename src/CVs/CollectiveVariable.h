@@ -25,6 +25,9 @@
 #include <vector>
 #include <map>
 
+#include "Hook.h"
+#include "Snapshot.h"
+
 // Forward declare.
 namespace Json {
 	class Value;
@@ -66,6 +69,13 @@ namespace SSAGES
 		 * allocate/reserve memory.
 		 */
 		virtual void Initialize(const class Snapshot&) {}
+
+        //! This sets a reference to the simulation engine hook.
+        /*!
+         * This method is called during initialization and can be used by the CV
+         * to access engine-specific data structures.
+         */
+        virtual void SetHook(const Hook&) { }
 
 		//! Evaluate CV.
 		/*!
@@ -114,6 +124,35 @@ namespace SSAGES
 			return location;
 		}
 
+        //! Compute the particle forces and virial by scaling the gradient with a constant
+        /*!
+         * \param bias The constant scaling factor to apply to all particle forces
+         * \param snapshot The snapshot that contains the forces
+         *
+         */
+        virtual void ApplyBias(double bias, Snapshot& snapshot) const
+            {
+            auto& grad = GetGradient();
+            auto& forces = snapshot.GetForces();
+
+            // apply bias to particles
+            for (size_t j = 0; j < forces.size(); ++j)
+                for(size_t k = 0; k < 3; ++k)
+                    forces[j][k] -= bias*grad[j][k];
+
+            // apply bias to virial
+            auto& boxgrad = GetBoxGradient();
+            auto& virial = snapshot.GetVirial();
+
+            virial += bias*boxgrad;
+            }
+
+        //! Returns true if this CV can modify the particle forces in the snapshot
+        virtual bool ModifiesParticleForces() const
+            {
+            return true;
+            }
+
 		//! Get current gradient of the CV.
 		/*!
 		 * \return Per-atom gradient of the CV.
@@ -123,7 +162,7 @@ namespace SSAGES
 		 * element in the vector is the derivative of the CV with respect to
 		 * the atom's coordinate (dCV/dxi).
 		 */
-		const std::vector<Vector3>& GetGradient() const
+		virtual const std::vector<Vector3>& GetGradient() const
 		{
 			return grad_;
 		}
@@ -134,7 +173,7 @@ namespace SSAGES
 		 *
 		 * Returns the gradient of the CV with respect to the box.
 		 */
-		const Matrix3& GetBoxGradient() const
+		virtual const Matrix3& GetBoxGradient() const
 		{
 			return boxgrad_;
 		}

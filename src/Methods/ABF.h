@@ -110,7 +110,7 @@ namespace SSAGES
 		bool massweigh_;
 
 		//! Biases applied to atoms each timestep.	
-		std::vector<Vector3> biases_;
+		std::vector<double> biases_;
 
 		//! Number of CVs in system.
 		unsigned int dim_;

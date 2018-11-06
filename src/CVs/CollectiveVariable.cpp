@@ -36,6 +36,10 @@
 #include "json/json.h"
 #include <stdexcept>
 
+#ifdef ENABLE_HOOMD
+#include "../../hooks/hoomd/HOOMDWrapCV.h"
+#endif
+
 namespace SSAGES
 {
 	CollectiveVariable* CollectiveVariable::BuildCV(const Json::Value &json, const std::string& path)
@@ -67,6 +71,12 @@ namespace SSAGES
 			return ParallelBetaRMSDCV::Build(json, path);
 		else if (type == "AntiBetaRMSD")
 			return AntiBetaRMSDCV::Build(json, path);
+        else if (type == "HOOMDCV")
+        #ifdef ENABLE_HOOMD
+            return HOOMDWrapCV::Build(json, path);
+        #else
+            throw std::invalid_argument(path + ": HOOMDCV not available. Compile with HOOMD Hook.");
+        #endif
 		else
 			throw std::invalid_argument(path + ": Unknown CV type specified.");
 	}

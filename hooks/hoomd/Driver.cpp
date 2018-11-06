@@ -48,8 +48,11 @@ namespace SSAGES
         py::object exec_conf_obj = py::cast(exec_conf_);
         hoomd_module.attr("context").attr("exec_conf") = exec_conf_obj;
 
+        // Evaluate in scope of main module
+        py::object scope = py::module::import("__main__").attr("__dict__");
+
         // Evaluate the user script file
-        py::eval_file(rh_->GetInput().c_str());
+        py::eval_file(rh_->GetInput().c_str(),scope);
         py::object context = hoomd_module.attr("context").attr("current");
 
         // Get the current C++ SystemDefinition and update the HOOMDHook
@@ -73,6 +76,7 @@ namespace SSAGES
 
         // Run HOOMD
         hook_->update(0);  // this is a hack for initialization
+        hook_->setPyScope(scope);
         hook_->PreSimulationHook();
         hoomd_module.attr("run")(run_steps_);
         hook_->PostSimulationHook();
@@ -117,8 +121,9 @@ namespace SSAGES
             execution_mode = ExecutionConfiguration::executionMode::GPU;
             }
 
+        std::vector<int> gpu_id(1,-1);
         auto exec_conf = std::make_shared<ExecutionConfiguration>(
-          execution_mode, -1, false, false,
+          execution_mode, gpu_id, false, false,
           std::shared_ptr<Messenger>(), 0, rh->GetLocalComm());
 
         auto hook = std::make_shared<HOOMDHook>();

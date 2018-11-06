@@ -29,7 +29,6 @@ namespace SSAGES
 	// Post-integration hook.
 	void ElasticBand::PostIntegration(Snapshot* snapshot, const CVManager& cvmanager)
 	{
-		auto& forces = snapshot->GetForces();
 		auto cvs = cvmanager.GetCVs(cvmask_);
 
 		// Apply umbrella to cvs
@@ -37,16 +36,13 @@ namespace SSAGES
 		{
 			// Get current CV and gradient.
 			auto& cv = cvs[i];
-			auto& grad = cv->GetGradient();
 
 			// Compute dV/dCV.
 			auto diff = cv->GetDifference(centers_[i]);
 			auto D = cvspring_[i] * diff;
 
 			// Update forces.
-			for(size_t j = 0; j < forces.size(); ++j)
-				for(int k = 0; k < forces[j].size(); ++k)
-					forces[j][k] -= D*grad[j][k];
+            cv->ApplyBias(D, *snapshot);
 
 			// If not equilibrating and has evolved enough steps,
 			// generate the gradient
