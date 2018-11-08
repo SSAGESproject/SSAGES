@@ -73,7 +73,7 @@ This will build a SSAGES executable which will reside in the build directory.
 
 If you want to use a specific compiler (or if your default compiler is not supported),
 set the C and C++ compilers with `CMAKE_C_COMPILER` and `CMAKE_CXX_COMPILER`, respectively.
-For example, to use gcc/g++, replace the cmake command with
+For example, to use gcc/g++, replace the CMake command with
 
 ```bash
 $ cmake -DLAMMPS_SRC=/path/to/lammps/src -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ ..
@@ -107,6 +107,7 @@ directory. Make sure you have the following tools available:
 * dot (part of the `graphViz` package)
 * sphinx (`python-sphinx` or `python3-sphinx`)
 * ReadTheDocs theme (`pip install sphinx_rtd_theme`)
+* sphinxcontrib-bibtex (`pip install sphinxcontrib-bibtex`)
 
 You can build the documentation with
 ```bash

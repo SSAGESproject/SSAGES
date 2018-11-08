@@ -44,15 +44,15 @@ namespace SSAGES
 
 		//! Gradient w.r.t box vectors dCv/dHij.
 		Matrix3 boxgrad_;
-		
-	 	//! Current value of CV.
-		double val_;				
+
+		//! Current value of CV.
+		double val_;
 
 		//! Bounds on CV.
-		std::array<double, 2> bounds_;		
+		std::array<double, 2> bounds_;
 	public:
 		//! Constructor.
-		CollectiveVariable() : 
+		CollectiveVariable() :
 		grad_(0), boxgrad_(Matrix3::Zero()), val_(0), bounds_{{0,0}}
 		{}
 
@@ -87,12 +87,12 @@ namespace SSAGES
 			return val_;
 		}
 
-        //! Returns the minimum image of a CV based on the input location.
-        /*!
-		 * \return Minimum image of the CV 
+		//! Returns the minimum image of a CV based on the input location.
+		/*!
+		 * \return Minimum image of the CV
 		 *
-         * Takes the input location and applies the periodic boundary conditions to return a minimum image
-         * of the CV.
+		 * Takes the input location and applies the periodic boundary conditions to return a minimum image
+		 * of the CV.
 		 */
 		virtual double GetMinimumImage(double /*location*/) const
 		{
@@ -128,9 +128,9 @@ namespace SSAGES
 			return grad_;
 		}
 
-		//! Get gradient contribution to box. 
+		//! Get gradient contribution to box.
 		/*
-		 * \return Gradient of CV with respect to box. 
+		 * \return Gradient of CV with respect to box.
 		 *
 		 * Returns the gradient of the CV with respect to the box.
 		 */
@@ -178,7 +178,7 @@ namespace SSAGES
 		 * Builds a CV from a JSON node. Returns a pointer to the built cv. If
 		 * an unknown error is encountered, this function will return a
 		 * \c nullptr, but generally it will throw a BuildException on failure.
-		 * \warning Object lifetime is the caller's responsibility.		 
+		 * \warning Object lifetime is the caller's responsibility.
 		 */
 		static CollectiveVariable* BuildCV(const Json::Value& json, const std::string& path);
 	};
