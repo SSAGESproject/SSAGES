@@ -58,8 +58,8 @@ namespace nnet
 		/** Read neural net from file. */
 		neural_net(const char* filename);
 
-		/** Initial weights randomly (zero mean, standard deviation sd) . */
-		void init_weights(f_type sd);
+		/** Initial weights randomly (modified Nguyen-Widrow) . */
+		void init_weights();
 		
 		/** Propagate data through the net.
 		*  Rows of X are instances, columns are features. */
@@ -100,7 +100,7 @@ namespace nnet
 		void autoscale(const matrix_t& X, const matrix_t& Y);
 
 		/** Reset autoscale parameters */
-		void autoscale_reset();      
+		void autoscale_reset();
 		
 		/** Write net parameter to file. */
 		bool write(const char* filename);

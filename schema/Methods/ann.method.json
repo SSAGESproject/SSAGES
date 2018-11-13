@@ -79,6 +79,12 @@
         "min_loss" : {
             "type" : "number",
             "minimum" : 0
+        },
+        "net_state" : {
+            "type" : "string"
+        },
+        "load_bias" : {
+            "type" : "string"
         }
     },
     "required" : [
