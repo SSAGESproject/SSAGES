@@ -1,3 +1,5 @@
+:orphan:
+
 .. image_method:
 
 Image Method
@@ -82,7 +84,7 @@ Tutorial
 Developer
 ^^^^^^^^^
 
-Jiyuan Li.
+* Jiyuan Li
 
 References
 ^^^^^^^^^^
@@ -90,4 +92,3 @@ References
 .. [1] J. Qin, J. Li, V. Lee, H. Jaeger, J. J. de Pablo, and K. Freed,
        *A theory of interactions between polarizable dielectric spheres*,
        J. Coll. Int. Sci. **469**, 237 - 241 (2016)
-

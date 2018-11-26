@@ -6,168 +6,80 @@ Adaptive Biasing Force Algorithm
 Introduction
 ^^^^^^^^^^^^
 
-Adaptive Biasing Force is a variant of a flat histogram method. Like many
-other methods that seek uniform sampling over CV space such as Metadynamics, it
-adaptively biases the simulation until such diffusive sampling is achieved.
-However, unlike metadynamics, ABF does not estimate the free energy surface.
-Rather, it directly estimates the derivative of the free energy in CV directions
-- the generalized force on that CV by the system.
+Relative to most other free energy methods, which are based on adding biases
+to the Hamiltonian of a system to obtain a flat histogram in converged
+sampling, the adaptive biasing force method (ABF) is unique, as it seeks a
+flattening of the generalized force. Like flat histogram methods, this bias
+force is applied until the landscape seen by a simulation is flat in
+collective variable (CV) space and freely diffusive sampling is achieved.
 
-In practice, this translates to histogramming coordinates in CV space with an
-instantaneous estimation of the free energy derivative. This instantaneous
-estimate fluctuates around the true, global free energy derivative at that
-point, but the average quickly converges to the real value. Then, the free
-energy derivatives can be integrated much like Thermodynamic Integration to get
-the free energy surface. 
+In practice, ABF functions by partitioning relevant CV space into histogram-
+like bins with a grid, and keeping a running tabulation of the number of
+visits to each bin. Concurrently, a running sum of the instantaneous
+generalized force experienced by the system. Putting these together gives an
+estimate for the mean generalized force, and integrating this quantity yields
+the free energy. Note that this means ABF returns a vector field rather than a
+free energy surface (which is the output of most methods.) Ref.
+:cite:`COMER20141129` contains
+an excellent write-up on the method in general. The specific implementation in
+SSAGES is discussed in Ref. :cite:`DARVE2008144120`.
 
-Thus, ABF gives a vector field and not a free energy surface.
+.. note::
 
-An excellent write-up on the method can be found
-`here <http://pubs.acs.org/doi/abs/10.1021/jp506633n>`__.
+    An integrator for 1D, 2D and 3D surfaces are provided in SSAGES/Tools/ABF_integrator (requires numpy, scipy and matplotlib). Syntax is below; this is illustrated further in the tutorial found on this page.
 
-Details on the specific implementation used in SSAGES can be found
-`here <http://mc.stanford.edu/cgi-bin/images/0/06/Darve_2008.pdf>`__.
+.. code-block:: bash
 
-An integrator for 1D, 2D and 3D surfaces are provided in SSAGES/Tools/ABF_integrator (requires numpy, scipy and matplotlib).
-ABF_integrator.py -i <inputfile> -o <outputname> -p <bool> (<bool> <bool>) --interpolate <integer> (<integer> <integer>) --scale <float>
+    ./ABF_integrator.py -i <inputfile> -o <outputname> -p <bool> (<bool> <bool>) --interpolate <integer> (<integer> <integer>) --scale <float>
 
-
-Options & Parameters
+Implementation Notes
 ^^^^^^^^^^^^^^^^^^^^
 
-Adaptive Biasing Force Method
+ABF calculates a generalized force on CVs at each timestep, and biases
+simulations using the negative of the estimated generalized force. This
+requires a grid, which requires that you define a CV range. Outside of the CV
+range, the simulation will continue to run, but the grid does not extend
+there, so there is no bias applied and no histogram hits are collected.
+histogram hits will be collected.
 
-* Calculate the generalized force on CVs at each timestep
-* Bias with the negative of the estimated generalized force
-* Define a CV range. Outside of the CV range, there will be no bias, and no
-  histogram hits will be collected.
-* Can restart from a previous run. Simply include Fworld_cvX and Nworld outputs
-  in your working directory at runtime, and set 'restart' to true.
-* ABF will keep a single backup of old files, and will overwrite older backups with new
-  if they already exist. If restarting, a backup will not be created, instead
-  ABF will read from and update the newest files.
-* Multiple walkers will read from and write to the same histogram during runtime,
-  and this histogram will be saved the same way a single walker histogram is saved.
-* Can optionally define a restraint range. Outside this range, a harmonic
-  restraint of user-chosen spring constant(s) will drive the CV(s) back into the
-  range. This range should be WIDER than the CV range by at least one bin size
-  in each direction. To disable restraints, enter a spring constant k equal to
-  or less than zero. If restraints are used on a periodic system, one can define
-  the periodic boundaries, so that minimum image convention to CVs can be applied.
-  (CV_periodic_boundary_upper/lower_bounds). For example, on a -pi to pi CV, if the 
-  CV is restrained to -3.14 to -2.36 and the CV crosses the -3.14 boundary to 3.14,
-  this will ensure the restraint is applied correctly back towards -3.14 rather than
-  a large force applied to bring it from 3.14 all the way to -2.36.
 
-How to define the ABF Method: ``"type" : "ABF"``
+ABF can restart from a previous run. Simply include Fworld_cvX and Nworld
+outputs generated by the previous run in your working directory, and set the
+'restart' option to true.
 
-cvs
-   *array of integers*.
-   This array selects which CVs this method will operate on. Index starts from 0.
+.. warning::
 
-CV_lower_bounds
-    *array of doubles (nr of CVs) long*.
-    This array defines the minimum values for the CVs for the range in which the
-    method will be used in order. 
+  ABF keeps only a single backup of old files, and overwrites older backups
+  with new data if they already exist. If restarting, a backup will not be
+  created, instead ABF will read from and update the newest files. If you want
+  to keep a copy of the output from a previous run after restart, be sure to
+  rename the output or place a copy in a different directory.
 
-CV_upper_bounds
-    *array of doubles (nr of CVs) long*.
-    This array defines the minimum values for the CVs for the range in which the
-    method will be used in order.
 
-CV_bins
-    *array of doubles (nr of CVs) long*.
-    This array defines the number of histogram bins in each CV dimension in order.
+If you are using the multiple walkers option, they will read from and write to
+the same histogram and force estimate during runtime. The resulting histogram
+and force data are saved in the same way as single-walker simulations.
 
-CV_restraint_minimums
-    *array of doubles (nr of CVs) long*.
-    This array defines the minimum values for the CV restraints in order. 
+ABF can optionally define a restraint range, which biases simulations back
+toward the region of interest using a harmonic restraint with user-chosen
+spring constant(s). To disable restraints, enter a spring constant k equal to
+or less than zero.
 
-CV_restraint_maximums
-    *array of doubles (nr of CVs) long*.
-    This array defines the maximum values for the CV restraints in order.
+.. warning::
 
-CV_restraint_spring_constants
-    *array of doubles (nr of CVs) long*.
-    This array defines the spring constants for the CV restraints in order.
-    Enter a value equal to or less than zero to turn restraints off.
+  The restraint range should be WIDER than the CV range by at least one bin size
+  in each direction. 
 
-CV_isperiodic
-    *array of booleans (nr of CVs) long*.
-    This array defines whether a given CV is periodic for restraint purposes.
-    This is only used to apply minimum image convention to CV restraints.
-    Can be safely set to false even for periodic CVs if no restraints are being used.
-    If ANY CV is set to periodic, then CV_periodic_boundary_lower_bounds and 
-    CV_periodic_boundary_upper_bounds must be provided for ALL CVs. 
-    Values entered for non-periodic CVs are not used.
+If restraints are used on a periodic system, one can define the periodic
+boundaries, so that minimum image convention to CVs can be applied using the
+commands ``CV_periodic_boundary_upper_bounds`` and
+``CV_periodic_boundary_lower_bounds``. For example, on a :math:`-\pi` to
+:math:`\pi` CV, if the CV is restrained between -3.14 to -2.36 and the system
+crosses the periodic boundary, setting this will ensure the restraint is
+applied correctly back towards -3.14 rather than applying an incorrect a large
+force to push it toward -2.36.
 
-CV_periodic_boundary_lower_bounds
-    *array of doubles (nr of CVs) long*.
-    This array defines the lower end of the period.
-    This only matters if CV_isperiodic is true for the CV.
-
-CV_periodic_boundary_upper_bounds
-    *array of doubles (nr of CVs) long*.
-    This array defines the upper end of the period.
-    This only matters if CV_isperiodic is true for the CV.
-
-timestep
-    *double*.
-    The timestep of the simulation. Units depend on the conversion factor that
-    follows. This must be entered correctly, otherwise generalized force estimate
-    will be incorrect.
-
-minimum_count
-    *integer*.
-    Number of hits in a histogram required before the full bias is active for
-    that bin. Below this value, the bias linearly decreases to equal 0 at hits = 0.
-    Default = 200, but user should provide a reasonable value for their system.
-
-mass_weighing
-    *boolean*
-    Turns on/off mass weighing of the adaptive force.
-    Default is off. Keep off if your system has massless sites such as in TIP4P water.
-
-output_file
-    *string*.
-    Default = F_out
-    Name of the file to save Adaptive Force Vector Field information to - this
-    is what’s useful
-
-Fworld_output_file
-    *string*.
-    Default = Fworld_cv
-    Name of the file to backup the raw Fworld output to for restarts.
-    There will be separate outputs for each CV.
-
-Nworld_output_file
-    *string*.
-    Default = Nworld
-    Name of the file to backup the raw Nworld output to for restarts.
-
-output_frequency
-    *integer*.
-    Saves the histogram of generalized force every this many timesteps.
-
-restart
-	*boolean*
-	Default = false
-	If set to true, ABF will attempt to load a previous state from Nworld and Fworld files.
-
-unit_conversion
-    *double*.
-    Unit conversion from d(momentum)/d(time) to force for the simulation. 
-    For LAMMPS using units real, this is 2390.06
-    (gram.angstrom/mole.femtosecond^2 -> kcal/mole.angstrom)
-    For GROMACS, this is 1.
-
-frequency
-    *1*.
-    OPTIONAL
-    Leave at 1.
-    
-
-Example input
+Example Input
 ^^^^^^^^^^^^^
 
 .. code-block:: javascript
@@ -177,7 +89,7 @@ Example input
             "type" : "ABF",
             "cvs" : [0,1],
             "CV_lower_bounds" : [-3.14, -3.14],
-            "CV_upper_bounds" : [3.14,3.14],
+            "CV_upper_bounds" : [3.14, 3.14],
             "CV_bins" : [21,21],
             "CV_restraint_minimums" : [-5,-5],
             "CV_restraint_maximums" : [5,5],
@@ -191,6 +103,171 @@ Example input
             "frequency" : 1
         }
     ]
+
+.. warning:: 
+
+    Be sure to follow correct JSON syntax for your input, with a comma after every line except the last within each bracket.
+
+
+Options & Parameters
+^^^^^^^^^^^^^^^^^^^^
+
+**Define ABF**:
+
+In the methods block, define the ABF method through the syntax: 
+
+.. code-block:: javascript
+
+    "type" : "ABF"
+
+**Define CVs**
+
+To define the collective variables:
+
+.. code-block:: javascript 
+
+   "cvs" : [0,1]
+
+In the example input, this defines a two-dimensional CV-space to be sampled by ABF, with indices [0,1]. The argument to this must be a list of integers defining the CVs to be operated on by ABF. 
+
+**Define the grid**
+
+To define the bounds:
+
+.. code-block:: javascript
+
+    "CV_lower_bounds" : [-3.14, -3.14] 
+    "CV_upper_bounds" : [3.14, 3.14]
+
+Thee are arrays of doubles whose length is the number of CVs used. This
+defines the minimum and maximum values for the CVs for the range in which the
+method will be used in order.
+
+To define the number of CV bins used:
+
+.. code-block:: javascript
+
+    "CV_bins" : [21,21]
+
+This array of integers defines the number of histogram bins in each CV dimension in order.
+
+
+**Define the restraints**
+
+.. code-block:: javascript
+
+    "CV_restraint_minimums" : [-5,-5],
+    "CV_restraint_maximums" : [5,5],
+
+These arrays define the minimum and maximum values for the CV restraints in order. 
+
+.. code-block:: javascript  
+
+    "CV_restraint_spring_constants" : [0,0],
+
+This array defines the spring constants for the CV restraints in order.
+Enter a value equal to or less than zero to turn restraints off.
+
+.. code-block:: javascript  
+
+    "CV_isperiodic" : [false,false],
+
+    This array defines whether a given CV is periodic for restraint purposes.
+    This is only used to apply minimum image convention to CV restraints. The
+    value can be safely set to false *even for periodic CVs* if no restraints
+    are being used. 
+
+.. warning::
+
+    If ANY CV is set to periodic, then ``CV_periodic_boundary_lower_bounds``
+    and  ``CV_periodic_boundary_upper_bounds`` must be provided for ALL CVs.
+    Values entered for non-periodic CVs are not used.
+
+.. code-block:: javascript  
+    
+    "CV_periodic_boundary_lower_bounds" : [-3.14, -3.14],
+    "CV_periodic_boundary_upper_bounds" : [3.14, 3.14],
+
+These arrays define the lower and upper end of the period. This only matters if ``CV_isperiodic`` is true for the CV.
+
+
+**Define time and unit parameters**
+
+.. code-block:: javascript
+
+    "timestep" : 0.002,
+
+The timestep of the simulation. Units depend on the conversion factor that
+follows. This must be entered correctly, otherwise the generalized force estimate
+will be incorrect.
+
+.. code-block:: javascript
+
+    "unit_conversion" : 1,
+    
+Defines the unit conversion from d(momentum)/d(time) to force for the simulation. For LAMMPS using units real, this is 2390.06 (gram.angstrom/mole.femtosecond^2 -> kcal/mole.angstrom) For GROMACS, this is 1.
+
+.. code-block:: javascript
+
+    "minimum_count" : 50,
+
+This is the number of hits required to a bin in the general histogram before
+the full bias is active. Below this value, the bias linearly decreases to
+equal 0 at hits = 0. Default = 200, but user should provide a reasonable
+value for their system. See :cite:`COMER20141129` and :cite:`DARVE2008144120` for more details.
+
+**Output parameters**
+
+.. code-block:: javascript
+
+    "output_frequency" : 1000,
+
+*Optional*: This defines how many timesteps pass in between output of the generalized force.
+
+.. code-block:: javascript
+
+    "output_file" : "F_out",
+    
+This is a string value defining the file name for the adaptive vector force field that is acquired. The default name is "F_out". 
+
+.. code-block:: javascript
+    
+    "Fworld_output_file" : "Fworld_cv"
+
+*Optional*: This is the name of the file to backup raw Fworld force output for use in restarts. There will be separate outputs for each CV. The default filename is Fworld_cv, which saves each CV's output to Fworld_cvX.
+
+.. code-block:: javascript
+    
+    "Nworld_output_file" : "Nworld"
+
+*Optional*: This is name of the file which backs up the raw histogram data for restart purposes. The default filename is "Nworld".
+
+**Optional Parameters**
+
+.. code-block:: javascript
+
+    "mass_weighting" : false,
+
+Turns on/off mass weighing of the adaptive force. The default is false, which
+turns off the weighting.
+
+.. warning::
+
+    Leave this off if your system has massless sites such as in TIP4P water.
+
+
+.. code-block:: javascript
+
+    "restart" : "false"
+
+This boolean determines whether the simulation is a restart. The default value is false. If set to true, ABF will attempt to load a previous state from Nworld and Fworld files.
+
+.. code-block:: javascript
+
+    "frequency" : 1  
+
+Leave at 1. 
+
 
 Output
 ^^^^^^
@@ -410,5 +487,5 @@ outputs given in the examples folders:
 Developers
 ^^^^^^^^^^
 
-Emre Sevgen
-Hythem Sidky
+* Emre Sevgen
+* Hythem Sidky

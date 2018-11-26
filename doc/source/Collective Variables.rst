@@ -3,34 +3,30 @@
 Collective Variables
 ====================
 
-Collective variables (CVs) are arbitrary differentiable functions of the 3N Cartesian 
-coordinates of the atoms in a simulation. They usually represent some chemically 
-meaningful pathway along which advanced sampling can be performed. Listed below 
-are the collective variables currently supported in SSAGES. In addition to 
-specific properties for each CV, a name property can be defined for any CV 
-which can be used to reference the CV from a method or other supported location. 
+Collective variables (CVs) are arbitrary differentiable functions of the
+:math:`3N` Cartesian coordinates of the atoms in a simulation. These
+usually represent some structurally, thermodynamically, or chemically
+meaningful quantity along which advanced sampling can be performed. Listed
+below are the collective variables currently supported in SSAGES, along with a
+brief description and information on how the syntax is implemented in SSAGES.
+In addition to specific properties for each CV, a name property may be
+defined for any CV which is used to reference the CV within the methods of SSAGES.
 
 .. code-block:: javascript
 
 	"name" : "mycvname"
 
-Specified names for CVs must be unique. It is possible to omit a name and reference 
-a CV by its index as well. 
+The name specified for a CV must be unique. It is possible, however, to omit
+this and simply reference a CV by its numerical index.
+
+.. note::
+
+	We tacitly assume we are working with spherical atoms that join together to form molecules.
 
 Angle
 -----
 
-Example 
-^^^^^^^
-
-.. code-block:: javascript 
-	
-	{
-		"type" : "Angle",
-		"atom_ids" : [0, 1, 2]
-	}
-
-Description 
+Description
 ^^^^^^^^^^^
 
 This CV calculates the bend angle, in radians, formed between three selected atoms :math:`i,j,k`,
@@ -39,52 +35,65 @@ This CV calculates the bend angle, in radians, formed between three selected ato
 
 	\xi = \cos^{-1}\left(\frac{\mathbf{r}_{ij} \cdot \mathbf{r}_{kj}}{\Vert \mathbf{r}_{ij} \Vert \Vert \mathbf{r}_{kj} \Vert} \right).
 
+This can be helpful when probing the conformations of a molecule to understand its stable and metastable states. Angles do not have to be defined between bonded atoms.
+
+Example
+^^^^^^^
+
+.. code-block:: javascript
+
+	{
+		"type" : "Angle",
+		"atom_ids" : [0, 1, 2]
+	}
+
+.. warning::
+
+	The angle must be between three individual particles rather than the centers-of-mass of particle groups.
+
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
 
 Required
 ~~~~~~~~
 
-.. code-block:: javascript 
-	
+.. code-block:: javascript
+
 	"type"
 
 Property ``type`` must be set to string ``"Angle"``.
 
 
-.. code-block:: javascript 
-	
+.. code-block:: javascript
+
 	"atom_ids"
 
 Property ``atom_ids`` must contain three integers consisting of the atom ID forming the angle of interest.
 
 Box Volume
 ----------
-.. warning:: 
 
-	Non-orthorhombic boxes are currently not supported. 
+Description
+^^^^^^^^^^^
 
-.. note:: 
+The current volume of a simulation box is an important parameter determining the thermodynamic state. Constant-pressure simulations where volume information is recorded may be reweighted according to standard methods :cite:`CONRAD199851`. This CV calculates the box volume as the determinant of the Parrinello-Rahman matrix :math:`\mathbf{H}`,
 
-	Currently supported only in Gromacs and LAMMPS.
+.. math::
 
-Example 
+	\xi = \det\left( H_{ij} \right)
+
+Example
 ^^^^^^^
 
-.. code-block:: javascript 
+.. code-block:: javascript
 	
 	{
 		"type" : "BoxVolume"
 	}
 
-Description 
-^^^^^^^^^^^
+.. warning::
 
-This CV calculates the box volume as the determinant of the Parrinello-Rahman matrix :math:`\mathbf{H}`,
-
-.. math::
-
-	\xi = \det\left( H_{ij} \right)
+	Non-orthorhombic boxes are currently not supported. Only Gromacs and LAMMPS are currently supported
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -92,8 +101,8 @@ Options & Parameters
 Required
 ~~~~~~~~
 
-.. code-block:: javascript 
-	
+.. code-block:: javascript
+
 	"type"
 
 Property ``type`` must be set to string ``"BoxVolume"``.
@@ -101,27 +110,17 @@ Property ``type`` must be set to string ``"BoxVolume"``.
 Gyration Tensor
 ---------------
 
-Example 
-^^^^^^^
-
-.. code-block:: javascript 
-
-	"type" : "GyrationTensor", 
-	"atom_ids" : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 
-	"component" : "shapeaniso"
-
-Description 
+Description
 ^^^^^^^^^^^
 
-This CV calculates components of the *mass-weighted** gyration tensor defined as, 
+This CV calculates quantities derived from the *mass-weighted** gyration tensor defined as,
 
 .. math::
 
 	S_{mn} = \frac{1}{N}\sum_{i=1}^{N}{r_m^i r_n^i}
 
-where :math:`r_m` is the coordinate of the :math:`m^{\mathrm{th}}` atom in the interial 
-frame. With eigenvalues of :math:`\lambda_x^2, \lambda_y^2, \lambda_z^2`, possible components to 
-use as a CV include: 
+where :math:`r_m` is the coordinate of the :math:`m^{\mathrm{th}}` atom in the interial
+frame. The eigenvalues of the radius of gyration tensor are particularly useful as collective variables which quantify the conformation of a molecule (such as a long polymer) or the shape of a given assembly of molecules. With eigenvalues of :math:`\lambda_x^2, \lambda_y^2, \lambda_z^2` defined in the frame of the principal axes of inertia, the following quantities may be computed:
 
 Radius of Gyration (Squared)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -158,30 +157,43 @@ Shape Anisotropy
 
 	\kappa^2 = \frac{3}{2}\frac{\lambda_x^4+\lambda_y^4+\lambda_z^4}{\left(\lambda_x^2+\lambda_y^2+\lambda_z^2\right)^2}-\frac{1}{2}
 
+
+
+Example
+^^^^^^^
+
+This example computes the shape anisotropy of a ten-atom group.
+
+.. code-block:: javascript
+
+	"type" : "GyrationTensor",
+	"atom_ids" : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+	"component" : "shapeaniso"
+
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
 
 Required
 ~~~~~~~~
 
-.. code-block:: javascript 
+.. code-block:: javascript
 	
 	"type"
 
 Property ``type`` must be set to string ``"GyrationTensor"``.
 
-.. code-block:: javascript 
+.. code-block:: javascript
 
-	"atom_ids" 
+	"atom_ids"
 
-Property ``atom_ids`` must be an array of integers containing the atom IDs which will enter the calculation. 
+Property ``atom_ids`` must be an array of integers containing the atom IDs which will enter the calculation.
 
-.. code-block:: javascript 
+.. code-block:: javascript
 
-	"component" 
+	"component"
 
-Property ``component`` must be a string defining the gyration tensor component of interest. 
-Valid options are ``"Rg"``, ``"principal1"``, ``"principal2"``, ``"principal3"``, ``"asphericity"``, 
+Property ``component`` must be a string defining the gyration tensor component of interest.
+Valid options are ``"Rg"``, ``"principal1"``, ``"principal2"``, ``"principal3"``, ``"asphericity"``,
 ``"acylindricity"``, or ``"shapeaniso"``.
 
 Optional
@@ -198,26 +210,27 @@ three xyz components will be used.
 Particle Coordinate
 -------------------
 
-Example 
+Description
+^^^^^^^^^^^
+
+This CV calculates the :math:`x`, :math:`y` or :math:`z` position of the center of mass for a
+group of atoms.
+
+.. math::
+
+	\xi = \frac{1}{\sum_i{m^i}}\sum_{i=1}^{N}{r_\alpha^i}\ \ \ \alpha \in {x,y,z}
+
+Example
 ^^^^^^^
 
-.. code-block:: javascript 
+.. code-block:: javascript
 
 	{
-		"type" : "ParticleCoordinate", 
+		"type" : "ParticleCoordinate",
 		"atom_ids" : [1, 5, 6, 10],
 		"dimension" : "x"
 	}
 
-Description 
-^^^^^^^^^^^
-
-This CV calculates the :math:`x`, :math:`y` or :math:`z` component center of mass of a
-group of atoms. 
- 
-.. math::
-
-	\xi = \frac{1}{\sum_i{m^i}}\sum_{i=1}^{N}{r_\alpha^i}\ \ \ \alpha \in {x,y,z}
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -225,44 +238,28 @@ Options & Parameters
 Required
 ~~~~~~~~
 
-.. code-block:: javascript 
+.. code-block:: javascript
 	
 	"type"
 
 Property ``type`` must be set to string ``"ParticleCoordinate"``.
 
-.. code-block:: javascript 
+.. code-block:: javascript
 
-	"atom_ids" 
+	"atom_ids"
 
-Property ``atom_ids`` must be an array of integers containing the atom IDs which will enter the calculation. 
+Property ``atom_ids`` must be an array of integers containing the atom IDs which will enter the calculation.
 
-.. code-block:: javascript 
+.. code-block:: javascript
 
-	"dimension" 
+	"dimension"
 
 Property ``dimension`` must be a string defining the Cartesian component of interest ``"x"``, ``"y"``, or ``"z"``.
 
 Pairwise
 --------
 
-Example
-^^^^^^^
-
-.. code-block:: javascript 
-	
-	{
-		"type" : "Pairwise", 
-		"group1" : [1, 5],
-		"group2" : [2, 3, 4, 6, 7, 8],
-		"kernel" : {
-			"type" : "gaussian",
-			"mu" : 1.0,
-			"sigma" : 0.2
-		}
-	}
-
-Description 
+Description
 ^^^^^^^^^^^
 
 This CV calculates a variety of pairwise properties. The functions (kernels) used are continous analogs for otherwise discontinuous CVs. If parameters are chosen judiciously, these kernels can be used in place of some standard, discontinuous CVs. A Gaussian kernel can emulate a count of nearest neighbors; a switching function kernel can emulate a coordination number.
@@ -273,6 +270,25 @@ This CV calculates a variety of pairwise properties. The functions (kernels) use
 
 where :math:`f_{ij}` is a pairwise function for atoms :math:`i` and :math:`j`. are at a distance of the center of the Gaussian, :math:`r_{ij}=\mu`, and decreases to zero as the distance deviates away from :math:`\mu`.
 
+Example
+^^^^^^^
+
+This example uses a Gaussian pairwise kernel to compute contributions from contact-type interactions between two atoms of size 1.0.
+
+.. code-block:: javascript
+	
+	{
+		"type" : "Pairwise",
+		"group1" : [1, 5],
+		"group2" : [2, 3, 4, 6, 7, 8],
+		"kernel" : {
+			"type" : "gaussian",
+			"mu" : 1.0,
+			"sigma" : 0.2
+		}
+	}
+
+
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -280,30 +296,30 @@ Options & Parameters
 Required
 ~~~~~~~~
 
-.. code-block:: javascript 
+.. code-block:: javascript
 	
 	"type"
 
 Property ``type`` must be set to string ``"Pairwise"``.
 
-.. code-block:: javascript 
+.. code-block:: javascript
 	
 	"group1"
 
 Property ``group1`` must be an array of integers containing the atom IDs in the first set.
 
-.. code-block:: javascript 
+.. code-block:: javascript
 	
 	"group2"
 
 Property ``group2`` must be an array of integers containing the atom IDs in the second set.
 
-.. note:: 
+.. note::
 
-	Atoms can exist in both ``group1`` and ``group2`` simultaneously. Contacts are automatically 
+	Atoms can exist in both ``group1`` and ``group2`` simultaneously. Contacts are automatically
 	skipped if :math:`i = j`.
 
-.. code-block:: javascript 
+.. code-block:: javascript
 	
 	"kernel"
 
@@ -321,6 +337,8 @@ The Gaussian function is defined as:
 
 	g_{ij} = e^{-\frac{\left(r_{ij} - \mu\right)^2}{2\sigma^2}}.
 
+This type of kernel is useful to select between conformations which have a different position of (e.g.) neighbors and next nearest neighbors in a particle cluster. Selection of particle separations approximates a math:`\delta` distribution.
+
 Properties
 ++++++++++
 
@@ -330,7 +348,7 @@ Properties
 
 Property ``mu`` is required and must be numeric.
 
-.. code-block:: javascript 
+.. code-block:: javascript
 	
 	"sigma"
 
@@ -339,65 +357,67 @@ Property ``sigma`` is required and must be numeric.
 Rational Switching Function
 ***************************
 
-The rational switching function is defined as: 
+The rational switching function is defined as:
 
 .. math::
 
 	s_{ij} = \frac{1-\left(\frac{r_{ij} - d_0}{r_0}\right)^n}{1-\left(\frac{r_{ij} - d_0}{r_0}\right)^m}.
 
+This quantity is useful for measuring how many atoms in group 2 occupy a spherical shell around atoms in group 1. The form is chosen so that the variable is continuous and differentiable. Through tuning :math:`n` and :math:`m` this can be made arbitrarily close to a Heaviside switching function.
+
 Properties
 ++++++++++
 
-.. code-block:: javascript 
-	
+.. code-block:: javascript
+
 	"type"
 
 Property ``type`` must be set to string ``"rationalswitch"``.
 
-.. code-block:: javascript 
-	
+.. code-block:: javascript
+
 	"d0"
 
-Property ``d0`` is required and must be numeric. 
+Property ``d0`` is required and must be numeric.
 
-.. code-block:: javascript 
-	
+.. code-block:: javascript
+
 	"r0"
 
-Property ``r0`` is required and must be numeric. 
+Property ``r0`` is required and must be numeric.
 
-.. code-block:: javascript 
-	
+.. code-block:: javascript
+
 	"n"
 
-Property ``n`` is required and must be an integer. 
+Property ``n`` is required and must be an integer.
 
-.. code-block:: javascript 
-	
+.. code-block:: javascript
+
 	"m"
 
-Property ``m`` is required and must be an integer. 
+Property ``m`` is required and must be an integer.
 
 Particle Position
 -------------------
 
-Example 
+Example
 ^^^^^^^
 
-.. code-block:: javascript 
+.. code-block:: javascript
 
 	{
-		"type" : "ParticlePosition", 
+		"type" : "ParticlePosition",
 		"atom_ids" : [1, 5, 6, 10],
 		"dimension" : [true, false, true],
 		"position" : [3.51, 6.66, 2.14]
 	}
 
-Description 
+Description
 ^^^^^^^^^^^
 
-This CV calculates the distance of the center of mass of a group of atoms 
-from a particular point in Cartesian space. 
+This CV calculates the distance of the center of mass of a group of atoms
+from a particular point in Cartesian space.
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -405,25 +425,25 @@ Options & Parameters
 Required
 ~~~~~~~~
 
-.. code-block:: javascript 
+.. code-block:: javascript
 	
 	"type"
 
 Property ``type`` must be set to string ``"ParticlePosition"``.
 
-.. code-block:: javascript 
+.. code-block:: javascript
 
-	"atom_ids" 
+	"atom_ids"
 
-Property ``atom_ids`` must be an array of integers containing the atom IDs which 
-will enter the calculation. 
+Property ``atom_ids`` must be an array of integers containing the atom IDs which
+will enter the calculation.
 
-.. code-block:: javascript 
+.. code-block:: javascript
 
-	"position" 
+	"position"
 
 Property ``position`` must be a 3-element array of numbers defining the reference
-point in the simulation box. 
+point in the simulation box.
 
 Optional
 ~~~~~~~~
@@ -439,6 +459,13 @@ three xyz components will be used.
 Particle Separation
 -------------------
 
+
+Description
+^^^^^^^^^^^
+
+This CV calculates the distance between the centers of mass of two groups of
+atoms. The variable is unsigned, as the distance is a magnitude.
+
 Example
 ^^^^^^^
 
@@ -450,11 +477,6 @@ Example
         "group2" : [5, 6, 10]
     }
 
-Description
-^^^^^^^^^^^
-
-This CV calculates the distance between the centers of mass of two groups of
-atoms.
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -498,6 +520,24 @@ three xyz components will be used.
 Polymer Rouse Modes
 -------------------
 
+Description
+^^^^^^^^^^^
+
+This CV calculates the magnitude of a given Rouse mode for a set of atoms as
+
+.. math::
+
+    X_p = \sqrt{\mathbf{X}_p\cdot\mathbf{X}_p},
+
+with the :math: `p` th Rouse mode defined as
+
+.. math::
+
+    \mathbf{X}_p = \sqrt{\frac{c_p}{N}}\sum_{i=1}^N \mathbf{R}_i \cos \Bigl[\frac{p\pi}{N}\bigl(i-\frac{1}{2}\bigr) \Bigr],
+
+where :math: `N` is the number of groups or beads comprising the polymer, :math: `\mathbf{R}_i` is the center-of-mass of the :math: `i` th bead, and :math: `c_p` is a constant equal to 1 for :math: `p=0` and equal to 2 for :math: `p=1,\cdots,N-1`. This CV can be helpful to bias the conformations of both moderate-size and long-chain proteins and polymers.
+
+
 Example
 ^^^^^^^
 
@@ -520,22 +560,6 @@ Example
                    ]
     }
 
-Description
-^^^^^^^^^^^
-
-This CV calculates the magnitude of a given Rouse mode for a set of atoms as
-
-.. math::
-
-    X_p = \sqrt{\mathbf{X}_p\cdot\mathbf{X}_p},
-
-with the :math: `p` th Rouse mode defined as
-
-.. math::
-
-    \mathbf{X}_p = \sqrt{\frac{c_p}{N}}\sum_{i=1}^N \mathbf{R}_i \cos \Bigl[\frac{p\pi}{N}\bigl(i-\frac{1}{2}\bigr) \Bigr],
-
-where :math: `N` is the number of groups or beads comprising the polymer, :math: `\mathbf{R}_i` is the center-of-mass of the :math: `i` th bead, and :math: `c_p` is a constant equal to 1 for :math: `p=0` and equal to 2 for :math: `p=1,\cdots,N-1`.
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -559,55 +583,27 @@ Property ``groups`` is an array of arrays containing the atom IDs (as integers) 
 
     "mode"
 
-Property ``mode`` is an integer indicating the index of the desired Rouse mode. Valid values range from 0 up to one less than the number of groups, or `0,\cdots, N-1`. 
+Property ``mode`` is an integer indicating the index of the desired Rouse mode. Valid values range from 0 up to one less than the number of groups, or `0,\cdots, N-1`.
 
 Torsional Angle
 ---------------
 
-Example 
-^^^^^^^
-
-.. code-block:: javascript 
-
-	{
-		"type" : "Torsional", 
-		"atom_ids" : [1, 5, 6, 10]
-	}
-
-Description 
+Description
 ^^^^^^^^^^^
 
 This CV calculates the dihedral angle, in radians, formed by four atoms :math:`i,j,k,l`.
-It is computed as, 
+It is computed as in :cite:`BLONDEL19961132`,
 
-.. math:: 
+.. math::
 
 	\xi = \tan^{-1}\left( \frac{\left[(r_{lk} \times r_{jk}) \times (r_{ij} \times r_{jk}) \right] \cdot \frac{r_{jk}}{\Vert r_{jk}\Vert}}{(r_{lk} \times r_{jk}) \cdot (r_{ij} \times r_{jk}) } \right).
 
 Specifically, the function ``atan2`` is used for the inverse tangent calculation to yield a four-quadrant angle.
 
+.. warning::
 
-Options & Parameters
-^^^^^^^^^^^^^^^^^^^^
+	The torsional angle can only be defined between four atoms rather than four groups of atoms.
 
-Required
-~~~~~~~~
-
-.. code-block:: javascript 
-	
-	"type"
-
-Property ``type`` must be set to string ``"Torsional"``.
-
-.. code-block:: javascript 
-
-	"atom_ids" 
-
-Property ``atom_ids`` must be an array of 4 integers containing the atom IDs which 
-form the dihedral. 
-
-Alpha Helix RMSD
-----------------
 
 Example
 ^^^^^^^
@@ -615,11 +611,31 @@ Example
 .. code-block:: javascript
 
 	{
-            "type" : "AlphaRMSD",
-            "residue_ids" : [3, 21],
-            "reference" : "reference_structure.pdb",
-            "unitconv" : 10
+		"type" : "Torsional",
+		"atom_ids" : [1, 5, 6, 10]
 	}
+
+Options & Parameters
+^^^^^^^^^^^^^^^^^^^^
+
+Required
+~~~~~~~~
+
+.. code-block:: javascript
+	
+	"type"
+
+Property ``type`` must be set to string ``"Torsional"``.
+
+.. code-block:: javascript
+
+	"atom_ids"
+
+Property ``atom_ids`` must be an array of 4 integers containing the atom IDs which
+form the dihedral.
+
+Alpha Helix RMSD
+----------------
 
 Description
 ^^^^^^^^^^^
@@ -641,10 +657,27 @@ backbone atom.
 
 .. note::
 
-	Note that this CV is basically a summation of a switching function; in the
-	future the user will be able to choose custom parameters for the switching
-	function.
+	Note that this CV is basically a summation of switching functions applied to the RMSD rather than to coordinates; in future versions, the user will be able to choose custom parameters for the switching function.
 
+.. note::
+
+	Unlike the simpler CVs discussed above, this one takes atomic labels in the form of a reference PDB structure. This is true of all protein-like CVs below which compare to a reference structure.
+
+.. warning::
+
+	Since the definition of this CV uses nanometers as a unit length, you must specify the ``unitconv`` parameter, as outlined below, in order to apply this CV when that is not the base unit of length.
+
+Example
+^^^^^^^
+
+.. code-block:: javascript
+
+	{
+            "type" : "AlphaRMSD",
+            "residue_ids" : [3, 21],
+            "reference" : "reference_structure.pdb",
+            "unitconv" : 10
+	}
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -677,7 +710,7 @@ structure. This reference pdb structure is used along with the residue range
 defined in ``residue_ids`` to check for alpha helix character. For now, all
 residues in the system must be numbered in increasing order, even if they belong
 to separate chains. For example, if your system has two chains of 20 amino acids
-each, the first amino acid in the second chain should be numbered 21. 
+each, the first amino acid in the second chain should be numbered 21.
 
 Optional
 ~~~~~~~~
@@ -691,23 +724,10 @@ internal MD units for your engine and the units used in the ideal alpha helix
 reference structure. If your engine uses units of nanometers, this
 can be ignored. Otherwise, ``unitconv`` must be set to the equivalent number of
 length units in your MD engine equal to 1 nm. For example, if your default unit
-length is in angstroms, ``unitconv`` will be set to 10. 
+length is in angstroms, ``unitconv`` will be set to 10.
 
 Anti Beta RMSD
 ----------------
-
-Example
-^^^^^^^
-
-.. code-block:: javascript
-
-	{
-            "type" : "AntiBetaRMSD",
-            "residue_ids" : [3, 21],
-            "reference" : "reference_structure.pdb",
-            "unitconv" : 10,
-            "mode" : 0
-	}
 
 Description
 ^^^^^^^^^^^
@@ -729,10 +749,28 @@ backbone atom.
 
 .. note::
 
-	Note that this CV is basically a summation of a switching function; in the
-	future the user will be able to choose custom parameters for the switching
-	function.
+	Note that this CV is basically a summation of switching functions applied to the RMSD rather than to coordinates; in future versions, the user will be able to choose custom parameters for the switching function.
 
+.. note::
+
+	Unlike the simpler CVs discussed above, this one takes atomic labels in the form of a reference PDB structure. This is true of all protein-like CVs below which compare to a reference structure.
+
+.. warning::
+
+	Since the definition of this CV uses nanometers as a unit length, you must specify the ``unitconv`` parameter, as outlined below, in order to apply this CV when that is not the base unit of length.
+
+Example
+^^^^^^^
+
+.. code-block:: javascript
+
+	{
+            "type" : "AntiBetaRMSD",
+            "residue_ids" : [3, 21],
+            "reference" : "reference_structure.pdb",
+            "unitconv" : 10,
+            "mode" : 0
+	}
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -765,7 +803,7 @@ structure. This reference pdb structure is used along with the residue range
 defined in ``residue_ids`` to check for anti beta-sheet character. For now, all
 residues in the system must be numbered in increasing order, even if they belong
 to separate chains. For example, if your system has two chains of 20 amino acids
-each, the first amino acid in the second chain should be numbered 21. 
+each, the first amino acid in the second chain should be numbered 21.
 
 Optional
 ~~~~~~~~
@@ -779,7 +817,7 @@ internal MD units for your engine and the units used in the ideal anti
 beta-sheet reference structure. If your engine uses units of nanometers, this
 can be ignored. Otherwise, ``unitconv`` must be set to the equivalent number of
 length units in your MD engine equal to 1 nm. For example, if your default unit
-length is in angstroms, ``unitconv`` will be set to 10. 
+length is in angstroms, ``unitconv`` will be set to 10.
 
 .. code-block:: javascript
 
@@ -790,28 +828,14 @@ formed only between residues on the same chain (intra) or only between residues
 on separate chains (inter). If ``mode`` is set to 0, both modes will be used.
 A value of 1 selects for the intra mode; a value of 2 selects for inter mode.
 
-
 Parallel Beta RMSD
 ------------------
-
-Example
-^^^^^^^
-
-.. code-block:: javascript
-
-	{
-            "type" : "ParallelBetaRMSD",
-            "residue_ids" : [3, 21],
-            "reference" : "reference_structure.pdb",
-            "unitconv" : 10,
-            "mode" : 0
-	}
 
 Description
 ^^^^^^^^^^^
 
 This CV calculates anti beta-sheet character by comparision to an "ideal"
-parallel beta-sheet structure composed of 6 amino acids. This is computed by 
+parallel beta-sheet structure composed of 6 amino acids. This is computed by
 performing a summation over all possible sequences of 6 amino acids, consisting
 of two segments of 3 consecutive amino acids each, in the region of interest.
 
@@ -827,10 +851,28 @@ backbone atom.
 
 .. note::
 
-	Note that this CV is basically a summation of a switching function; in the
-	future the user will be able to choose custom parameters for the switching
-	function.
+	Note that this CV is basically a summation of switching functions applied to the RMSD rather than to coordinates; in future versions, the user will be able to choose custom parameters for the switching function.
 
+.. note::
+
+	Unlike the simpler CVs discussed above, this one takes atomic labels in the form of a reference PDB structure. This is true of all protein-like CVs below which compare to a reference structure.
+
+.. warning::
+
+	Since the definition of this CV uses nanometers as a unit length, you must specify the ``unitconv`` parameter, as outlined below, in order to apply this CV when that is not the base unit of length.
+
+Example
+^^^^^^^
+
+.. code-block:: javascript
+
+	{
+		"type" : "ParallelBetaRMSD",
+		"residue_ids" : [3, 21],
+		"reference" : "reference_structure.pdb",
+		"unitconv" : 10,
+		"mode" : 0
+	}
 
 Options & Parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -861,10 +903,10 @@ at least 6 amino acids.
 Property ``reference`` must be a string containing the name of a reference pdb
 structure. This reference pdb structure is used along with the residue range
 defined in ``residue_ids`` to check for parallel beta-sheet character. For now,
-all residues in the system must be numbered in increasing order, even if they 
-belong to separate chains. For example, if your system has two chains of 20 
-amino acids each, the first amino acid in the second chain should be numbered 
-21. 
+all residues in the system must be numbered in increasing order, even if they
+belong to separate chains. For example, if your system has two chains of 20
+amino acids each, the first amino acid in the second chain should be numbered
+21.
 
 Optional
 ~~~~~~~~
@@ -878,7 +920,7 @@ internal MD units for your engine and the units used in the ideal parallel
 beta-sheet reference structure. If your engine uses units of nanometers, this
 can be ignored. Otherwise, ``unitconv`` must be set to the equivalent number of
 length units in your MD engine equal to 1 nm. For example, if your default unit
-length is in angstroms, ``unitconv`` will be set to 10. 
+length is in angstroms, ``unitconv`` will be set to 10.
 
 .. code-block:: javascript
 
@@ -888,6 +930,3 @@ Property ``mode`` is an integer specifying whether to calculate beta-sheets
 formed only between residues on the same chain (intra) or only between residues
 on separate chains (inter). If ``mode`` is set to 0, both modes will be used.
 A value of 1 selects for the intra mode; a value of 2 selects for inter mode.
-
-
-

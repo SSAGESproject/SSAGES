@@ -1,15 +1,14 @@
 SSAGES
 ============
 
-**SSAGES** (**S**oftware **S**uite for **A**dvanced **G**eneralized **E**nsemble **S**imulations) is an open-source, engine agnostic, C++11 based advanced sampling package. 
+**SSAGES** (**S**oftware **S**uite for **A**dvanced **G**eneral **E**nsemble **S**imulations) is an open-source, engine agnostic, C++11 based advanced sampling package. 
 It is designed to be easy to use, extendable and extremely versatile. It is currently pre-beta, meaning that there are many rough edges, but we are working rapidly 
 to expand its features and fix any bugs. Keep an eye on this page for future updates and see below on how to contribute!
 
-## What's New (v0.8.2)
-- Grid internal updates
-- ABF Integrator handles interpolation in each direction independently
-- ABF restarts now handled with JSON member
-- GyrationTensorCV can be projected into any number of dimensions
+## What's New (v0.8.3)
+- HOOMD-blue support!
+- Support for newer GROMACS and LAMMPS versions
+- CV definition checking for Methods
 - Documentation updates
 - Several bugfixes (See commits)
 
@@ -74,7 +73,7 @@ This will build a SSAGES executable which will reside in the build directory.
 
 If you want to use a specific compiler (or if your default compiler is not supported),
 set the C and C++ compilers with `CMAKE_C_COMPILER` and `CMAKE_CXX_COMPILER`, respectively.
-For example, to use gcc/g++, replace the cmake command with
+For example, to use gcc/g++, replace the CMake command with
 
 ```bash
 $ cmake -DLAMMPS_SRC=/path/to/lammps/src -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ ..
@@ -108,6 +107,7 @@ directory. Make sure you have the following tools available:
 * dot (part of the `graphViz` package)
 * sphinx (`python-sphinx` or `python3-sphinx`)
 * ReadTheDocs theme (`pip install sphinx_rtd_theme`)
+* sphinxcontrib-bibtex (`pip install sphinxcontrib-bibtex`)
 
 You can build the documentation with
 ```bash
@@ -151,6 +151,14 @@ or
 ```bash
 $ firefox doc/Manual/index.html
 ```
+
+## What's Old (v0.8.2)
+- Grid internal updates
+- ABF Integrator handles interpolation in each direction independently
+- ABF restarts now handled with JSON member
+- GyrationTensorCV can be projected into any number of dimensions
+- Documentation updates
+- Several bugfixes (See commits)
 
 ## What's Old (v0.8.1)
 - GROMACS support for all 5.1.x, 2016.x, 2018.x!
