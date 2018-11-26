@@ -37,7 +37,7 @@ namespace SSAGES
 {
     void StringMethod::PrintString(const CVList& CV)
     {
-        if(comm_.rank() == 0)
+        if(IsMasterRank(comm_))
         {
             //Write node, iteration, centers of the string and current CV value to output file
             stringout_.precision(8);
@@ -54,7 +54,7 @@ namespace SSAGES
     {
         MPI_Status status;
 
-        if(comm_.rank() == 0)
+        if(IsMasterRank(comm_))
         {
             MPI_Sendrecv(&centers_[0], centers_.size(), MPI_DOUBLE, sendneigh_, 1234,
                 &(*lcv0)[0], centers_.size(), MPI_DOUBLE, recneigh_, 1234, 
@@ -75,7 +75,7 @@ namespace SSAGES
 
         //Reparameterization
         //Alpha star is the uneven mesh, approximated as linear distance between points
-        if(comm_.rank()==0)
+        if(IsMasterRank(comm_))
             alpha_star_vector[mpiid_] = mpiid_ == 0 ? 0 : alpha_star;
 
         //Gather each alpha_star into a vector 
@@ -93,7 +93,7 @@ namespace SSAGES
         {
             std::vector<double> cvs_new(numnodes_, 0.0);
 
-            if(comm_.rank() == 0)
+            if(IsMasterRank(comm_))
                 cvs_new[mpiid_] = centers_[i];
 
             MPI_Allreduce(MPI_IN_PLACE, &cvs_new[0], numnodes_, MPI_DOUBLE, MPI_SUM, world_);
@@ -109,7 +109,7 @@ namespace SSAGES
         {
             std::vector<double> cvs_new(numnodes_, 0.0);
 
-            if(comm_.rank() == 0)
+            if(IsMasterRank(comm_))
             {
                 cvs_new[mpiid_] = centers_[i];
             }
@@ -234,7 +234,7 @@ namespace SSAGES
 		if(validator.HasErrors())
 			throw BuildException(validator.GetErrors());
 
-		unsigned int wid = mxx::comm(world).rank()/mxx::comm(comm).size();
+		unsigned int wid = GetWalkerID(world, comm);
 		std::vector<double> centers;
 		for(auto& s : json["centers"][wid])
 			centers.push_back(s.asDouble());

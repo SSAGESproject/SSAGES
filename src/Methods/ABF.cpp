@@ -39,7 +39,7 @@ namespace SSAGES
 	void ABF::PreSimulation(Snapshot* snapshot, const CVManager& cvmanager)
 	{
 		// Open/close outfile to create it fresh. 
-		if(world_.rank() == 0)
+		if(IsMasterRank(world_))
 		{
 			worldout_.open(filename_);
 			worldout_.close();
@@ -129,7 +129,7 @@ namespace SSAGES
 		Eigen::VectorXd dwdotpdt = unitconv_*(1.5*wdotp - 2.0*wdotp1_ + 0.5*wdotp2_)/timestep_ + Fold_;
 
 		// If we are in bounds, sum force into running total.
-		if(boundsCheck(cvVals) && comm_.rank() == 0)
+		if(boundsCheck(cvVals) && IsMasterRank(comm_))
 		{
 			for(size_t i = 0; i < dim_; ++i)
 				F_[i]->at(cvVals) += dwdotpdt[i];
@@ -233,11 +233,10 @@ namespace SSAGES
 	{
 		
 		// Only one processor should be performing I/O.
-		if(world_.rank() != 0)
+		if(!IsMasterRank(world_))
 			return;
-			
+
 		Nworld_->syncGrid();
-		
 
 		// Backup Fworld and Nworld.
 		Nworld_->WriteToFile(Nworld_filename_);
@@ -246,7 +245,6 @@ namespace SSAGES
 			Fworld_[i]->syncGrid();
 			Fworld_[i]->WriteToFile(Fworld_filename_+std::to_string(i));
 		}
-		
 
 		// Average the generalized force for each bin and print it out.	
 		int gridPoints = 1;			
@@ -315,9 +313,6 @@ namespace SSAGES
 		validator.Validate(json, path);
 		if(validator.HasErrors())
 			throw BuildException(validator.GetErrors());
-
-		unsigned int wid = mxx::comm(world).rank()/mxx::comm(comm).size();   // walker ID
-		unsigned int wrank = mxx::comm(world).rank()%mxx::comm(comm).size(); // walker rank
 
 		//bool multiwalkerinput = false;
 
@@ -438,7 +433,10 @@ namespace SSAGES
 		std::vector<Grid<double>*> F(dim);
 		std::vector<Grid<double>*> Fworld(dim);
 
+		//unsigned int wid = GetWalkerID(world, comm);
+
 		// This feature is disabled for now.
+
 		/*if(multiwalkerinput)
 		{
 			for(size_t i=0; i<dim; ++i)
@@ -506,49 +504,48 @@ namespace SSAGES
 
 		// Check if a restart is requested.
 		bool restart = json.get("restart",false).asBool();
-	
-		// Either load previous grid, or back it up.
-		if (wrank == 0 && restart)
-		{
-		
-			std::cout << "Attempting to load data from a previous run of ABF..." << std::endl;
-			N->LoadFromFile(Nworld_filename);
-			for(size_t i = 0; i < dim; ++i)
-			{
-				F[i]->LoadFromFile(Fworld_filename+std::to_string(i));
-			}
 
-		}
-		else if (wrank == 0)
+		// Either load previous grid, or back it up.
+		if(IsMasterRank(world))
 		{
-			std::ifstream  Nworldbackupsource(Nworld_filename, std::ios::binary);
-			if(Nworldbackupsource)
+			if(restart)
 			{
-				std::cout << "Backing up previous copy of Nworld." << std::endl;
-    				std::ofstream  Nworldbackuptarget(Nworld_filename+"_backup", std::ios::binary);
-				Nworldbackuptarget << Nworldbackupsource.rdbuf();
-			}
-			for(size_t i = 0; i < dim; ++i)
-			{
-				std::ifstream  Fworldbackupsource(Fworld_filename+std::to_string(i), std::ios::binary);
-				if(Fworldbackupsource)
+				std::cout << "Attempting to load data from a previous run of ABF..." << std::endl;
+				N->LoadFromFile(Nworld_filename);
+				for(size_t i = 0; i < dim; ++i)
 				{
-					std::cout << "Backing up previous copy of Fworld"+std::to_string(i)+"." << std::endl;
-					std::ofstream  Fworldbackuptarget(Fworld_filename+std::to_string(i)+"_backup", std::ios::binary);
-    					Fworldbackuptarget << Fworldbackupsource.rdbuf();
+					F[i]->LoadFromFile(Fworld_filename+std::to_string(i));
+				}
+			}
+			else
+			{
+				std::ifstream Nworldbackupsource(Nworld_filename, std::ios::binary);
+				if(Nworldbackupsource)
+				{
+					std::cout << "Backing up previous copy of Nworld." << std::endl;
+					std::ofstream Nworldbackuptarget(Nworld_filename+"_backup", std::ios::binary);
+					Nworldbackuptarget << Nworldbackupsource.rdbuf();
+				}
+				for(size_t i = 0; i < dim; ++i)
+				{
+					std::ifstream Fworldbackupsource(Fworld_filename+std::to_string(i), std::ios::binary);
+					if(Fworldbackupsource)
+					{
+						std::cout << "Backing up previous copy of Fworld_cv"+std::to_string(i)+"." << std::endl;
+						std::ofstream Fworldbackuptarget(Fworld_filename+std::to_string(i)+"_backup", std::ios::binary);
+						Fworldbackuptarget << Fworldbackupsource.rdbuf();
+					}
 				}
 			}
 		}
-	 
-		
-		auto* m = new ABF(world, comm, N, Nworld, F, Fworld, restraint, isperiodic, periodicboundaries, min, massweigh, filename, Nworld_filename, Fworld_filename, histdetails, FBackupInterv, unitconv, timestep, freq);
 
+		auto* m = new ABF(world, comm, N, Nworld, F, Fworld, restraint, isperiodic, periodicboundaries, min, massweigh, filename, Nworld_filename, Fworld_filename, histdetails, FBackupInterv, unitconv, timestep, freq);
 
 		if(json.isMember("iteration"))
 			m->SetIteration(json.get("iteration",0).asInt());
 
 		return m;
-		
+
 	}
 
 }

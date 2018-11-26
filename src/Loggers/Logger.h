@@ -63,8 +63,8 @@ namespace SSAGES
 		 * \param filename File for logging.
 		 * \param world Global MPI communicator.
 		 * \param comm MPI communicator of walker.
-		 * 
-		 * \todo wid should be obtainable from somewhere.
+		 *
+		 * Constructs an instance of a logger.
 		 */
 		Logger(unsigned int frequency, const std::string& filename, const MPI_Comm& world, const MPI_Comm& comm) :
 		EventListener(frequency), world_(world), comm_(comm), cvmask_(), filename_(filename),

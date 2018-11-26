@@ -266,8 +266,8 @@ namespace SSAGES
 		void SetIteration(const int iter)
 		{
 			iteration_ = iter;
-		}			
-		
+		}
+
 		//! \copydoc Method::BuildMethod()
 		static ABF* Build(const Json::Value& json, 
 		                      const MPI_Comm& world,

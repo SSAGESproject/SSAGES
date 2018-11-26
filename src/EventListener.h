@@ -20,6 +20,7 @@
 
 #pragma once 
 
+#include <mxx/comm.hpp>
 #include "types.h"
 
 namespace SSAGES
@@ -78,6 +79,38 @@ namespace SSAGES
 		 * This function will be called after the simulation has finished.
 		 */
 		virtual void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) = 0;
+
+		//! Get walker ID number of specified communicator.
+		/*!
+		 * \param world MPI communicator for the whole simulation.
+		 * \param comm MPI communicator for the local walker.
+		 * \return Walker ID number.
+		 */
+		static unsigned int GetWalkerID(const MPI_Comm& world, const MPI_Comm& comm)
+		{
+			return mxx::comm(world).rank()/mxx::comm(comm).size();
+		}
+
+		//! Get total number of walkers in the simulation.
+		/*!
+		 * \param world MPI communicator for the whole simulation.
+		 * \param comm MPI communicator for the local walker.
+		 * \return Total number of walkers in the simulation.
+		 */
+		static unsigned int GetNumWalkers(const MPI_Comm& world, const MPI_Comm& comm)
+		{
+			return mxx::comm(world).size()/mxx::comm(comm).size();
+		}
+
+		//! Check if current processor is master.
+		/*!
+		 * \param comm MPI communicator to check.
+		 * \return Whether the current MPI rank is the first in the communicator.
+		 */
+		static bool IsMasterRank(const MPI_Comm& comm)
+		{
+			return mxx::comm(comm).rank() == 0;
+		}
 
 		//! Destructor
 		virtual ~EventListener() {}
