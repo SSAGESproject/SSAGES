@@ -9,7 +9,18 @@ from mpl_toolkits.mplot3d import Axes3D
 
 # Define 2d-gaussian, centered at (0,0), scale = 1
 def gaussian(x,y, sigmax, sigmay):
-    return np.exp( -( (x**2 / (2*sigmax)) + (y**2 / (2*sigmay) ) ) )
+    return np.exp( -( (x**2 / (2*sigmax**2)) + (y**2 / (2*sigmay**2) ) ) )
+
+def original(X, Y):
+    heights = [-18.4631620773, -39.8889505555, 9.8889505555]
+    centers = [ -0.9790631338,   0.9790631338, 0           ]
+    sigmas  = [  0.3412727171,   0.2420191493, 0.5         ]
+
+    Z = sum( [heights[i]*gaussian(X - centers[i], Y - centers[i], sigmas[i], sigmas[i])
+                for i in range(3)] )
+    Z -= np.max(Z)
+
+    return Z
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(
@@ -30,17 +41,7 @@ parser.add_argument('-i', '--input', type=str,
 parser.add_argument('-o', '--output', type=str,
                     help='Output file for free energy landscape.')
 
-parser.add_argument('--original', type=str,
-                    help='Original free energy landscape for comparison.',
-                    default='fes.dat')
-
 args = parser.parse_args()
-
-# Import original data if it exists
-try:
-    originalData = np.loadtxt(args.original)
-except IOError:
-    print("File {} does not exist, ignoring original result.".format(args.original))
 
 # Import SSAGES metadynamics data
 # xcenter, ycenter, sigma, sigma, height
@@ -84,6 +85,27 @@ ax2.set_ylabel('y position')
 cbar2.set_label(r'$K_{b}T$')
 
 # Generate the free energy landscape from original data
-# -- This part is missing yet
+Ztrue = original(X, Y)
+fig3 = plt.figure()
+ax3 = fig3.gca(projection='3d')
+surf3 = ax3.plot_surface(X, Y, Ztrue, cmap=cm.coolwarm, linewidth=0, antialiased=True)
+cbar3 = fig3.colorbar(surf3, shrink=0.7, aspect=10)
+
+ax3.set_title('Original free energy')
+ax3.set_xlabel('x position')
+ax3.set_ylabel('y position')
+cbar3.set_label(r'$K_{b}T$')
+
+# Show difference plot
+Zdiff = Ztrue + Z # Z is the bias potential Ztrue the free energy
+fig4 = plt.figure()
+ax4 = fig4.gca(projection='3d')
+surf4 = ax4.plot_surface(X, Y, Zdiff, cmap=cm.coolwarm, linewidth=0, antialiased=True)
+cbar4 = fig4.colorbar(surf4, shrink=0.7, aspect=10)
+
+ax4.set_title('Difference plot:\nOriginal free energy - SSAGES free energy')
+ax4.set_xlabel('x position')
+ax4.set_ylabel('y position')
+cbar4.set_label(r'$K_{b}T$')
 
 plt.show()
