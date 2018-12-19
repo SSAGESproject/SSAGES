@@ -75,25 +75,12 @@ namespace SSAGES
 
 		// Load cv mask.
 		std::vector<unsigned int> cvmask;
-		for(auto& v : json["cvs"])
+		for(auto& cv : json["cvs"])
 		{
-			if(v.isString())
-			{
-				auto id = CVManager::LookupCV(v.asString());
-				if(id == -1)
-					throw std::invalid_argument(path + ": CV mask name \"" + v.asString() + "\" does not exist.");
-				
-				cvmask.push_back(CVManager::LookupCV(v.asString()));
-			}
-			else if(v.isIntegral() && v.asInt() >= 0)
-				cvmask.push_back(v.asUInt());
-			else
-				throw std::invalid_argument(path + ": CV mask must contain strings or unsigned integers.");
-
+			cvmask.push_back(CVManager::LookupCV(cv, path));
 		}
-		
+
 		method->SetCVMask(cvmask);
 		return method;
 	}
 }
-

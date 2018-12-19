@@ -20,6 +20,8 @@
 #pragma once
 
 #include "CollectiveVariable.h"
+#include "Drivers/DriverException.h"
+#include "Validator/Requirement.h"
 #include <vector>
 
 namespace SSAGES
@@ -49,10 +51,10 @@ namespace SSAGES
 	public:
 		CVManager() = default;
 
-		//! Adds a CV to the CV manager. 
+		//! Adds a CV to the CV manager.
 		/*!
-		 * 
-		 * \param cv Pointer to collective variable. 
+		 *
+		 * \param cv Pointer to collective variable.
 		 */
 		void AddCV(CollectiveVariable* cv)
 		{
@@ -60,10 +62,10 @@ namespace SSAGES
 				cvs_.push_back(cv);
 		}
 
-		//! Clears CVs from CV manager. 
+		//! Clears CVs from CV manager.
 		/*
 		 * \note This destroys all CVs stored in the CV manager!
-		 */ 
+		 */
 		void ClearCVs()
 		{
 			for(auto& cv : cvs_)
@@ -71,48 +73,70 @@ namespace SSAGES
 			cvs_.clear();
 		}
 
-		//! Get CV iterator. 
-		 /* 
-		  * \param mask Vector mask which contains the indices of
-		  *        which CV to include in the container. 
-		  * \return Vector containing pointers to requested CVs.
-		  */
+		//! Get CV iterator.
+		/*
+		* \param mask Vector mask which contains the indices of
+		*        which CV to include in the container.
+		* \return Vector containing pointers to requested CVs.
+		*/
 		std::vector<CollectiveVariable*> GetCVs(const std::vector<unsigned int>& mask = std::vector<unsigned int>()) const
 		{
 			if(mask.empty())
-				return cvs_; 
-			
-			// Pack from mask. 
+				return cvs_;
+
+			// Pack from mask.
 			std::vector<CollectiveVariable*> cvs;
 			for(auto& i : mask)
 				cvs.push_back(cvs_[i]);
-			
+
 			return cvs;
 		}
 
 		//! Register CV name with map
-		 /*
-		  * \param name Name of CV to register. 
-		  * \param id ID to associate with name. 
-		  * 
-		  * \note If a previous name is already used, it will override the old entry.
-		  */
+		/*
+		 * \param name Name of CV to register.
+		 * \param id ID to associate with name.
+		 *
+		 * \note If a previous name is already used, it will override the old entry.
+		 */
 		static void AddCVtoMap(const std::string& name, unsigned int id)
 		{
 			cvmap_[name] = id;
 		}
 
-		//! Get CV id from map. 
-		 /*
-		  *	\param name Name of CV to look up.
-		  *	\return ID of CV. -1 if nonexistent.
-		  */ 
-		static int LookupCV(const std::string& name)
+		//! Get CV id from map.
+		/*
+		 * \param cv JSON Value (CV) to look up.
+		 * \param path Path for JSON path specification.
+		 * \return ID of CV, -1 if nonexistent.
+		 */
+		static int LookupCV(const Json::Value& cv, const std::string& path)
 		{
-			if(cvmap_.find(name) == cvmap_.end())
-				return -1;
+			int id = -1;
+			if (cv.isString())
+			{
+				auto name = cv.asString();
+				if(cvmap_.find(name) == cvmap_.end())
+				{
+					throw BuildException({path + ": CV mask name \"" + name + "\" does not exist."});
+				}
+				id = cvmap_.at(name);
+			}
+			else if(cv.isIntegral())
+			{
+				id = cv.asInt();
+				if(id < 0 || id >= static_cast<int>(cvmap_.size()))
+				{
+					throw BuildException({path + ": CV mask index of " + std::to_string(id) + " does not exist. " +
+					                      "Index must be nonnegative and less than " + std::to_string(cvmap_.size()) + "."});
+				}
+			}
+			else
+			{
+				throw BuildException({path + ": CV mask must contain strings or nonnegative integers."});
+			}
 
-			return cvmap_.at(name);
+			return id;
 		}
 
 		~CVManager()

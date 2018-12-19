@@ -86,20 +86,20 @@ namespace SSAGES
 		              JsonSchema::Logger.c_str() + JsonSchema::Logger.size(),
 		              &schema, NULL);
 		validator.Parse(schema, path);
-		
+
 		// Validate inputs.
 		validator.Validate(json, path);
 		if(validator.HasErrors())
 			throw BuildException(validator.GetErrors());
-		
+
 		auto freq = json.get("frequency", 1).asInt();
 		std::string name = "cvlog.dat";
 
-		bool ismulti = GetNumWalkers(world, comm) > 1; 
+		bool ismulti = GetNumWalkers(world, comm) > 1;
 		unsigned int wid = GetWalkerID(world, comm);
-    
+
 		if(json["output_file"].isArray())
-			name = json["output_file"][wid].asString(); 
+			name = json["output_file"][wid].asString();
 		else if(ismulti)
 			throw std::invalid_argument(path + ": Multi-walker simulations require a separate output file for each.");
 		else
@@ -108,22 +108,11 @@ namespace SSAGES
 		auto* l = new Logger(freq, name, world, comm);
 		l->SetAppend(json.get("append", false).asBool());
 
-		// Load cv mask. 
+		// Load CV mask.
 		std::vector<unsigned int> cvmask;
-		for(auto& v : json["cvs"])
+		for(auto& cv : json["cvs"])
 		{
-			if(v.isString())
-			{
-				auto id = CVManager::LookupCV(v.asString());
-				if(id == -1)
-					throw std::invalid_argument(path + ": CV mask name \"" + v.asString() + "\" does not exist.");
-				
-				cvmask.push_back(CVManager::LookupCV(v.asString()));
-			}
-			else if(v.isIntegral() && v.asInt() >= 0)
-				cvmask.push_back(v.asUInt());
-			else
-				throw std::invalid_argument(path + ": CV mask must contain strings or unsigned integers.");
+			cvmask.push_back(CVManager::LookupCV(cv, path));
 		}
 		l->SetCVMask(cvmask);
 

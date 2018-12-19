@@ -99,9 +99,16 @@ namespace SSAGES
 		int icv = 0;
 		for(auto& cv : json["CVs"])
 		{
-			// Register name with CV manager if it exists.
+			// Register name with CV manager, if it exists.
+			// Otherwise, register index as name to CV manager.
 			if(cv.isMember("name"))
+			{
 				CVManager::AddCVtoMap(cv["name"].asString(), icv);
+			}
+			else
+			{
+				CVManager::AddCVtoMap(std::to_string(icv), icv);
+			}
 
 			// Build CV and add to manager.
 			cvmanager->AddCV(CollectiveVariable::BuildCV(cv, "#/CVs"));
@@ -112,18 +119,10 @@ namespace SSAGES
 		std::vector<Method*> methods;
 		for(auto& m : json["methods"])
 		{
-			// Check CVs specified in each method.
+			// Error will be thrown if lookup fails.
 			for(auto& cv : m["cvs"])
 			{
-				if(cv.isString())
-				{
-					CVManager::LookupCV(cv.asString());
-				}
-				else if(cv >= icv || cv < 0)
-				{
-					throw BuildException({"#/methods: CV mask index of " + cv.asString() + " does not exist. " +
-					                      "Index must be nonnegative and less than " + std::to_string(icv) + "."});
-				}
+				CVManager::LookupCV(cv, "#/methods");
 			}
 			methods.push_back(Method::BuildMethod(m, world, comm, "#/methods"));
 		}
