@@ -95,7 +95,7 @@ namespace SSAGES
 		auto cvs = cvmanager.GetCVs(cvmask_);
 		auto ncvs = cvs.size();
 
-		for(size_t i = 0; i < hist_.rows(); ++i)
+		for(int i = 0; i < hist_.rows(); ++i)
 		{
 			auto cval = hist_.row(i);
 			for(size_t j = 0; j < ncvs; ++j)
@@ -261,25 +261,27 @@ namespace SSAGES
 		file.close();
 	}
 
-	void ANN::ReadBias(const std::string& netstate, const std::string& filename)
+	void ANN::ReadBias(const std::string& state_file, const std::string& bias_file)
 	{
-		std::ifstream file(filename, std::ios::in);
-		if(file)
+		std::ifstream file(bias_file, std::ios::in);
+		if(!file)
 		{
-			net_ = nnet::neural_net(netstate.c_str());
-
-			for(size_t i = 0; i < hist_.rows(); ++i)
-			{
-				double burn = 0.0;
-				for(int j = 0; j < hist_.cols(); ++j)
-					file >> burn;
-
-				file >> ugrid_->data()[i];
-				file >> burn;
-			}
-
-			preloaded_ = true;
+			throw BuildException({"ANN::ReadBias() could not read file "+bias_file});
 		}
+
+		net_ = nnet::neural_net(state_file.c_str());
+
+		for(int i = 0; i < hist_.rows(); ++i)
+		{
+			double burn = 0.0;
+			for(int j = 0; j < hist_.cols(); ++j)
+				file >> burn;
+
+			file >> ugrid_->data()[i];
+			file >> burn;
+		}
+
+		preloaded_ = true;
 	}
 
 	ANN* ANN::Build(

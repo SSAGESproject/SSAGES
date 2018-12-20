@@ -42,7 +42,7 @@ namespace nnet
             for(int i = 0; i < y_shift_.size(); ++i) file >> y_shift_[i];
             
             // weights
-            for (size_t i = 1; i < layers_.size(); ++i) 
+            for(size_t i = 1; i < layers_.size(); ++i)
             {
                 auto& layer = layers_[i];
                 for(int j = 0; j < layer.b.size(); ++j) file >> layer.b(j);
@@ -53,7 +53,7 @@ namespace nnet
         file.close();
     }
 
-    void neural_net::init_layers(const VectorXi& topology) 
+    void neural_net::init_layers(const VectorXi& topology)
     {
         // init input layer
         nparam_ = 0; 
@@ -61,7 +61,7 @@ namespace nnet
         l.size = topology(0);
         layers_.push_back(l);
         // init hidden and output layer
-        for (int i = 1; i < topology.size(); ++i) 
+        for(int i = 1; i < topology.size(); ++i)
         {
             nn_layer l;
             l.size  = topology(i);
@@ -78,7 +78,7 @@ namespace nnet
         std::random_device rd{};
         std::mt19937 gen{rd()};
 
-        for (int i = 1; i < layers_.size(); ++i)
+        for(size_t i = 1; i < layers_.size(); ++i)
         {
             f_type beta = 0.7*std::pow(layers_[i].size, 1.0/layers_[i-1].size);
             f_type range = 2.0;
@@ -101,7 +101,7 @@ namespace nnet
         
         // copy and scale data matrix
         layers_[0].a.noalias() = (X.rowwise() - x_shift_.transpose())*x_scale_.asDiagonal();
-        for (size_t i = 1; i < layers_.size(); ++i)
+        for(size_t i = 1; i < layers_.size(); ++i)
         {
             // compute input for current layer
             layers_[i].z.noalias() = layers_[i-1].a * layers_[i].W.transpose();
@@ -121,11 +121,11 @@ namespace nnet
         assert(layers_.back().size == static_cast<size_t>(Y.cols()));
         assert(X.rows() == Y.rows());
         
-        // number of samples and output dim. 
-        size_t Q = Y.rows();
-        size_t S = Y.cols();
+        // number of samples and output dim.
+        int Q = Y.rows();
+        int S = Y.cols();
         
-        // Resize jacobian and define error. 
+        // Resize Jacobian and define error.
         je_.resize(nparam_);
         j_.resize(S*Q, nparam_);
         vector_t error(S*Q);
@@ -133,7 +133,7 @@ namespace nnet
         // MSE. 
         f_type mse = 0.;
         
-        for(size_t k = 0; k < Q; ++k)
+        for(int k = 0; k < Q; ++k)
         {
             // forward pass
             forward_pass(X.row(k));
@@ -153,7 +153,7 @@ namespace nnet
             
             // Pack Jacobian.
             j -= layers_[m-1].W.size();
-            for(size_t p = 0; p < S; ++p)
+            for(int p = 0; p < S; ++p)
             {
                 layers_[m-1].dEdW.noalias() = (layers_[m-1].delta.col(p)*layers_[m-2].a);
                 j_.block(S*k+p, j, 1, layers_[m-1].W.size()) = Map<vector_t>(layers_[m-1].dEdW.data(), layers_[m-1].dEdW.size()).transpose();
@@ -168,7 +168,7 @@ namespace nnet
 
                 // Pack Jacobian.
                 j -= layers_[i].W.size();
-                for(size_t p = 0; p < S; ++p)
+                for(int p = 0; p < S; ++p)
                 {
                     layers_[i].dEdW.noalias() = (layers_[i].delta.col(p)*layers_[i-1].a);            
                     j_.block(S*k+p, j, 1, layers_[i].W.size()) = Map<vector_t>(layers_[i].dEdW.data(), layers_[i].dEdW.size()).transpose();
@@ -280,7 +280,7 @@ namespace nnet
     matrix_t neural_net::get_gradient(int index)
     {
         layers_.back().delta = matrix_t::Identity(layers_.back().size, layers_.back().size)*y_scale_.asDiagonal().inverse();
-        for (size_t i = layers_.size() - 2; i > 0; --i) 
+        for(size_t i = layers_.size() - 2; i > 0; --i)
         {
             matrix_t g = activation_gradient(layers_[i].a);
             layers_[i].delta = (layers_[i+1].delta*layers_[i+1].W)*g.row(index).asDiagonal();
@@ -302,7 +302,7 @@ namespace nnet
     void neural_net::set_wb(const vector_t& wb)
     {
         int k = 0;
-        for (size_t i = 1; i < layers_.size(); ++i) 
+        for(size_t i = 1; i < layers_.size(); ++i)
         {
             auto& layer = layers_[i];
             for(int j = 0; j < layer.b.size(); ++j)
@@ -323,7 +323,7 @@ namespace nnet
     {
         int k = 0;
         vector_t wb(nparam_);
-        for (size_t i = 1; i < layers_.size(); ++i) 
+        for(size_t i = 1; i < layers_.size(); ++i)
         {
             auto& layer = layers_[i];
             for(int j = 0; j < layer.b.size(); ++j)
@@ -378,7 +378,7 @@ namespace nnet
             file << static_cast<int>(layers_.size()) << std::endl;
 
             // topology
-            for (int i = 0; i < layers_.size() - 1; ++i)
+            for(size_t i = 0; i < layers_.size() - 1; ++i)
                 file << static_cast<int>(layers_[i].size) << " ";
             file << static_cast<int>(layers_.back().size) << std::endl;
 
@@ -395,7 +395,7 @@ namespace nnet
             file << y_shift_[y_shift_.size()-1] << std::endl;
 
             // weights
-            for (int i = 1; i < layers_.size(); ++i)
+            for(size_t i = 1; i < layers_.size(); ++i)
             {
                 auto& layer = layers_[i];
                 for(int j = 0; j < layer.b.size(); ++j) file << layer.b(j) << std::endl;
