@@ -70,7 +70,7 @@ namespace SSAGES
 
 		//!@{
 		//! Eigen matrices of grids.
-		Eigen::MatrixXd hist_, bias_;
+		Eigen::MatrixXd hist_, bias_, rbias_;
 		//!@}
 
 		//!@{
@@ -86,7 +86,10 @@ namespace SSAGES
 		//! Output filename.
 		std::string outfile_;
 
-		//! Overwrite outputs? 
+		//! Is the network preloaded?
+		bool preloaded_;
+
+		//! Overwrite outputs?
 		bool overwrite_;
 
 		//! Trains the neural network.
@@ -187,8 +190,11 @@ namespace SSAGES
 		{
 			auto params = net_.get_train_params();
 			params.min_loss = loss; 
-			net_.set_train_params(params);			
+			net_.set_train_params(params);
 		}
+
+		//! Load network state and bias from file.
+		void ReadBias(const std::string&, const std::string&);
 
 		//! \copydoc Method::BuildMethod()
 		static ANN* Build(
@@ -196,10 +202,10 @@ namespace SSAGES
 			const MPI_Comm& world,
 			const MPI_Comm& comm,
 			const std::string& path);
-		
+
 		~ANN()
 		{
-			delete fgrid_; 
+			delete fgrid_;
 			delete hgrid_;
 		}
 	};
