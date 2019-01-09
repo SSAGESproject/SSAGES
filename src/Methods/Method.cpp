@@ -48,7 +48,7 @@ namespace SSAGES
 
 		reader->parse(JsonSchema::Method.c_str(),
 		              JsonSchema::Method.c_str() + JsonSchema::Method.size(),
-		              &schema, NULL);
+		              &schema, nullptr);
 		validator.Parse(schema, path);
 		validator.Validate(json, path);
 		if(validator.HasErrors())

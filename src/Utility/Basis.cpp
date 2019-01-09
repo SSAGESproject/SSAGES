@@ -30,7 +30,7 @@ namespace SSAGES
 
 		reader->parse(JsonSchema::ChebyshevBasis.c_str(),
 		              JsonSchema::ChebyshevBasis.c_str() + JsonSchema::ChebyshevBasis.size(),
-		              &schema, NULL);
+		              &schema, nullptr);
 		validator.Parse(schema, path);
 
         //Validate Inputs
@@ -57,7 +57,7 @@ namespace SSAGES
 
 		reader->parse(JsonSchema::FourierBasis.c_str(),
 		              JsonSchema::FourierBasis.c_str() + JsonSchema::FourierBasis.size(),
-		              &schema, NULL);
+		              &schema, nullptr);
 		validator.Parse(schema, path);
 
         //Validate Inputs
@@ -83,7 +83,7 @@ namespace SSAGES
 
 		reader->parse(JsonSchema::LegendreBasis.c_str(),
 		              JsonSchema::LegendreBasis.c_str() + JsonSchema::LegendreBasis.size(),
-		              &schema, NULL);
+		              &schema, nullptr);
 		validator.Parse(schema, path);
 
         //Validate Inputs

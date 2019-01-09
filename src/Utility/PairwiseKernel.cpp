@@ -53,7 +53,7 @@ namespace SSAGES
 
 		reader->parse(JsonSchema::GaussianPK.c_str(),
 		              JsonSchema::GaussianPK.c_str() + JsonSchema::GaussianPK.size(),
-		              &schema, NULL);
+		              &schema, nullptr);
 		validator.Parse(schema, path);
 
 		// Validate inputs.
@@ -83,7 +83,7 @@ namespace SSAGES
 
 		reader->parse(JsonSchema::RationalSwitchPK.c_str(),
 		              JsonSchema::RationalSwitchPK.c_str() + JsonSchema::RationalSwitchPK.size(),
-		              &schema, NULL);
+		              &schema, nullptr);
 		validator.Parse(schema, path);
 
 		// Validate inputs.

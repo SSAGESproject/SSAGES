@@ -121,7 +121,7 @@ namespace SSAGES
 
 		reader->parse(JsonSchema::UmbrellaMethod.c_str(),
 		              JsonSchema::UmbrellaMethod.c_str() + JsonSchema::UmbrellaMethod.size(),
-		              &schema, NULL);
+		              &schema, nullptr);
 		validator.Parse(schema, path);
 
 		// Validate inputs.

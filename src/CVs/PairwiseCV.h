@@ -206,7 +206,7 @@ namespace SSAGES
 
 			reader->parse(JsonSchema::PairwiseCV.c_str(),
 			              JsonSchema::PairwiseCV.c_str() + JsonSchema::PairwiseCV.size(),
-			              &schema, NULL);
+			              &schema, nullptr);
 			validator.Parse(schema, path);
 
 			// Validate inputs.

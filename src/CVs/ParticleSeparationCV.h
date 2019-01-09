@@ -173,7 +173,7 @@ namespace SSAGES
 
 			reader->parse(JsonSchema::ParticleSeparationCV.c_str(),
 			              JsonSchema::ParticleSeparationCV.c_str() + JsonSchema::ParticleSeparationCV.size(),
-			              &schema, NULL);
+			              &schema, nullptr);
 			validator.Parse(schema, path);
 
 			// Validate inputs.

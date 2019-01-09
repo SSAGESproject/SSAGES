@@ -84,7 +84,7 @@ namespace SSAGES
 
 		reader->parse(JsonSchema::Logger.c_str(),
 		              JsonSchema::Logger.c_str() + JsonSchema::Logger.size(),
-		              &schema, NULL);
+		              &schema, nullptr);
 		validator.Parse(schema, path);
 
 		// Validate inputs.

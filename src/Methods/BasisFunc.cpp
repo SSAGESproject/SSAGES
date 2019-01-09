@@ -317,7 +317,7 @@ namespace SSAGES
 
 		reader->parse(JsonSchema::BFSMethod.c_str(),
 		              JsonSchema::BFSMethod.c_str() + JsonSchema::BFSMethod.size(),
-		              &schema, NULL);
+		              &schema, nullptr);
 		validator.Parse(schema, path);
 
         //Validate Inputs

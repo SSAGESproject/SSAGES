@@ -341,7 +341,7 @@ namespace SSAGES
 
 		reader->parse(JsonSchema::MetadynamicsMethod.c_str(),
 		              JsonSchema::MetadynamicsMethod.c_str() + JsonSchema::MetadynamicsMethod.size(),
-		              &schema, NULL);
+		              &schema, nullptr);
 		validator.Parse(schema, path);
 
 		// Validate inputs.

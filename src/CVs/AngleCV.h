@@ -142,7 +142,7 @@ namespace SSAGES
 
 			reader->parse(JsonSchema::AngleCV.c_str(),
 			              JsonSchema::AngleCV.c_str() + JsonSchema::AngleCV.size(),
-			              &schema, NULL);
+			              &schema, nullptr);
 			validator.Parse(schema, path);
 
 			// Validate inputs.

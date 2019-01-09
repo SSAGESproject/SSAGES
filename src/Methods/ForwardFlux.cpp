@@ -637,7 +637,7 @@ namespace SSAGES
 
 		reader->parse(JsonSchema::ForwardFluxMethod.c_str(),
 		              JsonSchema::ForwardFluxMethod.c_str() + JsonSchema::ForwardFluxMethod.size(),
-		              &schema, NULL);
+		              &schema, nullptr);
 		validator.Parse(schema, path);
 
 		// Validate inputs.

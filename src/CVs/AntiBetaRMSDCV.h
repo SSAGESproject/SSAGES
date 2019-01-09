@@ -262,7 +262,7 @@ namespace SSAGES
 
 			reader->parse(JsonSchema::AntiBetaRMSDCV.c_str(),
 			              JsonSchema::AntiBetaRMSDCV.c_str() + JsonSchema::AntiBetaRMSDCV.size(),
-			              &schema, NULL);
+			              &schema, nullptr);
 			validator.Parse(schema, path);
 
 			//Validate inputs

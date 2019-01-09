@@ -198,7 +198,7 @@ namespace SSAGES
 
 			reader->parse(JsonSchema::RouseModeCV.c_str(),
 			              JsonSchema::RouseModeCV.c_str() + JsonSchema::RouseModeCV.size(),
-			              &schema, NULL);
+			              &schema, nullptr);
 			validator.Parse(schema, path);
 
 			// Validate inputs.

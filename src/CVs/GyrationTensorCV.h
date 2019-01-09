@@ -252,7 +252,7 @@ namespace SSAGES
 
 			reader->parse(JsonSchema::GyrationTensorCV.c_str(),
 			              JsonSchema::GyrationTensorCV.c_str() + JsonSchema::GyrationTensorCV.size(),
-			              &schema, NULL);
+			              &schema, nullptr);
 			validator.Parse(schema, path);
 
 			// Validate inputs. 

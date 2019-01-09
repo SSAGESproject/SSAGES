@@ -63,7 +63,7 @@ namespace SSAGES
 		// types are specified in the input files.
 		reader->parse(JsonSchema::Simulation.c_str(),
 		              JsonSchema::Simulation.c_str() + JsonSchema::Simulation.size(),
-		              &schema, NULL);
+		              &schema, nullptr);
 		validator.Parse(schema, "#");
 		validator.Validate(json, "#");
 		if(validator.HasErrors())

@@ -71,7 +71,7 @@ namespace SSAGES
 
 			reader->parse(JsonSchema::BoxVolumeCV.c_str(),
 			              JsonSchema::BoxVolumeCV.c_str() + JsonSchema::BoxVolumeCV.size(),
-			              &schema, NULL);
+			              &schema, nullptr);
 			validator.Parse(schema, path);
 
 			// Validate inputs.

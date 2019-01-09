@@ -306,7 +306,7 @@ namespace SSAGES
 
 		reader->parse(JsonSchema::ABFMethod.c_str(),
 		              JsonSchema::ABFMethod.c_str() + JsonSchema::ABFMethod.size(),
-		              &schema, NULL);
+		              &schema, nullptr);
 		validator.Parse(schema, path);
 
 		// Validate inputs.
@@ -549,4 +549,3 @@ namespace SSAGES
 	}
 
 }
-

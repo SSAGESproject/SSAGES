@@ -231,7 +231,7 @@ namespace SSAGES
 
 		reader->parse(JsonSchema::StringMethod.c_str(),
 		              JsonSchema::StringMethod.c_str() + JsonSchema::StringMethod.size(),
-		              &schema, NULL);
+		              &schema, nullptr);
 		validator.Parse(schema, path);
 
 		// Validate inputs.
@@ -258,7 +258,7 @@ namespace SSAGES
 		{
 			reader->parse(JsonSchema::ElasticBandMethod.c_str(),
 			              JsonSchema::ElasticBandMethod.c_str() + JsonSchema::ElasticBandMethod.size(),
-			              &schema, NULL);
+			              &schema, nullptr);
 			validator.Parse(schema, path);
 
 			// Validate inputs.
@@ -290,7 +290,7 @@ namespace SSAGES
 		{
 			reader->parse(JsonSchema::FTSMethod.c_str(),
 			              JsonSchema::FTSMethod.c_str() + JsonSchema::FTSMethod.size(),
-			              &schema, NULL);
+			              &schema, nullptr);
 			validator.Parse(schema, path);
 
 			// Validate inputs.
@@ -320,7 +320,7 @@ namespace SSAGES
 		{
 			reader->parse(JsonSchema::SwarmMethod.c_str(),
 			              JsonSchema::SwarmMethod.c_str() + JsonSchema::SwarmMethod.size(),
-			              &schema, NULL);
+			              &schema, nullptr);
 			validator.Parse(schema, path);
 			
 			//Validate input

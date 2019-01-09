@@ -57,16 +57,16 @@ int main(int argc, char* argv[])
 
 	std::stringstream versionStream;
 	versionStream << "SSAGES version " << SSAGES_VERSION_MAJOR << "."
-									   << SSAGES_VERSION_MINOR << "."
-									   << SSAGES_VERSION_TINY << "\n";
+	                                   << SSAGES_VERSION_MINOR << "."
+	                                   << SSAGES_VERSION_TINY << "\n";
 
 	// Define short options, e.g. -h
 	const char *OPT_STRING = "h!";
 
 	// Define long options, e.g. --help
 	static struct option longOpts[] = {
-		{ "help", no_argument, NULL, 'h' },
-		{ "version", no_argument, NULL, '!' },
+		{ "help", no_argument, nullptr, 'h' },
+		{ "version", no_argument, nullptr, '!' },
 	};
 
 	// Parse command line arguments

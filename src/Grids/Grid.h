@@ -148,7 +148,7 @@ public:
 
 		reader->parse(JsonSchema::grid.c_str(),
 		              JsonSchema::grid.c_str() + JsonSchema::grid.size(),
-		              &schema, NULL);
+		              &schema, nullptr);
 		validator.Parse(schema, path);
 
         // Validate inputs.

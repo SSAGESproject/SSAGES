@@ -235,7 +235,7 @@ namespace SSAGES
 
 			reader->parse(JsonSchema::TorsionalCV.c_str(),
 			              JsonSchema::TorsionalCV.c_str() + JsonSchema::TorsionalCV.size(),
-			              &schema, NULL);
+			              &schema, nullptr);
 			validator.Parse(schema, path);
 
 			// Validate inputs.

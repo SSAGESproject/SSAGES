@@ -174,7 +174,7 @@ namespace SSAGES
 
 			reader->parse(JsonSchema::ParticleCoordinateCV.c_str(),
 			              JsonSchema::ParticleCoordinateCV.c_str() + JsonSchema::ParticleCoordinateCV.size(),
-			              &schema, NULL);
+			              &schema, nullptr);
 			validator.Parse(schema, path);
 
 			// Validate inputs.
