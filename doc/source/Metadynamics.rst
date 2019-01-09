@@ -170,8 +170,9 @@ To run this example:
 
 	mpirun -np 2 ./ssages Meta.json
 
-3. After the run is complete use the provided ``analysis.m`` script to generate
-   a representation of the underlying free energy surface.
+3. After the run is complete use the provided ``analysis.m`` or ``analysis.py``
+   script to generate a representation of the underlying free energy surface using
+   MatLab or python (Matplotlib and numpy required).
 
 Developer
 ^^^^^^^^^
