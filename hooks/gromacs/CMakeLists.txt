@@ -2,7 +2,8 @@
 set (SUPPORTED_GROMACS_VERSIONS
       "5.1"  "5.1.0"  "5.1.1"  "5.1.2"  "5.1.3"  "5.1.4"  "5.1.5"
      "2016" "2016.0" "2016.1" "2016.2" "2016.3" "2016.4" "2016.5"
-     "2018" "2018.0" "2018.1" "2018.2" "2018.3"
+     "2018" "2018.0" "2018.1" "2018.2" "2018.3" "2018.4" "2018.5"
+     "2019"
     )
 
 set(DGMX_BUILD_OWN_FFTW OFF CACHE BOOL "Let GROMACS build its own libfftw.")
@@ -102,8 +103,12 @@ elseif (GROMACS)
         set (GMX_PATCH "gmx_diff_5.1.x.patch")
     elseif (GROMACS_VERSION MATCHES "^2016(\\.[0-9]+)?$")
         set (GMX_PATCH "gmx_diff_2016.x.patch")
-    elseif (GROMACS_VERSION MATCHES "^2018(\\.[0-9]+)?$")
+    elseif (GROMACS_VERSION MATCHES "^2018(\\.[0-3])?$")
         set (GMX_PATCH "gmx_diff_2018.x.patch")
+    elseif (GROMACS_VERSION MATCHES "^2018(\\.[4-5])?$")
+        set (GMX_PATCH "gmx_diff_2018.y.patch")
+    elseif (GROMACS_VERSION MATCHES "^2019(\\.[0-9])?$")
+        set (GMX_PATCH "gmx_diff_2019.x.patch")
     else ()
         message (WARNING "\nWARNING: Could not find GROMACS version specific patch. "
                            "Attempting to use generic one.")

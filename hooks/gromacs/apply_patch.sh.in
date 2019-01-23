@@ -2,7 +2,7 @@
 
 patch -N -p2 --dry-run --silent -d ${GROMACS_SRC} < ${PROJECT_SOURCE_DIR}/hooks/gromacs/$1 2>/dev/null
 
-# If the patch has not been applied, then the $? (exit code) 
+# If the patch has not been applied, then the $? (exit code)
 # for the last command would have a successful exit code = 0.
 # If parts have already been applied, then the exit code = 1.
 # Any higher error code indicates a more substantial error.

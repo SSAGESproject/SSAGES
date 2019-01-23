@@ -27,6 +27,10 @@
 #include "programs/mdrun/mdrun_main.h"
 #include <sstream>
 
+// Starting in version 2019, gmx_mdrun is now in the gmx namespace.
+// This allows us to call either &gmx_mdrun or &gmx::gmx_mdrun, depending on version.
+using namespace gmx;
+
 namespace SSAGES
 {
 	void Driver::Run()
@@ -43,11 +47,11 @@ namespace SSAGES
 		if(rh_->GetNumWalkers() > 1)
 		{
 			sprintf(argv[args_.size()+1], "-multi");
-			sprintf(argv[args_.size()+2], "%i", (int)rh_->GetNumWalkers());
+			sprintf(argv[args_.size()+2], "%i", static_cast<int>(rh_->GetNumWalkers()));
 		}
 
 		std::cout << std::endl;
-		gmx::CommandLineModuleManager::runAsMainCMain(argc, argv, &gmx_mdrun);
+		CommandLineModuleManager::runAsMainCMain(argc, argv, &gmx_mdrun);
 	}
 	
 	Driver* Driver::Build(const Json::Value& json, const MPI_Comm& world)
