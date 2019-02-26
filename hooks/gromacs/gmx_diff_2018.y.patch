@@ -10,7 +10,7 @@ diff -ruN /gromacs-original/src/gromacs/mdlib/main.cpp /gromacs-ssages/src/groma
  /* The source code in this file should be thread-safe.
           Please keep it that way. */
  
-@@ -305,7 +307,11 @@
+@@ -311,7 +313,11 @@
      cr->sim_nodeid = cr->nodeid % nnodpersim;
      cr->nnodes     = nnodpersim;
  #if GMX_MPI
@@ -50,15 +50,15 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
  #include "gromacs/math/utilities.h"
  #include "gromacs/math/vec.h"
  #include "gromacs/math/vectypes.h"
-@@ -124,6 +125,7 @@
- #include "gromacs/utility/logger.h"
+@@ -126,6 +127,7 @@
  #include "gromacs/utility/real.h"
  #include "gromacs/utility/smalloc.h"
+ #include "gromacs/utility/stringutil.h"
 +#include "GromacsHook.h"
  
  #include "deform.h"
  #include "membed.h"
-@@ -836,6 +838,52 @@
+@@ -851,6 +853,52 @@
          fprintf(fplog, "\n");
      }
  
@@ -111,7 +111,7 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
      walltime_accounting_start(walltime_accounting);
      wallcycle_start(wcycle, ewcRUN);
      print_start(fplog, cr, walltime_accounting, "mdrun");
-@@ -955,6 +1003,9 @@
+@@ -982,6 +1030,9 @@
          }
      }
  
@@ -121,7 +121,7 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
      /* and stop now if we should */
      bLastStep = (bLastStep || (ir->nsteps >= 0 && step_rel > ir->nsteps));
      while (!bLastStep)
-@@ -1238,6 +1289,9 @@
+@@ -1265,6 +1316,9 @@
                       fr, vsite, mu_tot, t, ed, bBornRadii,
                       (bNS ? GMX_FORCE_NS : 0) | force_flags,
                       ddOpenBalanceRegion, ddCloseBalanceRegion);
@@ -131,7 +131,7 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
          }
  
          if (EI_VV(ir->eI) && !startingFromCheckpoint && !bRerunMD)
-@@ -1962,9 +2016,13 @@
+@@ -1989,9 +2043,13 @@
          /* If bIMD is TRUE, the master updates the IMD energy record and sends positions to VMD client */
          IMD_prep_energies_send_positions(ir->bIMD && MASTER(cr), bIMDstep, ir->imd, enerd, step, bCalcEner, wcycle);
  

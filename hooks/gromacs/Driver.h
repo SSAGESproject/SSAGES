@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once 
+#pragma once
 
 #include <mpi.h>
 #include <vector>
@@ -25,38 +25,38 @@
 
 // Forward declare.
 namespace Json {
-    class Value;
+	class Value;
 }
 
 namespace SSAGES
 {
 	//! Simulation driver.
-    class Driver
-    {
+	class Driver
+	{
 	private:
-		//! Resource handler. 
+		//! Resource handler.
 		class ResourceHandler* rh_;
 
 		//! Gromacs arguments.
 		std::vector<std::string> args_;
 
 	public:
-		Driver(class ResourceHandler* rh, const std::vector<std::string>& args) : 
+		Driver(class ResourceHandler* rh, const std::vector<std::string>& args) :
 		rh_(rh), args_(args)
 		{}
 
-        void Run();
+		void Run();
 
-        //! Build a new Driver from JSON. 
+		//! Build a new Driver from JSON.
 		/*!
-		 * \param json JSON root node containing driver (and children) specifications. 
-		 * \param world MPI communicator containing all processors. 
-		 * \return Pointer to newly created driver. 
-		 * 
+		 * \param json JSON root node containing driver (and children) specifications.
+		 * \param world MPI communicator containing all processors.
+		 * \return Pointer to newly created driver.
+		 *
 		 * \note Object lifetime is caller's responsibility!
 		 */
 		static Driver* Build(const Json::Value& json, const MPI_Comm& world);
 
 		~Driver();
-    };
+	};
 }

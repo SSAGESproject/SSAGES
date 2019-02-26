@@ -1,28 +1,29 @@
-diff -ruN /gromacs-original/src/gromacs/mdlib/main.cpp /gromacs-ssages/src/gromacs/mdlib/main.cpp
---- /gromacs-original/src/gromacs/mdlib/main.cpp
-+++ /gromacs-ssages/src/gromacs/mdlib/main.cpp
-@@ -63,6 +63,8 @@
- #include "gromacs/utility/stringutil.h"
- #include "gromacs/utility/sysinfo.h"
- 
-+#include "GromacsHook.h"
+
+diff -ruN /gromacs-original/src/gromacs/mdrun/legacymdrunoptions.cpp /gromacs-ssages/src/gromacs/mdrun/legacymdrunoptions.cpp
+--- /gromacs-original/src/gromacs/mdrun/legacymdrunoptions.cpp
++++ /gromacs-ssages/src/gromacs/mdrun/legacymdrunoptions.cpp
+@@ -60,6 +60,8 @@
+ #include "gromacs/mdtypes/commrec.h"
+ #include "gromacs/utility/arraysize.h"
+ #include "gromacs/utility/fatalerror.h"
 +
- /* The source code in this file should be thread-safe.
-          Please keep it that way. */
++#include "GromacsHook.h"
  
-@@ -305,7 +307,11 @@
-     cr->sim_nodeid = cr->nodeid % nnodpersim;
-     cr->nnodes     = nnodpersim;
- #if GMX_MPI
--    MPI_Comm_split(MPI_COMM_WORLD, sim, cr->sim_nodeid, &cr->mpi_comm_mysim);
-+    // Get SSAGES communicator and assign.
-+    auto& ssages = SSAGES::GromacsHook::Instance();
-+    auto comm = ssages.GetCommunicator();
-+    cr->mpi_comm_mysim = comm;
-+    //MPI_Comm_split(MPI_COMM_WORLD, sim, cr->sim_nodeid, &cr->mpi_comm_mysim);
-     cr->mpi_comm_mygroup = cr->mpi_comm_mysim;
-     cr->nodeid           = cr->sim_nodeid;
- #endif
+ namespace gmx
+ {
+@@ -162,7 +164,11 @@
+     if (ms != nullptr)
+     {
+         cr->nnodes = cr->nnodes / ms->nsim;
+-        MPI_Comm_split(MPI_COMM_WORLD, ms->sim, cr->sim_nodeid, &cr->mpi_comm_mysim);
++        // Get SSAGES communicator and assign.
++        auto& ssages = SSAGES::GromacsHook::Instance();
++        auto comm = ssages.GetCommunicator();
++        cr->mpi_comm_mysim = comm;
++        //MPI_Comm_split(MPI_COMM_WORLD, ms->sim, cr->sim_nodeid, &cr->mpi_comm_mysim);
+         cr->mpi_comm_mygroup = cr->mpi_comm_mysim;
+         MPI_Comm_rank(cr->mpi_comm_mysim, &cr->sim_nodeid);
+         MPI_Comm_rank(cr->mpi_comm_mygroup, &cr->nodeid);
 diff -ruN /gromacs-original/src/programs/CMakeLists.txt /gromacs-ssages/src/programs/CMakeLists.txt
 --- /gromacs-original/src/programs/CMakeLists.txt
 +++ /gromacs-ssages/src/programs/CMakeLists.txt
@@ -39,10 +40,10 @@ diff -ruN /gromacs-original/src/programs/CMakeLists.txt /gromacs-ssages/src/prog
  
  if(GMX_FAHCORE)
      # The lack of a real source file here alongside the object library
-diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/programs/mdrun/md.cpp
---- /gromacs-original/src/programs/mdrun/md.cpp
-+++ /gromacs-ssages/src/programs/mdrun/md.cpp
-@@ -66,6 +66,7 @@
+diff -ruN /gromacs-original/src/gromacs/mdrun/md.cpp /gromacs-ssages/src/gromacs/mdrun/md.cpp
+--- /gromacs-original/src/gromacs/mdrun/md.cpp
++++ /gromacs-ssages/src/gromacs/mdrun/md.cpp
+@@ -69,6 +69,7 @@
  #include "gromacs/imd/imd.h"
  #include "gromacs/listed-forces/manage-threading.h"
  #include "gromacs/math/functions.h"
@@ -50,15 +51,15 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
  #include "gromacs/math/utilities.h"
  #include "gromacs/math/vec.h"
  #include "gromacs/math/vectypes.h"
-@@ -124,6 +125,7 @@
+@@ -134,6 +135,7 @@
  #include "gromacs/utility/logger.h"
  #include "gromacs/utility/real.h"
  #include "gromacs/utility/smalloc.h"
 +#include "GromacsHook.h"
  
- #include "deform.h"
- #include "membed.h"
-@@ -836,6 +838,52 @@
+ #include "integrator.h"
+ #include "replicaexchange.h"
+@@ -587,6 +589,52 @@
          fprintf(fplog, "\n");
      }
  
@@ -71,8 +72,8 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
 +        int* ids = nullptr;
 +        if(PAR(cr) && DOMAINDECOMP(cr))
 +        {
-+            natoms = cr->dd->nat_home;
-+            ids = cr->dd->gatindex;
++            natoms = dd_numHomeAtoms(*cr->dd);
++            ids = cr->dd->globalAtomIndices.data();
 +        }
 +        ssages.PushToGromacs(
 +            natoms,
@@ -90,8 +91,8 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
 +        int* ids = nullptr;
 +        if(PAR(cr) && DOMAINDECOMP(cr))
 +        {
-+            natoms = cr->dd->nat_home;
-+            ids = cr->dd->gatindex;
++            natoms = dd_numHomeAtoms(*cr->dd);
++            ids = cr->dd->globalAtomIndices.data();
 +        }
 +        ssages.PullToSSAGES(
 +            step,
@@ -108,10 +109,10 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
 +            BOLTZ);
 +    });
 +
-     walltime_accounting_start(walltime_accounting);
+     walltime_accounting_start_time(walltime_accounting);
      wallcycle_start(wcycle, ewcRUN);
      print_start(fplog, cr, walltime_accounting, "mdrun");
-@@ -955,6 +1003,9 @@
+@@ -678,6 +726,9 @@
          }
      }
  
@@ -121,8 +122,8 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
      /* and stop now if we should */
      bLastStep = (bLastStep || (ir->nsteps >= 0 && step_rel > ir->nsteps));
      while (!bLastStep)
-@@ -1238,6 +1289,9 @@
-                      fr, vsite, mu_tot, t, ed, bBornRadii,
+@@ -880,6 +931,9 @@
+                      fr, ppForceWorkload, vsite, mu_tot, t, ed ? ed->getLegacyED() : nullptr,
                       (bNS ? GMX_FORCE_NS : 0) | force_flags,
                       ddOpenBalanceRegion, ddCloseBalanceRegion);
 +
@@ -130,8 +131,8 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
 +            ssages.PostIntegrationHook();
          }
  
-         if (EI_VV(ir->eI) && !startingFromCheckpoint && !bRerunMD)
-@@ -1962,9 +2016,13 @@
+         if (EI_VV(ir->eI) && !startingFromCheckpoint)
+@@ -1475,9 +1529,13 @@
          /* If bIMD is TRUE, the master updates the IMD energy record and sends positions to VMD client */
          IMD_prep_energies_send_positions(ir->bIMD && MASTER(cr), bIMDstep, ir->imd, enerd, step, bCalcEner, wcycle);
  
@@ -148,7 +149,7 @@ diff -ruN /gromacs-original/src/programs/mdrun/md.cpp /gromacs-ssages/src/progra
 diff -ruN /gromacs-original/CMakeLists.txt /gromacs-ssages/CMakeLists.txt
 --- /gromacs-original/CMakeLists.txt
 +++ /gromacs-ssages/CMakeLists.txt
-@@ -102,14 +102,14 @@
+@@ -104,14 +104,14 @@
  # These variables collect libraries that GROMACS requires for
  # linking. They should be appended to with list(APPEND ${name}
  # new-library) calls. They are:
