@@ -31,7 +31,6 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${PROJECT_BINARY_DIR}")
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/schema/)
 add_definitions(${MPI_CXX_COMPILE_FLAGS})
-link_directories(${MPI_CXX_LIBRARIES})
 
 # General source files
 set(SOURCE
