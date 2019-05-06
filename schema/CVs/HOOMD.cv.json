@@ -1,0 +1,23 @@
+{
+    "type" : "object",
+    "varname" : "HOOMDCV",
+    "properties" : {
+        "type" : {
+            "type" : "string",
+            "enum" : ["HOOMDCV"]
+        },
+        "force" : {
+            "type" : "string"
+        },
+        "bounds" : {
+        "type" : "array",
+        "minItems" : 2,
+        "maxItems" : 2,
+        "items" : {
+            "type" : "number"
+            }
+        }
+    },
+    "required" : ["type", "force"],
+    "additionalProperties" : false
+}

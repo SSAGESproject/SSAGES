@@ -107,14 +107,12 @@ namespace SSAGES
                     {
                         // Get current cv and gradient
                         auto& cv = cvs[i];
-                        auto& grad = cv->GetGradient();
 
                         // Compute dV/dCV
                         auto D = cvspring_[i]*(cv->GetDifference(centers_[i]));
 
                         // Update forces
-                        for(size_t j = 0; j < forces.size(); j++)
-                                forces[j] -= D*grad[j];
+                        cv->ApplyBias(D,*snapshot);
                     }
                     umbrella_iter_++; //Progress toward checkpoint 
                 }

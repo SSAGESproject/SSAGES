@@ -70,7 +70,6 @@ namespace SSAGES
     void Swarm::PostIntegration(Snapshot* snapshot, const CVManager& cvmanager)
     {
         auto cvs = cvmanager.GetCVs(cvmask_);
-        auto& forces = snapshot->GetForces();
         auto& positions = snapshot->GetPositions();
         auto& velocities = snapshot->GetVelocities();
 
@@ -109,25 +108,19 @@ namespace SSAGES
                 {
                     //Get current CV and gradient
                     auto& cv = cvs[i];
-                    auto& grad = cv->GetGradient();
 
                     //Compute dV/dCV
                     auto D = cvspring_[i]*(cv->GetDifference(centers_[i]));
 
                     //Update forces
-                    for(size_t j = 0; j < forces.size(); j++)
-                    {
-                        for(int k = 0; k < forces[j].size(); k++)
-                        {
-                            forces[j][k] -= (double)D*grad[j][k];
-                        }
-                    }
+                    cv->ApplyBias(D,*snapshot);
                 }
             }
             else
             {
                 //If the system was already initialized, simply reset the positions and velocities; this keeps them in their initialized states
                 index_ = 0;
+                auto &forces = snapshot->GetForces();
                 for(auto& force: forces)
                     force.setZero();
 
@@ -166,19 +159,12 @@ namespace SSAGES
                     }
                     //Get current CV and gradient
                     auto& cv = cvs[i];
-                    auto& grad = cv->GetGradient();
 
                     //Compute dV/dCV
                     auto D = cvspring_[i]*(cv->GetDifference(centers_[i]));
 
                     //Update forces
-                    for(size_t j = 0; j < forces.size(); j++)
-                    {
-                        for(int k = 0; k < forces[j].size(); k++)
-                        {
-                            forces[j][k] -= (double)D*grad[j][k]; 
-                        }
-                    }
+                    cv->ApplyBias((double) D, *snapshot);
                 }
                 if(iterator_ > initialize_steps_)
                 {
@@ -195,6 +181,7 @@ namespace SSAGES
                 {
                     //Reset positions and forces before first call to unrestrained sampling
                     index_ = 0;
+                    auto &forces = snapshot->GetForces();
                     for(auto& force: forces)
                         force.setZero();
 
@@ -231,6 +218,7 @@ namespace SSAGES
 
                     if(index_ < number_trajectories_)
                     {
+                        auto &forces = snapshot->GetForces();
                         for(auto& force: forces)
                             force.setZero();
 

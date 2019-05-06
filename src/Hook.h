@@ -38,10 +38,10 @@ namespace SSAGES
 		//! Vector of event listeners.
 		std::vector<EventListener*> listeners_;
 
-		//! Collective variable manager.
-		class CVManager* cvmanager_;
-
 	protected:
+        //! Collective variable manager.
+        class CVManager* cvmanager_;
+
 		//! Local snapshot.
 		class Snapshot* snapshot_;
 
@@ -94,7 +94,7 @@ namespace SSAGES
 		 * This should be called at the appropriate
 		 * time by the Hook implementation.
 		 */
-		void PreSimulationHook();
+		virtual void PreSimulationHook();
 
 		//! Post-integration hook.
 		/*!

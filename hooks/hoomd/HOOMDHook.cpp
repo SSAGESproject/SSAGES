@@ -6,7 +6,7 @@
 using namespace SSAGES;
 
 HOOMDHook::HOOMDHook() :
-Hook(), HalfStepHook()
+Hook(), HalfStepHook(), timestep_(0)
 {
   std::cerr << "Installing SSAGES HOOMD-blue hook." << std::endl;
 }

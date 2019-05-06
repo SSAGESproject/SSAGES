@@ -53,7 +53,7 @@ namespace SSAGES
 		Fold_.setZero(dim_);
 
 		// Initialize biases.
-		biases_.resize(snapshot->GetPositions().size(), Vector3{0, 0, 0});
+		biases_.resize(dim_);
 		
 		// Initialize w \dot p's for finite difference. 
 		wdotp1_.setZero(dim_);
@@ -78,7 +78,6 @@ namespace SSAGES
 		auto cvs = cvmanager.GetCVs(cvmask_);
 		auto& vels = snapshot->GetVelocities();
 		auto& mass = snapshot->GetMasses();
-		auto& forces = snapshot->GetForces();
 		auto n = snapshot->GetNumAtoms();
 		
 
@@ -102,6 +101,9 @@ namespace SSAGES
 
 		//* Calculate W using Darve's approach (http://mc.stanford.edu/cgi-bin/images/0/06/Darve_2008.pdf).
 		Eigen::MatrixXd Jmass = J.transpose();
+
+        auto& forces = snapshot->GetForces();
+
 		if(massweigh_)
 		{
 			for(size_t i = 0; i < forces.size(); ++i)
@@ -163,8 +165,8 @@ namespace SSAGES
 
 		// Update the forces in snapshot by adding in the force bias from each
 		// CV to each atom based on the gradient of the CV.
-		for (size_t j = 0; j < forces.size(); ++j)
-			forces[j] += biases_[j];	
+		for (size_t i = 0; i < dim_; ++i)
+            cvs[i]->ApplyBias(biases_[i],*snapshot);
 	}
 
 	// Post-simulation hook.
@@ -176,18 +178,14 @@ namespace SSAGES
 	void ABF::CalcBiasForce(const Snapshot* snapshot, const CVList& cvs, const std::vector<double> &cvVals)
 	{
 		// Reset the bias.
-		biases_.resize(snapshot->GetNumAtoms(), Vector3{0,0,0});
-		for(auto& b : biases_)
-			b.setZero();
+		biases_.resize(dim_, 0.0);
 		
 		// Compute bias if within bounds.
 		if(boundsCheck(cvVals))
 		{
-			for(size_t i = 0; i < dim_; ++i)
+			for(size_t i = 0; i < biases_.size(); ++i)
 			{
-				auto& grad = cvs[i]->GetGradient();
-				for(size_t j = 0; j < biases_.size(); ++j)
-					biases_[j] -= (Fworld_[i]->at(cvVals))*grad[j]/std::max(min_,Nworld_->at(cvVals));
+            biases_[i] = Fworld_[i]->at(cvVals)/std::max(min_,Nworld_->at(cvVals));
 			}
 		}
 		// Otherwise, apply harmonic restraint if enabled.
@@ -220,9 +218,7 @@ namespace SSAGES
 					x0 = restraint_[i][1];
 				}
 
-				auto& grad = cvs[i]->GetGradient();
-				for(size_t j = 0; j < biases_.size(); ++j)
-					biases_[j] -= (cvVal - x0)*k*grad[j];
+                biases_[i] = (cvVal - x0)*k;
 			}	
 		}
 	}

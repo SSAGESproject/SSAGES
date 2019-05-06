@@ -30,6 +30,7 @@
 #cmakedefine ENABLE_GROMACS
 #cmakedefine ENABLE_QBOX
 #cmakedefine ENABLE_OPENMD
+#cmakedefine ENABLE_HOOMD
 
 #define EXTRA_CONFIG "@EXTRA_CONFIG@"
 
