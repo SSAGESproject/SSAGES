@@ -5,7 +5,7 @@
 		"output_file" :
 		[
 			"log0",
-			"log1",
+			"log1"
 		]
 	},
 	"walkers": 2,
