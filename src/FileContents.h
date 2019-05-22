@@ -21,13 +21,12 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE. 
+ * SOFTWARE.
 */
 #pragma once
 
+#include <fstream>
 #include <string>
-#include <cstdio>
-#include <cerrno>
 
 /*!
  * \file FileContents.h
@@ -44,38 +43,28 @@ namespace SSAGES
 	 * Retrieves the contents of a file and returns them in a string. Throws
 	 * exception on failure.
 	 */
-	inline std::string GetFileContents(const char *filename)
+	inline std::string GetFileContents(const std::string filename)
 	{
-		std::FILE *fp = std::fopen(filename, "rb");
-		if (fp)
-		{
-			std::string contents;
-			std::fseek(fp, 0, SEEK_END);
-			contents.resize(std::ftell(fp));
-			std::rewind(fp);
-
-			// Stupid GCC bug. We do this to hide warnings.
-			if(!std::fread(&contents[0], 1, contents.size(), fp))
-				std::fclose(fp);
-			else
-				std::fclose(fp);
-
-			return(contents);
+		std::ifstream ifs(filename);
+		if(ifs) {
+			std::string contents( (std::istreambuf_iterator<char>(ifs) ),
+			                      (std::istreambuf_iterator<char>()    ) );
+			return contents;
 		}
-		throw(errno);
+		throw std::runtime_error("File " + filename + " does not exist.");
 	}
 
 	//! Gets file path from filename.
 	/*!
-	 * \param str String containing the absolute filename.
+	 * \param filename String containing the absolute filename.
 	 * \return String containing only the directory path.
 	 */
-	inline std::string GetFilePath(const std::string& str)
+	inline std::string GetFilePath(const std::string filename)
 	{
 		size_t found;
-		found = str.find_last_of("/\\");
-		if(found == str.npos)
+		found = filename.find_last_of("/\\");
+		if(found == filename.npos)
 			return "./";
-		return str.substr(0, found);
+		return filename.substr(0, found);
 	}
 }
