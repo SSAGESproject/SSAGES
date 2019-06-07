@@ -32,7 +32,7 @@ class HOOMDHook : public SSAGES::Hook, public HalfStepHook
         HOOMDHook();
 
         // Sets SystemDefinition to enable particle data access
-        void setSystemDefinition(std::shared_ptr<SystemDefinition> sysdef)
+        void setSystemDefinition(std::shared_ptr<SystemDefinition> sysdef) override
         {
             sysdef_ = sysdef;
         }
@@ -44,7 +44,7 @@ class HOOMDHook : public SSAGES::Hook, public HalfStepHook
         }
 
         // Synchronize snapshot with SSAGES after computing forces
-        void update(unsigned int timestep);
+        void update(unsigned int timestep) override;
 
         ~HOOMDHook();
 };

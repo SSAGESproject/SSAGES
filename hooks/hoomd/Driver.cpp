@@ -118,7 +118,7 @@ namespace SSAGES
             }
 
         auto exec_conf = std::make_shared<ExecutionConfiguration>(
-          execution_mode, -1, false, false,
+          execution_mode, std::vector<int>{-1}, false, false,
           std::shared_ptr<Messenger>(), 0, rh->GetLocalComm());
 
         auto hook = std::make_shared<HOOMDHook>();
