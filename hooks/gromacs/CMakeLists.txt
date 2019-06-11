@@ -53,8 +53,8 @@ if (GROMACS_SRC)
 
     # Check if GROMACS version is supported
     if (NOT ";${SUPPORTED_GROMACS_VERSIONS};" MATCHES ";${GROMACS_VERSION};")
-        message (WARNING "\nWARNING: GROMACS version \"${GROMACS_VERSION}\" is "
-                           "currently not supported by SSAGES.")
+        message (FATAL_ERROR "\nERROR: GROMACS version \"${GROMACS_VERSION}\" is "
+                               "currently not supported by SSAGES.")
     endif (NOT ";${SUPPORTED_GROMACS_VERSIONS};" MATCHES ";${GROMACS_VERSION};")
 
     # Set the appropriate patch.
@@ -70,7 +70,7 @@ if (GROMACS_SRC)
         set (GMX_PATCH "gmx_diff_2019.x.patch")
     else ()
         message (WARNING "\nWARNING: Could not find GROMACS version specific patch. "
-                           "Attempting to use generic one.")
+                           "Attempting not to use one.")
     endif ()
 
     # Check that files to be patched do exist
