@@ -52,7 +52,8 @@ namespace SSAGES
 			// generate the gradient
 			if(iterator_ >= equilibrate_ && iterator_ % evolution_ == 0)
 			{
-				newcenters_[i] += diff;
+			  //The force should include the cvspring; didn't before.
+				newcenters_[i] += D;
 				nsampled_++;
 			}
 		}
@@ -61,10 +62,10 @@ namespace SSAGES
 		// next elastic band iteration
 		if(iterator_ > (equilibrate_ + evolution_ * nsamples_))
 		{	
-	        StringUpdate();
-            CheckEnd(cvs);
-			UpdateWorldString(cvs); 
-            PrintString(cvs); 
+		       StringUpdate();
+		       CheckEnd(cvs);
+		       UpdateWorldString(cvs); 
+		       PrintString(cvs); 
 
 			iterator_ = 0;
 
@@ -80,7 +81,7 @@ namespace SSAGES
 
 	void ElasticBand::StringUpdate()
 	{
-		double dot=0, norm=0;
+                double dot=0, norm=0, dist1 = 0, dist2 = 0, springfrc = 0;
 		std::vector<double> lcv0, ucv0, tngt;
 		lcv0.resize(centers_.size(), 0);
 		ucv0.resize(centers_.size(), 0);
@@ -99,18 +100,28 @@ namespace SSAGES
 
 		for(size_t ii = 0; ii < centers_.size(); ii++)  {
 			tngt[ii] /= norm;
-		    newcenters_[ii] /= ((double) nsampled_);
+			newcenters_[ii] /= ((double) nsampled_);
 			dot+=newcenters_[ii]*tngt[ii];
-		}
-		
-		// Evolution of the images and reparametrirized of the string
+
+			//get two distances
+			dist1 = (ucv0[ii]-centers_[ii])*(ucv0[ii]-centers_[ii]));
+			dist2 = (centers_[ii] - ucv0[ii])*(centers_[ii] - ucv0[ii]);
+      		}
+
+  dist1 = sqrt(dist1);
+  dist2 = sqrt(dist2);
+
+		// Evolution of the images within the band
+		// Endpoints evolve due to gradient alone.
 		for(size_t ii = 0; ii < centers_.size(); ii++)
 		{
 			if((mpiid_ != 0) && (mpiid_ != world_.size()-1))
 			{
+			        //subtract out tangent from "real" force
 				newcenters_[ii] -= dot*tngt[ii];
-				centers_[ii] = centers_[ii] + tau_ * 
-				(newcenters_[ii] + stringspring_ * (ucv0[ii] + lcv0[ii] - 2 * centers_[ii]));
+				
+				//centers evolve according to perpendicular "real" force and parallel "spring" force
+				centers_[ii]     = centers_[ii] + tau_ * (newcenters_[ii] + stringspring_ * (dist1 - dist2) * tngt[ii]);
 			}
 			else
 			{
