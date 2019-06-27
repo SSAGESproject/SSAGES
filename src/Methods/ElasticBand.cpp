@@ -104,12 +104,12 @@ namespace SSAGES
 			dot+=newcenters_[ii]*tngt[ii];
 
 			//get two distances
-			dist1 = (ucv0[ii]-centers_[ii])*(ucv0[ii]-centers_[ii]));
+			dist1 = (ucv0[ii]-centers_[ii])*(ucv0[ii]-centers_[ii]);
 			dist2 = (centers_[ii] - ucv0[ii])*(centers_[ii] - ucv0[ii]);
       		}
 
-  dist1 = sqrt(dist1);
-  dist2 = sqrt(dist2);
+		dist1 = sqrt(dist1);
+		dist2 = sqrt(dist2);
 
 		// Evolution of the images within the band
 		// Endpoints evolve due to gradient alone.
