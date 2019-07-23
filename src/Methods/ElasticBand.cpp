@@ -32,7 +32,7 @@ namespace SSAGES
 		auto& forces = snapshot->GetForces();
 		auto cvs = cvmanager.GetCVs(cvmask_);
 
-		// Apply umbrella to cvs
+		// Apply umbrella to CVs.
 		for(size_t i = 0; i < cvs.size(); ++i)
 		{
 			// Get current CV and gradient.
@@ -52,7 +52,7 @@ namespace SSAGES
 			// generate the gradient
 			if(iterator_ >= equilibrate_ && iterator_ % evolution_ == 0)
 			{
-				newcenters_[i] += diff;
+				newcenters_[i] += D;
 				nsampled_++;
 			}
 		}
@@ -60,11 +60,11 @@ namespace SSAGES
 		// Restart iteration and zero gradients when moving onto
 		// next elastic band iteration
 		if(iterator_ > (equilibrate_ + evolution_ * nsamples_))
-		{	
-	        StringUpdate();
-            CheckEnd(cvs);
-			UpdateWorldString(cvs); 
-            PrintString(cvs); 
+		{
+			StringUpdate();
+			CheckEnd(cvs);
+			UpdateWorldString(cvs);
+			PrintString(cvs);
 
 			iterator_ = 0;
 
@@ -80,41 +80,58 @@ namespace SSAGES
 
 	void ElasticBand::StringUpdate()
 	{
-		double dot=0, norm=0;
-		std::vector<double> lcv0, ucv0, tngt;
+		double dot = 0, norm = 0, lnorm = 0, unorm = 0;
+		std::vector<double> lcv0, ucv0, tngt, ltngt, utngt;
 		lcv0.resize(centers_.size(), 0);
 		ucv0.resize(centers_.size(), 0);
 
 		GatherNeighbors(&lcv0, &ucv0);
 
 		tngt.resize(centers_.size());
+		ltngt.resize(centers_.size());
+		utngt.resize(centers_.size());
+
+		for(size_t ii = 0; ii < centers_.size(); ii++)
+		{
+			utngt[ii] = ucv0[ii] - centers_[ii];
+			ltngt[ii] = centers_[ii] - lcv0[ii];
+
+			unorm += utngt[ii]*utngt[ii];
+			lnorm += ltngt[ii]*ltngt[ii];
+		}
+
+		unorm = sqrt(unorm);
+		lnorm = sqrt(lnorm);
 
 		for(size_t ii = 0; ii<centers_.size(); ii++)
 		{
-			tngt[ii] = ucv0[ii] - lcv0[ii];
-			norm+=tngt[ii]*tngt[ii];
+			tngt[ii] = ltngt[ii]/lnorm + utngt[ii]/unorm;
+			norm += tngt[ii]*tngt[ii];
 		}
 
 		norm=sqrt(norm);
 
 		for(size_t ii = 0; ii < centers_.size(); ii++)  {
 			tngt[ii] /= norm;
-		    newcenters_[ii] /= ((double) nsampled_);
-			dot+=newcenters_[ii]*tngt[ii];
+			newcenters_[ii] /= ((double) nsampled_);
+			dot += newcenters_[ii]*tngt[ii];
 		}
-		
-		// Evolution of the images and reparametrirized of the string
+
+		// Evolution of the images within the band
+		// Endpoints evolve due to gradient alone.
 		for(size_t ii = 0; ii < centers_.size(); ii++)
 		{
 			if((mpiid_ != 0) && (mpiid_ != world_.size()-1))
 			{
+				//subtract out tangent from "real" force
 				newcenters_[ii] -= dot*tngt[ii];
-				centers_[ii] = centers_[ii] + tau_ * 
-				(newcenters_[ii] + stringspring_ * (ucv0[ii] + lcv0[ii] - 2 * centers_[ii]));
+
+				//centers evolve according to perpendicular "real" force and parallel "spring" force; reuses tngt def.
+				centers_[ii] += tau_ * (newcenters_[ii] + stringspring_ * (unorm - lnorm) * tngt[ii]);
 			}
 			else
 			{
-				centers_[ii] = centers_[ii] + tau_ * newcenters_[ii];
+				centers_[ii] += tau_ * newcenters_[ii];
 			}
 		}
 	}

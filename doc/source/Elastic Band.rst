@@ -59,7 +59,7 @@ vector :cite:`HENKELMAN20009978`. The "spring force" is calculated as:
 
 	F_{i,\parallel}^{s} =
 	k \left( \lvert R_{i+1} - R_{i} \rvert -
-	         \lvert R_{i} - R_{i-1} \rvert \right) \cdot \hat{\tau_{i}}
+	         \lvert R_{i} - R_{i-1} \rvert \right) \hat{\tau_{i}}
 
 Where :math:`k` is the spring constant, which can be different for each image of
 the band. One can evolve the images with these forces according to any number

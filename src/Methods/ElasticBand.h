@@ -33,7 +33,7 @@ namespace SSAGES
 	 */
 	class ElasticBand : public StringMethod
 	{
-	private:	
+	private:
 		//! Number Equilibration steps, number of MD steps to
 		//! allow the system to reequilibrate before evolving.
 		unsigned int equilibrate_;
@@ -75,16 +75,16 @@ namespace SSAGES
 		 * Constructs an instance of Elastic Band method.
 		 */
 		ElasticBand(const MPI_Comm& world,
-					const MPI_Comm& comm,
-					const std::vector<double>& centers,
-					unsigned int maxiterations,
-					unsigned int nsamples,
-					double tau,
-					const std::vector<double> cvspring,
-					unsigned int equilibrate,
-					unsigned int evolution,
-					double stringspring,
-			 		unsigned int frequency) : 
+		            const MPI_Comm& comm,
+		            const std::vector<double>& centers,
+		            unsigned int maxiterations,
+		            unsigned int nsamples,
+		            double tau,
+		            const std::vector<double> cvspring,
+		            unsigned int equilibrate,
+		            unsigned int evolution,
+		            double stringspring,
+		            unsigned int frequency) :
 		StringMethod(world, comm, centers, maxiterations,
 		cvspring, frequency), equilibrate_(equilibrate),
 		evolution_(evolution), nsamples_(nsamples),
@@ -103,4 +103,3 @@ namespace SSAGES
 		~ElasticBand() {}
 	};
 }
-			
