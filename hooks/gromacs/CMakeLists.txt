@@ -191,9 +191,6 @@ set (DRIVERSRC
     PARENT_SCOPE
 )
 
-set (ENABLE_GROMACS true PARENT_SCOPE)
-set (MD_ENGINE "GROMACS" PARENT_SCOPE)
-
 # Function to do post library configuration.
 function(CONFIGURE_ENGINE)
     # Build custom shared library for dependencies. 

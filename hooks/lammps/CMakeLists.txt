@@ -210,9 +210,6 @@ set(DRIVERSRC
     PARENT_SCOPE
 )
 
-set(MD_ENGINE "LAMMPS" PARENT_SCOPE)
-set(ENABLE_LAMMPS true PARENT_SCOPE)
-
 # Function to do post library configuration.
 function(CONFIGURE_ENGINE)
     include_directories("${LAMMPS_SRC}")

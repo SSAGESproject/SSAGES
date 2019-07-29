@@ -8,9 +8,6 @@ set(DRIVERSRC
     PARENT_SCOPE
 )
 
-set(MD_ENGINE "QBOX" PARENT_SCOPE)
-set(ENABLE_QBOX true PARENT_SCOPE)
-
 function(CONFIGURE_ENGINE)
     add_dependencies(ssages libssages)
     include_directories(hooks/qbox/)

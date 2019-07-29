@@ -61,9 +61,6 @@ set(SOURCE
 
 ####################### MD ENGINES #########################
 
-# The MD Engine variable will be set if an engine has been initialized successfully.
-set(MD_ENGINE "" CACHE STRING "Active MD engine.")
-
 # Set variables for supported engines.
 set(LAMMPS NO CACHE BOOL "Use LAMMPS simulation engine.")
 set(GROMACS NO CACHE BOOL "Use GROMACS simulation engine.")

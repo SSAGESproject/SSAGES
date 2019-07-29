@@ -38,9 +38,6 @@ set(DRIVERSRC
     PARENT_SCOPE
 )
 
-set(MD_ENGINE "HOOMD" PARENT_SCOPE)
-set(ENABLE_HOOMD true PARENT_SCOPE)
-
 # Function to do post library configuration.
 function(CONFIGURE_ENGINE)
     include_directories(hooks/hoomd)

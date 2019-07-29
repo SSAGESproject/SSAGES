@@ -43,8 +43,6 @@ set(DRIVERSRC
     PARENT_SCOPE
 )
 
-set(ENABLE_OPENMD true PARENT_SCOPE)
-set(MD_ENGINE "OpenMD" PARENT_SCOPE)
 set(EXTRA_CONFIG "${CMAKE_CURRENT_BINARY_DIR}/openmd/src/openmd-build/config.h" PARENT_SCOPE)
 
 # Function to do post library configuration.
