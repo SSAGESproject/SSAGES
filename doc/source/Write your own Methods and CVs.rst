@@ -111,8 +111,9 @@ To include your new CV, you have to edit the file
 How to Write a New Method
 -------------------------
 
-Each method consists of three components: a header file, a cpp file, and a
-schema file. The header and cpp files contain the source code for the method
+Each method consists of three components: a header file (``.h``),
+a source file (``.cpp``), and a schema file (``.json``).
+The header and source files contain the main code for the method
 and the schema file describes the properties of the method in a simple JSON
 format. Finally, you will have to make SSAGES aware of the new method by
 incorporating it into the core classes.
@@ -121,8 +122,8 @@ The Method Header File
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Each method in SSAGES is implemented as a child of the class ``Methods``.
-The header file should be placed in the directory ``src/methods`` and has to
-(re)implement the following functions:
+The header file should be placed in the directory ``src/Methods`` and has to
+declare the following functions:
 
 :code:`void PreSimulation(Snapshot* snapshot, const CVList& cvs)`
     Called before the method actually runs. It is typically used
@@ -136,6 +137,24 @@ The header file should be placed in the directory ``src/methods`` and has to
 :code:`void PostSimulation(Snapshot* snapshot, const CVList& cvs)`
     Called at the end of the simulation run. Use it to close files
     your method opened, to write out data that the method is storing, etc.
+
+:code:`void Build`
+	Called upon instantiation of SSAGES to build your method. Standard parts
+	include reading the JSON input and setting variables.
+
+Any other variables or functions that your new method will need to use
+must be declared here (or defined, if simple enough).
+
+The Method Source File
+^^^^^^^^^^^^^^^^^^^^^^
+
+The source file should be placed in the directory ``src/Methods`` and has to
+(re)implement the functions defined above: ``PreSimulation()``,
+``PostIntegration()``, ``PostSimulation``, and ``Build()``. Any functions
+that were declared in the header file need to be defined, as well.
+For String Method variants, edit the logic framework in
+``src/Methods/StringMethod.cpp`` for the ``Build()`` function, instead of
+your new source file.
 
 The Method Schema File
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -163,6 +182,9 @@ required
 additionalProperties
     A boolean value allowing unlisted JSON members to be included in input files.
 
+If your new method uses the String Method framework, you simply need to add a
+new "flavor" of this method, defined in ``schema/Methods/string.method.json``.
+
 Integrate the New Method into SSAGES
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -170,7 +192,7 @@ Once you have provided the header, source, and schema files, there are two more
 steps in order to make SSAGES aware of the newly included method.
 
 To include your new method, you have to edit the file
-``src/methods/Method.cpp``, and
+``src/Methods/Method.cpp``, and
 
 1. ``#include`` your method header file at the top of the file.
 2. Add a new ``else if`` clause in ``BuildMethod()``. The if-test checks for
