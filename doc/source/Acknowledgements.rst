@@ -39,6 +39,7 @@ Methods
 
 * Cody Bezik
 * Yamil J. Colón
+* Federico Giberti
 * Ashley Guo
 * Joshua Lequieu
 * Jiyuan Li
@@ -64,6 +65,7 @@ Documentation
 
 * Cody Bezik
 * Yamil J. Colón
+* Federico Giberti
 * Ashley Guo
 * Julian Helfferich
 * Joshua Moller
@@ -76,6 +78,7 @@ Engine Adapters
 ---------------
 
 * Carl Simon Adorf
+* Federico Giberti
 * Bradley Dice
 * Michael Quevillon
 * Emre Sevgen
