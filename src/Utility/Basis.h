@@ -93,21 +93,39 @@ namespace SSAGES
         }
 
         //! Gets the order of the current polynomial.
+        /*!
+         * \return Order of current polynomial.
+         */
         unsigned int GetOrder() {return polyOrd_;}
 
         //! Gets the number of bins for the discretization.
+        /*!
+         * \return Number of bins.
+         */
         unsigned int GetBins() {return nbins_;}
 
         //! Gets the flag for constant-order polynomials.
+        /*!
+         * \return Flag for constant-order polynomials.
+         */
         bool GetZeroOrder() {return zeroOrder_;}
 
         //! Gets the lower bound on the CV.
+        /*!
+         * \return Lower bound on CV.
+         */
         double GetLower() {return boundLow_;}
 
         //! Gets the upper bound on the CV.
+        /*!
+         * \return Upper bound on CV.
+         */
         double GetUpper() {return boundUp_;}
 
         //! Gets the magnitude of the range of bounds.
+        /*!
+         * \return Magnitude of range of bounds on CV.
+         */
         double GetRange() 
         {
             if(isFinite_) 
@@ -199,12 +217,17 @@ namespace SSAGES
         {
         }
 
+        //! Transforms variable from absolute value to [-1,1] between boundaries.
+        /*!
+         * \param x Variable to transform.
+         *
+         * \return Relative value between lower (-1) and upper (1) bounds on CV.
+         */
         double ChangeVariable(double x)
         {
             return (x-boundLow_)*2.0/(boundUp_ - boundLow_)-1.0;
         }
 
-        //Quick recursive relation to evaluate the basis sets
         double Evaluate(double x, int n)
         {
             double xMod = ChangeVariable(x);
@@ -212,7 +235,7 @@ namespace SSAGES
                     n == 1 ? xMod :
                     2.0*xMod*Evaluate(x,n-1) - Evaluate(x,n-2);
         }
-        //Same but for the gradients
+
         double EvalGrad(double x, int n)
         {
             double xMod = ChangeVariable(x);
@@ -233,6 +256,7 @@ namespace SSAGES
         }
         
         //! Build the Chebyshev polynomial
+        //! \copydoc BasisFunction::Build()
         static Chebyshev* Build(const Json::Value& json, const std::string& path, unsigned int nbins);
 
     };
@@ -255,15 +279,13 @@ namespace SSAGES
         {
         }
 
-        //Quick recursive relation to evaluate the basis sets
         double Evaluate(double x, int n)
         {
             return n == 0 ? 1.0 : 
                     n == 1 ? x :
                     (2.0*n-1.0)/(double)n*x*Evaluate(x,n-1) - (n-1.0)/(double)n*Evaluate(x,n-2);
         }
-        
-        //Same but for the gradients
+
         double EvalGrad(double x, int n)
         {
             return n == 0 ? 0.0 :
@@ -277,6 +299,7 @@ namespace SSAGES
         }
 
         //! Build the Legendre polynomial
+        //! \copydoc BasisFunction::Build()
         static Legendre* Build(const Json::Value& json, const std::string& path, unsigned int nbins);
     };
 
@@ -310,7 +333,6 @@ namespace SSAGES
                       std::cos(2.0*floor(double(n)*0.5)*M_PI*x/(boundUp_-boundLow_));
         }
 
-        //Same but for the gradients
         double EvalGrad(double x, int n)
         {
             return n == 0 ? 0.0 :
@@ -325,6 +347,7 @@ namespace SSAGES
         }
 
         //! Build the Fourier polynomial
+        //! \copydoc BasisFunction::Build()
         static Fourier* Build(const Json::Value& json, const std::string& path, unsigned int nbins);
     };
     
@@ -356,7 +379,11 @@ namespace SSAGES
         void BasisInit(); //!< Creates lookup table for basis functions
 
         //! Outputs the basis projection at a specific coordinate
-		void UpdateBias(Grid<double> *bias, Grid<std::vector<double>> *grad);
+        /*!
+         * \param bias Grid of current bias
+         * \param grad Grid of gradient to be applied
+         */
+        void UpdateBias(Grid<double> *bias, Grid<std::vector<double>> *grad);
 
         //! Calculates the inner product of the basis set and the biased histogram
         //! This function then returns the coefficients from this calculation
@@ -366,9 +393,12 @@ namespace SSAGES
          *
          * \return Inner product of the basis set and the biased histogram.
          */
-		double UpdateCoeff(const std::vector<double> &array, Grid<unsigned int> *hist);
+        double UpdateCoeff(const std::vector<double> &array, Grid<unsigned int> *hist);
 
         //! Gets the coefficient array
+        /*!
+         * \return Vector of current coefficients
+         */
         std::vector<double> GetCoeff(void)
         {
             std::vector<double> coeffArray (coeff_.size(),0);
@@ -380,6 +410,9 @@ namespace SSAGES
         }
 
         //! Set the coefficient array in the event of a restart run
+        /*!
+         * \param coeff Vector of coefficients to set
+         */
         void SetCoeff(const std::vector<double>& coeff)
         {
             size_t ii = 0;

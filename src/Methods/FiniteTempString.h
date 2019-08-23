@@ -48,23 +48,28 @@ namespace SSAGES
 		//! Minimum number of steps to apply umbrella sampling.
 		unsigned int min_num_umbrella_steps_;
 
-		//! Flag to run umbrella or not during post-integration        
-        int run_umbrella_;
+		//! Flag to run umbrella or not during post-integration
+		int run_umbrella_;
 
-        //! Iterator that keeps track of umbrella iterations
+		//! Iterator that keeps track of umbrella iterations
 		unsigned int umbrella_iter_;
 
 		//! Stores the last positions of the CVs
 		std::vector<double> prev_CVs_;
 
-		//! Checks if CV is in voronoi cell
+		//! Checks if CV is in Voronoi cell
+		/*!
+		 * \param cvs List of CVs to check
+		 *
+		 * \return Boolean if all CVs are in the Voronoi cell
+		 */
 		bool InCell(const CVList& cvs) const;
 
 		//! Updates the string according to the FTS method
 		void StringUpdate() override;
-        
-        //! Flag for whether a system was to run umbrella sampling before checking against other systems
-        bool reset_for_umbrella; 
+
+		//! Flag for whether a system was to run umbrella sampling before checking against other systems
+		bool reset_for_umbrella;
 
 	public:
 		//! Constructor
@@ -108,6 +113,7 @@ namespace SSAGES
 		}
 
 		//! Post-integration hook.
+		//! \copydoc Method::PostIntegration()
 		void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Destructor

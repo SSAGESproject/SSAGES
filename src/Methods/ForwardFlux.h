@@ -42,14 +42,22 @@ namespace SSAGES
         class FFSConfigID
         {
            public:
-            unsigned int l; //!< Interface number
-            unsigned int n;      //!< Configuration Number
-            unsigned int a;      //!< Attempt number
-            unsigned int lprev;      //!< Previous Interface number (i.e. traj I came from)
-            unsigned int nprev;      //!< Previous Configuration Number
-            unsigned int aprev;      //!< Previous Attempt number
+            unsigned int l;     //!< Interface number
+            unsigned int n;     //!< Configuration Number
+            unsigned int a;     //!< Attempt number
+            unsigned int lprev; //!< Previous Interface number (i.e. traj I came from)
+            unsigned int nprev; //!< Previous Configuration Number
+            unsigned int aprev; //!< Previous Attempt number
 
             //! Constructor
+            /*!
+             * \param l Interface number
+             * \param n Configuration number
+             * \param a Attempt number
+             * \param lprev Previous interface number
+             * \param nprev Previous configuration number
+             * \param aprev Previous attempt number
+             */
             FFSConfigID(const unsigned int l, 
                         const unsigned int n, 
                         const unsigned int a, 
@@ -181,7 +189,12 @@ namespace SSAGES
         void AddNewIDsToQueue();
 
         //! Function checks if configuration has returned to A
-        bool HasReturnedToA(double);
+        /*!
+         * \param current Current value of CV.
+         *
+         * \return Boolean if the trajectory returned to state A
+         */
+        bool HasReturnedToA(double current);
 
         //! Function checks if configuration has crossed interface specified since the last check
         /*! Simple function, given current and previous CV position, checks if interface i has been crossed.
@@ -195,11 +208,21 @@ namespace SSAGES
         int HasCrossedInterface(double current, double prev, unsigned int i);
 
         //! Write a file corresponding to FFSConfigID from current snapshot
-        void WriteFFSConfiguration(Snapshot *snapshot,FFSConfigID& ffsconfig, bool wassuccess);
+        /*!
+         * \param snapshot Current snaphshot of the system
+         * \param ffsconfig ID of the current FFS configuration
+         * \param wassuccess If the last attempt was a success
+         */
+        void WriteFFSConfiguration(Snapshot *snapshot, FFSConfigID& ffsconfig, bool wassuccess);
 
         //! Read a file corresponding to a FFSConfigID into current snapshot
-        void ReadFFSConfiguration(Snapshot *,FFSConfigID&,bool);
-       
+        /*!
+         * \param snapshot Current snaphshot of the system
+         * \param ffsconfig ID of the current FFS configuration
+         * \param wassuccess If the last attempt was a success
+         */
+        void ReadFFSConfiguration(Snapshot *snapshot, FFSConfigID& ffsconfig, bool wassuccess);
+
         //! Compute Initial Flux
         void ComputeInitialFlux(Snapshot*, const CVList&);
 

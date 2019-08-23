@@ -129,7 +129,7 @@ namespace SSAGES
 		}
 
 		//! Get gradient contribution to box.
-		/*
+		/*!
 		 * \return Gradient of CV with respect to box.
 		 *
 		 * Returns the gradient of the CV with respect to the box.

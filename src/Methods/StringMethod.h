@@ -109,6 +109,9 @@ namespace SSAGES
 		}
 
 		//! Prints the CV positions to file
+		/*!
+		 * \param CV Collective Variables to be printed
+		 */
 		void PrintString(const CVList& CV);
 
 		//! Gather neighbors over MPI
@@ -130,7 +133,10 @@ namespace SSAGES
 		 */
 		void UpdateWorldString(const CVList& cvs);
 
-		//! Check whether tolerance criteria has been met.
+		//! Check whether tolerance criteria have been met.
+		/*!
+		 * \return Boolean for whether tolerance criteria have been met.
+		 */
 		bool TolCheck() const
 		{
 			if(tol_.size() == 0)
@@ -180,17 +186,14 @@ namespace SSAGES
 			newcenters_.resize(centers_.size(), 0);
 		}
 
-		//! Pre-simulation hook.
+		//! \copydoc Method::PreSimulation()
 		void PreSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
-		//! Post-integration hook.
+		//! \copydoc Method::PostIntegration()
 		virtual void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override = 0;
 
-		// Post-simulation hook.
-		void PostSimulation(Snapshot*, const class CVManager&) override
-		{
-			stringout_.close();
-		}
+		//! \copydoc Method::PostSimulation()
+		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Set the tolerance for quitting method
 		/*!

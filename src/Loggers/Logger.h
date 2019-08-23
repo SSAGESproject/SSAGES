@@ -97,8 +97,9 @@ namespace SSAGES
 		 * This function will be called after the end of the simulation run.
 		 */
 		virtual void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
-		
+
 		//! Sets the collective variable mask.
+		//! \copydoc Method::SetCVMask()
 		void SetCVMask(const std::vector<unsigned int>& mask)
 		{
 			cvmask_ = mask;

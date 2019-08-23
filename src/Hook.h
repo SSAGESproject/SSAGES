@@ -70,6 +70,9 @@ namespace SSAGES
 		{}
 
 		//! Sets the active snapshot.
+		/*!
+		 * \param snapshot Current snapshot.
+		 */
 		void SetSnapshot(class Snapshot* snapshot);
 
 		//! Sets the current CV manager.

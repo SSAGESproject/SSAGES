@@ -88,43 +88,64 @@ namespace SSAGES
 		ResourceHandler(mxx::comm&& world, mxx::comm&& comm, size_t walkerid,
 		          const std::vector<class Method*>& methods, class CVManager* cvmanager);
 
-		//! Returns inputs of the walker for the current processor. 
+		//! Returns inputs of the walker for the current processor.
+		/*!
+		 * \return Walker inputs of current processor.
+		 */
 		std::string GetInput() const
 		{
 			return inputs_[walkerid_];
 		}
 
 		//! Returns local (walker-specific) MPI communicator.
+		/*!
+		 * \return Walker-specific MPI communicator.
+		 */
 		MPI_Comm GetLocalComm() const
 		{
 			return comm_;
 		}
 
 		//! Returns world (all processors) MPI communicator.
+		/*!
+		 * \return Overall MPI communicator.
+		 */
 		MPI_Comm GetWorldComm() const
 		{
 			return world_;
 		}
 
 		//! Returns local (walker-specific) mxx communicator.
+		/*!
+		 * \return Walker-specific mxx communicator.
+		 */
 		const mxx::comm& GetLocalMxxComm() const
 		{
 			return comm_;
 		}
 
 		//! Returns world (all processors) mxx communicator.
+		/*!
+		 * \return Overall mxx communicator.
+		 */
 		const mxx::comm& GetWorldMxxComm() const
 		{
 			return world_;
 		}
 
 		//! Returns processor-specific walker ID.
+		/*!
+		 * \return Walker ID.
+		 */
 		size_t GetWalkerID() const
 		{
 			return walkerid_;
 		}
 
 		//! Returns the total number of walkers across all processors.
+		/*!
+		 * \return Total number of walkers.
+		 */
 		size_t GetNumWalkers() const 
 		{
 			return nwalkers_;

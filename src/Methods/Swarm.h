@@ -64,6 +64,11 @@ namespace SSAGES
             void StringUpdate() override;
 
             //! Helper function check if CVs are initialized correctly
+            /*!
+             * \param cvs List of CVs to check
+             *
+             * \return Boolean if CVs are initialized correctly
+             */
             bool CVInitialized(const CVList& cvs);
 
             //! Flag for determing whether to perform initialization or not
@@ -128,6 +133,7 @@ namespace SSAGES
             }
 
             //! Post-integration hook
+            //! \copydoc Method::PostIntegration()
             void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override; 
 
             //! Destructor

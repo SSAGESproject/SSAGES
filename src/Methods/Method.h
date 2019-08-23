@@ -90,6 +90,12 @@ namespace SSAGES
 		virtual void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override = 0;
 
 		//! Sets the collective variable mask.
+		/*!
+		 * \param mask Vector mask which contains the indices of
+		 *             which CV to include in the container.
+		 *
+		 * This function sets the Snapshot's CV mask.
+		 */
 		void SetCVMask(const std::vector<unsigned int>& mask)
 		{
 			cvmask_ = mask;

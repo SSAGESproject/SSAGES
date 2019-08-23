@@ -127,9 +127,16 @@ namespace SSAGES
         bool convergeExit_;
 
         //! The functions which calculates the updated bias and coefficients and then stores them
+        /*!
+         * \param cvs List of CVs onto which the bias is projected
+         * \param beta Thermodynamic beta (1/kT)
+         */
         void ProjectBias(const CVList& cvs, const double beta);
 
         //! A function which checks to see if the CVs are still in bounds
+        /*!
+         * \param cvs List of CVs to check
+         */
         void InBounds(const CVList& cvs);
 
 		//! Prints the current bias to a defined file from the JSON.

@@ -54,6 +54,11 @@ protected:
     std::vector<bool> isPeriodic_;
 
     //! Wrap the index around periodic boundaries
+    /*!
+     * \param indices Current indices of grid to wrap
+     *
+     * \return Resulting indices after wrapping
+     */
     std::vector<int> wrapIndices(const std::vector<int> &indices) const
     {
         std::vector<int> newIndices(indices);

@@ -154,30 +154,45 @@ namespace SSAGES
 		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Set previous history weight.
+		/*!
+		 * \param h History weight
+		 */
 		void SetPrevWeight(double h)
 		{
 			pweight_ = h;
 		}
 
 		//! Set name of output file. 
+		/*!
+		 * \param outfile Output file
+		 */
 		void SetOutput(const std::string& outfile)
 		{
 			outfile_ = outfile;
 		}
 
 		//! Set overwrite flag on output file.
+		/*!
+		 * \param overwrite Boolean if output file should be overwritten
+		 */
 		void SetOutputOverwrite(bool overwrite)
 		{
 			overwrite_ = overwrite;
 		}
 
 		//! Set number of iterations after which we turn on full weight. 
+		/*!
+		 * \param citers Number of iterations before full weight
+		 */
 		void SetConvergeIters(unsigned int citers)
 		{
 			citers_ = citers;
 		}
 
 		//! Set maximum number of training iterations per sweep.
+		/*!
+		 * \param iters Maximum iterations per sweep
+		 */
 		void SetMaxIters(unsigned int iters)
 		{
 			auto params = net_.get_train_params();
@@ -186,6 +201,9 @@ namespace SSAGES
 		}
 
 		//! Set minimum loss function value (should be zero for production).
+		/*!
+		 * \param loss Minimum loss function value
+		 */
 		void SetMinLoss(double loss)
 		{
 			auto params = net_.get_train_params();

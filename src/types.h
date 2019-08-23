@@ -22,11 +22,11 @@
 #include <vector>
 
 namespace SSAGES
-{    
-	// Forward declare necessary types..
+{
+	// Forward declare necessary types.
 	class CollectiveVariable;
 
-	//! Arbitrary length vector. 
+	//! Arbitrary length vector.
 	using Vector = Eigen::VectorXd;
 
 	//! Three-dimensional vector.
@@ -38,10 +38,10 @@ namespace SSAGES
 	//! Three-dimensional integer vector.
 	using Integer3 = Eigen::Vector3i;
 
-	//! 3x3 matrix. 
+	//! 3x3 matrix.
 	using Matrix3 = Eigen::Matrix3d;
 
-	//! nx3 matrix. 
+	//! nx3 matrix.
 	using Matrix3N = Eigen::MatrixX3d;
 
 	//! List of integers.

@@ -53,7 +53,6 @@ namespace SSAGES
 
 		//! Adds a CV to the CV manager.
 		/*!
-		 *
 		 * \param cv Pointer to collective variable.
 		 */
 		void AddCV(CollectiveVariable* cv)
@@ -63,7 +62,7 @@ namespace SSAGES
 		}
 
 		//! Clears CVs from CV manager.
-		/*
+		/*!
 		 * \note This destroys all CVs stored in the CV manager!
 		 */
 		void ClearCVs()
@@ -74,12 +73,12 @@ namespace SSAGES
 		}
 
 		//! Get CV iterator.
-		/*
-		* \param mask Vector mask which contains the indices of
-		*        which CV to include in the container.
-		* \return Vector containing pointers to requested CVs.
-		*/
-		std::vector<CollectiveVariable*> GetCVs(const std::vector<unsigned int>& mask = std::vector<unsigned int>()) const
+		/*!
+		 * \param mask Vector mask which contains the indices of
+		 *        which CV to include in the container.
+		 * \return CVList containing pointers to requested CVs.
+		 */
+		CVList GetCVs(const std::vector<unsigned int>& mask = std::vector<unsigned int>()) const
 		{
 			if(mask.empty())
 				return cvs_;
@@ -92,8 +91,8 @@ namespace SSAGES
 			return cvs;
 		}
 
-		//! Register CV name with map
-		/*
+		//! Register CV name with map.
+		/*!
 		 * \param name Name of CV to register.
 		 * \param id ID to associate with name.
 		 *
@@ -105,10 +104,10 @@ namespace SSAGES
 		}
 
 		//! Get CV id from map.
-		/*
+		/*!
 		 * \param cv JSON Value (CV) to look up.
 		 * \param path Path for JSON path specification.
-		 * \return ID of CV, -1 if nonexistent.
+		 * \return ID of CV.
 		 */
 		static int LookupCV(const Json::Value& cv, const std::string& path)
 		{

@@ -28,6 +28,10 @@
 namespace SSAGES
 {
 	//! Quick helper function to round a double.
+	/*!
+	 * \param x Double to be rounded.
+	 * \return Rounded number as a double.
+	 */
 	inline double roundf(double x)
 	{
     	return ( x >= 0 ) ? floor( x + 0.5 ) : ceil( x - 0.5 );
@@ -702,6 +706,9 @@ namespace SSAGES
 		void Changed(bool state) { changed_ = state; }
 
 		//! Return the serialized positions across all local cores
+		/*!
+		 * \return Positions across all local cores.
+		 */
 		std::vector<double> SerializePositions()
 		{
 
@@ -735,6 +742,9 @@ namespace SSAGES
 		}
 
 		//! Return the serialized velocities across all local cores
+		/*!
+		 * \return Velocities across all local cores.
+		 */
 		std::vector<double> SerializeVelocities()
 		{
 			std::vector<int> vcounts(comm_.size(), 0); 
@@ -766,7 +776,10 @@ namespace SSAGES
 			return velocities;
 		}
 
-		//! Return the serialized positions across all local cores
+		//! Return the serialized IDs across all local cores
+		/*!
+		 * \return IDs across all local cores.
+		 */
 		std::vector<int> SerializeIDs()
 		{
 			std::vector<int> mcounts(comm_.size(), 0); 

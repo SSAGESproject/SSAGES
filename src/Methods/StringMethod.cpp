@@ -155,7 +155,7 @@ namespace SSAGES
         mpiid_ = snapshot->GetWalkerID();
         sprintf(file, "node-%04d.log",mpiid_);
         stringout_.open(file);
-		
+
         auto cvs = cvmanager.GetCVs(cvmask_);        
         SetSendRecvNeighbors();
         worldstring_.resize(numnodes_);
@@ -164,6 +164,11 @@ namespace SSAGES
         
         UpdateWorldString(cvs);
         PrintString(cvs);
+    }
+
+    void StringMethod::PostSimulation(Snapshot*, const CVManager&)
+    {
+        stringout_.close();
     }
 
     void StringMethod::SetSendRecvNeighbors()

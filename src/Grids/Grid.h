@@ -337,7 +337,7 @@ public:
         }
 
         //! Addition assignment operator
-        /*
+        /*!
          * \param shift Vector of shifts in each dimension.
          * \return Reference to itself.
          *
