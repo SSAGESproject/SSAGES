@@ -12,9 +12,9 @@ License Information
 -------------------
 
 SSAGES is distributed under the
-`GNU Lesser General Public License <https://www.gnu.org/licenses/lgpl-3.0.en.html>`_,
-either version 3 (LGPLv3) or, at your option, any later version. You are free to
-modify and redistribute this software under the terms of the GNU Lesser General Public
+`GNU General Public License <https://www.gnu.org/licenses/gpl-3.0.html>`_,
+either version 3 (GPLv3) or, at your option, any later version. You are free to
+modify and redistribute this software under the terms of the GNU General Public
 License, version 3 or any later version.
 
 The documentation is distributed under the terms of
