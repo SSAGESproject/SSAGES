@@ -24,6 +24,7 @@
 #include "types.h"
 #include <vector>
 #include <map>
+#include <array>
 
 // Forward declare.
 namespace Json {
