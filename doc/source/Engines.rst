@@ -327,7 +327,7 @@ The JSON file contains the same field that would usually have (CVs, methods, log
 
 	{
 		"walkers": N,
-		"input": "[md.1, md.2, ..., md.N]",
+		"input": ["md.1", "md.2", ..., "md.N"],
 		"md_iterations" : 10,
 		"qm_iterations" : 30,
 		"wf_iterations" : 1,
@@ -349,6 +349,8 @@ If the file contains a command such as ``run 200 10``, the 200 MD steps that
 Qbox will perform **will be unbiased**. If wanted, this feature can be used to
 equilibrate the system. After this first step, the command
 ``run 1 qm_iterations wf_iterations`` will be repeated for ``md_iterations``.
+**The QBox input file must contain at least 1 MD step in order to run with SSAGES.**
+Thus always include the ``run 1 `` command.
 
 An example of ``input.json`` and ``md.i`` is present in the ``Examples/User/ABF/NaCl-Qbox`` directory.
 
@@ -417,6 +419,18 @@ of runs. (For example, if you restarted two times, you would have
 restarting, create a ``md.i`` file that contains the ``load restart_i.xml``
 instructions.
 
+There are useful scripts to analyze and plot Qbox trajectories, which are available in the `Qbox tools webpage <http://qboxcode.org/tools//>`_. To run any of these scripts, first reformat ``ssages_out_i_run_j.xml`` file by running a python script ``cleanxml.py`` present in ``Examples/User/ABF/NaCl-Qbox`` directory. For example, if you have 10 ``ssages_out_i_run_0.xml`` files (i=0,...,9) then the command line to reformat these xml files is
+
+.. code:: bash
+
+	python3 cleanxml.py 10 0
+
+where first arugment is the number of walkers, and the second argument is the index of restart. These will create ``ssages_out_i_run_j_cleaned.xml`` files. Now these files can be analyzed using the scripts in `Qbox tools webpage <http://qboxcode.org/tools//>`_. For example, to create xyz trajectory file from the reformatted output  ``ssages_out_i_run_j_cleaned.xml``, run the command
+
+.. code:: bash
+
+	python2 qbox_xyz.py -all ssages_out_i_run_j_cleaned.xml > out_i_run_j.xyz
+	
 Running on Clusters
 ~~~~~~~~~~~~~~~~~~~
 
