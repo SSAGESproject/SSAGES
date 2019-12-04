@@ -369,8 +369,8 @@ namespace SSAGES
 		
 		// Obtain harmonic spring constant for restraints for each CV.
 		std::vector<double> springkrestCV;
-		for(auto& bins : json["CV_restraint_spring_constants"])
-			springkrestCV.push_back(bins.asDouble());
+		for(auto& springkrest : json["CV_restraint_spring_constants"])
+			springkrestCV.push_back(springkrest.asDouble());
 
 		// Obtain periodicity information for restraints for each CV for the purpose of correctly applying restraints through periodic boundaries.
 		std::vector<bool> isperiodic;
