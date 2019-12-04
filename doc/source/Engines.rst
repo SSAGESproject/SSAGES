@@ -419,17 +419,17 @@ of runs. (For example, if you restarted two times, you would have
 restarting, create a ``md.i`` file that contains the ``load restart_i.xml``
 instructions.
 
-There are useful scripts to analyze and plot Qbox trajectories, which are available in the `Qbox tools webpage <http://qboxcode.org/tools//>`_. To run any of these scripts, first reformat ``ssages_out_i_run_j.xml`` file by running a python script ``cleanxml.py`` present in ``Examples/User/ABF/NaCl-Qbox`` directory. For example, if you have 10 ``ssages_out_i_run_0.xml`` files (i=0,...,9) then the command line to reformat these xml files is
+There are useful scripts to analyze and plot Qbox trajectories, which are available in the `Qbox tools webpage <http://qboxcode.org/tools//>`_. To run any of these scripts, first reformat ``ssages_out_i_run_j.xml`` file by running a python script ``Qbox-xml-cleaning.py`` present in ``Tools/`` directory. For example, if the original ssages-qbox output file is ``ssages_out_0_run_0.xml`` then the command line to reformat this xml file is
 
 .. code:: bash
 
-	python3 cleanxml.py 10 0
+	python3 Qbox-xml-cleaning.py ssages_out_0_run_0.xml ssages_out_0_run_0_cleaned.xml
 
-where first arugment is the number of walkers, and the second argument is the index of restart. These will create ``ssages_out_i_run_j_cleaned.xml`` files. Now these files can be analyzed using the scripts in `Qbox tools webpage <http://qboxcode.org/tools//>`_. For example, to create xyz trajectory file from the reformatted output  ``ssages_out_i_run_j_cleaned.xml``, run the command
+where first arugment the name of the original xml output file, and the second argument is the reformatted xml file. Now these files can be analyzed using the scripts in `Qbox tools webpage <http://qboxcode.org/tools//>`_. For example, to create xyz trajectory file from the reformatted output  ``ssages_out_0_run_0_cleaned.xml``, run the command
 
 .. code:: bash
 
-	python2 qbox_xyz.py -all ssages_out_i_run_j_cleaned.xml > out_i_run_j.xyz
+	python2 qbox_xyz.py -all ssages_out_0_run_0_cleaned.xml > out_0_run_0.xyz
 	
 Running on Clusters
 ~~~~~~~~~~~~~~~~~~~
