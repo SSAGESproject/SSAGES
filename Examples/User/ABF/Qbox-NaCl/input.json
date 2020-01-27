@@ -1,6 +1,6 @@
 {
 	"input": "md.i",
-	"md_iterations" : 480000,
+	"md_iterations" : 10,
 	"qm_iterations" : 20,
         "wf_iterations" : 1,
 	"CVs" : 
@@ -15,7 +15,7 @@
 	"methods": [
 		{
 		"type" : "ABF",
-		"CV_lower_bounds" : [3],
+		"CV_lower_bounds" : [1],
 		"CV_upper_bounds" : [20],
 		"CV_bins" : [90],
 		"CV_restraint_minimums" : [2],
