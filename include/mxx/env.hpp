@@ -30,7 +30,7 @@
 
 namespace mxx {
 
-void my_mpi_errorhandler(MPI_Comm* comm, int* error_code, ...) {
+void my_mpi_errorhandler(MPI_Comm* /*comm*/, int* error_code, ...) {
     char buf[MPI_MAX_ERROR_STRING];
     int strlen;
     int error_class;

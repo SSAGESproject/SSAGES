@@ -293,8 +293,8 @@ struct datatype_name {
       : mpi_name(mpi_name), c_name(c_name), typeid_name(typeid_name) {}
 
     datatype_name() {}
-    datatype_name(const datatype_name& o) = default;
-    datatype_name(datatype_name&& o) = default;
+    datatype_name(const datatype_name&) = default;
+    datatype_name(datatype_name&&) = default;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const datatype_name& n) {
