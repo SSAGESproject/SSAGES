@@ -379,25 +379,13 @@ namespace SSAGES
 			_pop_tried_but_empty_queue = false;
 		}
 
-		//! Pre-simulation hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-         * \param cvmanager Collective variable manager.
-		 */
+		//! \copydoc Method::PreSimulation()
 		void PreSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
-		//! Post-integration hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-         * \param cvmanager Collective variable manager.
-		 */
+		//! \copydoc Method::PostIntegration()
 		virtual void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override = 0;
 
-		//! Post-simulation hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-         * \param cvmanager Collective variable manager.
-		 */
+		//! \copydoc Method::PostSimulation()
 		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! \copydoc Method::BuildMethod()

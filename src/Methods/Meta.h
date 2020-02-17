@@ -157,25 +157,13 @@ namespace SSAGES
 		{
 		}
 
-		//! Pre-simulation hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \param cvmanager Collective variable manager.
-		 */
+		//! \copydoc Method::PreSimulation()
 		void PreSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
-		//! Post-integration hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \param cvmanager Collective variable manager.
-		 */
+		//! \copydoc Method::PostIntegration()
 		void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
-		//! Post-simulation hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \param cvmanager Collective variable manager.
-		 */
+		//! \copydoc Method::PostSimulation()
 		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Load hills from file. 

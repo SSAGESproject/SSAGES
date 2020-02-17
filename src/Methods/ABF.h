@@ -237,28 +237,16 @@ namespace SSAGES
 		iteration_(0)
 		{
 		}
-		
-		//! Pre-simulation hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \param cvmanager Collective variable manager.
-		 */
+
+		//! \copydoc Method::PreSimulation()
 		void PreSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
-		//! Post-integration hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \param cvmanager Collective variable manager.
-		 */
+		//! \copydoc Method::PostIntegration()
 		void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
-		//! Post-simulation hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \param cvmanager Collective variable manager.
-		 */
-		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;			
-		
+		//! \copydoc Method::PreSimulation()
+		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
+
 		//! Set iteration of the method
 		/*!
 		 * \param iter New value for the iteration counter.
