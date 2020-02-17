@@ -350,7 +350,7 @@ Qbox will perform **will be unbiased**. If wanted, this feature can be used to
 equilibrate the system. After this first step, the command
 ``run 1 qm_iterations wf_iterations`` will be repeated for ``md_iterations``.
 **The QBox input file must contain at least 1 MD step in order to run with SSAGES.**
-Thus always include the ``run 1 `` command.
+Thus always include the ``run 1`` command.
 
 An example of ``input.json`` and ``md.i`` is present in the ``Examples/User/ABF/NaCl-Qbox`` directory.
 
