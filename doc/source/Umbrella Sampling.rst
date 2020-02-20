@@ -54,7 +54,7 @@ output_frequency (optional)
 
 append (optional)
 	Boolean value which will cause umbrella sampling to either append to
-	an existing file or override it entirely. (Default: false)
+	an existing file or override it entirely. (Default: ``false``)
 
 The umbrella sampling method can also be run with time dependent centers.
 This is equivalent to the "steered MD" method. To do so, omit ``"centers"``

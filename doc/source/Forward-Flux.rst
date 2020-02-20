@@ -254,11 +254,11 @@ N0Target (optional)
 
 computeInitialFlux (optional)
 	Specifies whether a calculation of the initial flux should be performed.
-	If this parameter is set to ``"true"``, SSAGES would also generate the
+	If this parameter is set to ``true``, SSAGES would also generate the
 	user-specified number of initial configurations (``N0Target``) at the first
 	interface. To compute the initial flux, user must provide an initial
 	configuration in state A, otherwise SSAGES would issue an error. If this
-	parameter is set to ``"false"``, the user must provide the necessary number
+	parameter is set to ``false``, the user must provide the necessary number
 	of the initial configurations in separate files. The files name and the
 	files content should follow a specific format. The format of the filenames
 	should be ``l0-n<n>.dat`` where <n> is the configuration number
@@ -274,11 +274,11 @@ computeInitialFlux (optional)
 	<x>, <y>, <z> are the coordinates of that atom,
 	and <vx>, <vy>, and <vz> are the components of the velocity in
 	the x, y, and z directions. Please note that the stored configurations at
-	other interfaces follow a similar format. (Default: "true")
+	other interfaces follow a similar format. (Default: ``true``)
 
 saveTrajectories (optional)
 	This flag determines if the FFS trajectories should be saved.
-	(Default: "true")
+	(Default: ``true``)
 
 .. warning::
 

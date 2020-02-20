@@ -69,8 +69,8 @@ output_file
 
 overwrite_output
 	*boolean*
-	(Default = true)
-	Setting this to false will append the sweep number to the output file name
+	(Default = ``true``)
+	Setting this to ``false`` will append the sweep number to the output file name
 	so that a series of files will be created over time. This is useful if a
 	user is interested in plotting the evolution of the bias over time.
 
