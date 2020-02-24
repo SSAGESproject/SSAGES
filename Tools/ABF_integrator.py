@@ -107,7 +107,7 @@ def main():
 				b[1] = 0
 		A=A/dx			
 		
-		Asurf,c,d,e = npl.lstsq(A,b)
+		Asurf,c,d,e = npl.lstsq(A,b,rcond=-1)
 		Asurf = -Asurf*scale
 		
 		dx = vfield[2,0]-vfield[1,0]
