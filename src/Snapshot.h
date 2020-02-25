@@ -538,63 +538,6 @@ namespace SSAGES
 			return xcm/mtot;
 		}
 
-		//! Unwrap the particle positions, based on first position.
-		/*!
-		  * \param indices IDs of particles of interest.
-		  * \return Unwrapped particle positions.
-		  * \note This function unwraps positions in reference to the first position.
-		  * \note Each processor passes in the local indices of the atoms of interest
-		  *       and this function will collect the data and return unwrapped coordinates.
-		 */
-		std::vector<Vector3> UnwrapPositions(const Label& indices) const
-		{
-			// Store coordinates in vectors to gather.
-			std::vector<Vector3> upos;
-			std::vector<double> pos, gpos;
-			std::vector<int> pcounts(comm_.size(), 0);
-			std::vector<int> pdispls(comm_.size()+1, 0);
-
-			pcounts[comm_.rank()] = 3*indices.size();
-
-			// Reduce counts.
-			MPI_Allreduce(MPI_IN_PLACE, pcounts.data(), pcounts.size(), MPI_INT, MPI_SUM, comm_);
-
-			// Compute displacements.
-			std::partial_sum(pcounts.begin(), pcounts.end(), pdispls.begin() + 1);
-
-			// Fill up position vectors.
-			for(auto& idx : indices)
-			{
-				auto& p = positions_[idx];
-				pos.push_back(p[0]);
-				pos.push_back(p[1]);
-				pos.push_back(p[2]);
-			}
-
-			// Re-size receiving vectors.
-			gpos.resize(pdispls.back(), 0);
-
-			// All-gather data.
-			MPI_Allgatherv(pos.data(), pos.size(), MPI_DOUBLE, gpos.data(), pcounts.data(), pdispls.data(), MPI_DOUBLE, comm_);
-
-			// Loop through atoms and unwrap positions.
-			// We march linearly through list and find nearest image
-			// to each successive particle to properly unwrap object.
-			Vector3 ppos = {gpos[0], gpos[1], gpos[2]}; // Previous unwrapped position.
-			Vector3 cpos = ppos;
-			upos.push_back(cpos); // Used as reference position.
-
-			for(size_t i = 1; i < gpos.size(); ++i)
-			{
-				cpos = {gpos[3*i], gpos[3*i+1], gpos[3*i+2]};
-				cpos = ApplyMinimumImage(cpos - ppos) + ppos;
-				upos.push_back(cpos);
-				ppos = cpos;
-			}
-
-			return upos;
-		}
-
 		//! Access the atom IDs
 		/*!
 		 * \return List of atom IDs
