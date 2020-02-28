@@ -98,14 +98,6 @@ TEST_F(ReadFileTest, ReadXYZ)
     EXPECT_THROW(reader->ReadXYZ(filexyz5), std::runtime_error);
 }
 
-// TEST_F(ReadFileTest, ReadJSON)
-// {
-// }
-
-// TEST_F(RMSDCVTest, TestRange)
-// {
-// }
-
 int main(int argc, char *argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
