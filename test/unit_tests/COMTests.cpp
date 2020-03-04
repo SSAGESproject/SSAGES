@@ -13,10 +13,10 @@ class COMTest : public ::testing::Test
 protected:
 	mxx::comm comm;
 
-    // Snapshots.
+	// Snapshots.
 	std::shared_ptr<Snapshot> cubic;
 
-	// Positions. 
+	// Positions.
 	std::vector<Vector3> cube3d;
 
 	// Indices.
@@ -48,10 +48,10 @@ protected:
 			else
 			{
 				cube3d = {
-					{ 2,     8,     8},
-					{ 2,     8,     2},
-					{ 2,     2,     8},
-					{ 2,     2,     2}
+					{2,     8,     8},
+					{2,     8,     2},
+					{2,     2,     8},
+					{2,     2,     2}
 				};
 			}
 			indices = {0, 1, 2, 3};
@@ -60,14 +60,14 @@ protected:
 		else
 		{
 			cube3d = {
-				{8,    8,    8},
-				{8,    8,     2},
-				{8,     2,    8},
+				{8,     8,     8},
+				{8,     8,     2},
+				{8,     2,     8},
 				{8,     2,     2},
-				{ 2,    8,    8},
-				{ 2,    8,     2},
-				{ 2,     2,    8},
-				{ 2,     2,     2}
+				{2,     8,     8},
+				{2,     8,     2},
+				{2,     2,     8},
+				{2,     2,     2}
 			};
 			indices = {0, 1, 2, 3, 4, 5, 6, 7};
 			masses = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
@@ -84,7 +84,7 @@ protected:
 
 TEST_F(COMTest, ZeroCOMTest)
 {
-	// The cube is sitting at a periodic corner, 
+	// The cube is sitting at a periodic corner,
 	// but COM should be at the origin (or opposite corner).
 	auto com = cubic->CenterOfMass(indices);
 	EXPECT_NEAR(com[0], 10.0, eps);
@@ -92,11 +92,22 @@ TEST_F(COMTest, ZeroCOMTest)
 	EXPECT_NEAR(com[2], 10.0, eps);
 }
 
+TEST_F(COMTest, MassCOMTest)
+{
+	// Change the mass of one corner to shift COM.
+	auto& m = cubic->GetMasses();
+	if(comm.rank() == 0) m[0] *= 9;
+	auto com = cubic->CenterOfMass(indices);
+	EXPECT_NEAR(com[0], 9.0, eps);
+	EXPECT_NEAR(com[1], 9.0, eps);
+	EXPECT_NEAR(com[2], 9.0, eps);
+}
+
 int main(int argc, char *argv[])
 {
-    ::testing::InitGoogleTest(&argc, argv);
-    mxx::env env(argc, argv);
-    int ret = RUN_ALL_TESTS();
+	::testing::InitGoogleTest(&argc, argv);
+	mxx::env env(argc, argv);
+	int ret = RUN_ALL_TESTS();
 
-    return ret;
+	return ret;
 }
