@@ -33,6 +33,7 @@
 #include "ParticleSeparationCV.h"
 #include "RouseModeCV.h"
 #include "TorsionalCV.h"
+#include "RMSDCV.h"
 #include "json/json.h"
 #include <stdexcept>
 
@@ -67,6 +68,8 @@ namespace SSAGES
 			return ParallelBetaRMSDCV::Build(json, path);
 		else if (type == "AntiBetaRMSD")
 			return AntiBetaRMSDCV::Build(json, path);
+		else if (type == "RMSD")
+			return RMSDCV::Build(json, path);
 		else
 			throw std::invalid_argument(path + ": Unknown CV type specified.");
 	}

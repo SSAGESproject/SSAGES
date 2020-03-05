@@ -9,7 +9,7 @@
 		"reference" : {
 			"type" : "string"
 		},
-		"atom ids" : {
+		"atom_ids" : {
 			"type" : "array",
 			"minItems" : 1,
 			"items" : {
@@ -31,6 +31,6 @@
 			"type" : "string"
 		}
 	},
-	"required": ["type", "reference", "atom ids"],
+	"required": ["type", "reference", "atom_ids"],
 	"additionalProperties": false
 }

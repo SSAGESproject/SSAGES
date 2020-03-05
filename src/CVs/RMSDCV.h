@@ -19,11 +19,14 @@
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once 
+#pragma once
 
+#include "CVs/CollectiveVariable.h"
+#include "Validator/ObjectRequirement.h"
+#include "Drivers/DriverException.h"
 #include "Snapshot.h"
-#include "CollectiveVariable.h"
-#include "../Utility/ReadFile.h"
+#include "schema.h"
+#include "Utility/ReadFile.h"
 #include <array>
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
@@ -32,21 +35,18 @@ namespace SSAGES
 {
 	//! Collective variable to calculate root mean square displacement.
 	/*!
-	 *RMSD calculation performed as reported in 
-	 *Coutsias, E. A., Seok, C., and Dill, K. A., "Using Quaternions to Calculate RMSD", J. Comput. Chem. 25: 1849-1857, 2004
+	 * RMSD calculation performed as reported in
+	 * Coutsias, E. A., Seok, C., and Dill, K. A., "Using Quaternions to Calculate RMSD", J. Comput. Chem. 25: 1849-1857, 2004
 	 */
 
 	class RMSDCV : public CollectiveVariable
 	{
 	private:
-		//! IDs of the atoms used for Rg calculation
-		std::vector<int> atomids_; 
-		
-		//! Array to store indices of atoms of interest
-		std::vector<int> pertatoms_;
+		//! IDs of the atoms used for RMSD calculation
+		Label atomids_;
 
 		//! Name of model structure.
-		std::string molecule_; 
+		std::string xyzfile_;
 
 		//! Store reference structure coordinates.
 		std::vector<Vector3> refcoord_;
@@ -57,32 +57,38 @@ namespace SSAGES
 	public:
 		//! Constructor.
 		/*!
-		 * \param atomids IDs of the atoms defining Rg.
-		 * \param molxyz String determining the molecule.
+		 * \param atomids IDs of the atoms defining RMSD.
+		 * \param xyzfile String determining the reference file.
 		 * \param use_range If \c True Use range of atoms defined by the two atoms in atomids.
 		 *
 		 * Construct a RMSD CV.
 		 *
 		 * \todo Bounds needs to be an input and periodic boundary conditions
 		 */
-		RMSDCV(std::vector<int> atomids, std::string molxyz, bool use_range = false) :
-		atomids_(atomids), molecule_(molxyz)
+		RMSDCV(const Label& atomids, std::string xyzfile, bool use_range = false) :
+		atomids_(atomids), xyzfile_(xyzfile)
 		{
 			if(use_range)
 			{
 				if(atomids.size() != 2)
-				{	std::cout<<"RMSDCV: If using range, must define only two atoms!"<<std::endl;
-					exit(0);
+				{
+					throw BuildException({
+						"RMSDCV: With use_range, expected 2 atoms, but found " +
+						std::to_string(atomids.size()) + "."
+					});
 				}
 
 				atomids_.clear();
-
 				if(atomids[0] >= atomids[1])
-				{	std::cout<<"RMSDCV: Please reverse atom range or check that atom range is not equal!"<<std::endl;
-					exit(0);
-				}					
-				for(int i = atomids[0]; i <= atomids[1];i++)
+				{
+					throw BuildException({
+						"RMSDCV: Atom range must be strictly increasing."
+					});
+				}
+				for(int i = atomids[0]; i <= atomids[1]; ++i)
+				{
 					atomids_.push_back(i);
+				}
 			}
 		}
 
@@ -92,45 +98,59 @@ namespace SSAGES
 		 */
 		void Initialize(const Snapshot& snapshot) override
 		{
+			const auto& masses = snapshot.GetMasses();
+			auto n = atomids_.size();
 
-			const auto& mass = snapshot.GetMasses();
-			const auto& ids = snapshot.GetAtomIDs();
-
-			// Initialize gradient
-			auto n = snapshot.GetPositions().size();
-			grad_.resize(n);
-			refcoord_.resize(atomids_.size());
-
-			std::vector<std::array<double,4>> xyzinfo = ReadFile::ReadXYZ(molecule_);
-
-			if(refcoord_.size() != xyzinfo.size())
-				throw std::runtime_error("Reference structure and input structure atom size do not match!");
-
-			for(size_t i = 0; i < xyzinfo.size(); i++)
+			// Make sure atom IDs are on at least one processor.
+			std::vector<int> found(n, 0);
+			for(size_t i = 0; i < n; ++i)
 			{
-				refcoord_[i][0] = xyzinfo[i][1];
-				refcoord_[i][1] = xyzinfo[i][2];
-				refcoord_[i][2] = xyzinfo[i][3];
+				if(snapshot.GetLocalIndex(atomids_[i]) != -1) found[i] = 1;
 			}
 
-			Vector3 mass_pos_prod_ref;
-			mass_pos_prod_ref.setZero();
-			double total_mass = 0;
+			MPI_Allreduce(MPI_IN_PLACE, found.data(), n, MPI_INT, MPI_SUM, snapshot.GetCommunicator());
+			unsigned ntot = std::accumulate(found.begin(), found.end(), 0, std::plus<int>());
+			if(ntot != n)
+			{
+				throw BuildException({
+					"RMSDCV: Expected to find " + std::to_string(n) +
+					" atoms, but only found " + std::to_string(ntot) + "."
+				});
+			}
+
+			Label idx;
+			snapshot.GetLocalIndices(atomids_, &idx);
+
+			std::vector<std::array<double,4>> xyzinfo = ReadFile::ReadXYZ(xyzfile_);
+
+			refcoord_.resize(snapshot.GetNumAtoms(), Vector3{0,0,0});
 
 			// Loop through atom positions
-			for( size_t i = 0; i < mass.size(); ++i)
+			for(size_t i = 0; i < xyzinfo.size(); ++i)
 			{
-				// Loop through pertinent atoms
-				for(size_t j = 0; j < atomids_.size(); j++)
+				int id = snapshot.GetLocalIndex(xyzinfo[i][0]);
+				if(id == -1) continue; // Atom not found
+				for(size_t j = 0; j < atomids_.size(); ++j)
 				{
-					if(ids[i] == atomids_[j])
+					if(atomids_[j] == xyzinfo[i][0])
 					{
-						mass_pos_prod_ref += mass[i]*refcoord_[j];
-						total_mass += mass[i];
-						break;
+						refcoord_[id][0] = xyzinfo[i][1];
+						refcoord_[id][1] = xyzinfo[i][2];
+						refcoord_[id][2] = xyzinfo[i][3];
 					}
 				}
 			}
+
+			Vector3 mass_pos_prod_ref = Vector3::Zero();
+			double total_mass = 0;
+
+			for(auto& i : idx)
+			{
+				mass_pos_prod_ref += masses[i]*refcoord_[i];
+				total_mass += masses[i];
+			}
+			MPI_Allreduce(MPI_IN_PLACE, mass_pos_prod_ref.data(), mass_pos_prod_ref.size(), MPI_DOUBLE, MPI_SUM, snapshot.GetCommunicator());
+			MPI_Allreduce(MPI_IN_PLACE, &total_mass, 1, MPI_DOUBLE, MPI_SUM, snapshot.GetCommunicator());
 
 			COMref_ = mass_pos_prod_ref/total_mass;
 		}
@@ -141,163 +161,109 @@ namespace SSAGES
 		 */
 		void Evaluate(const Snapshot& snapshot) override
 		{
+			// Get local atom indices.
+			Label idx;
+			snapshot.GetLocalIndices(atomids_, &idx);
+
+			// Get data from snapshot.
+			const auto& masses = snapshot.GetMasses();
 			const auto& pos = snapshot.GetPositions();
-			const auto& ids = snapshot.GetAtomIDs();
-			const auto& mass = snapshot.GetMasses();
-			const auto& image_flags = snapshot.GetImageFlags();
-			Vector3 mass_pos_prod = {0,0,0};
-			double total_mass=0;
-			int i;
-			// Loop through atom positions
-			for( size_t i = 0; i < pos.size(); ++i)
-			{
-				grad_[i].setZero();
-				// Loop through pertinent atoms
-				for(size_t j = 0; j < atomids_.size(); j++)
-				{
-					if(ids[i] == atomids_[j])
-					{
-						pertatoms_[j] = i;
-						auto u_coord = snapshot.UnwrapVector(pos[i], image_flags[i]);
+			double masstot = snapshot.TotalMass(idx);
 
-						mass_pos_prod += mass[i]*u_coord;
-						total_mass += mass[i];
-						break;
-					}
-				}
-			}
-
+			// Initialize gradient.
+			std::fill(grad_.begin(), grad_.end(), Vector3{0,0,0});
+			grad_.resize(snapshot.GetNumAtoms(), Vector3{0,0,0});
 
 			// Calculate center of mass
-			//Vector3 mass_pos_prod;
-			//mass_pos_prod.setZero();
-			total_mass = 0;
-			Vector3 COM_;
-
-			// Need to unwrap coordinates for appropriate COM calculation. 
-
-			//for( size_t j = 0; j < pertatoms_.size(); ++j)
-			//{
-			//	i = pertatoms_[j];
-			//	auto u_coord = UnwrapCoordinates(snapshot.GetLatticeConstants(), image_flags[i], pos[i]);
-
-			//	mass_pos_prod[0] += mass[i]*u_coord[0];
-			//	mass_pos_prod[1] += mass[i]*u_coord[1];
-			//	mass_pos_prod[2] += mass[i]*u_coord[2];
-			//	total_mass += mass[i];
-			//}
-
-			COM_ = mass_pos_prod/total_mass;
+			Vector3 COM_ = snapshot.CenterOfMass(idx, masstot);
 
 			// Build correlation matrix
-			Matrix3 R;
+			Matrix3 R = Matrix3::Zero();
 
-			Vector3 diff;
-			Vector3 diff_ref;
+			Vector3 diff, diff_ref;
 			double part_RMSD = 0;
 
-			for( size_t j = 0; j < pertatoms_.size(); ++j)
+			for(auto& i : idx)
 			{
-				i = pertatoms_[j];
-				auto u_coord = snapshot.UnwrapVector(pos[i], image_flags[i]);
+				diff = snapshot.ApplyMinimumImage(pos[i] - COM_);
+				diff_ref = refcoord_[i] - COMref_; // Reference has no "box" or minimum image
 
-				diff = u_coord -COM_;
-				diff_ref = refcoord_[j] - COMref_;
+				R.noalias() += masses[i]*diff*diff_ref.transpose();
 
-				R(0,0) += diff[0]*diff_ref[0];
-				R(0,1) += diff[0]*diff_ref[1];
-				R(0,2) += diff[0]*diff_ref[2];
-				R(1,0) += diff[1]*diff_ref[0];
-				R(1,1) += diff[1]*diff_ref[1];
-				R(1,2) += diff[1]*diff_ref[2];
-				R(2,0) += diff[2]*diff_ref[0];
-				R(2,1) += diff[2]*diff_ref[1];
-				R(2,2) += diff[2]*diff_ref[2];
-
-
-				auto normdiff2 = diff.norm()*diff.norm();
-				auto normref2 = diff_ref.norm()*diff_ref.norm();
-
-				part_RMSD += (normdiff2 + normref2);
+				part_RMSD += masses[i]*(diff.squaredNorm() + diff_ref.squaredNorm());
 			}
+			MPI_Allreduce(MPI_IN_PLACE, R.data(), R.size(), MPI_DOUBLE, MPI_SUM, snapshot.GetCommunicator());
+			MPI_Allreduce(MPI_IN_PLACE, &part_RMSD, 1, MPI_DOUBLE, MPI_SUM, snapshot.GetCommunicator());
+			R /= masstot;
+			part_RMSD /= masstot;
 
 			Eigen::Matrix4d F;
-			F(0,0)= R(0,0) + R(1,1) + R(2,2);
-			F(1,0)= R(1,2) - R(2,1);
-			F(2,0)= R(2,0) - R(0,2);
-			F(3,0)= R(0,1) - R(1,0);
-			
-			F(0,1)= R(1,2) - R(2,1);
-			F(1,1)= R(0,0) - R(1,1) - R(2,2);
-			F(2,1)= R(0,1) + R(1,0);
-			F(3,1)= R(0,2) + R(2,0);
+			F(0,0) = R(0,0) + R(1,1) + R(2,2);
+			F(1,0) = R(1,2) - R(2,1);
+			F(2,0) = R(2,0) - R(0,2);
+			F(3,0) = R(0,1) - R(1,0);
 
-			F(0,2)= R(2,0) - R(0,2);
-			F(1,2)= R(0,1) - R(1,0);
-			F(2,2)= -R(0,0) + R(1,1) - R(2,2);
-			F(3,2)= R(1,2) + R(2,1);
+			F(0,1) = F(1,0);
+			F(1,1) = R(0,0) - R(1,1) - R(2,2);
+			F(2,1) = R(0,1) + R(1,0);
+			F(3,1) = R(0,2) + R(2,0);
 
-			F(0,3)= R(0,1) - R(1,0);
-			F(1,3)= R(0,2) - R(2,0);
-			F(2,3)= R(1,2) - R(2,1);
-			F(3,3)= -R(0,0) - R(1,1) + R(2,2);
-			
+			F(0,2) = F(2,0);
+			F(1,2) = F(2,1);
+			F(2,2) = -R(0,0) + R(1,1) - R(2,2);
+			F(3,2) = R(1,2) + R(2,1);
+
+			F(0,3) = F(3,0);
+			F(1,3) = F(3,1);
+			F(2,3) = F(3,2);
+			F(3,3) = -R(0,0) - R(1,1) + R(2,2);
+
 			//Find eigenvalues
-			Eigen::EigenSolver<Eigen::Matrix4d> es(F);
-			//EigenSolver<F> es;
-			//es.compute(F);
-			//auto max_lambda = es.eigenvalues().maxCoeff();
-			auto lambda = es.eigenvalues().real();
-			//double max_lambda;
-			auto max_lambda = lambda.maxCoeff();
-			int column;
-			
-
-			for (i =0; i < 4; ++i)
-				if(es.eigenvalues()[i] == max_lambda)
-					column=i;
+			Eigen::SelfAdjointEigenSolver<Eigen::Matrix4d> es(F);
+			auto max_lambda = es.eigenvalues().real()[3];
 
 			// Calculate RMSD
+			val_ = sqrt(part_RMSD - (2*max_lambda));
 
-
-			auto RMSD = sqrt((part_RMSD - (2*max_lambda))/(atomids_.size()));
-
-			val_ = RMSD;
+			// If RMSD is zero, we have nothing to do.
+			if(val_ == 0) return;
 
 			// Calculate gradient
+			auto ev = es.eigenvectors().real().col(3);
+			auto q = Eigen::Quaterniond(ev(0),ev(1),ev(2),ev(3));
+			Matrix3 RotMatrix = q.toRotationMatrix();
 
-			auto eigenvector = es.eigenvectors().col(column);
-
-			auto q0 = eigenvector[0].real();
-			auto q1 = eigenvector[1].real();
-			auto q2 = eigenvector[2].real();
-			auto q3 = eigenvector[3].real();
-
-			Matrix3 RotMatrix(3,3);
-			RotMatrix(0,0) = q0*q0+q1*q1-q2*q2-q3*q3;
-			RotMatrix(1,0) = 2*(q1*q2+q0*q3);
-			RotMatrix(2,0) = 2*(q1*q3-q0*q2);
-
-			RotMatrix(0,1) = 2*(q1*q2-q0*q3);
-			RotMatrix(1,1) = q0*q0-q1*q1+q2*q2-q3*q3;
-			RotMatrix(2,1) = 1*(q2*q3+q0*q1);
-
-			RotMatrix(0,2) = 2*(q1*q3+q0*q2);
-			RotMatrix(1,2) = 2*(q2*q3-q0*q1);
-			RotMatrix(2,2) = q0*q0-q1*q1-q2*q2+q3*q3;
-
-			//double trans[3];
-			for(size_t j=0; j<pertatoms_.size();++j)
+			for(auto& i : idx)
 			{
-				auto trans = RotMatrix.transpose()*refcoord_[j];
-
-				i = pertatoms_[j];
-				auto u_coord = pos[i]; //UnwrapCoordinates(snapshot.GetLatticeConstants(), image_flags[i], pos[i]);
-
-				grad_[i][0] = (u_coord[0] - trans[0])/((atomids_.size())*val_);
-				grad_[i][1] = (u_coord[1] - trans[1])/((atomids_.size())*val_);
-				grad_[i][2] = (u_coord[2] - trans[2])/((atomids_.size())*val_);
+				auto rotref = RotMatrix.transpose()*(refcoord_[i] - COMref_);
+				grad_[i] = masses[i]/masstot*(1-masses[i]/masstot)*(snapshot.ApplyMinimumImage(pos[i] - COM_) - rotref)/val_;
 			}
+		}
+
+		static RMSDCV* Build(const Json::Value& json, const std::string& path)
+		{
+			Json::ObjectRequirement validator;
+			Json::Value schema;
+			Json::CharReaderBuilder rbuilder;
+			Json::CharReader* reader = rbuilder.newCharReader();
+
+			reader->parse(JsonSchema::RMSDCV.c_str(),
+			              JsonSchema::RMSDCV.c_str() + JsonSchema::RMSDCV.size(),
+			              &schema, NULL);
+			validator.Parse(schema, path);
+
+			//Validate inputs
+			validator.Validate(json, path);
+			if(validator.HasErrors())
+					throw BuildException(validator.GetErrors());
+
+			std::vector<int> atom_ids;
+			for(auto& s : json["atom_ids"])
+				atom_ids.push_back(s.asInt());
+			auto reference = json["reference"].asString();
+			auto use_range = json.get("use_range",false).asBool();
+
+			return new RMSDCV(atom_ids, reference, use_range);
 		}
 	};
 }
