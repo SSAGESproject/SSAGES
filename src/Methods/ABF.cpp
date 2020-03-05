@@ -209,12 +209,12 @@ namespace SSAGES
 						cvVal += periodsize;
 				}
 
-				if(cvVal < restraint_[i][0] && restraint_[i][2] > 0)
+				if(cvVal < restraint_[i][0])
 				{
 					k = restraint_[i][2];
 					x0 = restraint_[i][0];
 				}
-				else if (cvVal > restraint_[i][1] && restraint_[i][2] > 0)
+				else if (cvVal > restraint_[i][1])
 				{
 					k = restraint_[i][2];
 					x0 = restraint_[i][1];
@@ -370,7 +370,13 @@ namespace SSAGES
 		// Obtain harmonic spring constant for restraints for each CV.
 		std::vector<double> springkrestCV;
 		for(auto& springkrest : json["CV_restraint_spring_constants"])
+		{
+			if(springkrest.asDouble() < 0)
+			{
+				throw BuildException({"Restraint spring constants must be non-negative."});
+			}
 			springkrestCV.push_back(springkrest.asDouble());
+		}
 
 		// Obtain periodicity information for restraints for each CV for the purpose of correctly applying restraints through periodic boundaries.
 		std::vector<bool> isperiodic;
