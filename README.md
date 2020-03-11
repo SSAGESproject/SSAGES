@@ -1,9 +1,27 @@
-SSAGES
-============
+<div align="center">
+  <a href="http://miccomcodes.org" target="_blank">
+    <img src="http://miccomcodes.org/static/img/ssageslogo.jpg" alt="SSAGES" height="200">
+  </a>
+</div>
 
-**SSAGES** (**S**oftware **S**uite for **A**dvanced **G**eneral **E**nsemble **S**imulations) is an open-source, engine agnostic, C++11 based advanced sampling package. 
-It is designed to be easy to use, extendable and extremely versatile. It is currently pre-beta, meaning that there are many rough edges, but we are working rapidly 
-to expand its features and fix any bugs. Keep an eye on this page for future updates and see below on how to contribute!
+<h2 align="center">
+<p align="center">
+  <a href="http://miccomcodes.org/manual/index.html" target="_blank">
+    <img src="https://img.shields.io/badge/docs-v0.8-blue.svg" alt="Documentation">
+  </a>
+  &nbsp;
+  <a href="https://doi.org/10.1063/1.5008853" target="_blank">
+    <img src="https://img.shields.io/badge/doi-10.1063%2F1.5008853-blue" alt="Cite SSAGES">
+  </a>
+</p>
+</h2>
+
+**SSAGES** (**S**oftware **S**uite for **A**dvanced **G**eneral **E**nsemble
+**S**imulations) is an open-source, engine agnostic, C++11 based advanced
+sampling package.  It is designed to be easy to use, extendable and extremely
+versatile. It is currently pre-beta, meaning that there are many rough edges,
+but we are working rapidly to expand its features and fix any bugs. Keep an eye
+on this page for future updates and see below on how to contribute!
 
 ## What's New (v0.8.5)
 - Improved Elastic Band Sampling
