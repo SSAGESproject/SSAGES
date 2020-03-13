@@ -1,7 +1,15 @@
 # Make sure, python is available
-find_program (PYTHON_BIN "python")
+if (CMAKE_VERSION VERSION_LESS 3.12)
+    find_package (PythonInterp REQUIRED)
+    set (PYTHON_INTERP_FOUND ${PYTHONINTERP_FOUND})
+    set (PYTHON_INTERP_EXE ${PYTHON_EXECUTABLE})
+else ()
+    find_package (Python REQUIRED COMPONENTS Interpreter)
+    set (PYTHON_INTERP_FOUND ${Python_Interpreter_FOUND})
+    set (PYTHON_INTERP_EXE ${Python_EXECUTABLE})
+endif ()
 
-if (PYTHON_BIN)
+if (PYTHON_INTERP_FOUND)
     # Define variables
     set (BUILDSCHEMA_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/buildschema.py.in")
     set (BUILDSCHEMA_PY "${CMAKE_CURRENT_BINARY_DIR}/buildschema.py")
@@ -14,13 +22,13 @@ if (PYTHON_BIN)
     # The following command will generate the schema header and source files.
     message (STATUS "Generating schema header and source files")
 
-    execute_process (COMMAND ${PYTHON_BIN} ${BUILDSCHEMA_PY})
+    execute_process (COMMAND ${PYTHON_INTERP_EXE} ${BUILDSCHEMA_PY})
 
     # The following command will make sure that the schema is updated on bulid time.
     add_custom_target (schema
-                       COMMAND ${PYTHON_BIN} ${BUILDSCHEMA_PY}
+                       COMMAND ${PYTHON_INTERP_EXE} ${BUILDSCHEMA_PY}
                        COMMENT "Updating schema files")
-else (PYTHON_BIN)
+else ()
     message (SEND_ERROR "\nERROR: Unable to generate schema files. Python "
                         "binary not found.")
-endif (PYTHON_BIN)
+endif ()
