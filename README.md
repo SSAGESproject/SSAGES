@@ -29,6 +29,8 @@ on this page for future updates and see below on how to contribute!
 - Additional Documentation
 - General code cleanup and bugfixes (See commits)
 
+To view the full changelog history, refer to [HISTORY](HISTORY.md).
+
 <a id="features"></a>
 ## Features
 **SSAGES** currently works with multiple molecular dynamics engines. It contains a variety of collective variables (CVs) and advanced sampling methods. 
@@ -114,6 +116,8 @@ $ sudo apt-get install libopenmpi-dev openmpi-bin
 ```
 
 For more detail on the build system, please check the documentation.
+
+To build the documentation, refer to [Documentation README](doc/README.md).
 
 ## Known issues 
 **SSAGES** is currently in pre-beta. That means there may be known issues that are not yet resolved. Major issues are listed here. 
