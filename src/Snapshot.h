@@ -72,7 +72,6 @@ namespace SSAGES
 		std::vector<double> charges_; //!< Charges
 		Label atomids_; //!< List of Atom IDs
 		Label types_; //!< List of Atom types
-		std::vector<std::vector<double> > sigma_; //!< Sigma
 
 		size_t iteration_; //!< Iteration of Simulation
 		size_t targetiter_; //!< Iteration target of simulation.
@@ -608,19 +607,6 @@ namespace SSAGES
 		{
 			changed_ = true; 
 			return types_; 
-		}
-
-		//! Access the atom sigmas
-		/*!
-		 * \return List of atom sigmas
-		 */
-		const std::vector<std::vector<double>>& GetSigmas() const { return sigma_; }
-
-		/*! \copydoc Snapshot::GetSigmas() const */
-		std::vector<std::vector<double>>& GetSigmas() 
-		{
-			changed_ = true; 
-			return sigma_;
 		}
 
 		//! Access the snapshot ID
