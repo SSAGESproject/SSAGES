@@ -22,6 +22,9 @@ namespace SSAGES
 
 		//! Previous positions.
 		std::vector<Vector3> prevpositions_;
+		
+		//! Boltzmann constant in Hartree/K.
+		double kb = 1.0 / ( 11605.0 * 2.0 * 13.6058 );
 
 		//! Get species index from species vector.
 		int GetSpeciesIndex(const std::string& species)

@@ -106,6 +106,7 @@ namespace SSAGES
 		//Set potential energy.
 		//Set kinetic energy.
 		//Set boltzmann. 
+		snapshot_->SetKb(kb); 
 
 		// Resize vectors.
 		auto& pos = snapshot_->GetPositions();
