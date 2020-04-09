@@ -98,8 +98,9 @@ namespace nnet
 		
 		/** Compute autoscale parameters. */
 		void autoscale(const matrix_t& X, const matrix_t& Y);
-
-		/** Reset autoscale parameters */
+    void autoscale2(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t> &Z);   
+		
+    /** Reset autoscale parameters */
 		void autoscale_reset();
 		
 		/** Write net parameter to file. */
