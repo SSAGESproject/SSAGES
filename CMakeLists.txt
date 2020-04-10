@@ -35,6 +35,7 @@ set(SOURCE
     src/Methods/ABF.cpp
     src/Methods/ANN.cpp
     src/Methods/BasisFunc.cpp
+    src/Methods/CFF.cpp
     src/Methods/DirectForwardFlux.cpp
     src/Methods/ElasticBand.cpp
     src/Methods/FiniteTempString.cpp
