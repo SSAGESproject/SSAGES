@@ -16,13 +16,14 @@ namespace nnet
 	{
 		size_t size;
 		matrix_t a, z, delta;
-		matrix_t W, dEdW;
+    std::vector<matrix_t> delta2, delta3, da;
+		matrix_t W, dEdW, dEddW;
 		vector_t b;
 	};
 
 	struct train_param
 	{
-		f_type mu, mu_max, mu_scale, min_grad, min_loss;
+		f_type mu, mu_max, mu_scale, min_grad, min_loss, ratio;
 		int max_iter;
 	};
 
@@ -40,6 +41,7 @@ namespace nnet
 
 		/** Holds the error gradient, jacobian, ... */ 
 		matrix_t j_, jj_;
+    std::vector<matrix_t> jder_;
 		vector_t je_;
 
 		/** Number of adjustable parameters. */
@@ -68,9 +70,13 @@ namespace nnet
 		/** Compute NN loss w.r.t. input and output data.
 		* Also backpropogates error. 
 		*/
-		f_type loss(const matrix_t& X, const matrix_t& Y);
+		f_type loss(const matrix_t& X, const matrix_t& Y); 
+    // added for gradient learning
+    f_type loss_w_grad(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t>& Z, const matrix_t& B);
 
-		void train(const matrix_t& X, const matrix_t& Y, bool verbose = false);
+		double train(const matrix_t& X, const matrix_t& Y, bool verbose = false);
+    // added for gradient learning
+    double train_w_grad(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t> &Z, const matrix_t& B, bool verbose = false);
 		
 		/** Get training parameters. */
 		train_param get_train_params() const;
@@ -98,7 +104,8 @@ namespace nnet
 		
 		/** Compute autoscale parameters. */
 		void autoscale(const matrix_t& X, const matrix_t& Y);
-    void autoscale2(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t> &Z);   
+    // added for gradient learning
+    void autoscale_w_grad(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t> &Z);   
 		
     /** Reset autoscale parameters */
 		void autoscale_reset();
