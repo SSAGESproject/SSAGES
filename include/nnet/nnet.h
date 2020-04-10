@@ -93,8 +93,11 @@ namespace nnet
 		/** Returns the logistic function values f(x) given x. */
 		static matrix_t activation(const matrix_t& x);
 		
-		/** Returns the gradient f'(x) of the logistic function given f(x). */
+		/** Returns the 1st derivative f'(x) of the logistic function given f(x). */
 		static matrix_t activation_gradient(const matrix_t& x);
+		
+		/** Returns the 2nd derivative f''(x) of the logistic function given f(x). */
+		static matrix_t activation_secondgradient(const matrix_t& x);
 		
 		/** Set weights and biases. */ 
 		void set_wb(const vector_t& wb);

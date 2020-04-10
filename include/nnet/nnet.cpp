@@ -308,7 +308,7 @@ namespace nnet
         return mse/Q;
     }
 
-    double neural_net::train_w_grad(const matrix_t& X, const matrix_t& Y, bool verbose const std::vector<matrix_t> &Z, \
+    double neural_net::train_w_grad(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t> &Z, \
         const matrix_t& B, bool verbose)
     {
         // Reset mu.
@@ -492,14 +492,22 @@ namespace nnet
         return layers_[1].delta*layers_[1].W*x_scale_.asDiagonal();
     }
 
+    // this is tanh(x)
     matrix_t neural_net::activation(const matrix_t& x)  
     {
         return (2.*((-2.*x).array().exp() + 1.0).inverse() - 1.0).matrix();
     }
 
+    // 1st derivative is 1-tanh^2(x) = sech^2
     matrix_t neural_net::activation_gradient(const matrix_t& x) 
     {
         return (1.0-x.array().square()).matrix();
+    }
+
+    // 2nd derivative is -2*tanh*sech^2 = -2*x*(1-x^2) 
+    matrix_t neural_net::activation_secondgradient(const matrix_t& x) 
+    {
+        return (-2.*(1.0-x.array().square())*(x.array())).matrix();
     }
 
     void neural_net::set_wb(const vector_t& wb)
