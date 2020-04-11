@@ -85,7 +85,6 @@ namespace nnet
                 (l.delta2).push_back(daj);
                 (l.delta3).push_back(daj);  
             }
-                                                                    }   
             layers_.push_back(l);
             nparam_ += l.W.size() + l.b.size();
         }
@@ -626,6 +625,25 @@ namespace nnet
         y_scale_ = 2.0*(Y.colwise().maxCoeff() - Y.colwise().minCoeff()).array().inverse();
     }
 
+    void neural_net::autoscale_w_grad(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t> & Z)
+    {
+        assert(layers_.front().size == static_cast<size_t>(X.cols()));
+        assert(layers_.back().size == static_cast<size_t>(Y.cols()));
+        assert(X.rows() == Y.rows());
+        
+        x_shift_ = 0.5*(X.colwise().minCoeff().array() + X.colwise().maxCoeff().array());
+        x_scale_ = 2.0*(X.colwise().maxCoeff() - X.colwise().minCoeff()).array().inverse();
+
+        y_shift_ = 0.5*(Y.colwise().minCoeff().array() + Y.colwise().maxCoeff().array());
+        y_scale_ = 2.0*(Y.colwise().maxCoeff() - Y.colwise().minCoeff()).array().inverse();
+
+        for (int i = 0; i < Z.size(); ++i)
+        {
+          vector_t temp = 2.0*(Z[i].colwise().maxCoeff() - Z[i].colwise().minCoeff()).array().inverse();
+          y_scale_ =  temp.array().min(y_scale_.array());
+        }
+    }
+    
     void neural_net::autoscale_reset() 
     {
         x_scale_ = vector_t::Ones(layers_.front().size);
