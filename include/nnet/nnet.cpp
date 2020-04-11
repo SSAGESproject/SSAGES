@@ -59,7 +59,16 @@ namespace nnet
         nparam_ = 0; 
         nn_layer l;
         l.size = topology(0);
+        // added for gradient learning
+        for (int i = 0; i < l.size; ++i)
+        {   
+            matrix_t dai;
+            (l.da).push_back(dai);
+            (l.delta2).push_back(dai);
+            (l.delta3).push_back(dai);  
+        }   
         layers_.push_back(l);
+
         // init hidden and output layer
         for(int i = 1; i < topology.size(); ++i)
         {
@@ -67,6 +76,16 @@ namespace nnet
             l.size  = topology(i);
             l.W.setZero(l.size, layers_[i-1].size);
             l.b.setZero(l.size);
+
+            // added for gradient learning
+            for (int j = 0; j < layers_.back().size; ++j)
+            {   
+                matrix_t daj;
+                (l.da).push_back(daj);  
+                (l.delta2).push_back(daj);
+                (l.delta3).push_back(daj);  
+            }
+                                                                    }   
             layers_.push_back(l);
             nparam_ += l.W.size() + l.b.size();
         }
@@ -101,6 +120,14 @@ namespace nnet
         
         // copy and scale data matrix
         layers_[0].a.noalias() = (X.rowwise() - x_shift_.transpose())*x_scale_.asDiagonal();
+
+        // input layer has const. 1st derivative
+        for (int i = 0; i < layers_.front().size; ++i)
+        {
+          (layers_[0]).da[i].noalias() = matrix_t::Zero(X.rows(),X.cols());
+          (layers_[0]).da[i].col(i) = vector_t::LinSpaced(X.rows(),1,1);
+        } 
+        
         for(size_t i = 1; i < layers_.size(); ++i)
         {
             // compute input for current layer
@@ -112,6 +139,18 @@ namespace nnet
             // apply activation function
             bool end = (i >= layers_.size() - 1);
             layers_[i].a = end ? layers_[i].z : activation(layers_[i].z);
+
+            // forward propogate derivative -- added for gradient learning
+            for (int j = 0; j < layers_.front().size; ++j)
+            {
+              if(end)
+                (layers_[i]).da[j].noalias() = ((layers_[i-1]).da[j] * layers_[i].W.transpose());
+              else
+              {
+                (layers_[i]).da[j].noalias() = (((((layers_[i-1]).da[j] * layers_[i].W.transpose()).array()) *\
+                      (activation_gradient(layers_[i].a)).array()).matrix());
+              }
+            }
         }
     }
 
@@ -135,14 +174,15 @@ namespace nnet
         
         for(int k = 0; k < Q; ++k)
         {
-            // forward pass
+            // forward pass.
             forward_pass(X.row(k));
                 
-            // compute error
-            error.row(k) = layers_.back().a*y_scale_.asDiagonal().inverse() - (Y.row(k) - y_shift_.transpose());
-            
-            // Compute loss. 
-            mse += error.row(k).rowwise().squaredNorm().mean()/S;
+            // compute error.
+            error.segment(k*S, S) = (layers_.back().a*y_scale_.asDiagonal().inverse()).transpose() -\
+                                    (Y.row(k).transpose() - y_shift_);
+
+            // compute loss.
+            mse += error.segment(k*S, S).transpose().rowwise().squaredNorm().mean()/S;
             
             // Number of layers. 
             size_t m = layers_.size();
@@ -156,7 +196,8 @@ namespace nnet
             for(int p = 0; p < S; ++p)
             {
                 layers_[m-1].dEdW.noalias() = (layers_[m-1].delta.col(p)*layers_[m-2].a);
-                j_.block(S*k+p, j, 1, layers_[m-1].W.size()) = Map<vector_t>(layers_[m-1].dEdW.data(), layers_[m-1].dEdW.size()).transpose();
+                j_.block(S*k+p, j, 1, layers_[m-1].W.size()) =\
+                    Map<vector_t>(layers_[m-1].dEdW.data(), layers_[m-1].dEdW.size()).transpose();
             }
         
             j -= layers_[m-1].b.size();
@@ -164,14 +205,16 @@ namespace nnet
 
             for(size_t i = layers_.size() - 2; i > 0; --i)
             {
-                layers_[i].delta.noalias() = activation_gradient(layers_[i].a).asDiagonal()*layers_[i+1].W.transpose()*layers_[i+1].delta;
+                layers_[i].delta.noalias() = activation_gradient(layers_[i].a).asDiagonal()*\
+                                             layers_[i+1].W.transpose()*layers_[i+1].delta;
 
                 // Pack Jacobian.
                 j -= layers_[i].W.size();
                 for(int p = 0; p < S; ++p)
                 {
                     layers_[i].dEdW.noalias() = (layers_[i].delta.col(p)*layers_[i-1].a);            
-                    j_.block(S*k+p, j, 1, layers_[i].W.size()) = Map<vector_t>(layers_[i].dEdW.data(), layers_[i].dEdW.size()).transpose();
+                    j_.block(S*k+p, j, 1, layers_[i].W.size()) = \
+                         Map<vector_t>(layers_[i].dEdW.data(), layers_[i].dEdW.size()).transpose();
                 }
 
                 j -= layers_[i].b.size();
@@ -184,6 +227,138 @@ namespace nnet
         j_ /= (Q*S);
         je_.noalias() = j_.transpose()*error;
         return mse/Q;
+    }
+
+    f_type neural_net::loss_w_grad(const matrix_t& X, const matrix_t& Y,\
+             const std::vector<matrix_t> &Z, const matrix_t& B)
+    {
+        assert(layers_.front().size == X.cols());
+        assert(layers_.back().size == Y.cols());
+        assert(X.rows() == Y.rows());
+
+        // number of samples and output dim. 
+        size_t Q = Y.rows();
+        size_t S = Y.cols();
+        size_t P = (X.cols()+1)*S;
+        f_type Pd = (X.cols()*(1.0-tparams_.ratio)+1*tparams_.ratio)*S;
+        
+        // Resize jacobian and define error. 
+        je_.resize(nparam_);
+        j_.resize(P*Q, nparam_);
+        vector_t error(P*Q);
+        
+        // MSE. 
+        f_type mse = 0.;
+
+        // Loop over samples.
+        for(size_t k = 0; k < Q; ++k)
+        {
+          // forward pass
+          forward_pass(X.row(k));
+
+          // compute error
+          error.segment(k*P, S) = ((layers_.back().a*y_scale_.asDiagonal().inverse()).transpose() -\
+              (Y.row(k).transpose() - y_shift_))*(1.0-B(k,0));
+
+          // compute error on derivative
+          for(size_t l = 0; l < X.cols(); ++l)
+          {
+             error.segment(k*P+(l+1)*S, S) = (((layers_.back().da[l]*y_scale_.asDiagonal().inverse())*x_scale_.row(l) -\
+                   Z[l].row(k)).transpose())*(1.0-B(k,0));
+          }
+
+          // Compute loss. 
+          mse += error.segment(k*P, S).transpose().rowwise().squaredNorm().mean()/S;
+
+          for(size_t l = 0; l < X.cols(); ++l)
+            mse += error.segment(k*P+(l+1)*S, S).transpose().rowwise().squaredNorm().mean()/S;
+
+          // Number of layers. 
+          size_t m = layers_.size();
+
+          // Compute sensitivities. 
+          size_t j = nparam_;
+
+          layers_[m-1].delta = y_scale_.asDiagonal().inverse();
+          for(size_t l = 0; l < X.cols(); ++l)
+          {
+            //Need to set correct value to this for correct backpropagation from the linear layer to the first nonlinear layer.
+            (layers_[m-1].delta2[l]) = ((y_scale_.asDiagonal().inverse()*x_scale_.row(l)*(1.0-B(k,0))*0.0));
+            (layers_[m-1].delta3[l]) = ((y_scale_.asDiagonal().inverse()*x_scale_.row(l)*(1.0-B(k,0))*1.0));
+          }
+
+          // Pack Jacobian.
+          j -= layers_[m-1].W.size();
+
+          for(size_t p = 0; p < S; ++p)
+          {
+            layers_[m-1].dEdW = (layers_[m-1].delta.col(p)*layers_[m-2].a);
+            j_.block(P*k+p, j, 1, layers_[m-1].W.size()) =\
+               Map<vector_t>(layers_[m-1].dEdW.data(), layers_[m-1].dEdW.size()).transpose();
+
+            for(size_t l = 0; l < X.cols(); ++l)
+            {
+              //Kept the commented out term for symmetry, but it doesn't appear in a linear layer.
+              layers_[m-1].dEdW = layers_[m-1].delta3[l].col(p)*layers_[m-2].da[l];
+              //+ layers_[m-1].delta2[l].col(p)*layers_[m-2].a;
+              j_.block(k*P+(l+1)*S+p, j, 1, layers_[m-1].W.size()) =\
+                   Map<vector_t>(layers_[m-1].dEdW.data(), layers_[m-1].dEdW.size()).transpose();
+            }
+          }
+
+          j -= layers_[m-1].b.size();
+          j_.block(P*k, j, S, layers_[m-1].b.size()) = layers_[m-1].delta;
+
+          for(size_t l = 0; l < X.cols(); ++l)
+            j_.block(k*P+(l+1)*S, j, S, layers_[m-1].b.size()) = layers_[m-1].delta2[l].transpose()*0.0;
+
+           for(size_t i = layers_.size() - 2; i > 0; --i)
+           {
+              layers_[i].delta = activation_gradient(layers_[i].a).asDiagonal()*layers_[i+1].W.transpose()*layers_[i+1].delta;
+              for(size_t l = 0; l< X.cols(); ++l)
+              {
+                layers_[i].delta += \
+                    activation_gradient(layers_[i].a).asDiagonal()*layers_[i+1].W.transpose()*layers_[i+1].delta2[l];
+
+                (layers_[i].delta2)[l] = \
+                    ((activation_secondgradient(layers_[i].a).asDiagonal()*layers_[i+1].W.transpose()*\
+                    layers_[i+1].delta3[l]).array() *(layers_[i].W * layers_[i-1].da[l].transpose()).array());
+
+                 (layers_[i].delta3)[l] = \
+                    ((activation_gradient(layers_[i].a).asDiagonal()*layers_[i+1].W.transpose()*layers_[i+1].delta3[l]));
+              }
+
+              // Pack Jacobian.
+              j -= layers_[i].W.size();
+              for(size_t p = 0; p < S; ++p)
+              {
+                layers_[i].dEdW = (layers_[i].delta.col(p)*layers_[i-1].a);
+                j_.block(P*k+p, j, 1, layers_[i].W.size()) = Map<vector_t>(layers_[i].dEdW.data(), layers_[i].dEdW.size()).transpose();
+                for(size_t l = 0; l< X.cols(); ++l)
+                {
+                   layers_[i].dEdW = layers_[i].delta3[l].col(p)*layers_[i-1].da[l] + layers_[i].delta2[l].col(p)*layers_[i-1].a;
+                   j_.block(k*P+(l+1)*S+p, j, 1, layers_[i].W.size()) = \
+                          Map<vector_t>(layers_[i].dEdW.data(), layers_[i].dEdW.size()).transpose();
+                }
+              }
+
+               j -= layers_[i].b.size();
+               j_.block(P*k, j, S, layers_[i].b.size()) = layers_[i].delta.transpose();
+               for(size_t l = 0; l< X.cols(); ++l)
+                 j_.block(k*P+(l+1)*S, j, S, layers_[i].b.size()) = layers_[i].delta2[l].transpose();
+
+           }
+
+        }
+
+        jj_.noalias() = j_.transpose()*j_;
+
+        jj_ /= S*Q;
+        j_ /= S*Q;
+        je_.noalias() = j_.transpose()*error;
+
+        return mse/Q;
+
     }
 
     void neural_net::train(const matrix_t& X, const matrix_t& Y, bool verbose)
@@ -262,6 +437,87 @@ namespace nnet
             std::cout << "iter: " << iter << " mse: " << mse << " gamma: " << gamma << " mu: " << tparams_.mu << " grad: " << grad << std::endl;
     }
 
+    double neural_net::train_w_grad(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t> &Z,\
+        const matrix_t& B, bool verbose)
+    {
+        // Reset mu.
+        tparams_.mu = 0.005;
+
+        int nex = X.rows()*(X.cols()+1);		
+        
+        // Forward and back propogate to compute loss and Jacobian.
+        f_type mse = loss_w_grad(X, Y, Z, B);
+        vector_t wb = get_wb(), optwb = get_wb();
+        f_type wse = wb.transpose()*wb;
+
+        // Initialize Bayesian regularization parameters.
+        f_type gamma = nparam_;
+        f_type beta = 0.5*(nex - gamma)/mse;
+        beta = beta <= 0 ? 1. : beta;
+        f_type alpha = 0.5*gamma/wse;
+        f_type tse = beta*mse + alpha*wse;
+        f_type grad = 2.*std::sqrt(je_.squaredNorm());
+        matrix_t eye = matrix_t::Identity(nparam_, nparam_);
+        
+        // Define iteration tol parameters.
+        int iter = 0;
+        f_type tse2 = 0, mse2 = 0, wse2 = 0;
+        do
+        {
+            if(verbose)
+                std::cout << "iter: " << iter << " mse: " << mse << " gamma: " << gamma << " mu: " << tparams_.mu << " grad: " << grad << std::endl;
+            
+            matrix_t jjb = jj_; 
+            vector_t jeb = je_;
+            do
+            {
+                // Compute new weights and performance.
+                optwb = wb - (beta*jjb + (tparams_.mu + alpha)*eye).colPivHouseholderQr().solve(beta*jeb + alpha*wb);
+                wse2 = optwb.transpose()*optwb;
+                set_wb(optwb);
+                mse2 = loss_w_grad(X, Y, Z, B);
+                tse2 = beta*mse2 + alpha*wse2;
+                
+                // Exit loop or reset values.
+                if(tse2 < tse || tparams_.mu > tparams_.mu_max)
+                    break;
+                else
+                {
+                    set_wb(wb);
+                    //mse2 = loss(X, Y);
+                    tparams_.mu *= tparams_.mu_scale;           
+                }
+            } while(true);
+
+            wb = optwb;
+            mse = mse2; wse = wse2;
+            gamma = (f_type)nparam_ - alpha*(beta*jj_ + alpha*eye).inverse().trace();
+            beta = mse == 0 ? 1. : 0.5*((f_type)nex - gamma)/mse;
+			      alpha = wse == 0 ? 1. : 0.5*gamma/wse;
+            tse = beta*mse + alpha*wse;
+            grad = 2.*std::sqrt(je_.squaredNorm());
+            
+            if(tparams_.mu < tparams_.mu_max)
+                tparams_.mu /= tparams_.mu_scale;
+            if(tparams_.mu < 1.e-20) tparams_.mu = 1.e-20;
+
+            ++iter;        
+        } while(
+            tparams_.mu < tparams_.mu_max && 
+            grad > tparams_.min_grad && 
+            iter <= tparams_.max_iter && 
+            mse > tparams_.min_loss &&
+            !std::isnan(grad) && 
+            !std::isnan(gamma));
+    
+        if(verbose)
+            std::cout << "iter: " << iter << " mse: " << mse << " gamma: " << gamma << " mu: " << tparams_.mu << " grad: " << grad << std::endl;
+
+		return gamma;
+    
+    }
+
+
     train_param neural_net::get_train_params() const
     {
         return tparams_;
@@ -289,14 +545,27 @@ namespace nnet
         return layers_[1].delta*layers_[1].W*x_scale_.asDiagonal();
     }
 
+    // this is tanh(x)
     matrix_t neural_net::activation(const matrix_t& x)  
     {
         return (2.*((-2.*x).array().exp() + 1.0).inverse() - 1.0).matrix();
     }
 
+     // derivative is 1-tanh^2(x) = sech^2
     matrix_t neural_net::activation_gradient(const matrix_t& x) 
     {
         return (1.0-x.array().square()).matrix();
+    }
+
+   	matrix_t neural_net::get_gradient_forwardpass(int index) 
+    {
+        return ((layers_.back().da[index])*y_scale_.asDiagonal().inverse())*x_scale_.row(index);
+    }
+
+	  // 2nd derivative is -2*tanh*sech^2 = -2*x*(1-x^2) 
+    matrix_t neural_net::activation_secondgradient(const matrix_t& x) 
+    {
+        return (-2.*(1.0-x.array().square())*(x.array())).matrix();
     }
 
     void neural_net::set_wb(const vector_t& wb)
