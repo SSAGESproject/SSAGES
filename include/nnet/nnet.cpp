@@ -361,7 +361,7 @@ namespace nnet
 
     }
 
-    void neural_net::train(const matrix_t& X, const matrix_t& Y, bool verbose)
+    double neural_net::train(const matrix_t& X, const matrix_t& Y, bool verbose)
     {
         // Reset mu.
         tparams_.mu = 0.005;
@@ -435,6 +435,8 @@ namespace nnet
 
         if(verbose)
             std::cout << "iter: " << iter << " mse: " << mse << " gamma: " << gamma << " mu: " << tparams_.mu << " grad: " << grad << std::endl;
+
+        return gamma;
     }
 
     double neural_net::train_w_grad(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t> &Z,\
