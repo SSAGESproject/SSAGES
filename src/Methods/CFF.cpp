@@ -287,17 +287,25 @@ namespace SSAGES
       // Initial sweep is the same as doing adaptive basing force
       // i.e., Calculate biasing forces from averaged F at current CV coodinates
       // not called if restart is enabled
-			if(snapshot->GetIteration() < nsweep_ && !restart_from_cff_ && restart_from_abf_)
-			{
-				for(int i = 0; i < dim_; ++i)
-					derivatives[i] = (F_[i]->at(val)/std::max((double(hgrid_->at(val))),double(min_)));
-			}
-      // After the first sweep or if restart is true, then calculate biasing forces based at current CV based on CFF
+      if (restart_from_cff_ || restart_from_abf_)
+      {
+					net_.forward_pass(vec);
+					net2_.forward_pass(vec);
+					derivatives = net_.get_gradient(0)*ratio_ + net2_.get_gradient(0)*(1.0-ratio_);
+      }
 			else
 			{
-				net_.forward_pass(vec);
-				net2_.forward_pass(vec);
-				derivatives = net_.get_gradient(0)*ratio_ + net2_.get_gradient(0)*(1.0-ratio_);
+					if(snapshot->GetIteration() < nsweep_)
+					{
+						for(int i = 0; i < dim_; ++i)
+							derivatives[i] = (F_[i]->at(val)/std::max((double(hgrid_->at(val))),double(min_)));
+					}
+          else 
+          {
+							net_.forward_pass(vec);
+							net2_.forward_pass(vec);
+							derivatives = net_.get_gradient(0)*ratio_ + net2_.get_gradient(0)*(1.0-ratio_);
+          }
 			}
 
     }
@@ -393,9 +401,13 @@ namespace SSAGES
 		}
 
     // Calculate unbiased histrogram from previous unbiased histogram plus estimates from bias energy. 
-    if ( !restart_from_abf_ && sweep_ > 1){
-		  uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_;
+    if ( restart_from_abf_ )
+    {
+        if (sweep_>1)
+          uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_;
     }
+    else 
+        uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_;
 
     // Synchronize unbiased histogram and clear global histogram holder.
 		ugrid_->syncGrid();
@@ -424,7 +436,8 @@ namespace SSAGES
       double gamma1;
 			gamma1 = net_.train(hist_, bias_, true);
 			SetRatio(0.0);
-			double gamma2 = net2_.train_w_grad(hist_, bias_,Ftrain, force_to_val_ratio_, true);
+      double gamma2 = net2_.train_w_grad(hist_, bias_,Ftrain, force_to_val_ratio_, true);
+      std::cout << "gamma1 " << gamma1 << " " << gamma2 << std::endl;
 			ratio_ = gamma1/(gamma1+gamma2);			
 
 			std::cout << std::endl << "Ratio: " << ratio_ << std::endl;
