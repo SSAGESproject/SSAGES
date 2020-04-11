@@ -15,10 +15,13 @@ namespace nnet
 	struct nn_layer 
 	{
 		size_t size;
-		matrix_t a, z, delta;
-    std::vector<matrix_t> delta2, delta3, da;
+		matrix_t a, z, delta; 
+		std::vector<matrix_t> delta2, delta3;
 		matrix_t W, dEdW, dEddW;
 		vector_t b;
+
+		// add vector of matrix to hold d(node)/d(input)
+		std::vector<matrix_t> da;
 	};
 
 	struct train_param
@@ -40,12 +43,12 @@ namespace nnet
 		train_param tparams_;
 
 		/** Holds the error gradient, jacobian, ... */ 
-		matrix_t j_, jj_;
-    std::vector<matrix_t> jder_;
+		matrix_t j_, jj_; 
+		std::vector<matrix_t> jder_;
 		vector_t je_;
 
 		/** Number of adjustable parameters. */
-		unsigned int nparam_;
+		uint nparam_;
 
 		/** Scaling parameters. */
 		vector_t x_shift_;
@@ -60,7 +63,7 @@ namespace nnet
 		/** Read neural net from file. */
 		neural_net(const char* filename);
 
-		/** Initial weights randomly (modified Nguyen-Widrow) . */
+    /** Initial weights randomly (modified Nguyen-Widrow) . */
 		void init_weights();
 		
 		/** Propagate data through the net.
@@ -68,15 +71,16 @@ namespace nnet
 		void forward_pass(const matrix_t& X);
 
 		/** Compute NN loss w.r.t. input and output data.
-		* Also backpropogates error. 
+		* Also backpropogates error.
+		* Added separate loss function for gradient learning.
+		* Ratio = 1 -> pure value learning, Ratio = 0 -> pure gradient learning. 
 		*/
-		f_type loss(const matrix_t& X, const matrix_t& Y); 
-    // added for gradient learning
-    f_type loss_w_grad(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t>& Z, const matrix_t& B);
+		f_type loss(const matrix_t& X, const matrix_t& Y);
+		f_type loss_w_grad(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t> &Z, const matrix_t& B);
 
 		double train(const matrix_t& X, const matrix_t& Y, bool verbose = false);
     // added for gradient learning
-    double train_w_grad(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t> &Z, const matrix_t& B, bool verbose = false);
+		double train_w_grad(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t> &Z, const matrix_t& B, bool verbose = false);
 		
 		/** Get training parameters. */
 		train_param get_train_params() const;
@@ -89,14 +93,17 @@ namespace nnet
 		
 		/** Get gradient of output(s) w.r.t. input i */
 		matrix_t get_gradient(int index);
+
+		/** Get gradient of output(s) w.r.t. input i, calculated via forward pass */
+		matrix_t get_gradient_forwardpass(int index);
 		
 		/** Returns the logistic function values f(x) given x. */
 		static matrix_t activation(const matrix_t& x);
 		
-		/** Returns the 1st derivative f'(x) of the logistic function given f(x). */
+		/** Returns the first derivative f'(x) of the logistic function given f(x). */
 		static matrix_t activation_gradient(const matrix_t& x);
-		
-		/** Returns the 2nd derivative f''(x) of the logistic function given f(x). */
+
+		/** Returns the second derivative f''(x) of the logistic function given f(x). */
 		static matrix_t activation_secondgradient(const matrix_t& x);
 		
 		/** Set weights and biases. */ 
@@ -107,11 +114,12 @@ namespace nnet
 		
 		/** Compute autoscale parameters. */
 		void autoscale(const matrix_t& X, const matrix_t& Y);
+
     // added for gradient learning
-    void autoscale_w_grad(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t> &Z);   
-		
-    /** Reset autoscale parameters */
-		void autoscale_reset();
+		void autoscale_w_grad(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t> &Z);
+
+		/** Reset autoscale parameters */
+		void autoscale_reset();      
 		
 		/** Write net parameter to file. */
 		bool write(const char* filename);
