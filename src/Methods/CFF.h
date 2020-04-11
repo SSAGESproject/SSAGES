@@ -150,7 +150,7 @@ namespace SSAGES
      * \param restart_from_cff Restart flag starting from previous CFF runs
      * \param restart_from_abf Restart flag starting from previous ABF runs
 		 *
-		 * Constructs an instance of Artificial Neural Network method.
+		 * Constructs an instance of Combined Force Frequency method.
 		 */ 
 		CFF(const MPI_Comm& world, 
 		    const MPI_Comm& comm, 
