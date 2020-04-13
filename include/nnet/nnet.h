@@ -14,7 +14,7 @@ namespace nnet
 
 	struct nn_layer 
 	{
-		size_t size;
+		int size;
 		matrix_t a, z, delta;
         	std::vector<matrix_t> delta2, delta3;
 		matrix_t W, dEdW, dEddW;
