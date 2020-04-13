@@ -53,14 +53,14 @@
 				"type" : "number"
 			}
 		},
-    "prev_weight" : {
-       "type" : "number", 
-       "minimum" : 0, 
-       "maximum" : 1
-		},
-		"nsweep" : {
-			"type" : "integer", 
-			"minimum" : 1
+    	"prev_weight" : {
+       		"type" : "number", 
+       		"minimum" : 0, 
+       		"maximum" : 1
+			},
+	"nsweep" : {
+		"type" : "integer", 
+		"minimum" : 1
         },
         "output_file" : {
             "type" : "string"
@@ -83,9 +83,9 @@
         "timestep" : {
             "type" : "number"
         }, 
-		"ratio" : {
-			"type" : "number"
-		},
+	"ratio" : {
+		"type" : "number"
+	},
         "unit_conversion" : {
             "type" : "number" 
         }, 
@@ -100,18 +100,19 @@
             "minimum" : 0
         }
     },
-    "required" : [
+    "required" : 
+	[
         "type", 
         "topology", 
         "grid", 
         "lower_bound_restraints",
-	     	"upper_bound_restraints",
-		    "lower_bounds",
-		    "upper_bounds",
-		    "temperature",
-		    "timestep",
-		    "unit_conversion",
-		    "nsweep"
+		"upper_bound_restraints",
+		"lower_bounds",
+		"upper_bounds",
+		"temperature",
+		"timestep",
+		"unit_conversion",
+		"nsweep"
     ],
     "additionalProperties" : false
 }

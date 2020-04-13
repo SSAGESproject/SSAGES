@@ -42,7 +42,7 @@ namespace nnet
             for(int i = 0; i < y_shift_.size(); ++i) file >> y_shift_[i];
             
             // weights
-            for(size_t i = 1; i < layers_.size(); ++i)
+            for(int i = 1; i < layers_.size(); ++i)
             {
                 auto& layer = layers_[i];
                 for(int j = 0; j < layer.b.size(); ++j) file >> layer.b(j);
@@ -96,7 +96,7 @@ namespace nnet
         std::random_device rd{};
         std::mt19937 gen{rd()};
 
-        for(size_t i = 1; i < layers_.size(); ++i)
+        for(int i = 1; i < layers_.size(); ++i)
         {
             f_type beta = 0.7*std::pow(layers_[i].size, 1.0/layers_[i-1].size);
             f_type range = 2.0;
@@ -115,7 +115,7 @@ namespace nnet
 
     void neural_net::forward_pass(const matrix_t& X) 
     {
-        assert(layers_.front().size == static_cast<size_t>(X.cols()));
+        assert(layers_.front().size == static_cast<int>(X.cols()));
         
         // copy and scale data matrix
         layers_[0].a.noalias() = (X.rowwise() - x_shift_.transpose())*x_scale_.asDiagonal();
@@ -127,7 +127,7 @@ namespace nnet
           (layers_[0]).da[i].col(i) = vector_t::Ones(X.rows());
         } 
         
-        for(size_t i = 1; i < layers_.size(); ++i)
+        for(int i = 1; i < layers_.size(); ++i)
         {
             // compute input for current layer
             layers_[i].z.noalias() = layers_[i-1].a * layers_[i].W.transpose();
@@ -155,8 +155,8 @@ namespace nnet
 
     f_type neural_net::loss(const matrix_t& X, const matrix_t& Y)
     {
-        assert(layers_.front().size == static_cast<size_t>(X.cols()));
-        assert(layers_.back().size == static_cast<size_t>(Y.cols()));
+        assert(layers_.front().size == static_cast<int>(X.cols()));
+        assert(layers_.back().size == static_cast<int>(Y.cols()));
         assert(X.rows() == Y.rows());
         
         // number of samples and output dim.
@@ -184,10 +184,10 @@ namespace nnet
             mse += error.segment(k*S, S).transpose().rowwise().squaredNorm().mean()/S;
             
             // Number of layers. 
-            size_t m = layers_.size();
+            int m = layers_.size();
 
             // Compute sensitivities. 
-            size_t j = nparam_;
+            int j = nparam_;
             layers_[m-1].delta = y_scale_.asDiagonal().inverse();
             
             // Pack Jacobian.
@@ -202,7 +202,7 @@ namespace nnet
             j -= layers_[m-1].b.size();
             j_.block(S*k, j, S, layers_[m-1].b.size()) = layers_[m-1].delta;
 
-            for(size_t i = layers_.size() - 2; i > 0; --i)
+            for(int i = layers_.size() - 2; i > 0; --i)
             {
                 layers_[i].delta.noalias() = activation_gradient(layers_[i].a).asDiagonal()*\
                                              layers_[i+1].W.transpose()*layers_[i+1].delta;
@@ -276,7 +276,7 @@ namespace nnet
           int m = layers_.size();
 
           // Compute sensitivities. 
-          size_t j = nparam_;
+          int j = nparam_;
 
           layers_[m-1].delta = y_scale_.asDiagonal().inverse();
           for(int l = 0; l < X.cols(); ++l)
@@ -289,7 +289,7 @@ namespace nnet
           // Pack Jacobian.
           j -= layers_[m-1].W.size();
 
-          for(size_t p = 0; p < S; ++p)
+          for(int p = 0; p < S; ++p)
           {
             layers_[m-1].dEdW = (layers_[m-1].delta.col(p)*layers_[m-2].a);
             j_.block(P*k+p, j, 1, layers_[m-1].W.size()) =\
@@ -297,9 +297,7 @@ namespace nnet
 
             for(int l = 0; l < X.cols(); ++l)
             {
-              //Kept the commented out term for symmetry, but it doesn't appear in a linear layer.
               layers_[m-1].dEdW = layers_[m-1].delta3[l].col(p)*layers_[m-2].da[l];
-              //+ layers_[m-1].delta2[l].col(p)*layers_[m-2].a;
               j_.block(k*P+(l+1)*S+p, j, 1, layers_[m-1].W.size()) =\
                    Map<vector_t>(layers_[m-1].dEdW.data(), layers_[m-1].dEdW.size()).transpose();
             }
@@ -378,7 +376,7 @@ namespace nnet
         beta = beta <= 0 ? 1. : beta;
         f_type alpha = 0.5*gamma/wse;
         f_type tse = beta*mse + alpha*wse;
-        f_type grad = 2.*je.norm();
+        f_type grad = 2.*je_.norm();
         matrix_t eye = matrix_t::Identity(nparam_, nparam_);
         
         // Define iteration tol parameters.
@@ -537,7 +535,7 @@ namespace nnet
     matrix_t neural_net::get_gradient(int index)
     {
         layers_.back().delta = matrix_t::Identity(layers_.back().size, layers_.back().size)*y_scale_.asDiagonal().inverse();
-        for(size_t i = layers_.size() - 2; i > 0; --i)
+        for(int i = layers_.size() - 2; i > 0; --i)
         {
             matrix_t g = activation_gradient(layers_[i].a);
             layers_[i].delta = (layers_[i+1].delta*layers_[i+1].W)*g.row(index).asDiagonal();
@@ -572,7 +570,7 @@ namespace nnet
     void neural_net::set_wb(const vector_t& wb)
     {
         int k = 0;
-        for(size_t i = 1; i < layers_.size(); ++i)
+        for(int i = 1; i < layers_.size(); ++i)
         {
             auto& layer = layers_[i];
             for(int j = 0; j < layer.b.size(); ++j)
@@ -593,7 +591,7 @@ namespace nnet
     {
         int k = 0;
         vector_t wb(nparam_);
-        for(size_t i = 1; i < layers_.size(); ++i)
+        for(int i = 1; i < layers_.size(); ++i)
         {
             auto& layer = layers_[i];
             for(int j = 0; j < layer.b.size(); ++j)
@@ -614,8 +612,8 @@ namespace nnet
 
     void neural_net::autoscale(const matrix_t& X, const matrix_t& Y) 
     {
-        assert(layers_.front().size == static_cast<size_t>(X.cols()));
-        assert(layers_.back().size == static_cast<size_t>(Y.cols()));
+        assert(layers_.front().size == static_cast<int>(X.cols()));
+        assert(layers_.back().size == static_cast<int>(Y.cols()));
         assert(X.rows() == Y.rows());
         
         x_shift_ = 0.5*(X.colwise().minCoeff().array() + X.colwise().maxCoeff().array());
@@ -627,8 +625,8 @@ namespace nnet
 
     void neural_net::autoscale_w_grad(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t> & Z)
     {
-        assert(layers_.front().size == static_cast<size_t>(X.cols()));
-        assert(layers_.back().size == static_cast<size_t>(Y.cols()));
+        assert(layers_.front().size == static_cast<int>(X.cols()));
+        assert(layers_.back().size == static_cast<int>(Y.cols()));
         assert(X.rows() == Y.rows());
         
         x_shift_ = 0.5*(X.colwise().minCoeff().array() + X.colwise().maxCoeff().array());
@@ -667,7 +665,7 @@ namespace nnet
             file << static_cast<int>(layers_.size()) << std::endl;
 
             // topology
-            for(size_t i = 0; i < layers_.size() - 1; ++i)
+            for(int i = 0; i < layers_.size() - 1; ++i)
                 file << static_cast<int>(layers_[i].size) << " ";
             file << static_cast<int>(layers_.back().size) << std::endl;
 
@@ -684,7 +682,7 @@ namespace nnet
             file << y_shift_[y_shift_.size()-1] << std::endl;
 
             // weights
-            for(size_t i = 1; i < layers_.size(); ++i)
+            for(int i = 1; i < layers_.size(); ++i)
             {
                 auto& layer = layers_[i];
                 for(int j = 0; j < layer.b.size(); ++j) file << layer.b(j) << std::endl;

@@ -189,7 +189,7 @@ namespace SSAGES
 		}
 		// Scale initial bias by 1/2*kT and make them positive.
 		else
-				bias_.array() = abs(bias_.array())*kbt_*0.5; 
+			bias_.array() = abs(bias_.array())*kbt_*0.5; 
 	 }
 
 	//! Post-integration hook.
@@ -289,23 +289,23 @@ namespace SSAGES
 			// not called if restart is enabled
 			if (restart_from_cff_ || restart_from_abf_)
 			{
-					net_.forward_pass(vec);
-					net2_.forward_pass(vec);
-					derivatives = net_.get_gradient(0)*ratio_ + net2_.get_gradient(0)*(1.0-ratio_);
+				net_.forward_pass(vec);
+				net2_.forward_pass(vec);
+				derivatives = net_.get_gradient(0)*ratio_ + net2_.get_gradient(0)*(1.0-ratio_);
 			}
 			else
 			{
-					if(snapshot->GetIteration() < nsweep_)
-					{
-						for(int i = 0; i < dim_; ++i)
-							derivatives[i] = (F_[i]->at(val)/std::max((double(hgrid_->at(val))),double(min_)));
+				if(snapshot->GetIteration() < nsweep_)
+				{
+					for(int i = 0; i < dim_; ++i)
+						derivatives[i] = (F_[i]->at(val)/std::max((double(hgrid_->at(val))),double(min_)));
 					}
 					else 
 					{
-							net_.forward_pass(vec);
-							net2_.forward_pass(vec);
-							derivatives = net_.get_gradient(0)*ratio_ + net2_.get_gradient(0)*(1.0-ratio_);
-					}
+						net_.forward_pass(vec);
+						net2_.forward_pass(vec);
+						derivatives = net_.get_gradient(0)*ratio_ + net2_.get_gradient(0)*(1.0-ratio_);
+				}
 			}
 
 		}
@@ -403,11 +403,11 @@ namespace SSAGES
 		// Calculate unbiased histrogram from previous unbiased histogram plus estimates from bias energy. 
 		if ( restart_from_abf_ )
 		{
-				if (sweep_>1)
-					uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_;
+			if (sweep_>1)
+				uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_;
 		}
 		else 
-				uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_;
+			uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_;
 
 		// Synchronize unbiased histogram and clear global histogram holder.
 		ugrid_->syncGrid();
@@ -424,7 +424,7 @@ namespace SSAGES
 
 		if (ratio_ > 0.6)
 		{
-				net2_.init_weights();
+			net2_.init_weights();
 		}
 
 		// Train network.
@@ -503,9 +503,9 @@ namespace SSAGES
 
 		// Output training time information
 		double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-				std::ofstream file1("traintime.out",std::ofstream::app);
-				file1 << duration << std::endl;
-				file1.close();
+		std::ofstream file1("traintime.out",std::ofstream::app);
+		file1 << duration << std::endl;
+		file1.close();
 
 	}
 	
