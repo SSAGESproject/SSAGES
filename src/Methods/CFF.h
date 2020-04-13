@@ -47,8 +47,8 @@ namespace SSAGES
 
 		//! Neural network trained using visit frequency
 		nnet::neural_net net_; 
-
-    //! Neural network trained on both visit frequency and force
+        
+        //! Neural network trained on both visit frequency and force
 		nnet::neural_net net2_;
 
 		//! Timestep.
@@ -63,17 +63,17 @@ namespace SSAGES
 		//! Generalized force grid that stores total of the local walker.
 		std::vector<Grid<double>*> F_;
 
-    //! Generalized force grid that stors the global total.
+        //! Generalized force grid that stors the global total.
 		std::vector<Grid<double>*> Fworld_;
 	
 		//! To hold the last iterations F_ value for removing bias.
 		Eigen::VectorXd Fold_;
    
-    //! To hold last iteration wdotp value for numerical derivative.
-    Eigen::VectorXd wdotp1_; 
-    
-    //! To hold second to last iteration wdotp value for numerical derivative.
-    Eigen::VectorXd wdotp2_;
+        //! To hold last iteration wdotp value for numerical derivative.
+        Eigen::VectorXd wdotp1_; 
+
+        //! To hold second to last iteration wdotp value for numerical derivative.
+        Eigen::VectorXd wdotp2_;
 
 		//! Force grid. 
 		Grid<Eigen::VectorXd>* fgrid_;
@@ -117,18 +117,18 @@ namespace SSAGES
 		//! Unit conversion from mass*velocity/time to force.
 		double unitconv_;
 
-    //! The minimum number of hits required before full biasing, bias is
-    //! F_[i]/max(N_[i],min_).
-    int min_;
+        //! The minimum number of hits required before full biasing, bias is
+        //! F_[i]/max(N_[i],min_).
+        int min_;
 
-    //! To hold booleans for training neural nerwork only in specific region for net2_.
-    Eigen::MatrixXd force_to_val_ratio_;
+        //! To hold booleans for training neural nerwork only in specific region for net2_.
+        Eigen::MatrixXd force_to_val_ratio_;
 
-    //! Restart from CFF.
-    bool restart_from_cff_;
+        //! Restart from CFF.
+        bool restart_from_cff_;
 
-    //! restart from ABF.
-    bool restart_from_abf_;
+        //! restart from ABF.
+        bool restart_from_abf_;
 
 	public: 
 		//! Constructor 
@@ -147,8 +147,8 @@ namespace SSAGES
 		 * \param weight Relative weight of the statistics in sweep.
 		 * \param nsweep Number of iterations in the sweep.
 		 * \param min Minimum number of hits required for the full force biasing
-     * \param restart_from_cff Restart flag starting from previous CFF runs
-     * \param restart_from_abf Restart flag starting from previous ABF runs
+         * \param restart_from_cff Restart flag starting from previous CFF runs
+         * \param restart_from_abf Restart flag starting from previous ABF runs
 		 *
 		 * Constructs an instance of Combined Force Frequency method.
 		 */ 
@@ -158,20 +158,20 @@ namespace SSAGES
 		    Grid<Eigen::VectorXd>* fgrid,
 		    Grid<unsigned int>* hgrid,
 		    Grid<double>* ugrid,
-			  std::vector<Grid<double>*> F, std::vector<Grid<double>*> Fworld,
+			std::vector<Grid<double>*> F, std::vector<Grid<double>*> Fworld,
 		    const std::vector<double>& lowerb,
 		    const std::vector<double>& upperb,
 		    const std::vector<double>& lowerk,
 		    const std::vector<double>& upperk,
 		    double temperature,
-			  double unitconv,
-			  double timestep,
+			double unitconv,
+			double timestep,
 		    double weight,
 		    unsigned int nsweep,
-        int min,
-        bool restart_from_cff,
-        bool restart_from_abf
-		);
+            int min,
+            bool restart_from_cff,
+            bool restart_from_abf
+		    );
 
 		//! Pre-simulation hook.
 		/*!
@@ -261,7 +261,7 @@ namespace SSAGES
 			const MPI_Comm& comm,
 			const std::string& path);
 		
-    //! Destructor.
+        //! Destructor.
 		~CFF()
 		{
 			delete fgrid_; 
