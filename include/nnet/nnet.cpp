@@ -124,7 +124,7 @@ namespace nnet
         for (int i = 0; i < layers_.front().size; ++i)
         {
           (layers_[0]).da[i].noalias() = matrix_t::Zero(X.rows(),X.cols());
-          (layers_[0]).da[i].col(i) = vector_t::LinSpaced(X.rows(),1,1);
+          (layers_[0]).da[i].col(i) = vector_t::Ones(X.rows());
         } 
         
         for(size_t i = 1; i < layers_.size(); ++i)
@@ -236,9 +236,9 @@ namespace nnet
         assert(X.rows() == Y.rows());
 
         // number of samples and output dim. 
-        size_t Q = Y.rows();
-        size_t S = Y.cols();
-        size_t P = (X.cols()+1)*S;
+        int Q = Y.rows();
+        int S = Y.cols();
+        int P = (X.cols()+1)*S;
         f_type Pd = (X.cols()*(1.0-tparams_.ratio)+1*tparams_.ratio)*S;
         
         // Resize jacobian and define error. 
@@ -250,7 +250,7 @@ namespace nnet
         f_type mse = 0.;
 
         // Loop over samples.
-        for(size_t k = 0; k < Q; ++k)
+        for(int k = 0; k < Q; ++k)
         {
           // forward pass
           forward_pass(X.row(k));
@@ -260,7 +260,7 @@ namespace nnet
               (Y.row(k).transpose() - y_shift_))*(1.0-B(k,0));
 
           // compute error on derivative
-          for(size_t l = 0; l < X.cols(); ++l)
+          for(int l = 0; l < X.cols(); ++l)
           {
              error.segment(k*P+(l+1)*S, S) = (((layers_.back().da[l]*y_scale_.asDiagonal().inverse())*x_scale_.row(l) -\
                    Z[l].row(k)).transpose())*(1.0-B(k,0));
@@ -269,17 +269,17 @@ namespace nnet
           // Compute loss. 
           mse += error.segment(k*P, S).transpose().rowwise().squaredNorm().mean()/S;
 
-          for(size_t l = 0; l < X.cols(); ++l)
+          for(int l = 0; l < X.cols(); ++l)
             mse += error.segment(k*P+(l+1)*S, S).transpose().rowwise().squaredNorm().mean()/S;
 
           // Number of layers. 
-          size_t m = layers_.size();
+          int m = layers_.size();
 
           // Compute sensitivities. 
           size_t j = nparam_;
 
           layers_[m-1].delta = y_scale_.asDiagonal().inverse();
-          for(size_t l = 0; l < X.cols(); ++l)
+          for(int l = 0; l < X.cols(); ++l)
           {
             //Need to set correct value to this for correct backpropagation from the linear layer to the first nonlinear layer.
             (layers_[m-1].delta2[l]) = ((y_scale_.asDiagonal().inverse()*x_scale_.row(l)*(1.0-B(k,0))*0.0));
@@ -295,7 +295,7 @@ namespace nnet
             j_.block(P*k+p, j, 1, layers_[m-1].W.size()) =\
                Map<vector_t>(layers_[m-1].dEdW.data(), layers_[m-1].dEdW.size()).transpose();
 
-            for(size_t l = 0; l < X.cols(); ++l)
+            for(int l = 0; l < X.cols(); ++l)
             {
               //Kept the commented out term for symmetry, but it doesn't appear in a linear layer.
               layers_[m-1].dEdW = layers_[m-1].delta3[l].col(p)*layers_[m-2].da[l];
@@ -308,13 +308,13 @@ namespace nnet
           j -= layers_[m-1].b.size();
           j_.block(P*k, j, S, layers_[m-1].b.size()) = layers_[m-1].delta;
 
-          for(size_t l = 0; l < X.cols(); ++l)
+          for(int l = 0; l < X.cols(); ++l)
             j_.block(k*P+(l+1)*S, j, S, layers_[m-1].b.size()) = layers_[m-1].delta2[l].transpose()*0.0;
 
-           for(size_t i = layers_.size() - 2; i > 0; --i)
+           for(int i = layers_.size() - 2; i > 0; --i)
            {
               layers_[i].delta = activation_gradient(layers_[i].a).asDiagonal()*layers_[i+1].W.transpose()*layers_[i+1].delta;
-              for(size_t l = 0; l< X.cols(); ++l)
+              for(int l = 0; l< X.cols(); ++l)
               {
                 layers_[i].delta += \
                     activation_gradient(layers_[i].a).asDiagonal()*layers_[i+1].W.transpose()*layers_[i+1].delta2[l];
@@ -329,11 +329,11 @@ namespace nnet
 
               // Pack Jacobian.
               j -= layers_[i].W.size();
-              for(size_t p = 0; p < S; ++p)
+              for(int p = 0; p < S; ++p)
               {
                 layers_[i].dEdW = (layers_[i].delta.col(p)*layers_[i-1].a);
                 j_.block(P*k+p, j, 1, layers_[i].W.size()) = Map<vector_t>(layers_[i].dEdW.data(), layers_[i].dEdW.size()).transpose();
-                for(size_t l = 0; l< X.cols(); ++l)
+                for(int l = 0; l< X.cols(); ++l)
                 {
                    layers_[i].dEdW = layers_[i].delta3[l].col(p)*layers_[i-1].da[l] + layers_[i].delta2[l].col(p)*layers_[i-1].a;
                    j_.block(k*P+(l+1)*S+p, j, 1, layers_[i].W.size()) = \
@@ -343,7 +343,7 @@ namespace nnet
 
                j -= layers_[i].b.size();
                j_.block(P*k, j, S, layers_[i].b.size()) = layers_[i].delta.transpose();
-               for(size_t l = 0; l< X.cols(); ++l)
+               for(int l = 0; l< X.cols(); ++l)
                  j_.block(k*P+(l+1)*S, j, S, layers_[i].b.size()) = layers_[i].delta2[l].transpose();
 
            }
@@ -496,7 +496,7 @@ namespace nnet
             beta = mse == 0 ? 1. : 0.5*((f_type)nex - gamma)/mse;
 			      alpha = wse == 0 ? 1. : 0.5*gamma/wse;
             tse = beta*mse + alpha*wse;
-            grad = 2.*std::sqrt(je_.squaredNorm());
+            grad = 2.*je_.norm();
             
             if(tparams_.mu < tparams_.mu_max)
                 tparams_.mu /= tparams_.mu_scale;

@@ -40,10 +40,10 @@ namespace SSAGES
 		Eigen::VectorXi topol_;
 
 		//! Number of iterations per sweep. 
-		uint sweep_, nsweep_;
+		unsigned int sweep_, nsweep_;
 
 		//! Number of iterations after which we turn on full weight. 
-		uint citers_; 
+		unsigned int citers_; 
 
 		//! Neural network trained using visit frequency
 		nnet::neural_net net_; 
@@ -79,7 +79,7 @@ namespace SSAGES
 		Grid<Eigen::VectorXd>* fgrid_;
 
 		//! Histogram grid.
-		Grid<uint>* hgrid_;
+		Grid<unsigned int>* hgrid_;
 
 		//! Histogram grid for that sotres the number of global hits
 		Eigen::ArrayXi Nworld_;
@@ -156,7 +156,7 @@ namespace SSAGES
 		    const MPI_Comm& comm, 
 		    const Eigen::VectorXi& topol,
 		    Grid<Eigen::VectorXd>* fgrid,
-		    Grid<uint>* hgrid,
+		    Grid<unsigned int>* hgrid,
 		    Grid<double>* ugrid,
 			  std::vector<Grid<double>*> F, std::vector<Grid<double>*> Fworld,
 		    const std::vector<double>& lowerb,
@@ -167,7 +167,7 @@ namespace SSAGES
 			  double unitconv,
 			  double timestep,
 		    double weight,
-		    uint nsweep,
+		    unsigned int nsweep,
         int min,
         bool restart_from_cff,
         bool restart_from_abf
@@ -213,13 +213,13 @@ namespace SSAGES
 		}
 
 		//! Set number of iterations after which we turn on full weight. 
-		void SetConvergeIters(uint citers)
+		void SetConvergeIters(unsigned int citers)
 		{
 			citers_ = citers;
 		}
 
 		//! Set maximum number of training iterations per sweep.
-		void SetMaxIters(uint iters)
+		void SetMaxIters(unsigned int iters)
 		{
 			auto params = net_.get_train_params();
 			params.max_iter = iters;
