@@ -123,8 +123,8 @@ namespace nnet
         // input layer has const. 1st derivative
         for (int i = 0; i < layers_.front().size; ++i)
         {
-          (layers_[0]).da[i].noalias() = matrix_t::Zero(X.rows(),X.cols());
-          (layers_[0]).da[i].col(i) = vector_t::Ones(X.rows());
+            (layers_[0]).da[i].noalias() = matrix_t::Zero(X.rows(),X.cols());
+            (layers_[0]).da[i].col(i) = vector_t::Ones(X.rows());
         } 
         
         for(int i = 1; i < layers_.size(); ++i)
