@@ -14,14 +14,14 @@ namespace nnet
 
 	struct nn_layer 
 	{
-		int size;
+	    int size;
 		matrix_t a, z, delta;
-        	std::vector<matrix_t> delta2, delta3;
+        std::vector<matrix_t> delta2, delta3;
 		matrix_t W, dEdW, dEddW;
 		vector_t b;
 
-        	// add vector of matrix to hold d(node)/d(input)
-        	std::vector<matrix_t> da;
+    	// add vector of matrix to hold d(node)/d(input)
+    	std::vector<matrix_t> da;
 	};
 
 	struct train_param
@@ -45,7 +45,7 @@ namespace nnet
 		/** Holds the error gradient, jacobian, ... */ 
 		matrix_t j_, jj_;
 		vector_t je_;
-       		std::vector<matrix_t> jder_;
+       	std::vector<matrix_t> jder_;
 
 		/** Number of adjustable parameters. */
 		unsigned int nparam_;
@@ -73,16 +73,16 @@ namespace nnet
 		/** Compute NN loss w.r.t. input and output data.
 		* Also backpropogates error. 
 		*/
-        	// Loss function for frequency-based learning.
+        // Loss function for frequency-based learning.
 		f_type loss(const matrix_t& X, const matrix_t& Y);
-        	// Loss function for gradient-based learning.
-        	f_type loss_w_grad(const matrix_t& X, const matrix_t& Y,\
-        	const std::vector<matrix_t> &Z, const matrix_t& B); 
+        // Loss function for gradient-based learning.
+        f_type loss_w_grad(const matrix_t& X, const matrix_t& Y,\
+        const std::vector<matrix_t> &Z, const matrix_t& B); 
 
 		/** Train neural network. */ 
-        	// Training function for frequency-based learning
+        // Training function for frequency-based learning
 		double train(const matrix_t& X, const matrix_t& Y, bool verbose = false);
-        	// Training function for gradient-based learning
+        // Training function for gradient-based learning
 		double train_w_grad(const matrix_t& X, const matrix_t& Y,\
                 const std::vector<matrix_t> &Z, const matrix_t& B, bool verbose = false);
 		
@@ -95,8 +95,8 @@ namespace nnet
 		/** Return activation of output layer. */
 		matrix_t get_activation();
 		
-        	/** Get gradient of output(s) w.r.t. input i, calculated via forward pass */
-        	matrix_t get_gradient_forwardpass(int index);
+        /** Get gradient of output(s) w.r.t. input i, calculated via forward pass */
+        matrix_t get_gradient_forwardpass(int index);
 
 		/** Get gradient of output(s) w.r.t. input i */
 		matrix_t get_gradient(int index);
@@ -107,8 +107,8 @@ namespace nnet
 		/** Returns the gradient f'(x) of the logistic function given f(x). */
 		static matrix_t activation_gradient(const matrix_t& x);
 		
-       		/** Returns the second derivative f''(x) of the logistic function given f(x). */
-        	static matrix_t activation_secondgradient(const matrix_t& x);
+       	/** Returns the second derivative f''(x) of the logistic function given f(x). */
+        static matrix_t activation_secondgradient(const matrix_t& x);
 
 		/** Set weights and biases. */ 
 		void set_wb(const vector_t& wb);
@@ -117,10 +117,10 @@ namespace nnet
 		vector_t get_wb() const; 
 		
 		/** Compute autoscale parameters. */
-        	// For frequency-based learning
+        // For frequency-based learning
 		void autoscale(const matrix_t& X, const matrix_t& Y);
-        	// For gradient-based learning
-        	void autoscale_w_grad(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t> &Z);
+        // For gradient-based learning
+        void autoscale_w_grad(const matrix_t& X, const matrix_t& Y, const std::vector<matrix_t> &Z);
 
 		/** Reset autoscale parameters */
 		void autoscale_reset();
