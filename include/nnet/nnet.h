@@ -17,7 +17,7 @@ namespace nnet
 	    int size;
 		matrix_t a, z, delta;
         std::vector<matrix_t> delta2, delta3;
-		matrix_t W, dEdW, dEddW;
+		matrix_t W, dEdW;
 		vector_t b;
 
     	// add vector of matrix to hold d(node)/d(input)
