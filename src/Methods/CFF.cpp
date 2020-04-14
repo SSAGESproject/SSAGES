@@ -27,16 +27,15 @@
 #include "Validator/ObjectRequirement.h"
 #include <ctime>
 
-using namespace Eigen;
-using namespace nnet;
 using namespace Json;
-
+// Implementation of the Combined Force Frequency (CFF) method from
+// Ref: Sevgen et al. J. Chem. Theory Comput. 2020, 16, 3, 1448-1455.a
 namespace SSAGES
 {
 	CFF::CFF(const MPI_Comm& world, 
 			 const MPI_Comm& comm, 
-			 const VectorXi& topol,
-			 Grid<VectorXd>* fgrid,
+			 const Eigen::VectorXi& topol,
+			 Grid<Eigen::VectorXd>* fgrid,
 			 Grid<unsigned int>* hgrid,
 			 Grid<double>* ugrid,
 			 std::vector<Grid<double>*> F, std::vector<Grid<double>*> Fworld,
@@ -64,12 +63,12 @@ namespace SSAGES
 		hist_.resize(hgrid_->size(), hgrid_->GetDimension());
 
 		// Fill it up. 
-		size_t i = 0;
+		int i = 0;
 		for(auto it = hgrid_->begin(); it != hgrid_->end(); ++it)
 		{
 			auto& val = *it; 
 			auto coord = it.coordinates(); 
-			for(size_t j = 0; j < coord.size(); ++j)
+			for(int j = 0; j < coord.size(); ++j)
 				hist_(i, j) = coord[j]; 
 			++i;
 		}
@@ -99,17 +98,17 @@ namespace SSAGES
 		wdotp1_.setZero(dim_);
 		wdotp2_.setZero(dim_); 
 
-		auto ndim = hgrid_->GetDimension();
+		int ndim = hgrid_->GetDimension();
 		kbt_ = snapshot->GetKb()*temp_;
 		
 		// Zero out forces and histogram. 
-		VectorXd vec = VectorXd::Zero(ndim);
+        Eigen::VectorXd vec = Eigen::VectorXd::Zero(ndim);
 		std::fill(hgrid_->begin(), hgrid_->end(), 0);
 		std::fill(ugrid_->begin(), ugrid_->end(), 1.0);
 		std::fill(fgrid_->begin(), fgrid_->end(), vec);
 
 		// Initialize Nworld.
-		Map<Array<unsigned int, Dynamic, 1>> hist(hgrid_->data(), hgrid_->size());
+        Eigen::Map<Eigen::Array<unsigned int, Eigen::Dynamic, 1>> hist(hgrid_->data(), hgrid_->size());
 		Nworld_ = hist.cast<int>();
 
 		// Restart from the previous CFF data.
@@ -129,11 +128,11 @@ namespace SSAGES
 					std::cout << "Fail to load previous CFF simulation" << std::endl;
 				}
 				hgrid_->LoadFromFile("Nworld");
-				for(size_t i=0; i<dim_; ++i)
+				for(int i=0; i<dim_; ++i)
 					F_[i]->LoadFromFile("Fworld_cv"+std::to_string(i));
 			}
 
-			net_	= nnet::neural_net("netstate.dat");
+			net_  = nnet::neural_net("netstate.dat");
 			net2_ = nnet::neural_net("netstate2.dat");
 			ugrid_->LoadFromFile("ugrid");
 
@@ -169,7 +168,7 @@ namespace SSAGES
 					std::cout << "Fail to load previous ABF simulation" << std::endl;
 				}
 				hgrid_->LoadFromFile("Nworld");
-				for(size_t i=0; i<dim_; ++i)
+				for(int i=0; i<dim_; ++i)
 					F_[i]->LoadFromFile("Fworld_cv"+std::to_string(i));
 			}
 
@@ -227,10 +226,10 @@ namespace SSAGES
 		}
 
 		// Determine if we are in bounds.
-		RowVectorXd vec(dim_);
+        Eigen::RowVectorXd vec(dim_);
 		std::vector<double> val(dim_);
 		bool inbounds = true;
-		for(size_t i = 0; i < dim_; ++i)
+		for(int i = 0; i < dim_; ++i)
 		{
 			val[i] = cvs[i]->GetValue();
 			vec[i] = cvs[i]->GetValue();
@@ -238,14 +237,14 @@ namespace SSAGES
 				inbounds = false;
 		}
 
-		//! Eigen::MatrixXd to hold the CV gradient.
+		// Initialize matrix to hold the CV gradient.
 		Eigen::MatrixXd J(dim_, 3*n);		
 
 		// Fill J and CV. Each column represents grad(CV) with flattened Cartesian elements. 
 		for(int i = 0; i < dim_; ++i)
 		{
 			auto& grad = cvs[i]->GetGradient();
-			for(size_t j = 0; j < n; ++j)
+			for(int j = 0; j < n; ++j)
 				J.block<1, 3>(i,3*j) = grad[j];
 		}
 		
@@ -259,7 +258,7 @@ namespace SSAGES
 
 		// Fill momenta.
 		Eigen::VectorXd momenta(3*vels.size());
-		for(size_t i = 0; i < vels.size(); ++i)
+		for(int i = 0; i < vels.size(); ++i)
 			momenta.segment<3>(3*i) = mass[i]*vels[i];
 
 		// Compute dot(w,p)
@@ -271,14 +270,14 @@ namespace SSAGES
 		// Compute d(wdotp)/dt second order backwards finite difference. 
 		// Adding old force removes bias. 
 		Eigen::VectorXd dwdotpdt = unitconv_*(1.5*wdotp - 2.0*wdotp1_ + 0.5*wdotp2_)/timestep_ + Fold_;
-		VectorXd derivatives = VectorXd::Zero(dim_);
+        Eigen::VectorXd derivatives = Eigen::VectorXd::Zero(dim_);
 
 		// If we are in bounds, sum force and frequency into running total.
 		if (inbounds)
 		{
 			if(IsMasterRank(comm_))
 			{
-				for(size_t i=0; i<dim_; ++i)
+				for(int i=0; i<dim_; ++i)
 					F_[i]->at(val) += dwdotpdt[i];
 
 				hgrid_->at(val) += 1;
@@ -322,7 +321,7 @@ namespace SSAGES
 			}
 
 			// Apply harmonic restraints
-			for(size_t i = 0; i < dim_; ++i)
+			for(int i = 0; i < dim_; ++i)
 			{
 				auto cval = cvs[i]->GetValue();
 				if(cval < lowerb_[i])
@@ -333,14 +332,14 @@ namespace SSAGES
 		}
 
 
-		for(size_t i = 0; i < dim_; ++i)
+		for(int i = 0; i < dim_; ++i)
 		{
 			auto& grad = cvs[i]->GetGradient();
 			auto& boxgrad = cvs[i]->GetBoxGradient();
 			
 			// Update the forces in snapshot by adding in the force bias from each
 			// CV to each atom based on the gradient of the CV.
-			for (size_t j = 0; j < forces.size(); ++j)
+			for (int j = 0; j < forces.size(); ++j)
 				forces[j] -= derivatives[i]*grad[j];
 			
 			// Update virial.
@@ -376,12 +375,12 @@ namespace SSAGES
 		hgrid_->syncGrid();
 			
 		// Update visit frequencies. 
-		Map<Array<unsigned int, Dynamic, 1>> hist(hgrid_->data(), hgrid_->size());
+        Eigen::Map<Eigen::Array<unsigned int, Eigen::Dynamic, 1>> hist(hgrid_->data(), hgrid_->size());
 		Nworld_ += hist.cast<int>();
 
 		// Synchronize unbiased histogram.
 		ugrid_->syncGrid();
-		Map<Matrix<double, Dynamic, 1>> uhist(ugrid_->data(), ugrid_->size());
+        Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, 1>> uhist(ugrid_->data(), ugrid_->size());
 
 		// Braodcast uhist and bias_ to all processors so that neural network is the same for each walker.
 		mxx::bcast(uhist.data(), uhist.size(), 0, world_);
@@ -389,14 +388,14 @@ namespace SSAGES
 
 		// Update average biased forces across all walkers.
 		std::vector<Eigen::MatrixXd> Ftrain;
-		for(size_t i=0; i<dim_; ++i)
+		for(int i=0; i<dim_; ++i)
 		{
 			MPI_Allreduce(F_[i]->data(), Fworld_[i]->data(), (F_[i]->size()), MPI_DOUBLE, MPI_SUM, world_);
 			Fworld_[i]->syncGrid();
 			
 			// Damp forces used to train net2_ via minimum number of hits
-			Eigen::ArrayXd Nmin = ArrayXd::Ones(Fworld_[0]->size())*min_;  
-			Ftrain.push_back(Map<Array<double, Dynamic, 1>> (Fworld_[i]->data(),Fworld_[i]->size()) / 
+			Eigen::ArrayXd Nmin = Eigen::ArrayXd::Ones(Fworld_[0]->size())*min_;  
+			Ftrain.push_back(Eigen::Map<Eigen::Array<double, Eigen::Dynamic, 1>> (Fworld_[i]->data(),Fworld_[i]->size()) / 
 				( (Nworld_.cast<double>()).max(Nmin) ) );
 		}
 
@@ -451,11 +450,11 @@ namespace SSAGES
 		}
 
 		// Send optimal neural net params to all procs.
-		vector_t wb = net_.get_wb();
+        nnet::vector_t wb = net_.get_wb();
 		mxx::bcast(wb.data(), wb.size(), 0, world_);
 		net_.set_wb(wb);
 
-		vector_t wb2 = net2_.get_wb();
+        nnet::vector_t wb2 = net2_.get_wb();
 		mxx::bcast(wb2.data(), wb2.size(), 0, world_);
 		net2_.set_wb(wb2);
 								
@@ -471,7 +470,7 @@ namespace SSAGES
 		if(IsMasterRank(world_))
         {
 			int gridPoints = 1;
-			for(size_t i = 0 ; i < dim_; ++i)
+			for(int i = 0 ; i < dim_; ++i)
 				gridPoints = gridPoints * hgrid_->GetNumPoints(i);
 
 			std::string filename;
@@ -482,17 +481,17 @@ namespace SSAGES
 			file << "Printing out the current Biasing Vector Field from CFF." << std::endl;
 			file << "First (Nr of CVs) columns are the coordinates, the next (Nr of CVs) columns are components of the Adaptive For		 ce vector at that point." << std::endl;
 			file << "The columns are " << gridPoints << " long, mapping out a surface of ";
-			for (size_t i = 0 ; i < dim_-1; ++i)
+			for (int i = 0 ; i < dim_-1; ++i)
 				file << (hgrid_->GetNumPoints())[i] << " by " ;
 			file << (hgrid_->GetNumPoints(dim_-1)) << " points in " << dim_ << " dimensions." << std::endl;
 			file << std::endl;
 
-			for(size_t j=0; j < (Ftrain[0].array()).size();++j)
+			for(int j=0; j < (Ftrain[0].array()).size();++j)
 			{
                 file << std::setw(14) << std::setprecision(8) << std::fixed << hist_.row(j);
-			    for(size_t i = 0 ; i < dim_; ++i){
-			   	    matrix_t x = Ftrain[i].array();
-			   	    file << std::setw(14) << std::setprecision(8) << std::fixed << x(j)		 << " ";
+			    for(int i = 0 ; i < dim_; ++i){
+                    nnet::matrix_t x = Ftrain[i].array();
+			   	    file << std::setw(14) << std::setprecision(8) << std::fixed << x(j) << " ";
 			    }
 			    file << std::endl;
 			}
@@ -521,7 +520,7 @@ namespace SSAGES
 
 
 		// Backup Fworld
-		for(size_t i = 0 ; i < dim_; ++i)
+		for(int i = 0 ; i < dim_; ++i)
 		{
 			Fworld_[i]->syncGrid();
 			filename = overwrite_ ? "Fworld_cv"+std::to_string(i) : "Fworld_cv"+std::to_string(i)+"_"+std::to_string(sweep_);
@@ -544,11 +543,10 @@ namespace SSAGES
 		file.precision(8);
 		net_.forward_pass(hist_);
 		net2_.forward_pass(hist_);
-		matrix_t x = net_.get_activation().array();
-		matrix_t y = net2_.get_activation().array();
-		//matrix_t z = net_.get_activation().array()*ratio_ + net2_.get_activation().array()*(1.0-ratio_);
-		matrix_t q = bias_;
-		matrix_t m = -q;
+        nnet::matrix_t x = net_.get_activation().array();
+        nnet::matrix_t y = net2_.get_activation().array();
+        nnet::matrix_t q = bias_;
+        nnet::matrix_t m = -q;
 		m.array() -= m.minCoeff();
 
 		file << std::endl;
@@ -621,7 +619,7 @@ namespace SSAGES
 		
 		// Grid. 
         auto jsongrid = json.get("grid", Json::Value());
-		auto* fgrid = Grid<VectorXd>::BuildGrid(jsongrid);
+		auto* fgrid = Grid<Vector>::BuildGrid(jsongrid);
 		auto* hgrid = Grid<unsigned int>::BuildGrid(jsongrid);
 		auto* ugrid = Grid<double>::BuildGrid(jsongrid);
 		auto* Nworld = Grid<unsigned int>::BuildGrid(jsongrid);
@@ -634,7 +632,7 @@ namespace SSAGES
 	
 		// Topology. 
 		auto nlayers = json["topology"].size() + 2;
-		VectorXi topol(nlayers);
+        Eigen::VectorXi topol(nlayers);
 		topol[0] = fgrid->GetDimension();
 		topol[nlayers-1] = 1;
 		for(int i = 0; i < json["topology"].size(); ++i)

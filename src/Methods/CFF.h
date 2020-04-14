@@ -63,17 +63,17 @@ namespace SSAGES
 		//! Generalized force grid that stores total of the local walker.
 		std::vector<Grid<double>*> F_;
 
-       		//! Generalized force grid that stors the global total.
+       	//! Generalized force grid that stors the global total.
 		std::vector<Grid<double>*> Fworld_;
 	
 		//! To hold the last iterations F_ value for removing bias.
 		Eigen::VectorXd Fold_;
    
-       		//! To hold last iteration wdotp value for numerical derivative.
-        	Eigen::VectorXd wdotp1_; 
+       	//! To hold last iteration wdotp value for numerical derivative.
+        Eigen::VectorXd wdotp1_; 
 
-        	//! To hold second to last iteration wdotp value for numerical derivative.
-        	Eigen::VectorXd wdotp2_;
+        //! To hold second to last iteration wdotp value for numerical derivative.
+        Eigen::VectorXd wdotp2_;
 
 		//! Force grid. 
 		Grid<Eigen::VectorXd>* fgrid_;
@@ -117,18 +117,18 @@ namespace SSAGES
 		//! Unit conversion from mass*velocity/time to force.
 		double unitconv_;
 
-        	//! The minimum number of hits required before full biasing, bias is
-        	//! F_[i]/max(N_[i],min_).
-        	int min_;
+        //! The minimum number of hits required before full biasing, bias is
+        //! F_[i]/max(N_[i],min_).
+        int min_;
 
-        	//! To hold booleans for training neural nerwork only in specific region for net2_.
-        	Eigen::MatrixXd force_to_val_ratio_;
+        //! To hold booleans for training neural nerwork only in specific region for net2_.
+        Eigen::MatrixXd force_to_val_ratio_;
 
-        	//! Restart from CFF.
-        	bool restart_from_cff_;
+        //! Restart from CFF.
+        bool restart_from_cff_;
 
-        	//! restart from ABF.
-        	bool restart_from_abf_;
+        //! Restart from ABF.
+        bool restart_from_abf_;
 
 	public: 
 		//! Constructor 
