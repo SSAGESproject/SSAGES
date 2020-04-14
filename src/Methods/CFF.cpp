@@ -619,7 +619,7 @@ namespace SSAGES
 		
 		// Grid. 
         auto jsongrid = json.get("grid", Json::Value());
-		auto* fgrid = Grid<Vector>::BuildGrid(jsongrid);
+		auto* fgrid = Grid<Eigen::VectorXd>::BuildGrid(jsongrid);
 		auto* hgrid = Grid<unsigned int>::BuildGrid(jsongrid);
 		auto* ugrid = Grid<double>::BuildGrid(jsongrid);
 		auto* Nworld = Grid<unsigned int>::BuildGrid(jsongrid);
