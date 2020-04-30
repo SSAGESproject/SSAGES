@@ -1,17 +1,10 @@
-#include "gtest/gtest.h"
-#include <mxx/env.hpp>
-#include <mxx/comm.hpp>
-#include "Snapshot.h"
-#define private public
-#define protected public
+#include "Tests.h"
+
 #include "CVs/CVManager.h"
 #include "Methods/BasisFunc.h"
 #include "CVs/MockCV.h"
 
 using namespace SSAGES;
-
-// Test calculation up to accuracy of 10^-6
-const double eps = 0.000001;
 
 class BasisFuncTest : public ::testing::Test {
 protected:
@@ -223,13 +216,3 @@ TEST_F(BasisFuncTest,OutBounds)
 		EXPECT_TRUE(Method->h_->at(it.coordinates()) == 0);
 	}
 }
-
-
-int main(int argc, char *argv[])
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    mxx::env env(argc,argv);
-    int ret = RUN_ALL_TESTS();
-    return ret;
-}
-

@@ -1,9 +1,4 @@
-#include "gtest/gtest.h"
-#include <mxx/env.hpp>
-#include <mxx/comm.hpp>
-
-#define private public
-#define protected public 
+#include "Tests.h"
 
 #include "Methods/FiniteTempString.h"
 #include "Methods/Swarm.h"
@@ -11,8 +6,6 @@
 
 using namespace SSAGES;
 
-// Test calculation up to accuracy of 10^-5
-const double eps = 0.00001;
 const double sq_dist_eps = 0.001; //Is this too big?  We might not actually get accurate enough results out of square dist
 class StringMethodTest : public ::testing::Test
 {
@@ -188,15 +181,3 @@ TEST_F(StringMethodTest,dummytest)
 
     std::cout.clear();
 }
-
-int main(int argc, char *argv[])
-{
-    int result = 0;
-    ::testing::InitGoogleTest(&argc, argv);
-	MPI_Init(&argc, &argv);
-    result = RUN_ALL_TESTS();
-    MPI_Finalize();
-
-    return result;
-}
-

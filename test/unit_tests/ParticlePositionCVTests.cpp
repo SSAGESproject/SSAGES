@@ -1,13 +1,8 @@
-#include "../src/CVs/ParticlePositionCV.h"
-#include "../src/Snapshot.h"
-#include "gtest/gtest.h"
-#include <mxx/env.hpp>
-#include <mxx/comm.hpp>
+#include "Tests.h"
+
+#include "CVs/ParticlePositionCV.h"
 
 using namespace SSAGES;
-
-// Test calculation up to accuracy of 10^-10
-const double eps = 0.0000000001;
 
 class ParticlePositionCVTest : public ::testing::Test {
 
@@ -269,12 +264,4 @@ TEST_F(ParticlePositionCVTest, DifferenceTest) {
 
 TEST_F(ParticlePositionCVTest, SerializeTest) {
     // Implement Serialize Function first
-}
-
-int main(int argc, char *argv[])
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    mxx::env env(argc,argv);
-    int ret = RUN_ALL_TESTS();
-    return ret;
 }

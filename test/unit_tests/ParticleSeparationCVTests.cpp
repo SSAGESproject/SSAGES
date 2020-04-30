@@ -1,15 +1,10 @@
-#include "../src/CVs/ParticleSeparationCV.h"
-#include "../src/Snapshot.h"
+#include "Tests.h"
+
+#include "CVs/ParticleSeparationCV.h"
 #include <iostream>
 #include <fstream>
-#include "gtest/gtest.h"
-#include <mxx/env.hpp>
-#include <mxx/comm.hpp>
 
 using namespace SSAGES;
-
-// Test up to accuracy of 10^-10
-const double eps = 1e-10;
 
 class ParticleSeparationCVTests : public ::testing::Test {
 protected:
@@ -104,12 +99,4 @@ TEST_F(ParticleSeparationCVTests, compareCOMDistXY)
     COMDistXY->Evaluate(*snapshot1);
 
     EXPECT_NEAR(COMDistXY->GetValue(), 4.884669896727925, eps);
-}
-
-int main(int argc, char *argv[])
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    mxx::env env(argc,argv);
-    int ret = RUN_ALL_TESTS();
-    return ret;
 }

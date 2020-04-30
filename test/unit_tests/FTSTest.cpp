@@ -1,10 +1,4 @@
-#include "gtest/gtest.h"
-#include <mxx/env.hpp>
-#include <mxx/comm.hpp>
-#include "Snapshot.h"
-
-#define private public
-#define protected public 
+#include "Tests.h"
 
 #include "CVs/CVManager.h"
 #include "Methods/FiniteTempString.h"
@@ -125,19 +119,3 @@ TEST_F(FTSTest,dummytest)
     
 	std::cout.clear();
 }
-
-int main(int argc, char *argv[])
-{
-    int result = 0;
-    ::testing::InitGoogleTest(&argc, argv);
-    MPI_Init(&argc, &argv);
-    result = RUN_ALL_TESTS();
-    MPI_Finalize();
-
-    return result;
-}
-
-
-
-
-

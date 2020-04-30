@@ -1,16 +1,8 @@
-#include "../src/CVs/AngleCV.h"
-#include "../src/Snapshot.h"
-#include "gtest/gtest.h"
-#include <mxx/env.hpp>
-#include <mxx/comm.hpp>
+#include "Tests.h"
+
+#include "CVs/AngleCV.h"
 
 using namespace SSAGES;
-
-// Test up to accuracy of 10^-10
-const double eps = 1e-10;
-
-// 90 degree angle
-const double piOver2 = 0.5*M_PI;
 
 class AngleCVTest : public ::testing::Test {
 protected:
@@ -100,13 +92,4 @@ TEST_F(AngleCVTest, DefaultBehavior)
     EXPECT_NEAR(angletest2->GetValue(), 2.356, 0.01);
     EXPECT_NEAR(angletest3->GetValue(), 0.785398, 0.01);
     EXPECT_NEAR(angletest4->GetValue(), 3.14159, 0.01);
-}
-
-
-int main(int argc, char *argv[])
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    mxx::env env(argc,argv);
-    int ret = RUN_ALL_TESTS();
-    return ret;
 }

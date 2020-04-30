@@ -1,19 +1,9 @@
-#include "gtest/gtest.h"
-#include <mxx/env.hpp>
-#include <mxx/comm.hpp>
-
-#include "Snapshot.h"
-
-#define private public
-#define protected public 
+#include "Tests.h"
 
 #include "Methods/Swarm.h"
 #include "CVs/MockCV.h"
 
 using namespace SSAGES;
-
-// Test calculation up to accuracy of 10^-5
-const double eps = 0.00001;
 
 class SwarmTest : public ::testing::Test 
 {
@@ -139,19 +129,3 @@ TEST_F(SwarmTest,dummytest)
 
     std::cout.clear();
 }
-
-int main(int argc, char *argv[])
-{
-    int result = 0;
-    ::testing::InitGoogleTest(&argc, argv);
-    MPI_Init(&argc, &argv);
-    result = RUN_ALL_TESTS();
-    MPI_Finalize();
-
-    return result;
-}
-
-
-
-
-

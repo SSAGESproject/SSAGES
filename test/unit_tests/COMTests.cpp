@@ -1,12 +1,6 @@
-#include "../src/Snapshot.h"
-#include "gtest/gtest.h"
-#include <mxx/env.hpp>
-#include <mxx/comm.hpp>
+#include "Tests.h"
 
 using namespace SSAGES;
-
-// Test up to accuracy of 10^-10
-constexpr double eps = 1e-10;
 
 class COMTest : public ::testing::Test
 {
@@ -101,13 +95,4 @@ TEST_F(COMTest, MassCOMTest)
 	EXPECT_NEAR(com[0], 9.0, eps);
 	EXPECT_NEAR(com[1], 9.0, eps);
 	EXPECT_NEAR(com[2], 9.0, eps);
-}
-
-int main(int argc, char *argv[])
-{
-	::testing::InitGoogleTest(&argc, argv);
-	mxx::env env(argc, argv);
-	int ret = RUN_ALL_TESTS();
-
-	return ret;
 }

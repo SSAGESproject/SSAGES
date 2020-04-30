@@ -1,19 +1,11 @@
-#include "gtest/gtest.h"
-#include <mxx/env.hpp>
-#include <mxx/comm.hpp>
+#include "Tests.h"
 
-#define private public
-#define protected public
 #include "CVs/CVManager.h"
-#include "Snapshot.h"
 #include "Methods/ForwardFlux.h"
 #include "Methods/DirectForwardFlux.h"
 #include "CVs/MockCV.h"
 
 using namespace SSAGES;
-
-// Test calculation up to accuracy of 10^-10
-const double eps = 0.0000000001;
 
 class ForwardFluxTest : public ::testing::Test 
 {
@@ -584,21 +576,3 @@ TEST_F(ForwardFluxTest,CheckForInterfaceCrossings)
  }
 
 }
-
-//--------------------------------------------------------------------
-
-
-
-int main(int argc, char *argv[])
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    mxx::env env(argc,argv);
-    int ret = RUN_ALL_TESTS();
-
-    return ret;
-}
-
-
-
-
-

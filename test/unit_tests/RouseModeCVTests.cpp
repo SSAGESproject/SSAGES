@@ -1,13 +1,8 @@
+#include "Tests.h"
+
 #include "CVs/RouseModeCV.h"
-#include "Snapshot.h"
-#include "gtest/gtest.h"
-#include <mxx/env.hpp>
-#include <mxx/comm.hpp>
 
-using namespace SSAGES; 
-
-// Test accuracy up to 1e-5. 
-constexpr double eps = 1e-5;
+using namespace SSAGES;
 
 class RouseModeCVTests : public ::testing::Test { 
 protected:
@@ -121,12 +116,4 @@ TEST_F(RouseModeCVTests, DefaultBehavior)
     EXPECT_NEAR(X1->GetGradient()[3][1],0.000 , eps);
     EXPECT_NEAR(X1->GetGradient()[3][2],0.000 , eps);
 
-}
-
-int main(int argc, char *argv[])
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    mxx::env env(argc,argv);
-    int ret = RUN_ALL_TESTS();
-    return ret;
 }

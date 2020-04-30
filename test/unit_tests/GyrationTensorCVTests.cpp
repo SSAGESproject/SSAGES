@@ -1,13 +1,8 @@
+#include "Tests.h"
+
 #include "CVs/GyrationTensorCV.h"
-#include "Snapshot.h"
-#include "gtest/gtest.h"
-#include <mxx/env.hpp>
-#include <mxx/comm.hpp>
 
 using namespace SSAGES; 
-
-// Test accuracy up to 1e-10. 
-constexpr double eps = 1e-10;
 
 class GyrationTensorCVTests : public ::testing::Test { 
 protected:
@@ -96,12 +91,4 @@ TEST_F(GyrationTensorCVTests, CompareRg)
     EXPECT_NEAR(cv_xy->GetGradient()[2][0], 0.2222222222, eps);
     EXPECT_NEAR(cv_xy->GetGradient()[2][1], 0.2222222222, eps);
     EXPECT_NEAR(cv_xy->GetGradient()[2][2], 0., eps);
-}
-
-int main(int argc, char *argv[])
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    mxx::env env(argc,argv);
-    int ret = RUN_ALL_TESTS();
-    return ret;
 }

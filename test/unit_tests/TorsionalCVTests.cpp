@@ -1,14 +1,8 @@
-#include "../src/CVs/TorsionalCV.h"
-#include "../src/Snapshot.h"
-#include "gtest/gtest.h"
-#include <mxx/env.hpp>
-#include <mxx/comm.hpp>
+#include "Tests.h"
+
+#include "CVs/TorsionalCV.h"
 
 using namespace SSAGES;
-
-
-// 90 degree angle
-const double piOver2 = 0.5*M_PI;
 
 class TorsionalCVTest : public ::testing::Test {
 protected:
@@ -122,12 +116,4 @@ TEST_F(TorsionalCVTest, DefaultBehavior)
 	EXPECT_NEAR(tortest->GetValue(), 3.14159, 0.01);
 	EXPECT_NEAR(tortest2->GetValue(), -1.570796, 0.01);
 	EXPECT_NEAR(tortest3->GetValue(), 0, 0.01);
-}
-
-int main(int argc, char *argv[])
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    mxx::env env(argc,argv);
-    int ret = RUN_ALL_TESTS();
-    return ret;
 }

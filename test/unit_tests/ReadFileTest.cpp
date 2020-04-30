@@ -1,12 +1,10 @@
+#include "Tests.h"
+
 #include <iostream>
 #include <fstream>
-#include "gtest/gtest.h"
-#include "../src/Utility/ReadFile.h"
+#include "Utility/ReadFile.h"
 
 using namespace SSAGES;
-
-// Test up to accuracy of 10^-10
-const double eps = 1e-10;
 
 class ReadFileTest : public ::testing::Test {
 protected:
@@ -96,11 +94,4 @@ TEST_F(ReadFileTest, ReadXYZ)
     EXPECT_THROW(reader->ReadXYZ(filexyz3), std::runtime_error);
     EXPECT_THROW(reader->ReadXYZ(filexyz4), std::runtime_error);
     EXPECT_THROW(reader->ReadXYZ(filexyz5), std::runtime_error);
-}
-
-int main(int argc, char *argv[])
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    int ret = RUN_ALL_TESTS();
-    return ret;
 }

@@ -1,13 +1,8 @@
-#include "../src/CVs/PairwiseCV.h"
-#include "../src/Snapshot.h"
-#include "gtest/gtest.h"
-#include <mxx/env.hpp>
-#include <mxx/comm.hpp>
+#include "Tests.h"
+
+#include "CVs/PairwiseCV.h"
 
 using namespace SSAGES;
-
-// Test up to accuracy of 10^-10
-constexpr double eps = 1e-10;
 
 class PairwiseCVTest : public ::testing::Test{
 protected:
@@ -254,12 +249,4 @@ TEST_F(PairwiseCVTest, DefaultBehavior)
         EXPECT_NEAR(grad5[3][1], grad4[3][1], eps);
         EXPECT_NEAR(grad5[3][2], grad4[3][2], eps);
     }
-}
-
-int main(int argc, char *argv[])
-{
-	::testing::InitGoogleTest(&argc, argv);
-	mxx::env e(argc,argv);
-	int ret = RUN_ALL_TESTS();
-	return ret;
 }

@@ -1,8 +1,6 @@
+#include "Tests.h"
+
 #include "CVs/MockCV.h"
-#include "Snapshot.h"
-#include "gtest/gtest.h"
-#include <mxx/env.hpp>
-#include <mxx/comm.hpp>
 
 using namespace SSAGES;
 
@@ -84,12 +82,4 @@ TEST_F(MockCVTest, DefaultBehavior)
     EXPECT_NEAR(bounds[1], 10.1, 1E-8);
     EXPECT_NEAR(bounds2[0], 6.3, 1E-8);
     EXPECT_NEAR(bounds2[1], 11.2, 1E-8);
-}
-
-int main(int argc, char *argv[])
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    mxx::env env(argc,argv);
-    int ret = RUN_ALL_TESTS();
-    return ret;
 }

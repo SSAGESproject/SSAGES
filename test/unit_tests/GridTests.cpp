@@ -1,4 +1,5 @@
-#include "gtest/gtest.h"
+#include "Tests.h"
+
 #include "Grids/Grid.h"
 #include <random>
 
@@ -155,10 +156,3 @@ TEST_F(GridTest, SyncGrid)
 						
 	EXPECT_NEAR(real_value, grid->GetInterpolated({3.0,6.0}), 1e-8);
 }*/
-
-int main(int argc, char *argv[])
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    int ret = RUN_ALL_TESTS();
-    return ret;
-}

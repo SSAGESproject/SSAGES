@@ -1,18 +1,10 @@
-#include "gtest/gtest.h"
+#include "Tests.h"
+
 #include "CVs/RMSDCV.h"
-#include "Snapshot.h"
 #include <iostream>
 #include <fstream>
-#include <mxx/env.hpp>
-#include <mxx/comm.hpp>
 
 using namespace SSAGES;
-
-// Test up to accuracy of 10^-10
-const double eps = 1e-10;
-
-// 90 degree angle
-const double piOver2 = 0.5*M_PI;
 
 class RMSDCVTests : public ::testing::Test {
 protected:
@@ -111,12 +103,4 @@ TEST_F(RMSDCVTests, RMSDBadRangeTest)
 {
 	EXPECT_ANY_THROW(new RMSDCV({1,2,3}, filexyz1, true));
 	EXPECT_ANY_THROW(new RMSDCV({3,1}, filexyz1, true));
-}
-
-int main(int argc, char *argv[])
-{
-	::testing::InitGoogleTest(&argc, argv);
-	mxx::env env(argc,argv);
-	int ret = RUN_ALL_TESTS();
-	return ret;
 }
