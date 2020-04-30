@@ -1,31 +1,38 @@
 # Add testing 
 set(TEST_DEPS  
-	${GTEST_LIBRARY_PATH} 
-	${GTEST_LIBRARY_MAIN_PATH}
-	libssages)
+    ${GTEST_LIBRARY_PATH}
+    ${GTEST_LIBRARY_MAIN_PATH}
+    libssages
+)
 
-set  (UNIT_TESTS "ParticlePositionCVTests"
-                 "ABFTests"
-                 "TorsionalCVTests"
-                 "SnapshotTests"
-                 "BasisFuncTests"
-                 "ParticleSeparationCVTests"
-                 "RMSDCVTests"
-                 "AngleCVTests"
-                 "ReadFileTests"
-                 "MockCVTests"
-                 "COMTests"
-                 "DirectForwardFluxTests"
-                 "SwarmTests"
-                 "FTSTests"
-                 "StringMethodTests"
-                 "GyrationTensorCVTests"
-                 "RouseModeCVTests"
-                 "PairwiseCVTests"
-                 "GridTests")
+set (UNIT_TESTS
+    # General Tests
+    "COMTests"
+    "GridTests"
+    "ReadFileTests"
+    "SnapshotTests"
+    # CV Tests
+    "MockCVTests"
+    "AngleCVTests"
+    "GyrationTensorCVTests"
+    "PairwiseCVTests"
+    "ParticlePositionCVTests"
+    "ParticleSeparationCVTests"
+    "RMSDCVTests"
+    "RouseModeCVTests"
+    "TorsionalCVTests"
+    # Method Tests
+    "ABFTests"
+    "BasisFuncTests"
+    "DirectForwardFluxTests"
+    "FTSTests"
+    "StringMethodTests"
+    "SwarmTests"
+)
 
-set (INTEGRATION_TESTS "Meta_Single_Atom_Test"
-                       "Basis_ADP_Test")
+set (INTEGRATION_TESTS
+    "Meta_Single_Atom_Test"
+    "Basis_ADP_Test")
 
 foreach (TEST ${UNIT_TESTS})
     add_executable (${TEST} unit_tests/${TEST}.cpp)
