@@ -118,8 +118,8 @@ TEST_F(SwarmTests,dummytest)
     }
     else if(mpiid == 1)
     {
-        EXPECT_NEAR(Swarm_Method->centers_[0], 1.8882355, eps);
-        EXPECT_NEAR(Swarm_Method->centers_[1], -0.966577, eps);
+        EXPECT_NEAR(Swarm_Method->centers_[0], 1.8882355, 1e4*eps);
+        EXPECT_NEAR(Swarm_Method->centers_[1], -0.966577, 1e4*eps);
     }
     else if(mpiid == 2)
     {

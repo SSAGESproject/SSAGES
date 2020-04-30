@@ -88,8 +88,8 @@ TEST_F(AngleCVTests, DefaultBehavior)
     angletest3->Evaluate(*snapshot1);
     angletest4->Evaluate(*snapshot1);
 
-    EXPECT_NEAR(angletest->GetValue(), 1.570796, 0.01);
-    EXPECT_NEAR(angletest2->GetValue(), 2.356, 0.01);
-    EXPECT_NEAR(angletest3->GetValue(), 0.785398, 0.01);
-    EXPECT_NEAR(angletest4->GetValue(), 3.14159, 0.01);
+    EXPECT_NEAR(angletest->GetValue(), M_PI/2, eps);
+    EXPECT_NEAR(angletest2->GetValue(), 3*M_PI/4, eps);
+    EXPECT_NEAR(angletest3->GetValue(), M_PI/4, eps);
+    EXPECT_NEAR(angletest4->GetValue(), M_PI, eps);
 }

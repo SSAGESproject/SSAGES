@@ -113,7 +113,7 @@ TEST_F(TorsionalCVTests, DefaultBehavior)
 	EXPECT_TRUE(grad3[4].isApprox(Vector3{0, 0, 0}));
 	EXPECT_TRUE(grad3[5].isApprox(Vector3{0, 0, -1}));
 
-	EXPECT_NEAR(tortest->GetValue(), 3.14159, 0.01);
-	EXPECT_NEAR(tortest2->GetValue(), -1.570796, 0.01);
-	EXPECT_NEAR(tortest3->GetValue(), 0, 0.01);
+	EXPECT_NEAR(tortest->GetValue(), M_PI, eps);
+	EXPECT_NEAR(tortest2->GetValue(), -M_PI/2, eps);
+	EXPECT_NEAR(tortest3->GetValue(), 0, eps);
 }

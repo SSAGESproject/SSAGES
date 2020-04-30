@@ -171,8 +171,8 @@ TEST_F(BasisFuncTests,Initialization)
     // Check the evaluator was constructed correctly
     EXPECT_TRUE(Method->evaluator_.functions_.size() == 2);
     EXPECT_TRUE(Method->evaluator_.coeff_.size() == 121); //10 + 1 coeffs
-    EXPECT_NEAR(Method->evaluator_.lookup_[0].values[73],0.224073,0.00001);
-    EXPECT_NEAR(Method->evaluator_.lookup_[1].derivs[41],0.65380758017492635,0.000001);
+    EXPECT_NEAR(Method->evaluator_.lookup_[0].values[73],0.224073,1e4*eps);
+    EXPECT_NEAR(Method->evaluator_.lookup_[1].derivs[41],0.65380758017492635,eps);
 }
 
 TEST_F(BasisFuncTests,InBounds)
@@ -191,7 +191,7 @@ TEST_F(BasisFuncTests,InBounds)
 
 	// Check the coefficients as well
     EXPECT_NEAR(Method->unbias_[80],2.0,eps);
-	EXPECT_NEAR(Method->evaluator_.coeff_[11].value,0.009171649,eps);
+	EXPECT_NEAR(Method->evaluator_.coeff_[11].value,0.009171649,1e2*eps);
 	EXPECT_NEAR(Method->evaluator_.coeff_[36].value,-0.0476908749576,eps);
 }
 

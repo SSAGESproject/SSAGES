@@ -78,8 +78,8 @@ TEST_F(RouseModeCVTests, DefaultBehavior)
     X1->Evaluate(*snapshot1);
 
     // CHECK VALUES
-    EXPECT_NEAR(X0->GetValue(),5.00000    , eps); 
-    EXPECT_NEAR(X1->GetValue(),2.23044250 , eps);
+    EXPECT_NEAR(X0->GetValue(),5.00000    , eps);
+    EXPECT_NEAR(X1->GetValue(),2.23044250 , 1e3*eps);
 
     // CHECK GRADIENTS
     // 0th mode
@@ -100,19 +100,19 @@ TEST_F(RouseModeCVTests, DefaultBehavior)
     EXPECT_NEAR(X0->GetGradient()[3][2],0.000 , eps);
 
     // 1st mode
-    EXPECT_NEAR(X1->GetGradient()[0][0],-0.65328148, eps);
+    EXPECT_NEAR(X1->GetGradient()[0][0],-0.65328148, 1e3*eps);
     EXPECT_NEAR(X1->GetGradient()[0][1],0.000 , eps);
     EXPECT_NEAR(X1->GetGradient()[0][2],0.000 , eps);
 
-    EXPECT_NEAR(X1->GetGradient()[1][0],-0.27059805 , eps);
+    EXPECT_NEAR(X1->GetGradient()[1][0],-0.27059805 , 1e3*eps);
     EXPECT_NEAR(X1->GetGradient()[1][1],0.000 , eps);
     EXPECT_NEAR(X1->GetGradient()[1][2],0.000 , eps);
     
-    EXPECT_NEAR(X1->GetGradient()[2][0],0.27059805 , eps);
+    EXPECT_NEAR(X1->GetGradient()[2][0],0.27059805 , 1e3*eps);
     EXPECT_NEAR(X1->GetGradient()[2][1],0.000 , eps);
     EXPECT_NEAR(X1->GetGradient()[2][2],0.000 , eps);
 
-    EXPECT_NEAR(X1->GetGradient()[3][0],0.65328148 , eps);
+    EXPECT_NEAR(X1->GetGradient()[3][0],0.65328148 , 1e3*eps);
     EXPECT_NEAR(X1->GetGradient()[3][1],0.000 , eps);
     EXPECT_NEAR(X1->GetGradient()[3][2],0.000 , eps);
 

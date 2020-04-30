@@ -72,14 +72,14 @@ TEST_F(MockCVTests, DefaultBehavior)
 	EXPECT_TRUE(grad2[1].isApprox(Vector3{1, 2, 3}));
 	EXPECT_TRUE(grad2[2].isApprox(Vector3{1, 2, 3}));
 
-	EXPECT_NEAR(mocktest->GetValue(), 1.2, 1E-8);
-	EXPECT_NEAR(mocktest2->GetValue(), 2.3, 1E-8);
+	EXPECT_NEAR(mocktest->GetValue(), 1.2, eps);
+	EXPECT_NEAR(mocktest2->GetValue(), 2.3, eps);
 
     auto& bounds = mocktest->GetBoundaries();
     auto& bounds2 = mocktest2->GetBoundaries();
 
-    EXPECT_NEAR(bounds[0], 5.2, 1E-8);
-    EXPECT_NEAR(bounds[1], 10.1, 1E-8);
-    EXPECT_NEAR(bounds2[0], 6.3, 1E-8);
-    EXPECT_NEAR(bounds2[1], 11.2, 1E-8);
+    EXPECT_NEAR(bounds[0], 5.2, eps);
+    EXPECT_NEAR(bounds[1], 10.1, eps);
+    EXPECT_NEAR(bounds2[0], 6.3, eps);
+    EXPECT_NEAR(bounds2[1], 11.2, eps);
 }
