@@ -7,7 +7,7 @@
 using namespace SSAGES;
 
 const double sq_dist_eps = 0.001; //Is this too big?  We might not actually get accurate enough results out of square dist
-class StringMethodTest : public ::testing::Test
+class StringMethodTests : public ::testing::Test
 {
 	protected:
 
@@ -79,7 +79,7 @@ class StringMethodTest : public ::testing::Test
         FiniteTempString* FTS_Method;
 };
 
-TEST_F(StringMethodTest,dummytest)
+TEST_F(StringMethodTests,dummytest)
 {
     //The intention here is to suppress output from functions
     std::cout.setstate(std::ios_base::failbit); 

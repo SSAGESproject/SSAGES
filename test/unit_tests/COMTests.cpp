@@ -2,7 +2,7 @@
 
 using namespace SSAGES;
 
-class COMTest : public ::testing::Test
+class COMTests : public ::testing::Test
 {
 protected:
 	mxx::comm comm;
@@ -76,7 +76,7 @@ protected:
 	}
 };
 
-TEST_F(COMTest, ZeroCOMTest)
+TEST_F(COMTests, ZeroCOMTest)
 {
 	// The cube is sitting at a periodic corner,
 	// but COM should be at the origin (or opposite corner).
@@ -86,7 +86,7 @@ TEST_F(COMTest, ZeroCOMTest)
 	EXPECT_NEAR(com[2], 10.0, eps);
 }
 
-TEST_F(COMTest, MassCOMTest)
+TEST_F(COMTests, MassCOMTest)
 {
 	// Change the mass of one corner to shift COM.
 	auto& m = cubic->GetMasses();

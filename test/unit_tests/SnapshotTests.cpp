@@ -2,7 +2,7 @@
 
 using namespace SSAGES;
 
-class SnapshotTest : public ::testing::Test 
+class SnapshotTests : public ::testing::Test
 {
 protected:
     mxx::comm comm;
@@ -59,7 +59,7 @@ protected:
 	}
 };
 
-TEST_F(SnapshotTest, SamePositionTest)
+TEST_F(SnapshotTests, SamePositionTest)
 {
 	Vector3 vCubic = inBox1 - inBox1;
 	cubic->ApplyMinimumImage(&vCubic);
@@ -95,7 +95,7 @@ TEST_F(SnapshotTest, SamePositionTest)
     EXPECT_NEAR(vTricl[2], 0.0, eps);
 }
 
-TEST_F(SnapshotTest, SamePositionInMirrorBoxTest)
+TEST_F(SnapshotTests, SamePositionInMirrorBoxTest)
 {
 	Vector3 dx = inBox1 - outOfBox1;
 	cubic->ApplyMinimumImage(&dx);
@@ -105,7 +105,7 @@ TEST_F(SnapshotTest, SamePositionInMirrorBoxTest)
     EXPECT_NEAR(dx[2], 0.0, eps);
 }
 
-TEST_F(SnapshotTest, CubicBoxTest)
+TEST_F(SnapshotTests, CubicBoxTest)
 {
 	Vector3 dx1 = inBox1 - inBox2; 
 	Vector3 dx2 = inBox2 - outOfBox1;
@@ -122,7 +122,7 @@ TEST_F(SnapshotTest, CubicBoxTest)
 	EXPECT_NEAR(dx2[2], 0.2, eps);
 }
 
-TEST_F(SnapshotTest, OrthorhombicBoxTest)
+TEST_F(SnapshotTests, OrthorhombicBoxTest)
 {
 	Vector3 dx1 = inBox1 - inBox2;
 	Vector3 dx2 = inBox1 - outOfBox1;
@@ -144,7 +144,7 @@ TEST_F(SnapshotTest, OrthorhombicBoxTest)
 	EXPECT_NEAR(dx3[2], 0.2, eps);
 }
 
-TEST_F(SnapshotTest, MonoclinicBoxTest)
+TEST_F(SnapshotTests, MonoclinicBoxTest)
 {
 	Vector3 dx1 = inBox1 - inBox2;
 	Vector3 dx2 = inBox1 - outOfBox1;
@@ -166,7 +166,7 @@ TEST_F(SnapshotTest, MonoclinicBoxTest)
     EXPECT_NEAR(dx3[2], 0.2, eps);
 }
 
-TEST_F(SnapshotTest, TriclinicBoxTest)
+TEST_F(SnapshotTests, TriclinicBoxTest)
 {
 	Vector3 dx1 = inBox1 - inBox2;
 	Vector3 dx2 = inBox1 - outOfBox1;
@@ -188,7 +188,7 @@ TEST_F(SnapshotTest, TriclinicBoxTest)
 	EXPECT_NEAR(dx3[2], 0.2, eps);
 }
 
-TEST_F(SnapshotTest, UnwrapCubicBoxTest)
+TEST_F(SnapshotTests, UnwrapCubicBoxTest)
 {
 	auto result1 = cubic->UnwrapVector(inBox1, inBox1Mirrors);
 	auto result2 = cubic->UnwrapVector(inBox2, inBox2Mirrors);
@@ -210,7 +210,7 @@ TEST_F(SnapshotTest, UnwrapCubicBoxTest)
 	EXPECT_NEAR(result3[2], -0.1, eps);
 }
 
-TEST_F(SnapshotTest, UnwrapOrthorhombicBoxTest)
+TEST_F(SnapshotTests, UnwrapOrthorhombicBoxTest)
 {
 	auto result1 = orthorhombic->UnwrapVector(inBox1, inBox1Mirrors);
 	auto result2 = orthorhombic->UnwrapVector(inBox2, inBox2Mirrors);
@@ -232,7 +232,7 @@ TEST_F(SnapshotTest, UnwrapOrthorhombicBoxTest)
 	EXPECT_NEAR(result3[2], -0.1, eps);
 }
 
-TEST_F(SnapshotTest, UnwrapMonoclinicBoxTest)
+TEST_F(SnapshotTests, UnwrapMonoclinicBoxTest)
 {
 	auto result1 = monoclinic->UnwrapVector(inBox1, inBox1Mirrors);
 	auto result2 = monoclinic->UnwrapVector(inBox2, inBox2Mirrors);
@@ -254,7 +254,7 @@ TEST_F(SnapshotTest, UnwrapMonoclinicBoxTest)
 	EXPECT_NEAR(result3[2], -0.1, eps);
 }
 
-TEST_F(SnapshotTest, UnwrapTriclinicBoxTest)
+TEST_F(SnapshotTests, UnwrapTriclinicBoxTest)
 {
 	auto result1 = triclinic->UnwrapVector(inBox1, inBox1Mirrors);
 	auto result2 = triclinic->UnwrapVector(inBox2, inBox2Mirrors);
@@ -276,7 +276,7 @@ TEST_F(SnapshotTest, UnwrapTriclinicBoxTest)
 	EXPECT_NEAR(result3[2], -0.1, eps);	
 }
 
-TEST_F(SnapshotTest, OriginCubicBoxTest)
+TEST_F(SnapshotTests, OriginCubicBoxTest)
 {
 	cubic->SetOrigin(origin1);
 	auto result1 = cubic->ScaleVector(inBox1);

@@ -4,7 +4,7 @@
 
 using namespace SSAGES;
 
-class PairwiseCVTest : public ::testing::Test{
+class PairwiseCVTests : public ::testing::Test{
 protected:
 	virtual void SetUp()
 	{
@@ -97,7 +97,7 @@ protected:
 	mxx::comm comm;
 };
 
-TEST_F(PairwiseCVTest, DefaultBehavior)
+TEST_F(PairwiseCVTests, DefaultBehavior)
 {
 	// Gradient should sum to zero.
 	double sum = 0;

@@ -6,7 +6,7 @@
 
 using namespace SSAGES;
 
-class ReadFileTest : public ::testing::Test {
+class ReadFileTests : public ::testing::Test {
 protected:
     virtual void SetUp() 
     {
@@ -80,7 +80,7 @@ protected:
 
 };
 
-TEST_F(ReadFileTest, ReadXYZ)
+TEST_F(ReadFileTests, ReadXYZ)
 {
     std::vector<std::array<double,4>> Values;
 

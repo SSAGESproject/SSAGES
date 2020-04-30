@@ -4,7 +4,7 @@
 
 using namespace SSAGES;
 
-class AngleCVTest : public ::testing::Test {
+class AngleCVTests : public ::testing::Test {
 protected:
     virtual void SetUp() 
     {
@@ -76,7 +76,7 @@ protected:
 
 };
 
-TEST_F(AngleCVTest, DefaultBehavior)
+TEST_F(AngleCVTests, DefaultBehavior)
 {
     angletest->Initialize(*snapshot1);
     angletest2->Initialize(*snapshot1);

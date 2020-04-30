@@ -7,7 +7,7 @@
 
 using namespace SSAGES;
 
-class ForwardFluxTest : public ::testing::Test 
+class DirectForwardFluxTests : public ::testing::Test
 {
 protected:
 
@@ -124,7 +124,7 @@ protected:
     CVList cvlist;
 };
 
-TEST_F(ForwardFluxTest,FFSConfigID)
+TEST_F(DirectForwardFluxTests,FFSConfigID)
 {
     //Check FFSConfigID
 
@@ -147,7 +147,7 @@ TEST_F(ForwardFluxTest,FFSConfigID)
     EXPECT_NEAR(ffsconfig2.aprev,6, eps);
 
 }
-TEST_F(ForwardFluxTest,CheckInitialStructure)
+TEST_F(DirectForwardFluxTests,CheckInitialStructure)
 {
     //given a cv that is valid, make sure function agrees that its valid
     //set the cv
@@ -165,7 +165,7 @@ TEST_F(ForwardFluxTest,CheckInitialStructure)
     EXPECT_EXIT(MethodA->CheckInitialStructure(cvlist), ::testing::ExitedWithCode(1), "Please provide an initial configuration in State A. Exiting ....\n");   
 }
 
-TEST_F(ForwardFluxTest,ComputeInitialFlux)
+TEST_F(DirectForwardFluxTests,ComputeInitialFlux)
 {
 
   if (world.size() == 3){
@@ -217,7 +217,7 @@ TEST_F(ForwardFluxTest,ComputeInitialFlux)
 }
 
 }
-TEST_F(ForwardFluxTest,HasReturnedToA)
+TEST_F(DirectForwardFluxTests,HasReturnedToA)
 {
     //give A, expect true
     EXPECT_TRUE(MethodA->HasReturnedToA(-1.1));
@@ -231,7 +231,7 @@ TEST_F(ForwardFluxTest,HasReturnedToA)
 
 }
 
-TEST_F(ForwardFluxTest,Constructor)
+TEST_F(DirectForwardFluxTests,Constructor)
 {
     // Check that various variables were correctly initialized in constructor
     EXPECT_TRUE(MethodA->_interfaces_increase);
@@ -247,7 +247,7 @@ TEST_F(ForwardFluxTest,Constructor)
 
 
 
-TEST_F(ForwardFluxTest,HasCrossedInterface)
+TEST_F(DirectForwardFluxTests,HasCrossedInterface)
 {
     //for interfaces increasing in the + direction
     EXPECT_TRUE(MethodA->HasCrossedInterface(-0.94,-0.96,1) == 1);
@@ -261,7 +261,7 @@ TEST_F(ForwardFluxTest,HasCrossedInterface)
 
 }
 
-TEST_F(ForwardFluxTest,ReadWriteFFSConfiguration)
+TEST_F(DirectForwardFluxTests,ReadWriteFFSConfiguration)
 {
     ffsconfig1 = ForwardFlux::FFSConfigID(1,2,3,4,5,6);
     //writeFFSconfig file
@@ -300,7 +300,7 @@ TEST_F(ForwardFluxTest,ReadWriteFFSConfiguration)
 
 }
 
-TEST_F(ForwardFluxTest,PopQueueMPI)
+TEST_F(DirectForwardFluxTests,PopQueueMPI)
 {
     //setup queue in MPI
     
@@ -385,7 +385,7 @@ TEST_F(ForwardFluxTest,PopQueueMPI)
 
 
 }
-TEST_F(ForwardFluxTest,ComputeCommittorProbability)
+TEST_F(DirectForwardFluxTests,ComputeCommittorProbability)
 {
     //write some FFS files corresponding to some path
 
@@ -398,7 +398,7 @@ TEST_F(ForwardFluxTest,ComputeCommittorProbability)
 // SHOULD THESE TWO TESTS BE IN A DirectForwardFluxTests.cpp?
 // For now I'll leave it here
 
-TEST_F(ForwardFluxTest,InitializeQueue)
+TEST_F(DirectForwardFluxTests,InitializeQueue)
 {
     //give Lambda0ConfigLibrary some values
     //seed  _generator
@@ -409,7 +409,7 @@ TEST_F(ForwardFluxTest,InitializeQueue)
 
 }
 
-TEST_F(ForwardFluxTest,CheckForInterfaceCrossings)
+TEST_F(DirectForwardFluxTests,CheckForInterfaceCrossings)
 {
     //call PostIntegration several times using ficticious snapshot files to 'evolve' the system forward in time
     //throughout this process, keep track of the queue, the number of successes, failures, current_interface, etc

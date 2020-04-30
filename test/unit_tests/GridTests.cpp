@@ -5,7 +5,7 @@
 
 using namespace SSAGES;
 
-class GridTest : public ::testing::Test {
+class GridTests : public ::testing::Test {
 protected:
     virtual void SetUp() 
     {
@@ -20,7 +20,7 @@ protected:
 	Grid<double>* grid;
 };
 
-TEST_F(GridTest, ReadWriteGrid)
+TEST_F(GridTests, ReadWriteGrid)
 {
 	// Fill grid with random numbers.
 	std::random_device rd;
@@ -54,7 +54,7 @@ TEST_F(GridTest, ReadWriteGrid)
 }
 
 
-TEST_F(GridTest, GridBounds)
+TEST_F(GridTests, GridBounds)
 {
 
 	// Test GetLower, GetUpper with periodic and non-periodic bounds.
@@ -76,7 +76,7 @@ TEST_F(GridTest, GridBounds)
 
 }
 
-TEST_F(GridTest, GridCenters)
+TEST_F(GridTests, GridCenters)
 {
 	std::vector<double> bin00center = {1.375,-2.0};
 	std::vector<double> bin01center = {1.375,6.7};
@@ -101,7 +101,7 @@ TEST_F(GridTest, GridCenters)
 	
 }
 
-TEST_F(GridTest, SyncGrid)
+TEST_F(GridTests, SyncGrid)
 {
 	grid->at({-1.49,-1.9}) = 1.0;
 
@@ -122,7 +122,7 @@ TEST_F(GridTest, SyncGrid)
 
 
 
-/*TEST_F(GridTest, Interpolation)
+/*TEST_F(GridTests, Interpolation)
 {
 	// Fill grid with random numbers.
 	std::random_device rd;

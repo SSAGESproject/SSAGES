@@ -6,7 +6,7 @@
 
 using namespace SSAGES;
 
-class ABFTest : public ::testing::Test 
+class ABFTests : public ::testing::Test
 {
 protected:
 
@@ -177,7 +177,7 @@ protected:
 	CVManager cvmanager;
 };
 
-TEST_F(ABFTest,Initialization)
+TEST_F(ABFTests,Initialization)
 {
 	// Initialize CVs.	
 	CV1->MockCV::Initialize(*snapshot1);
@@ -208,7 +208,7 @@ TEST_F(ABFTest,Initialization)
 }
 
 /*
-TEST_F(ABFTest,Getters_Setters)
+TEST_F(ABFTests,Getters_Setters)
 {
 	Method->ABF::PreSimulation(snapshot1, cvmanager);
 
@@ -223,7 +223,7 @@ TEST_F(ABFTest,Getters_Setters)
 }
 */
 
-TEST_F(ABFTest,CV_outofboundscheck)
+TEST_F(ABFTests,CV_outofboundscheck)
 {
 	// Initialize CVs.	
 	CV1->MockCV::Initialize(*snapshot1);
@@ -260,7 +260,7 @@ TEST_F(ABFTest,CV_outofboundscheck)
 		EXPECT_NEAR(-Method->biases_[0][i], bias*CV3->GetGradient()[0][i], eps);
 }
 
-TEST_F(ABFTest,MD_steps_inboundscheck)
+TEST_F(ABFTests,MD_steps_inboundscheck)
 {
 	// Initialize CVs.	
 	CV1->MockCV::Initialize(*snapshot1);

@@ -4,7 +4,7 @@
 
 using namespace SSAGES;
 
-class ParticlePositionCVTest : public ::testing::Test {
+class ParticlePositionCVTests : public ::testing::Test {
 
 protected:
     virtual void SetUp() {
@@ -82,7 +82,7 @@ protected:
     Snapshot *snapshot2;
 };
 
-TEST_F(ParticlePositionCVTest, ValueTest1) {
+TEST_F(ParticlePositionCVTests, ValueTest1) {
     // Initialize CVs
     ASSERT_NO_THROW(fullyFunctional->Initialize(*snapshot1));
     ASSERT_NO_THROW(constrainedInX->Initialize(*snapshot1));
@@ -100,7 +100,7 @@ TEST_F(ParticlePositionCVTest, ValueTest1) {
     EXPECT_DOUBLE_EQ(fullyConstrained->GetValue(), 0.0);
 }
 
-TEST_F(ParticlePositionCVTest, ValueTest2) {
+TEST_F(ParticlePositionCVTests, ValueTest2) {
     // Initialize CVs
     fullyFunctional->Initialize(*snapshot2);
     constrainedInX->Initialize(*snapshot2);
@@ -117,7 +117,7 @@ TEST_F(ParticlePositionCVTest, ValueTest2) {
     EXPECT_DOUBLE_EQ(fullyConstrained->GetValue(), 0.0);
 }
 
-TEST_F(ParticlePositionCVTest, PeriodicValueTest) {
+TEST_F(ParticlePositionCVTests, PeriodicValueTest) {
     // Set test values
     double value1 = -15.3;
     double value2 = 0.0;
@@ -130,7 +130,7 @@ TEST_F(ParticlePositionCVTest, PeriodicValueTest) {
     EXPECT_DOUBLE_EQ(fullyFunctional->GetPeriodicValue(value4), value4);
 }
 
-TEST_F(ParticlePositionCVTest, GradientTest1) {
+TEST_F(ParticlePositionCVTests, GradientTest1) {
     // Initialize CVs
     fullyFunctional->Initialize(*snapshot1);
     constrainedInX->Initialize(*snapshot1);
@@ -183,7 +183,7 @@ TEST_F(ParticlePositionCVTest, GradientTest1) {
     EXPECT_DOUBLE_EQ(gradient2[2], 0.0);
 }
 
-TEST_F(ParticlePositionCVTest, GradientTest2) {
+TEST_F(ParticlePositionCVTests, GradientTest2) {
     // Initialize CVs
     fullyFunctional->Initialize(*snapshot2);
     constrainedInX->Initialize(*snapshot2);
@@ -221,14 +221,14 @@ TEST_F(ParticlePositionCVTest, GradientTest2) {
     EXPECT_DOUBLE_EQ(gradient[2], 0.0);
 }
 
-TEST_F(ParticlePositionCVTest, BoundariesTest) {
+TEST_F(ParticlePositionCVTests, BoundariesTest) {
     std::array<double, 2> bounds = fullyFunctional->GetBoundaries();
 
     EXPECT_DOUBLE_EQ(bounds[0], 0.0);
     EXPECT_DOUBLE_EQ(bounds[1], 0.0);
 }
 
-TEST_F(ParticlePositionCVTest, DifferenceTest) {
+TEST_F(ParticlePositionCVTests, DifferenceTest) {
     // Test values
     double value1 = -15.3;
     double value2 = 0.0;
@@ -262,6 +262,6 @@ TEST_F(ParticlePositionCVTest, DifferenceTest) {
     EXPECT_DOUBLE_EQ(fullyConstrained->GetDifference(value4), -1928437.3);
 }
 
-TEST_F(ParticlePositionCVTest, SerializeTest) {
+TEST_F(ParticlePositionCVTests, SerializeTest) {
     // Implement Serialize Function first
 }

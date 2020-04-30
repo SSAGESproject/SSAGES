@@ -5,7 +5,7 @@
 
 using namespace SSAGES;
 
-class SwarmTest : public ::testing::Test 
+class SwarmTests : public ::testing::Test
 {
 protected:
 
@@ -72,7 +72,7 @@ protected:
     Swarm* Swarm_Method;
 };
 
-TEST_F(SwarmTest,dummytest)
+TEST_F(SwarmTests,dummytest)
 {
     //The intention here is to suppress output from functions
     std::cout.setstate(std::ios_base::failbit); 

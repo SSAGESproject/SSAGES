@@ -6,7 +6,7 @@
 
 using namespace SSAGES;
 
-class BasisFuncTest : public ::testing::Test {
+class BasisFuncTests : public ::testing::Test {
 protected:
     virtual void SetUp()
     {
@@ -145,7 +145,7 @@ protected:
 	CVManager cvmanager;
 };
 
-TEST_F(BasisFuncTest,Initialization)
+TEST_F(BasisFuncTests,Initialization)
 {
 	// Initialize CVs.	
 	CV1->MockCV::Initialize(*snapshot1);
@@ -175,7 +175,7 @@ TEST_F(BasisFuncTest,Initialization)
     EXPECT_NEAR(Method->evaluator_.lookup_[1].derivs[41],0.65380758017492635,0.000001);
 }
 
-TEST_F(BasisFuncTest,InBounds)
+TEST_F(BasisFuncTests,InBounds)
 {
 	// Initialize CVs.	
 	CV1->MockCV::Initialize(*snapshot1);
@@ -195,7 +195,7 @@ TEST_F(BasisFuncTest,InBounds)
 	EXPECT_NEAR(Method->evaluator_.coeff_[36].value,-0.0476908749576,eps);
 }
 
-TEST_F(BasisFuncTest,OutBounds)
+TEST_F(BasisFuncTests,OutBounds)
 {
 	// Initialize CVs.	
 	CV1->MockCV::Initialize(*snapshot1);

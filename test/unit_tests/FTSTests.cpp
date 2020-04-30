@@ -11,7 +11,7 @@ using namespace SSAGES;
  * different cubic spline interpolators */
 const double reparam_eps = 0.3;
 
-class FTSTest : public ::testing::Test 
+class FTSTests : public ::testing::Test
 {
 protected:
 
@@ -69,7 +69,7 @@ protected:
 	FiniteTempString* FTS_Method;
 };
 
-TEST_F(FTSTest,dummytest)
+TEST_F(FTSTests,dummytest)
 {
     //The intention here is to suppress output from functions
     std::cout.setstate(std::ios_base::failbit); 

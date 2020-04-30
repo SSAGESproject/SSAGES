@@ -5,7 +5,7 @@
 using namespace SSAGES;
 
 
-class MockCVTest : public ::testing::Test {
+class MockCVTests : public ::testing::Test {
 protected:
     virtual void SetUp() 
     {
@@ -54,7 +54,7 @@ protected:
 };
 
 
-TEST_F(MockCVTest, DefaultBehavior)
+TEST_F(MockCVTests, DefaultBehavior)
 {
 	mocktest->Initialize(*snapshot1);
     mocktest2->Initialize(*snapshot1);

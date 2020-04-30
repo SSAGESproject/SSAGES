@@ -4,7 +4,7 @@
 
 using namespace SSAGES;
 
-class TorsionalCVTest : public ::testing::Test {
+class TorsionalCVTests : public ::testing::Test {
 protected:
     virtual void SetUp() 
     {
@@ -78,7 +78,7 @@ protected:
 };
 
 
-TEST_F(TorsionalCVTest, DefaultBehavior)
+TEST_F(TorsionalCVTests, DefaultBehavior)
 {
 	tortest->Initialize(*snapshot1);
 	tortest2->Initialize(*snapshot1);
