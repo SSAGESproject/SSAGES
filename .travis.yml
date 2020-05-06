@@ -1,0 +1,34 @@
+language: cpp
+dist: xenial
+
+os:
+  - linux
+
+compiler:
+  - gcc
+
+branches:
+  only:
+    - Development
+    - master
+
+notifications:
+  email: false
+
+cache:
+  directories:
+    - $HOME/.ccache
+
+env:
+  - MPI_IMPL=mpich
+  - MPI_IMPL=openmpi
+
+before_install:
+  - sh ./.ci/travis-install-mpi.sh $MPI_IMPL
+  - export PATH="$PATH:$HOME/$MPI_IMPL/bin"
+  - export TMPDIR=/tmp
+
+script:
+  - mkdir build && cd build
+  - cmake .. -DLAMMPS=YES -DBUILD_TESTS=ON
+  - make
