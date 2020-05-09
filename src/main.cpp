@@ -56,9 +56,7 @@ int main(int argc, char* argv[])
 		<< " --version   - Print SSAGES version and quit\n";
 
 	std::stringstream versionStream;
-	versionStream << "SSAGES version " << SSAGES_VERSION_MAJOR << "."
-	                                   << SSAGES_VERSION_MINOR << "."
-	                                   << SSAGES_VERSION_TINY << "\n";
+	versionStream << "SSAGES version " << SSAGES_VERSION << "\n";
 
 	// Define short options, e.g. -h
 	const char *OPT_STRING = "h!";

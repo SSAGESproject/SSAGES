@@ -1,18 +1,5 @@
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR})
 
-# The short X.Y.Z version
-set (VERSION_STRING "${SSAGES_VERSION_MAJOR}.${SSAGES_VERSION_MINOR}.${SSAGES_VERSION_TINY}")
-
-# The full version, including alpha/beta/rc tags.
-execute_process(
-    COMMAND git describe --tag
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    RESULT_VARIABLE GIT_RESULT
-    OUTPUT_VARIABLE RELEASE_STRING
-    ERROR_QUIET
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
 find_package (Doxygen)
 
 if (DOXYGEN_FOUND)
