@@ -1,4 +1,10 @@
-build/
+# Build directories
 build*/
+
+# OS/Editor artifacts
+.DS_Store
 .vscode/
 
+# Python objects
+__pycache__/
+*.py[cod]
