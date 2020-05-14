@@ -70,7 +70,7 @@ namespace SSAGES
 			std::string contents, path;
 			if(world.rank() == 0)
 			{
-				contents = GetFileContents(filename.c_str());
+				contents = GetFileContents(filename);
 				path = GetFilePath(filename);
 			}
 			
