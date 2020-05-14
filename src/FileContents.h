@@ -46,7 +46,7 @@ namespace SSAGES
 	inline std::string GetFileContents(const std::string filename)
 	{
 		std::ifstream ifs(filename);
-		if(ifs) {
+		if(ifs.is_open()) {
 			std::string contents( (std::istreambuf_iterator<char>(ifs) ),
 			                      (std::istreambuf_iterator<char>()    ) );
 			return contents;
