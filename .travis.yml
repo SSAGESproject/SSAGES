@@ -32,3 +32,4 @@ script:
   - mkdir build && cd build
   - cmake .. -DLAMMPS=YES -DBUILD_TESTS=ON
   - make
+  - ./ssages --version
