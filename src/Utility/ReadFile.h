@@ -82,7 +82,7 @@ namespace SSAGES
 			{
 				numatoms = std::stoi(line);
 			}
-			catch (const std::invalid_argument& ia)
+			catch (const std::invalid_argument&)
 			{
 				throw std::runtime_error("ReadFile.h: Invalid number of atoms defined in File.");
 			}
