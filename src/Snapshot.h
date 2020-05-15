@@ -65,7 +65,6 @@ namespace SSAGES
 		Bool3 isperiodic_; //!< Periodicity of box.
 
 		std::vector<Vector3> positions_; //!< Positions
-		std::vector<Integer3> images_; //!< Unwrapped positions
 		std::vector<Vector3> velocities_; //!< Velocities
 		std::vector<Vector3> forces_; //!< Forces
 		std::vector<double> masses_; //!< Masses
@@ -95,8 +94,8 @@ namespace SSAGES
 		Snapshot(const MPI_Comm& comm, unsigned int wid) :
 		comm_(comm), wid_(wid), H_(), Hinv_(), virial_(Matrix3::Zero()), 
 		origin_({0,0,0}), isperiodic_({true, true, true}), positions_(0), 
-		images_(0), velocities_(0), forces_(0), masses_(0), atomids_(0), 
-		types_(0), iteration_(0), temperature_(0), energy_(0), kb_(0)
+		velocities_(0), forces_(0), masses_(0), atomids_(0), types_(0),
+		iteration_(0), temperature_(0), energy_(0), kb_(0)
 		{}
 
 		//! Get the current iteration
@@ -332,19 +331,6 @@ namespace SSAGES
 			return positions_; 
 		}
 
-		//! Access the particles image flags
-		/*!
-		 * \return List of particle image flags
-		 */
-		const std::vector<Integer3>& GetImageFlags() const { return images_; }
-
-		//! \copydoc Snapshot::GetImageFlags() const
-		std::vector<Integer3>& GetImageFlags() 
-		{ 
-			changed_ = true;
-			return images_; 
-		}
-
 		//! Access the particle velocities
 		/*!
 		 * \return List of particle velocities
@@ -395,23 +381,6 @@ namespace SSAGES
 		Vector3 ScaleVector(const Vector3& v) const
 		{
 			return Hinv_*(v-origin_);
-		}
-
-		//! Unwrap a vector's real coordinates according to its image replica count. 
-		/*!
-		 * \param v Vector of interest
-		 * \param image Integer vector representing mirror images in the three dimensions.
-		 * 
-		 * \return Vector3 Unwrapped vector in real coordinates.
-		 * This function takes a set of (wrapped) coordinates and returns the unwrapped
-	     * coordinates. 
-	     *
-	     * \note This function does not require the initial coordinates to be within
-	     *       the simulation box.
-		 */
-		Vector3 UnwrapVector(const Vector3& v, const Integer3& image) const
-		{
-			return H_*image.cast<double>()+v;
 		}
 
 		//! Apply minimum image to a vector.

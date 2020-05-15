@@ -56,9 +56,6 @@ namespace LAMMPS_NS
 		auto& charges = snapshot_->GetCharges();
 		charges.resize(n);
 
-		auto& flags = snapshot_->GetImageFlags();
-		flags.resize(n);
-
 		SyncToSnapshot();
 		Hook::PreSimulationHook();
 	}
@@ -110,8 +107,6 @@ namespace LAMMPS_NS
 		frc.resize(n);
 		auto& masses = snapshot_->GetMasses();
 		masses.resize(n);
-		auto& flags = snapshot_->GetImageFlags();
-		flags.resize(n);
 
 		// Labels and ids for future work on only updating
 		// atoms that have changed.
@@ -201,11 +196,6 @@ namespace LAMMPS_NS
 			vel[i][0] = atom_->v[i][0];
 			vel[i][1] = atom_->v[i][1];
 			vel[i][2] = atom_->v[i][2];
-
-			// Image flags. 
-			flags[i][0] = (atom_->image[i] & IMGMASK) - IMGMAX;;
-			flags[i][1] = (atom_->image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-			flags[i][2] = (atom_->image[i] >> IMG2BITS) - IMGMAX;
 
 			ids[i] = atom_->tag[i];
 			types[i] = atom_->type[i];

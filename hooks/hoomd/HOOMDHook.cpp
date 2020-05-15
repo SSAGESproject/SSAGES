@@ -33,8 +33,6 @@ void HOOMDHook::SyncToSnapshot() //put HOOMD values -> Snapshot
     snap_forces.resize(n);
     auto& snap_masses = snapshot_->GetMasses();
     snap_masses.resize(n);
-    auto& snap_images = snapshot_->GetImageFlags();
-    snap_images.resize(n);
     auto& snap_ids = snapshot_->GetAtomIDs();
     snap_ids.resize(n);
     auto& snap_types = snapshot_->GetAtomTypes();
@@ -48,7 +46,6 @@ void HOOMDHook::SyncToSnapshot() //put HOOMD values -> Snapshot
         ArrayHandle<Scalar4> forces(pdata->getNetForce(), access_location::host, access_mode::read);
         ArrayHandle<Scalar> virial(pdata->getNetVirial(), access_location::host, access_mode::read);
         ArrayHandle<Scalar> charges(pdata->getCharges(), access_location::host, access_mode::read);
-        ArrayHandle<int3> images(pdata->getImages(), access_location::host, access_mode::read);
         ArrayHandle<unsigned int> tags(pdata->getTags(), access_location::host, access_mode::read);
 
         BoxDim box(pdata->getGlobalBox());
@@ -101,11 +98,6 @@ void HOOMDHook::SyncToSnapshot() //put HOOMD values -> Snapshot
             snap_forces[i][1] = forces.data[i].y;
             snap_forces[i][2] = forces.data[i].z;
 
-            // Image flags.
-            snap_images[i][0] = images.data[i].x;
-            snap_images[i][1] = images.data[i].y;
-            snap_images[i][2] = images.data[i].z;
-
             // Tags
             snap_ids[i] = tags.data[i];
 
@@ -151,7 +143,6 @@ void HOOMDHook::SyncToEngine() //put Snapshot values -> HOOMD
         ArrayHandle<Scalar4> forces(pdata->getNetForce(), access_location::host, access_mode::overwrite);
         ArrayHandle<Scalar> virial(pdata->getNetVirial(), access_location::host, access_mode::overwrite);
         ArrayHandle<Scalar> charges(pdata->getCharges(), access_location::host, access_mode::overwrite);
-        ArrayHandle<int3> images(pdata->getImages(), access_location::host, access_mode::overwrite);
         ArrayHandle<unsigned int> tags(pdata->getTags(), access_location::host, access_mode::overwrite);
 
         for (unsigned int i = 0; i < n; ++i)
