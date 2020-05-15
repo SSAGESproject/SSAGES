@@ -78,10 +78,17 @@ namespace SSAGES
 			std::string line;
 			std::getline(infile, line); // Get number of atoms
 
-			numatoms = std::stoi(line);
+			try
+			{
+				numatoms = std::stoi(line);
+			}
+			catch (const std::invalid_argument&)
+			{
+				throw std::runtime_error("ReadFile.h: Invalid number of atoms defined in File.");
+			}
 			if(numatoms <= 0)
 			{
-				throw std::runtime_error("Must be more than 0 atoms or invalid number atoms defined.");
+				throw std::runtime_error("ReadFile.h: Must be more than 0 atoms defined in File.");
 			}
 
 			refcoord.resize(numatoms);
