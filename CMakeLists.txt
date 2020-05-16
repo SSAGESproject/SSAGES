@@ -2,9 +2,7 @@ project(SSAGES)
 cmake_minimum_required(VERSION 2.8.8)
 
 # SSAGES version number.
-set(SSAGES_VERSION_MAJOR "0")
-set(SSAGES_VERSION_MINOR "8")
-set(SSAGES_VERSION_TINY  "5")
+file(STRINGS "VERSION" SSAGES_VERSION)
 
 # Default type is release
 if (NOT CMAKE_BUILD_TYPE)
