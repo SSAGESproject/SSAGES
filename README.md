@@ -23,13 +23,8 @@ versatile. It is currently pre-beta, meaning that there are many rough edges,
 but we are working rapidly to expand its features and fix any bugs. Keep an eye
 on this page for future updates and see below on how to contribute!
 
-## What's New (v0.8.6)
-- New RMSD Collective Variable
-- Improved Qbox examples
-- Standardized test suite
-- Improved documentation
-- Addition of Travis-CI testing
-- General code cleanup and bugfixes (See commits)
+## What's New (v0.9.0)
+-
 
 To view the full changelog history, refer to [HISTORY](HISTORY.md).
 

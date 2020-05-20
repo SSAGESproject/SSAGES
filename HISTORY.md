@@ -1,6 +1,14 @@
 SSAGES v0.8 Release Notes
 =========================
 
+## v0.8.6
+- New RMSD Collective Variable
+- Improved Qbox examples
+- Standardized test suite
+- Improved documentation
+- Addition of Travis-CI testing
+- General code cleanup and bugfixes (See commits)
+
 ## v0.8.5
 - Improved Elastic Band Sampling
 - Temporary removal of GROMACS 2019
