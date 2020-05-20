@@ -1,6 +1,12 @@
 SSAGES v0.8 Release Notes
 =========================
 
+## v0.8.5
+- Improved Elastic Band Sampling
+- Temporary removal of GROMACS 2019
+- Additional Documentation
+- General code cleanup and bugfixes (See commits)
+
 ## v0.8.4
 - Major documentation updates!
 - Improved HOOMD-blue support

@@ -23,10 +23,12 @@ versatile. It is currently pre-beta, meaning that there are many rough edges,
 but we are working rapidly to expand its features and fix any bugs. Keep an eye
 on this page for future updates and see below on how to contribute!
 
-## What's New (v0.8.5)
-- Improved Elastic Band Sampling
-- Temporary removal of GROMACS 2019
-- Additional Documentation
+## What's New (v0.8.6)
+- New RMSD Collective Variable
+- Improved Qbox examples
+- Standardized test suite
+- Improved documentation
+- Addition of Travis-CI testing
 - General code cleanup and bugfixes (See commits)
 
 To view the full changelog history, refer to [HISTORY](HISTORY.md).
@@ -57,6 +59,7 @@ To view the full changelog history, refer to [HISTORY](HISTORY.md).
 - Components of gyration tensor
 - Pairwise kernel (coordination number, nearest neighbors)
 - Polymer Rouse modes 
+- Root-mean-square deviation (RMSD)
 - Secondary structure (alpha, anti/parallel beta sheet) RMSD
 - Torsional angle
 
