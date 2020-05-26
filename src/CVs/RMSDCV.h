@@ -240,6 +240,7 @@ namespace SSAGES
 			}
 		}
 
+		//! \copydoc CollectiveVariable::BuildCV()
 		static RMSDCV* Build(const Json::Value& json, const std::string& path)
 		{
 			Json::ObjectRequirement validator;
