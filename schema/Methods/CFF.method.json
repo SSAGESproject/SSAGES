@@ -76,10 +76,6 @@
             "type" : "integer", 
             "minimum" : 0
         }, 
-        "minimum_count" : {
-            "type" : "integer", 
-            "minimum" : 0
-        }, 
         "timestep" : {
             "type" : "number"
         }, 
@@ -88,13 +84,7 @@
 	},
         "unit_conversion" : {
             "type" : "number" 
-        }, 
-        "restart_from_cff" : {
-            "type" : "boolean"
-        },
-        "restart_from_abf" : {
-            "type" : "boolean"
-        },
+	},
         "min_loss" : {
             "type" : "number",
             "minimum" : 0

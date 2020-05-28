@@ -3,7 +3,7 @@
  * SSAGES - Suite for Advanced Generalized Ensemble Simulations
  *
  * Copyright 2018 Emre Sevgen <sesevgen@uchicago.edu> and Hythem Sidky <hsidky@nd.edu>
- *     		 2020 Elizabeth M.Y. Lee <emlee@uchicago.edu> and Boyuan Yu <boyuanyu@uchicago.edu>
+ *           2020 Elizabeth M.Y. Lee <emlee@uchicago.edu> and Boyuan Yu <boyuanyu@uchicago.edu>
  *
  * SSAGES is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,17 +47,13 @@ namespace SSAGES
 			 double unitconv,
 			 double timestep,
 			 double weight,
-			 unsigned int nsweep, 
-			 int min,
-			 bool restart_from_cff,
-			 bool restart_from_abf) : 
+			 unsigned int nsweep) : 
 	Method(1, world, comm), topol_(topol), sweep_(0), nsweep_(nsweep),	
 	citers_(0), net_(topol), net2_(topol), 
 	pweight_(1.), weight_(weight), temp_(temperature), unitconv_(unitconv), timestep_(timestep), 
 	kbt_(0), fgrid_(fgrid), hgrid_(hgrid), ugrid_(ugrid), F_(F), Fworld_(Fworld), hist_(), bias_(),
 	lowerb_(lowerb), upperb_(upperb), lowerk_(lowerk), upperk_(upperk),
-	outfile_("CFF.out"), overwrite_(true), min_(min),
-	restart_from_cff_(restart_from_cff), restart_from_abf_(restart_from_abf)
+	outfile_("CFF.out"), overwrite_(true)
 	{
 		// Create histogram grid matrix.
 		hist_.resize(hgrid_->size(), hgrid_->GetDimension());
@@ -84,7 +80,6 @@ namespace SSAGES
 	//! Pre-simulation hook.
 	/*!
 	 * Initialize biasing forces and histogram.
-	 * If restart is enabled, initialize variables from files.
 	 */
 	void CFF::PreSimulation(Snapshot* snapshot, const CVManager& cvmanager) 
 	{
@@ -111,84 +106,8 @@ namespace SSAGES
         Eigen::Map<Eigen::Array<unsigned int, Eigen::Dynamic, 1>> hist(hgrid_->data(), hgrid_->size());
 		Nworld_ = hist.cast<int>();
 
-		// Restart from the previous CFF data.
-		if(restart_from_cff_)
-		{
-			if(IsMasterRank(world_))
-			{
-				if(std::ifstream("Nworld") && std::ifstream("ugrid") && std::ifstream("Fworld_cv"+std::to_string(0)) \
-						 && std::ifstream("netstate.dat") && std::ifstream("netstate2.dat")&& std::ifstream("bias"))
-				{
-					std::cout << std::endl;
-					std::cout << "Loading previous CFF simulation" << std::endl;
-				}
-				else
-				{
-					std::cout << std::endl;
-					std::cout << "Fail to load previous CFF simulation" << std::endl;
-				}
-				hgrid_->LoadFromFile("Nworld");
-				for(int i=0; i<dim_; ++i)
-					F_[i]->LoadFromFile("Fworld_cv"+std::to_string(i));
-			}
-
-			net_  = nnet::neural_net("netstate.dat");
-			net2_ = nnet::neural_net("netstate2.dat");
-			ugrid_->LoadFromFile("ugrid");
-
-			std::ifstream biasin("bias", std::ios::in);
-			for(int i = 0; i < bias_.size(); ++i)
-				biasin >> bias_(i);
-			biasin.close();
-
-			//Train initial network.
-			TrainNetwork();
-
-			//Write out initial CFF data.
-			if(IsMasterRank(world_))
-				WriteBias();
-
-		}
-		// Restart from the previous ABF data
-		// Currently, require generating "bias" and "ugrid" by integrating "F_out" from ABF by the user
-		// In the future, implement automatic generation of bias and ugrid from "F_out" only
-		else if (restart_from_abf_)
-		{
-			if(IsMasterRank(world_))
-			{
-				if(std::ifstream("Nworld") && std::ifstream("ugrid") && std::ifstream("Fworld_cv"+std::to_string(0)) \
-						 && std::ifstream("bias"))
-				{
-					std::cout << std::endl;
-					std::cout << "Loading previous ABF simulation" << std::endl;
-				}
-				else
-				{
-					std::cout << std::endl;
-					std::cout << "Fail to load previous ABF simulation" << std::endl;
-				}
-				hgrid_->LoadFromFile("Nworld");
-				for(int i=0; i<dim_; ++i)
-					F_[i]->LoadFromFile("Fworld_cv"+std::to_string(i));
-			}
-
-			ugrid_->LoadFromFile("ugrid");
-
-			std::ifstream biasin("bias", std::ios::in);
-			for(int i = 0; i < bias_.size(); ++i)
-				biasin >> bias_(i);
-			biasin.close();
-
-			// Train initial network.
-			TrainNetwork();
-
-			// Write out initial CFF data.
-			if(IsMasterRank(world_))
-				WriteBias();
-		}
 		// Scale initial bias by 1/2*kT and make them positive.
-		else
-			bias_.array() = abs(bias_.array())*kbt_*0.5; 
+		bias_.array() = abs(bias_.array())*kbt_*0.5; 
 	 }
 
 	//! Post-integration hook.
@@ -199,7 +118,6 @@ namespace SSAGES
 	 * Then, neural networks are trained if called.
 	 * Then, information is printed out if called. 
 	 * Finally, bias is applied using either genralized force (for the first sweep) or neural networks.
-	 * If restart is enabled, bias is applied using the initialially trained neural network from restart files
 	 */
 	void CFF::PostIntegration(Snapshot* snapshot, const CVManager& cvmanager)
 	{
@@ -285,26 +203,17 @@ namespace SSAGES
 
 			// Initial sweep is the same as doing adaptive basing force
 			// i.e., Calculate biasing forces from averaged F at current CV coodinates
-			// not called if restart is enabled
-			if (restart_from_cff_ || restart_from_abf_)
+			
+			if(snapshot->GetIteration() < nsweep_)
+			{
+				for(int i = 0; i < dim_; ++i)
+					derivatives[i] = (F_[i]->at(val)/std::max((double(hgrid_->at(val))),double(1.0)));
+			}
+			else 
 			{
 				net_.forward_pass(vec);
 				net2_.forward_pass(vec);
 				derivatives = net_.get_gradient(0)*ratio_ + net2_.get_gradient(0)*(1.0-ratio_);
-			}
-			else
-			{
-				if(snapshot->GetIteration() < nsweep_)
-				{
-					for(int i = 0; i < dim_; ++i)
-						derivatives[i] = (F_[i]->at(val)/std::max((double(hgrid_->at(val))),double(min_)));
-					}
-					else 
-					{
-						net_.forward_pass(vec);
-						net2_.forward_pass(vec);
-						derivatives = net_.get_gradient(0)*ratio_ + net2_.get_gradient(0)*(1.0-ratio_);
-				}
 			}
 
 		}
@@ -382,11 +291,7 @@ namespace SSAGES
 		ugrid_->syncGrid();
         Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, 1>> uhist(ugrid_->data(), ugrid_->size());
 
-		// Braodcast uhist and bias_ to all processors so that neural network is the same for each walker.
-		mxx::bcast(uhist.data(), uhist.size(), 0, world_);
-		mxx::bcast(bias_.data(), bias_.size(), 0, world_);
-
-		// Update average biased forces across all walkers.
+		// Update average biased forces across all processors
 		std::vector<Eigen::MatrixXd> Ftrain;
 		for(int i=0; i<dim_; ++i)
 		{
@@ -394,19 +299,13 @@ namespace SSAGES
 			Fworld_[i]->syncGrid();
 			
 			// Damp forces used to train net2_ via minimum number of hits
-			Eigen::ArrayXd Nmin = Eigen::ArrayXd::Ones(Fworld_[0]->size())*min_;  
+			Eigen::ArrayXd Nmin = Eigen::ArrayXd::Ones(Fworld_[0]->size())*1.0;  
 			Ftrain.push_back(Eigen::Map<Eigen::Array<double, Eigen::Dynamic, 1>> (Fworld_[i]->data(),Fworld_[i]->size()) / 
 				( (Nworld_.cast<double>()).max(Nmin) ) );
 		}
 
 		// Calculate unbiased histrogram from previous unbiased histogram plus estimates from bias energy. 
-		if ( restart_from_abf_ )
-		{
-			if (sweep_>1)
-				uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_;
-		}
-		else 
-			uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_;
+		uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_;
 
 		// Synchronize unbiased histogram and clear global histogram holder.
 		ugrid_->syncGrid();
@@ -511,7 +410,7 @@ namespace SSAGES
 	// Write out neural network data 
 	void CFF::WriteBias()
 	{
-		// Write neural network topology and	parameters
+		// Write neural network topology and parameters
 		std::string filename;
 		filename = overwrite_ ? "netstate.dat" : "netstate_"+std::to_string(sweep_)+".dat";
 		net_.write(filename.c_str());
@@ -563,40 +462,6 @@ namespace SSAGES
 		}
 		file.close();
 	 
-		// Backup Nworld 
-		// Note hgrid_->syncGrid(); hgrid_->WriteToFile("Nworld") does not work (zeros in the number of hits)
-		filename = overwrite_ ? "Nworld" : "Nworld_"+std::to_string(sweep_);
-		std::ofstream hout(filename);
-		hout << "#! type grid\n";
-		hout << "#! dim  " << dim_ << "\n";
-		hout << "#! count ";
-		for (auto& c : hgrid_->GetNumPoints())
-			 hout << c << " " ;
-		hout << "\n";
-		hout << "#! lower ";
-		for (auto& l : hgrid_->GetLower())
-			 hout << l << " ";
-		hout << "\n";
-		hout << "#! upper ";
-		for (auto& u : hgrid_->GetUpper())
-			 hout << u << " ";
-		hout << "\n";
-		hout << "#! periodic ";
-		for (auto p : hgrid_->GetPeriodic())
-			 hout << p << " ";
-		hout << "\n";
-		int count=0;
-		for(auto it = hgrid_->begin(); it != hgrid_->end(); ++it)
-			{
-				auto coords = it.coordinates();
-				for(auto& c : coords)
-							hout << std::setprecision(8) << std::fixed << c << " ";
-				hout.unsetf(std::ios_base::fixed);
-				hout << std::setprecision(16) << Nworld_[count] << "\n";
-				count+=1;
-			}
-		
-		hout.close();
 	}
 
 	CFF* CFF::Build(
@@ -642,11 +507,8 @@ namespace SSAGES
 		auto weight = json.get("weight", 1.).asDouble();
 		auto temp = json["temperature"].asDouble();
 		auto nsweep = json["nsweep"].asUInt();
-		auto min = json["minimum_count"].asInt();
 		auto unitconv = json.get("unit_conversion", 1).asDouble();
 		auto timestep = json.get("timestep", 0.002).asDouble();
-		auto restart_from_cff = json.get("restart_from_cff",false).asBool();
-		auto restart_from_abf = json.get("restart_from_abf",false).asBool();
 
 		// Assume all vectors are the same size. 
 		std::vector<double> lowerb, upperb, lowerk, upperk;
@@ -658,7 +520,7 @@ namespace SSAGES
 			upperb.push_back(json["upper_bounds"][i].asDouble());
 		}
 
-		auto* m = new CFF(world, comm, topol, fgrid, hgrid, ugrid, F, Fworld, lowerb, upperb, lowerk, upperk, temp, unitconv, timestep, weight, nsweep, min, restart_from_cff, restart_from_abf);
+		auto* m = new CFF(world, comm, topol, fgrid, hgrid, ugrid, F, Fworld, lowerb, upperb, lowerk, upperk, temp, unitconv, timestep, weight, nsweep);
 
 		// Set optional params.
 		m->SetPrevWeight(json.get("prev_weight", 1).asDouble());

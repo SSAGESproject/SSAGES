@@ -108,7 +108,7 @@ namespace SSAGES
 		//! Trains the neural network.
 		void TrainNetwork();
 
-		//! Writes out the bias and CFF restart data to file. 
+		//! Writes out the bias and CFF output files. 
 		void WriteBias();
 
 		//! Number of CVs in system.
@@ -117,18 +117,8 @@ namespace SSAGES
 		//! Unit conversion from mass*velocity/time to force.
 		double unitconv_;
 
-        //! The minimum number of hits required before full biasing, bias is
-        //! F_[i]/max(N_[i],min_).
-        int min_;
-
         //! To hold booleans for training neural nerwork only in specific region for net2_.
         Eigen::MatrixXd force_to_val_ratio_;
-
-        //! Restart from CFF.
-        bool restart_from_cff_;
-
-        //! Restart from ABF.
-        bool restart_from_abf_;
 
 	public: 
 		//! Constructor 
@@ -146,9 +136,6 @@ namespace SSAGES
 		 * \param temperature Temperature of the simulation.
 		 * \param weight Relative weight of the statistics in sweep.
 		 * \param nsweep Number of iterations in the sweep.
-		 * \param min Minimum number of hits required for the full force biasing
-         	 * \param restart_from_cff Restart flag starting from previous CFF runs
-         	 * \param restart_from_abf Restart flag starting from previous ABF runs
 		 *
 		 * Constructs an instance of Combined Force Frequency method.
 		 */ 
@@ -167,10 +154,7 @@ namespace SSAGES
 		    double unitconv,
 		    double timestep,
 		    double weight,
-		    unsigned int nsweep,
-		    int min,
-		    bool restart_from_cff,
-		    bool restart_from_abf
+		    unsigned int nsweep
 		    );
 
 		//! Pre-simulation hook.
