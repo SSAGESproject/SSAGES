@@ -11,6 +11,7 @@ List of Advanced Sampling Methods (alphabetical order):
    Adaptive Biasing Force Algorithm
    Artificial Neural Network Sampling
    Basis Function Sampling
+   Combined Force-Frequency Sampling
    Elastic Band
    Finite Temperature String
    Forward-Flux
