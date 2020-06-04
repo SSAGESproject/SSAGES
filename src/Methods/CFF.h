@@ -117,7 +117,7 @@ namespace SSAGES
 		//! Unit conversion from mass*velocity/time to force.
 		double unitconv_;
 
-        //! To hold booleans for training neural nerwork only in specific region for net2_.
+        //! To hold booleans for training neural network only in specific region for net2_.
         Eigen::MatrixXd force_to_val_ratio_;
 
 	public: 
