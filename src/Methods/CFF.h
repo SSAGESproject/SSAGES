@@ -157,25 +157,13 @@ namespace SSAGES
 		    unsigned int nsweep
 		    );
 
-		//! Pre-simulation hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \param cvmanager Collective variable manager.
-		 */
+		//! \copydoc Method::PreSimulation()
 		void PreSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
-		//! Post-integration hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \param cvmanager Collective variable manager.
-		 */
+		//! \copydoc Method::PostIntegration()
 		void PostIntegration(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
-		//! Post-simulation hook.
-		/*!
-		 * \param snapshot Current simulation snapshot.
-		 * \param cvmanager Collective variable manager.
-		 */
+		//! \copydoc Method::PostSimulation()
 		void PostSimulation(Snapshot* snapshot, const class CVManager& cvmanager) override;
 
 		//! Set previous history weight.
@@ -238,7 +226,7 @@ namespace SSAGES
 			net2_.set_train_params(params2);		
 		}
 
-		//! \copydoc Method::BuildMethod().
+		//! \copydoc Method::BuildMethod()
 		static CFF* Build(
 			const Json::Value& json,
 			const MPI_Comm& world,
