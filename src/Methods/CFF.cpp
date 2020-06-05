@@ -28,55 +28,12 @@
 #include <ctime>
 
 using namespace Json;
+
 // Implementation of the Combined Force Frequency (CFF) method from
 // Ref: Sevgen et al. J. Chem. Theory Comput. 2020, 16, 3, 1448-1455.a
+
 namespace SSAGES
 {
-	CFF::CFF(const MPI_Comm& world,
-			 const MPI_Comm& comm,
-			 const Eigen::VectorXi& topol,
-			 Grid<Eigen::VectorXd>* fgrid,
-			 Grid<unsigned int>* hgrid,
-			 Grid<double>* ugrid,
-			 std::vector<Grid<double>*> F, std::vector<Grid<double>*> Fworld,
-			 const std::vector<double>& lowerb,
-			 const std::vector<double>& upperb,
-			 const std::vector<double>& lowerk,
-			 const std::vector<double>& upperk,
-			 double temperature,
-			 double unitconv,
-			 double timestep,
-			 double weight,
-			 unsigned int nsweep) :
-	Method(1, world, comm), topol_(topol), sweep_(0), nsweep_(nsweep),
-	citers_(0), net_(topol), net2_(topol),
-	pweight_(1.), weight_(weight), temp_(temperature), unitconv_(unitconv), timestep_(timestep),
-	kbt_(0), fgrid_(fgrid), hgrid_(hgrid), ugrid_(ugrid), F_(F), Fworld_(Fworld), hist_(), bias_(),
-	lowerb_(lowerb), upperb_(upperb), lowerk_(lowerk), upperk_(upperk),
-	outfile_("CFF.out"), overwrite_(true)
-	{
-		// Create histogram grid matrix.
-		hist_.resize(hgrid_->size(), hgrid_->GetDimension());
-
-		// Fill it up.
-		int i = 0;
-		for(auto it = hgrid_->begin(); it != hgrid_->end(); ++it)
-		{
-			auto coord = it.coordinates();
-			auto n = coord.size();
-			for(decltype(n) j = 0; j < n; ++j)
-				hist_(i, j) = coord[j];
-			++i;
-		}
-
-		// Initialize free energy surface vector.
-		bias_.resize(hgrid_->size(), 1);
-		net_.forward_pass(hist_);
-		net2_.forward_pass(hist_);
-		bias_.array() = net_.get_activation().col(0).array();
-	}
-
-
 	//! Pre-simulation hook.
 	/*!
 	 * Initialize biasing forces and histogram.
@@ -306,7 +263,7 @@ namespace SSAGES
 		}
 
 		// Calculate unbiased histrogram from previous unbiased histogram plus estimates from bias energy.
-		uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(1./kbt_*bias_).array().exp()*weight_;
+		uhist.array() = pweight_*uhist.array() + hist.cast<double>()*(bias_/kbt_).array().exp()*weight_;
 
 		// Synchronize unbiased histogram and clear global histogram holder.
 		ugrid_->syncGrid();
@@ -473,9 +430,14 @@ namespace SSAGES
 	{
 		ObjectRequirement validator;
 		Value schema;
-		Reader reader;
-
-		reader.parse(JsonSchema::CFFMethod, schema);
+		CharReaderBuilder rbuilder;
+		CharReader* reader = rbuilder.newCharReader();
+		reader->parse(
+			JsonSchema::CFFMethod.c_str(),
+			JsonSchema::CFFMethod.c_str() + JsonSchema::CFFMethod.size(),
+			&schema,
+			nullptr
+		);
 		validator.Parse(schema, path);
 
 		// Validate inputs.
@@ -488,7 +450,6 @@ namespace SSAGES
 		auto* fgrid = Grid<Eigen::VectorXd>::BuildGrid(jsongrid);
 		auto* hgrid = Grid<unsigned int>::BuildGrid(jsongrid);
 		auto* ugrid = Grid<double>::BuildGrid(jsongrid);
-		auto* Nworld = Grid<unsigned int>::BuildGrid(jsongrid);
 		std::vector<Grid<double>*> F(json["grid"]["upper"].size());
 		for(auto& grid : F)
 			grid =	Grid<double>::BuildGrid(jsongrid);
