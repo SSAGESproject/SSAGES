@@ -113,10 +113,10 @@ namespace SSAGES
 
 		//! Number of CVs in system.
 		int dim_;
-		
+
 		//! Unit conversion from mass*velocity/time to force.
 		double unitconv_;
-		
+
 		//! The minimum number of hits required before full biasing, bias is
 		//! F_[i]/max(N_[i],min_).
 		int min_;
