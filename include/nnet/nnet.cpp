@@ -244,7 +244,6 @@ namespace nnet
         int Q = Y.rows();
         int S = Y.cols();
         int P = (X.cols()+1)*S;
-        f_type Pd = (X.cols()*(1.0-tparams_.ratio)+1*tparams_.ratio)*S;
 
         // Resize jacobian and define error.
         je_.resize(nparam_);
@@ -417,10 +416,10 @@ namespace nnet
             wb = optwb;
             mse = mse2; wse = wse2;
             gamma = static_cast<f_type>(nparam_) - alpha*(beta*jj_ + alpha*eye).inverse().trace();
-            beta = mse == 0 ? 1. : 0.5*(static_cast<f_type>(nex) - gamma)/mse;
-            alpha = wse == 0 ? 1. : 0.5*gamma/wse;
+            beta = mse == 0 ? 1.0 : 0.5*(static_cast<f_type>(nex) - gamma)/mse;
+            alpha = wse == 0 ? 1.0 : 0.5*gamma/wse;
             tse = beta*mse + alpha*wse;
-            grad = 2.*je_.norm();
+            grad = 2.0*je_.norm();
 
             if(tparams_.mu < tparams_.mu_max)
                 tparams_.mu /= tparams_.mu_scale;
@@ -669,13 +668,13 @@ namespace nnet
             file << std::scientific;
 
             // number of layers
-            file << static_cast<int>(layers_.size()) << std::endl;
+            auto n = layers_.size();
+            file << n << std::endl;
 
             // topology
-            auto n = layers_.size();
             for(decltype(n) i = 0; i < n - 1; ++i)
-                file << static_cast<int>(layers_[i].size) << " ";
-            file << static_cast<int>(layers_.back().size) << std::endl;
+                file << layers_[i].size << " ";
+            file << layers_.back().size << std::endl;
 
             for(int i = 0; i < x_scale_.size() - 1; ++i) file << x_scale_[i] << " ";
             file << x_scale_[x_scale_.size()-1] << std::endl;
