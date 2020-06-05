@@ -114,6 +114,10 @@ namespace SSAGES
 		//! Number of CVs in system.
 		int dim_;
 
+        //! The minimum number of hits required before full biasing, bias is
+        //! F_[i]/max(N_[i],min_).
+        int min_;
+
 		//! Unit conversion from mass*velocity/time to force.
 		double unitconv_;
 
@@ -160,14 +164,15 @@ namespace SSAGES
 			double unitconv,
 			double timestep,
 			double weight,
-			unsigned int nsweep
+			unsigned int nsweep,
+            int min
 		) :
 			Method(1, world, comm), topol_(topol), sweep_(0), nsweep_(nsweep), citers_(0),
 			net_(topol), net2_(topol), timestep_(timestep), pweight_(1.), weight_(weight),
 			temp_(temperature), kbt_(), F_(F), Fworld_(Fworld), fgrid_(fgrid),
 			hgrid_(hgrid), ugrid_(ugrid), hist_(), bias_(), lowerb_(lowerb),
 			upperb_(upperb), lowerk_(lowerk), upperk_(upperk), outfile_("CFF.out"),
-			overwrite_(true), unitconv_(unitconv)
+			overwrite_(true), unitconv_(unitconv), min_(min)
 		{
 			// Create histogram grid matrix.
 			hist_.resize(hgrid_->size(), hgrid_->GetDimension());

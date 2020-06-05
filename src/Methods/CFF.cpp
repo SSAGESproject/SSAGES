@@ -165,7 +165,7 @@ namespace SSAGES
 			if(snapshot->GetIteration() < nsweep_)
 			{
 				for(int i = 0; i < dim_; ++i)
-					derivatives[i] = (F_[i]->at(val)/std::max((double(hgrid_->at(val))),double(1.0)));
+					derivatives[i] = (F_[i]->at(val)/std::max((double(hgrid_->at(val))),double(min_)));
 			}
 			else
 			{
@@ -257,7 +257,7 @@ namespace SSAGES
 			Fworld_[i]->syncGrid();
 
 			// Damp forces used to train net2_ via minimum number of hits
-			Eigen::ArrayXd Nmin = Eigen::ArrayXd::Ones(Fworld_[0]->size())*1.0;
+			Eigen::ArrayXd Nmin = Eigen::ArrayXd::Ones(Fworld_[0]->size())*min_;
 			Ftrain.push_back(Eigen::Map<Eigen::Array<double, Eigen::Dynamic, 1>> (Fworld_[i]->data(),Fworld_[i]->size()) /
 				( (Nworld_.cast<double>()).max(Nmin) ) );
 		}
@@ -336,7 +336,7 @@ namespace SSAGES
 			file << std::endl;
 			file << "Sweep: " << sweep_ << std::endl;
 			file << "Printing out the current Biasing Vector Field from CFF." << std::endl;
-			file << "First (Nr of CVs) columns are the coordinates, the next (Nr of CVs) columns are components of the Adaptive For		 ce vector at that point." << std::endl;
+			file << "First (Nr of CVs) columns are the coordinates, the next (Nr of CVs) columns are components of the Generalized Force vector at that point." << std::endl;
 			file << "The columns are " << gridPoints << " long, mapping out a surface of ";
 			for (int i = 0 ; i < dim_-1; ++i)
 				file << (hgrid_->GetNumPoints())[i] << " by " ;
@@ -376,24 +376,6 @@ namespace SSAGES
 		net2_.write(filename.c_str());
 
 
-		// Backup Fworld
-		for(int i = 0 ; i < dim_; ++i)
-		{
-			Fworld_[i]->syncGrid();
-			filename = overwrite_ ? "Fworld_cv"+std::to_string(i) : "Fworld_cv"+std::to_string(i)+"_"+std::to_string(sweep_);
-			Fworld_[i]->WriteToFile(filename);
-		}
-
-		// Write bias energy
-		filename = overwrite_ ? "bias" : "bias_"+std::to_string(sweep_);
-		std::ofstream biasout(filename);
-		biasout << bias_;
-		biasout.close();
-
-		// Write unbiased histogram
-		filename = overwrite_ ? "ugrid" : "ugrid_"+std::to_string(sweep_);
-		ugrid_->WriteToFile(filename);
-
 		// Write CFF output
 		filename = overwrite_ ? outfile_ : outfile_ + std::to_string(sweep_);
 		std::ofstream file(filename);
@@ -410,7 +392,7 @@ namespace SSAGES
 		file << "Sweep: " << sweep_ << std::endl;
 		file << "Printing out the current Combined Force Frequency data." << std::endl;
 		file << "First (Nr of CVs) columns are the coordinates." << std::endl;
-		file << "Next columns (left to right) are: bias(freq_NN) bias(freq_and_force_NN) bias(both_NN) free_energy" << std::endl;
+		file << "Next columns (left to right) are: bias(freq_NN) bias(force_NN) bias(both_NN) free_energy" << std::endl;
 		file << std::endl;
 		for(int i = 0; i < y.rows(); ++i)
 		{
@@ -471,6 +453,7 @@ namespace SSAGES
 		auto nsweep = json["nsweep"].asUInt();
 		auto unitconv = json.get("unit_conversion", 1).asDouble();
 		auto timestep = json.get("timestep", 0.002).asDouble();
+        auto min = json["minimum_count"].asInt();
 
 		// Assume all vectors are the same size.
 		std::vector<double> lowerb, upperb, lowerk, upperk;
@@ -483,7 +466,7 @@ namespace SSAGES
 			upperb.push_back(json["upper_bounds"][i].asDouble());
 		}
 
-		auto* m = new CFF(world, comm, topol, fgrid, hgrid, ugrid, F, Fworld, lowerb, upperb, lowerk, upperk, temp, unitconv, timestep, weight, nsweep);
+		auto* m = new CFF(world, comm, topol, fgrid, hgrid, ugrid, F, Fworld, lowerb, upperb, lowerk, upperk, temp, unitconv, timestep, weight, nsweep, min);
 
 		// Set optional params.
 		m->SetPrevWeight(json.get("prev_weight", 1).asDouble());

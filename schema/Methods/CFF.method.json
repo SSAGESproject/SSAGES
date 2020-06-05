@@ -85,6 +85,10 @@
         "unit_conversion" : {
             "type" : "number" 
 	},
+         "minimum_count" : {
+                 "type" : "integer",
+                 "minimum" : 0
+    },
         "min_loss" : {
             "type" : "number",
             "minimum" : 0
