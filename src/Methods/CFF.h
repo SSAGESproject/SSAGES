@@ -113,13 +113,13 @@ namespace SSAGES
 
 		//! Number of CVs in system.
 		int dim_;
-
-        //! The minimum number of hits required before full biasing, bias is
-        //! F_[i]/max(N_[i],min_).
-        int min_;
-
+		
 		//! Unit conversion from mass*velocity/time to force.
 		double unitconv_;
+		
+		//! The minimum number of hits required before full biasing, bias is
+		//! F_[i]/max(N_[i],min_).
+		int min_;
 
 		//! To hold booleans for training neural network only in specific region for net2_.
 		Eigen::MatrixXd force_to_val_ratio_;
@@ -144,6 +144,7 @@ namespace SSAGES
 		 * \param timestep Simulation time step.
 		 * \param weight Relative weight of the statistics in sweep.
 		 * \param nsweep Number of iterations in the sweep.
+		 * \param min Number of counts for scaling back force biasing
 		 *
 		 * Constructs an instance of Combined Force Frequency method.
 		 */
@@ -165,7 +166,7 @@ namespace SSAGES
 			double timestep,
 			double weight,
 			unsigned int nsweep,
-            int min
+			int min
 		) :
 			Method(1, world, comm), topol_(topol), sweep_(0), nsweep_(nsweep), citers_(0),
 			net_(topol), net2_(topol), timestep_(timestep), pweight_(1.), weight_(weight),
