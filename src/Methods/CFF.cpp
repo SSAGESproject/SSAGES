@@ -392,13 +392,13 @@ namespace SSAGES
 		file << "Sweep: " << sweep_ << std::endl;
 		file << "Printing out the current Combined Force Frequency data." << std::endl;
 		file << "First (Nr of CVs) columns are the coordinates." << std::endl;
-		file << "Next columns (left to right) are: bias(freq_NN) bias(force_NN) bias(both_NN) free_energy" << std::endl;
+		file << "Next columns (left to right) are: hist bias(freq_NN) bias(force_NN) bias(both_NN) free_energy" << std::endl;
 		file << std::endl;
 		for(int i = 0; i < y.rows(); ++i)
 		{
 			for(int j = 0; j < hist_.cols(); ++j)
 				file << std::fixed << hist_(i,j) << " ";
-			file << std::fixed<< x(i)<< " " << std::fixed << y(i)<< " " << std::fixed << q(i) <<" " << std::fixed << m(i) << "\n";
+			file << std::fixed<< Nworld_[i] << " " << x(i)<< " " << std::fixed << y(i)<< " " << std::fixed << q(i) <<" " << std::fixed << m(i) << "\n";
 		}
 		file.close();
 
