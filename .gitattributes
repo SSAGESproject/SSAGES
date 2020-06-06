@@ -1,7 +1,14 @@
 # Set the default behavior, in case people don't have core.autocrlf set.
 * text=auto
 
-# Explicitly declare source files you want to always be normalized and converted
+# Explicit list of filetypes to be normalized and converted
+# Source files
 *.cpp text eol=lf
 *.h text eol=lf
+*.json text eol=lf
+*.py text eol=lf
 
+# Documentation files
+*.md text eol=lf
+*.rst text eol=lf
+*.txt text eol=lf
