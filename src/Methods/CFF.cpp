@@ -453,7 +453,7 @@ namespace SSAGES
 		auto nsweep = json["nsweep"].asUInt();
 		auto unitconv = json.get("unit_conversion", 1).asDouble();
 		auto timestep = json.get("timestep", 0.002).asDouble();
-        auto min = json["minimum_count"].asInt();
+                auto min = json.get("minimum_count", 200).asInt();
 
 		// Assume all vectors are the same size.
 		std::vector<double> lowerb, upperb, lowerk, upperk;

@@ -106,7 +106,8 @@
 		"temperature",
 		"timestep",
 		"unit_conversion",
-		"nsweep"
+		"nsweep",
+		"minimum_count"
     ],
     "additionalProperties" : false
 }
