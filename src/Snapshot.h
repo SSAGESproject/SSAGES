@@ -429,36 +429,25 @@ namespace SSAGES
 			return mtot;
 		}
 
-		//! Compute center of mass of a group of atoms with implicit total mass.
-		/*!
-		 * \param indices IDs of particles of interest.
-		 * \return Vector3 Center of mass of particles.
-		 */
-		Vector3 CenterOfMass(const Label& indices) const
-		{
-			// Get total mass.
-			auto mtot = TotalMass(indices);
-			return CenterOfMass(indices, mtot);
-		}
-
 		//! Compute center of mass of a group of atoms based on index with
 		//! provided total mass.
 		/*!
 		 * \param indices IDs of particles of interest.
-		 * \param mtot Total mass of particle group.
+		 * \param mass_weight Mass-weighting for COM calculation.
 		 * \return Vector3 Center of mass of particles.
 		 * \note Each processor passes in the local indices of the atoms of
 		 *       interest and this function will collect the data and compute
 		 *       the center of mass.
-		 * \note If mtot is zero, then the masses are not taken into account and
-		 *       the center of geometry is calculated.
 		 */
-		Vector3 CenterOfMass(const Label& indices, double mtot) const
+		Vector3 CenterOfMass(const Label& indices, bool mass_weight = true) const
 		{
-			// Store coorinates and masses in vectors to gather. 
+			// Store coordinates and masses in vectors to gather.
 			std::vector<double> pos, mass, gpos, gmass;
 			std::vector<int> pcounts(comm_.size(), 0), mcounts(comm_.size(), 0); 
 			std::vector<int> pdispls(comm_.size()+1, 0), mdispls(comm_.size()+1, 0);
+
+			// Calculate total mass
+			double mtot = mass_weight ? TotalMass(indices) : indices.size();
 
 			pcounts[comm_.rank()] = 3*indices.size();
 			mcounts[comm_.rank()] = indices.size();
@@ -487,16 +476,10 @@ namespace SSAGES
 
 			// All-gather data.
 			MPI_Allgatherv(pos.data(), pos.size(), MPI_DOUBLE, gpos.data(), pcounts.data(), pdispls.data(), MPI_DOUBLE, comm_);
-			MPI_Allgatherv(mass.data(), mass.size(), MPI_DOUBLE, gmass.data(), mcounts.data(), mdispls.data(), MPI_DOUBLE, comm_);
-
-			// Fictitious masses for center of geometry.
-			if(mtot == 0)
-			{
-				for(auto& m : gmass)
-				{
-					m = 1.0;
-					mtot++;
-				}
+			if(mass_weight) {
+				MPI_Allgatherv(mass.data(), mass.size(), MPI_DOUBLE, gmass.data(), mcounts.data(), mdispls.data(), MPI_DOUBLE, comm_);
+			} else {
+				gmass.resize(mdispls.back(), 1.0);
 			}
 
 			// Loop through atoms and compute mass weighted sum.
