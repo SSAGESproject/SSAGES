@@ -110,7 +110,7 @@ namespace SSAGES
 			
 			// Compute total and center of mass.
 			auto masstot = snapshot.TotalMass(idx);
-			Vector3 com = snapshot.CenterOfMass(idx, masstot);
+			Vector3 com = snapshot.CenterOfMass(idx);
 
 			// Assign CV value. 
 			switch(dim_)

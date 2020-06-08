@@ -175,7 +175,7 @@ namespace SSAGES
 			grad_.resize(snapshot.GetNumAtoms(), Vector3{0,0,0});
 
 			// Calculate center of mass
-			Vector3 COM_ = snapshot.CenterOfMass(idx, masstot);
+			Vector3 COM_ = snapshot.CenterOfMass(idx);
 
 			// Build correlation matrix
 			Matrix3 R = Matrix3::Zero();

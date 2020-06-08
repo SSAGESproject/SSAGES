@@ -137,7 +137,7 @@ namespace SSAGES
 			for (size_t i = 0; i < N_; ++i) {
 				Label idi;	// list of indices
 				snapshot.GetLocalIndices(groups_[i], &idi);
-				rcom.push_back(snapshot.CenterOfMass(idi,massg_[i])); // center of mass for group
+				rcom.push_back(snapshot.CenterOfMass(idi)); // center of mass for group
 			}
 
 			// Now compute differences vectors between the neighboring beads

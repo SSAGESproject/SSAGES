@@ -142,10 +142,10 @@ namespace SSAGES
 			boxgrad_ = Matrix3::Zero();
 
 			// Get centers of mass.
-			auto mtot1 = snapshot.TotalMass(idx1);		
-			auto mtot2 = snapshot.TotalMass(idx2);	
-			Vector3 com1 = snapshot.CenterOfMass(idx1, mtot1);
-			Vector3 com2 = snapshot.CenterOfMass(idx2, mtot2);
+			auto mtot1 = snapshot.TotalMass(idx1);
+			auto mtot2 = snapshot.TotalMass(idx2);
+			Vector3 com1 = snapshot.CenterOfMass(idx1);
+			Vector3 com2 = snapshot.CenterOfMass(idx2);
 
 			// Account for pbc. 
 			Vector3 rij = snapshot.ApplyMinimumImage(com1 - com2).cwiseProduct(dim_.cast<double>());
