@@ -429,8 +429,7 @@ namespace SSAGES
 			return mtot;
 		}
 
-		//! Compute center of mass of a group of atoms based on index with
-		//! provided total mass.
+		//! Compute center of mass of a group of atoms based on index.
 		/*!
 		 * \param indices IDs of particles of interest.
 		 * \param mass_weight Mass-weighting for COM calculation.
@@ -438,6 +437,7 @@ namespace SSAGES
 		 * \note Each processor passes in the local indices of the atoms of
 		 *       interest and this function will collect the data and compute
 		 *       the center of mass.
+		 * \note Default behavior is to use a mass-weighted average.
 		 */
 		Vector3 CenterOfMass(const Label& indices, bool mass_weight = true) const
 		{
