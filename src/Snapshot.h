@@ -472,14 +472,12 @@ namespace SSAGES
 
 			// Re-size receiving vectors. 
 			gpos.resize(pdispls.back(), 0);
-			gmass.resize(mdispls.back(), 0);
+			gmass.resize(mdispls.back(), 1.0); // fictitious mass of 1
 
 			// All-gather data.
 			MPI_Allgatherv(pos.data(), pos.size(), MPI_DOUBLE, gpos.data(), pcounts.data(), pdispls.data(), MPI_DOUBLE, comm_);
-			if(mass_weight) {
+			if(mass_weight) { // overwrite gmass with true mass values
 				MPI_Allgatherv(mass.data(), mass.size(), MPI_DOUBLE, gmass.data(), mcounts.data(), mdispls.data(), MPI_DOUBLE, comm_);
-			} else {
-				gmass.resize(mdispls.back(), 1.0);
 			}
 
 			// Loop through atoms and compute mass weighted sum.
