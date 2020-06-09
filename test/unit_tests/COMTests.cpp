@@ -84,6 +84,13 @@ TEST_F(COMTests, ZeroCOMTest)
 	EXPECT_NEAR(com[0], 10.0, eps);
 	EXPECT_NEAR(com[1], 10.0, eps);
 	EXPECT_NEAR(com[2], 10.0, eps);
+
+	// Center of geometry (ignores masses).
+	auto cog = cubic->CenterOfMass(indices, false);
+	auto diff = cubic->ApplyMinimumImage(cog - com);
+	EXPECT_NEAR(diff[0], 0, eps);
+	EXPECT_NEAR(diff[1], 0, eps);
+	EXPECT_NEAR(diff[2], 0, eps);
 }
 
 TEST_F(COMTests, MassCOMTest)

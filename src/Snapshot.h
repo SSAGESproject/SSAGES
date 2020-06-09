@@ -429,35 +429,25 @@ namespace SSAGES
 			return mtot;
 		}
 
-		//! Compute center of mass of a group of atoms based on idex with provided 
-		//! Total mass.
+		//! Compute center of mass of a group of atoms based on index.
 		/*!
-		  * \param indices IDs of particles of interest. 
-		  * \return Vector3 Center of mass of particles.
-		  */ 		
-		Vector3 CenterOfMass(const Label& indices) const
+		 * \param indices IDs of particles of interest.
+		 * \param mass_weight Mass-weighting for COM calculation.
+		 * \return Vector3 Center of mass of particles.
+		 * \note Each processor passes in the local indices of the atoms of
+		 *       interest and this function will collect the data and compute
+		 *       the center of mass.
+		 * \note Default behavior is to use a mass-weighted average.
+		 */
+		Vector3 CenterOfMass(const Label& indices, bool mass_weight = true) const
 		{
-			// Get total mass.
-			auto mtot = TotalMass(indices);
-
-			return CenterOfMass(indices, mtot);			
-		}
-
-		//! Compute center of mass of a group of atoms based on idex with provided 
-		//! Total mass.
-		/*!
-		  * \param indices IDs of particles of interest. 
-		  * \param mtot Total mass of particle group. 
-		  * \return Vector3 Center of mass of particles.
-		  * \note Each processor passes in the local indices of the atoms of interest
-		  *       and this function will collect the data and compute the center of mass.
-		  */ 
-		Vector3 CenterOfMass(const Label& indices, double mtot) const
-		{
-			// Store coorinates and masses in vectors to gather. 
+			// Store coordinates and masses in vectors to gather.
 			std::vector<double> pos, mass, gpos, gmass;
 			std::vector<int> pcounts(comm_.size(), 0), mcounts(comm_.size(), 0); 
 			std::vector<int> pdispls(comm_.size()+1, 0), mdispls(comm_.size()+1, 0);
+
+			// Calculate total mass
+			double mtot = mass_weight ? TotalMass(indices) : indices.size();
 
 			pcounts[comm_.rank()] = 3*indices.size();
 			mcounts[comm_.rank()] = indices.size();
@@ -482,13 +472,15 @@ namespace SSAGES
 
 			// Re-size receiving vectors. 
 			gpos.resize(pdispls.back(), 0);
-			gmass.resize(mdispls.back(), 0);
+			gmass.resize(mdispls.back(), 1.0); // fictitious mass of 1
 
 			// All-gather data.
 			MPI_Allgatherv(pos.data(), pos.size(), MPI_DOUBLE, gpos.data(), pcounts.data(), pdispls.data(), MPI_DOUBLE, comm_);
-			MPI_Allgatherv(mass.data(), mass.size(), MPI_DOUBLE, gmass.data(), mcounts.data(), mdispls.data(), MPI_DOUBLE, comm_);
+			if(mass_weight) { // overwrite gmass with true mass values
+				MPI_Allgatherv(mass.data(), mass.size(), MPI_DOUBLE, gmass.data(), mcounts.data(), mdispls.data(), MPI_DOUBLE, comm_);
+			}
 
-			// Loop through atoms and compute mass weighted sum. 
+			// Loop through atoms and compute mass weighted sum.
 			// We march linearly through list and find nearest image
 			// to each successive particle to properly unwrap object.
 			Vector3 ppos = {gpos[0], gpos[1], gpos[2]}; // Previous unwrapped position.

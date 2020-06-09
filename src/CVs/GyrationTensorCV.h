@@ -144,7 +144,7 @@ namespace SSAGES
 			
 			// Compute total and center of mass.
 			auto masstot = snapshot.TotalMass(idx);
-			Vector3 com = snapshot.CenterOfMass(idx, masstot);
+			Vector3 com = snapshot.CenterOfMass(idx);
 
 			// Gyration tensor and temporary vector to store positions in inertial frame. 
 			Matrix3 S = Matrix3::Zero();
