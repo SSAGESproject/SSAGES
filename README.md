@@ -24,7 +24,7 @@ but we are working rapidly to expand its features and fix any bugs. Keep an eye
 on this page for future updates and see below on how to contribute!
 
 ## What's New (v0.9.0)
--
+- Addition of non-weighted internal center of mass calculation
 
 To view the full changelog history, refer to [HISTORY](HISTORY.md).
 
