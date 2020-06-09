@@ -1,6 +1,6 @@
 /**
  * This file is part of
- * SSAGES - Suite for Advanced Generalized Ensemble Simulations
+ * SSAGES - Software Suite for Advanced Generalized Ensemble Simulations
  *
  * Copyright 2018 Emre Sevgen <sesevgen@uchicago.edu> and Hythem Sidky <hsidky@nd.edu>
  *           2020 Elizabeth M.Y. Lee <emlee@uchicago.edu> and Boyuan Yu <boyuanyu@uchicago.edu>
@@ -453,7 +453,7 @@ namespace SSAGES
 		auto nsweep = json["nsweep"].asUInt();
 		auto unitconv = json.get("unit_conversion", 1).asDouble();
 		auto timestep = json.get("timestep", 0.002).asDouble();
-                auto min = json.get("minimum_count", 200).asInt();
+		auto min = json.get("minimum_count", 200).asInt();
 
 		// Assume all vectors are the same size.
 		std::vector<double> lowerb, upperb, lowerk, upperk;
