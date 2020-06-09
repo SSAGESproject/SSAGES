@@ -1,0 +1,51 @@
+{
+	"walkers" : 1,
+	"args" : ["-v","-deffnm","adp","-dlb","yes"],
+	"CVs": [
+		{
+			"periodic": true,
+			"type": "Torsional",
+			"atom_ids": [
+				5,
+				7,
+				9,
+				15
+			]
+		},
+		{
+			"periodic": true,
+			"type": "Torsional",
+			"atom_ids": [
+				7,
+				9,
+				15,
+				17
+			]
+		}
+	],
+	"methods": [
+		{
+			"type" : "CFF",
+			"topology" : [12,8],
+			"nsweep" : 10000,
+			"temperature" : 298.15,
+			"grid" : {
+				"lower" : [-3.14159,-3.14159],
+				"upper" : [3.14159,3.14159],
+				"number_points" : [30,30],
+				"periodic" : [false,false]
+			},
+			"lower_bounds" : [-5,-5],
+			"upper_bounds" : [5,5],
+			"lower_bound_restraints" : [0.0,0.0],
+			"upper_bound_restraints" : [0.0,0.0],
+			"timestep" : 0.001,
+			"unit_conversion" : 1,
+			"minimum_count" : 100
+		}
+	],
+	"logger" : {
+		"output_file" : ["cvs0.dat"],
+		"frequency" : 1
+	}
+}
