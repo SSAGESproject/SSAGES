@@ -1,12 +1,12 @@
 <div align="center">
-  <a href="http://miccomcodes.org" target="_blank">
-    <img src="http://miccomcodes.org/static/img/ssageslogo.jpg" alt="SSAGES" height="200">
+  <a href="http://ssagesproject.github.io" target="_blank">
+    <img src="doc/assets/ssages-logo.png" alt="SSAGES" height="200">
   </a>
 </div>
 
 <h2 align="center">
 <p align="center">
-  <a href="http://miccomcodes.org/manual/index.html" target="_blank">
+  <a href="http://ssagesproject.github.io/docs/" target="_blank">
     <img src="https://img.shields.io/badge/docs-v0.8-blue.svg" alt="Documentation">
   </a>
   &nbsp;
@@ -24,6 +24,7 @@ but we are working rapidly to expand its features and fix any bugs. Keep an eye
 on this page for future updates and see below on how to contribute!
 
 ## What's New (v0.9.0)
+- New Combined Force–Frequency sampling method
 - Addition of non-weighted internal center of mass calculation
 
 To view the full changelog history, refer to [HISTORY](HISTORY.md).

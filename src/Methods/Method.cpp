@@ -20,6 +20,7 @@
 #include "Method.h"
 #include "ABF.h"
 #include "ANN.h"
+#include "CFF.h"
 #include "Umbrella.h"
 #include "BasisFunc.h"
 #include "ForwardFlux.h"
@@ -62,6 +63,8 @@ namespace SSAGES
 			method = ANN::Build(json, world, comm, path);
 		else if(json["type"] == "BFSMethod")
 			method = BFS::Build(json, world, comm, path);
+		else if(json["type"] == "CFF")
+			method = CFF::Build(json, world, comm, path);
 		else if(json["type"] == "ForwardFlux")
 			method = ForwardFlux::Build(json, world, comm, path);
 		else if(json["type"] == "Metadynamics")
