@@ -26,49 +26,52 @@ on this page for future updates and see below on how to contribute!
 ## What's New (v0.9.0)
 - New Combined Force–Frequency sampling method
 - Addition of non-weighted internal center of mass calculation
+- Documentation additions
+- New ANN-based collective variable
 
 To view the full changelog history, refer to [HISTORY](HISTORY.md).
 
 <a id="features"></a>
 ## Features
-**SSAGES** currently works with multiple molecular dynamics engines. It contains a variety of collective variables (CVs) and advanced sampling methods. 
+**SSAGES** currently works with multiple molecular dynamics engines. It contains a variety of collective variables (CVs) and advanced sampling methods.
 
-### Highlights 
-- Engine agnostic framework 
-- Simple JSON input file syntax 
-- Easy to add new CVs 
+### Highlights
+- Engine agnostic framework
+- Simple JSON input file syntax
+- Easy to add new CVs
 - Easy to add new methods
 - Much more!
 
-### Engines 
+### Engines
 - GROMACS 5.1.x, 2016.x, 2018.x
 - LAMMPS (Most recent versions)
 - OpenMD (2.5+)
 - QBox (1.63+)
 
 ### CVs
+- Artificial Neural Network (as a function of group positions)
 - Atom group coordinate
-- Atom group position 
-- Atom group separation 
+- Atom group position
+- Atom group separation
 - Bend angle
 - Box volume
 - Components of gyration tensor
 - Pairwise kernel (coordination number, nearest neighbors)
-- Polymer Rouse modes 
+- Polymer Rouse modes
 - Root-mean-square deviation (RMSD)
 - Secondary structure (alpha, anti/parallel beta sheet) RMSD
 - Torsional angle
 
-### Methods 
-- Adaptive biasing force 
+### Methods
+- Adaptive biasing force
 - Artificial neural network sampling
-- Basis function sampling 
-- Metadynamics 
-- Umbrella sampling 
-- Finite temperature string 
-- Nudged elastic band 
-- Swarm of trajectories 
-- Forward flux sampling 
+- Basis function sampling
+- Metadynamics
+- Umbrella sampling
+- Finite temperature string
+- Nudged elastic band
+- Swarm of trajectories
+- Forward flux sampling
 
 <a id="installation"></a>
 ## Installation
@@ -83,7 +86,7 @@ For example, to compile with LAMMPS, execute the following
 ```bash
 $ cd SSAGES
 $ mkdir build && cd build
-$ cmake -DLAMMPS_SRC=/path/to/lammps/src .. 
+$ cmake -DLAMMPS_SRC=/path/to/lammps/src ..
 $ make
 ```
 
@@ -106,11 +109,11 @@ $ cmake -DLAMMPS_SRC=/path/to/lammps/src -DBUILD_TESTS=ON ..
 
 ### MPI
 
-A requisite underlying MPI library also required to run SSAGES. 
-On recent Debian based systems using OpenMPI, the requirement 
+A requisite underlying MPI library also required to run SSAGES.
+On recent Debian based systems using OpenMPI, the requirement
 can be installed via:
 
-```bash 
+```bash
 $ sudo apt-get install libopenmpi-dev openmpi-bin
 ```
 
@@ -118,10 +121,10 @@ For more detail on the build system, please check the documentation.
 
 To build the documentation, refer to [Documentation README](doc/README.md).
 
-## Known issues 
-**SSAGES** is currently in pre-beta. That means there may be known issues that are not yet resolved. Major issues are listed here. 
+## Known issues
+**SSAGES** is currently in pre-beta. That means there may be known issues that are not yet resolved. Major issues are listed here.
 
 - Restarts are not fully functioning for all methods.
 
-## Contributing 
+## Contributing
 Feel free to fork this project on GitHub. Any pull-requests, feature requests or other form of contributions are welcome.
