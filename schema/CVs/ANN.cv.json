@@ -1,0 +1,67 @@
+{
+    "type": "object",
+    "varname": "ANNCV",
+    "properties": {
+        "type": {
+            "type": "string",
+            "enum": [
+                "ANNCV"
+            ]
+        },
+        "atom_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "integer",
+                "minimum": 0
+            }
+        },
+        "scaling_factor": {
+            "type": "number"
+        },
+        "num_nodes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "integer",
+                "minimum": 1
+            }
+        },
+        "activations": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "minimum": 1
+            }
+        },
+        "index": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "coeff_file": {
+            "type": "string"
+        },
+        "bounds": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+                "type": "number"
+            }
+        },
+        "name": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "type",
+        "atom_ids", 
+        "scaling_factor", 
+        "num_nodes",
+        "activations",
+        "index",
+        "coeff_file"
+    ],
+    "additionalProperties": false
+}

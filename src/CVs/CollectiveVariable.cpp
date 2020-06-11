@@ -23,6 +23,7 @@
 #include "AlphaRMSDCV.h"
 #include "CVManager.h"
 #include "AngleCV.h"
+#include "ANNCV.h"
 #include "AntiBetaRMSDCV.h"
 #include "BoxVolumeCV.h"
 #include "GyrationTensorCV.h"
@@ -46,6 +47,8 @@ namespace SSAGES
 
 		if(type == "Angle")
 			return AngleCV::Build(json, path);
+		else if (type == "ANNCV") 
+			return ANNCV::Build(json, path);
 		else if(type == "BoxVolume")
 			return BoxVolumeCV::Build(json, path);
 		else if(type == "GyrationTensor")

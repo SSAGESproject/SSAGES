@@ -70,6 +70,92 @@ Property ``type`` must be set to string ``"Angle"``.
 
 Property ``atom_ids`` must contain three integers consisting of the atom ID forming the angle of interest.
 
+ANNCV
+-----
+
+Description
+^^^^^^^^^^^
+
+This CV takes scaled (specified by ``scaling_factor``) Cartesian coordinates of a group of atoms (specified by ``atomids``) as inputs to a neural network (its number of nodes, connection weights, and activation functions are specified by ``num_nodes``, ``coeff_file``, ``activations``, respectively), computes one component (specified by ``out_index``) of the final neural network outputs as the CV value. The coefficients of the neural network can be obtained from any feed-forward neural networks trained with Cartesian coordinates as inputs.  Examples of the neural networks include the encoders of the autoencoders in the `MESA framework <https://github.com/weiHelloWorld/accelerated_sampling_with_autoencoder>`_, or `State-free Reversible VAMPnets <https://github.com/hsidky/srv>`_.
+
+In the following example, we define an ANN CV which takes Cartesian coordinates of atoms ``[2, 5, 7, 9, 15, 17, 19]``, scaled by factor 0.5, as inputs to a neural network with node numbers ``[21, 40, 2]`` and activation functions ``["Tanh", "Tanh"]``, and weights defined in file ``autoencoder_info_1.txt`` (which stores weights for the neural network), and outputs two components (marked as index 0 and 1) as CVs.
+
+Example
+^^^^^^^
+
+.. code-block:: javascript
+
+	"CVs": [
+				{
+					"type": "ANNCV",
+					"atom_ids": [2, 5, 7, 9, 15, 17, 19],
+					"scaling_factor": 0.5,
+					"num_nodes": [21, 40, 2],
+					"activations": ["Tanh", "Tanh"],
+					"index": 0,
+					"coeff_file": "autoencoder_info_1.txt"
+				},
+				{
+					"type": "ANNCV",
+					"atom_ids": [2, 5, 7, 9, 15, 17, 19],
+					"scaling_factor": 0.5,
+					"num_nodes": [21, 40, 2],
+					"activations": ["Tanh", "Tanh"],
+					"index": 1,
+					"coeff_file": "autoencoder_info_1.txt"
+				}
+			]
+			
+
+Options & Parameters
+^^^^^^^^^^^^^^^^^^^^
+
+Required
+~~~~~~~~
+
+.. code-block:: javascript
+
+	"type": "ANNCV"
+
+Selects this collective variable.
+
+
+.. code-block:: javascript
+
+	"atom_ids"
+
+Property ``atom_ids`` must contain integers consisting of the atom ID for the inputs of ANN.
+
+.. code-block:: javascript
+
+	"scaling_factor"
+
+Property ``scaling_factor`` is the scaling factor of the inputs.
+
+.. code-block:: javascript
+
+	"num_nodes"
+
+Property ``num_nodes`` defines the number of nodes for each layer of the neural network.
+
+.. code-block:: javascript
+
+	"activations"
+
+Property ``activations`` defines the activation functions for each layer of the neural network.
+
+.. code-block:: javascript
+
+	"coeff_file"
+
+Property ``coeff_file`` defines the file which stores weights for the neural network.
+
+.. code-block:: javascript
+
+	"index"
+
+Property ``index`` defines the output index we want to use for CV.
+
 Box Volume
 ----------
 
