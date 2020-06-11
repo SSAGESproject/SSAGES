@@ -6,8 +6,8 @@
 
 <h2 align="center">
 <p align="center">
-  <a href="http://ssagesproject.github.io/docs/" target="_blank">
-    <img src="https://img.shields.io/badge/docs-v0.8-blue.svg" alt="Documentation">
+  <a href="http://ssagesproject.github.io/docs/index.html" target="_blank">
+    <img src="https://img.shields.io/badge/docs-v0.9-blue.svg" alt="Documentation">
   </a>
   &nbsp;
   <a href="https://doi.org/10.1063/1.5008853" target="_blank">
