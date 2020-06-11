@@ -63,6 +63,7 @@ To view the full changelog history, refer to [HISTORY](HISTORY.md).
 - Adaptive biasing force
 - Artificial neural network sampling
 - Basis function sampling
+- Combined Force–Frequency Sampling
 - Metadynamics
 - Umbrella sampling
 - Finite temperature string
