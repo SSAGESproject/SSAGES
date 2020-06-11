@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with SSAGES.  If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once 
+#pragma once
 
 #include "CollectiveVariable.h"
 #include "Validator/ObjectRequirement.h"
@@ -31,13 +31,13 @@
 
 namespace SSAGES
 {
-	//! ANN (artifical neural network) collective variables.  
+	//! ANN (artifical neural network) collective variables.
 	/*! This CV takes scaled (specified by "scaling_factor")
-	* Cartesian coordinates of a group of atoms (specified by "atomids") as inputs to a neural network 
-	* (its number of nodes, connection weights, and activation functions are specified by "num_nodes", 
-	* "coeff_file", "activations", respectively), 
+	* Cartesian coordinates of a group of atoms (specified by "atomids") as inputs to a neural network
+	* (its number of nodes, connection weights, and activation functions are specified by "num_nodes",
+	* "coeff_file", "activations", respectively),
 	* computes one component (specified by "out_index") of the final neural network outputs as the CV value.
-	* 
+	*
 	*/
 	class ANNCV : public CollectiveVariable
 	{
@@ -71,7 +71,7 @@ namespace SSAGES
 			std::vector<std::string> activations,
 			int out_index
 		) :
-			atomids_(atomids), scaling_factor_(scaling_factor), num_nodes_(num_nodes),  
+			atomids_(atomids), scaling_factor_(scaling_factor), num_nodes_(num_nodes),
 			activations_(activations), out_index_(out_index)
 	  	{
 			// read coefficients from file
@@ -95,7 +95,7 @@ namespace SSAGES
 				}
 				if (temp_weight.size() != num_nodes_[layer_index] * num_nodes_[layer_index + 1]) {
 					throw BuildException({
-						"WARNING: layer weight size = " + std::to_string(temp_weight.size()) +  " expected: " 
+						"WARNING: layer weight size = " + std::to_string(temp_weight.size()) +  " expected: "
 						+ std::to_string(num_nodes_[layer_index] * num_nodes_[layer_index + 1])
 					});
 				}
@@ -110,7 +110,7 @@ namespace SSAGES
 				}
 				if (temp_bias.size() != num_nodes_[layer_index + 1]) {
 					throw BuildException({
-						"WARNING: layer bias size = " + std::to_string(temp_bias.size()) 
+						"WARNING: layer bias size = " + std::to_string(temp_bias.size())
 						+ " expected: " + std::to_string(num_nodes_[layer_index + 1])
 					});
 				}
@@ -128,19 +128,19 @@ namespace SSAGES
 		void Initialize(const Snapshot& snapshot) override
 		{
 			using std::to_string;
-			
+
 			std::vector<int> found;
 			snapshot.GetLocalIndices(atomids_, &found);
 			int nfound = found.size();
 			MPI_Allreduce(MPI_IN_PLACE, &nfound, 1, MPI_INT, MPI_SUM, snapshot.GetCommunicator());
-			
+
 			if(nfound != atomids_.size())
 				throw BuildException({
-					"ANNCV: Expected to find " + 
-					to_string(atomids_.size()) + 
-					" atoms, but only found " + 
+					"ANNCV: Expected to find " +
+					to_string(atomids_.size()) +
+					" atoms, but only found " +
 					to_string(nfound) + "."
-				});	
+				});
 		}
 
 		std::vector<Vector> forward_prop(Vector& input_vec) {
@@ -169,7 +169,7 @@ namespace SSAGES
 			int num = output_of_layers.size();
 			for (int ii = 0; ii < output_of_layers[num - 1].size(); ii ++ ) {
 				if (ii == out_index_) {
-					deriv_back[num - 1][ii] = 1; 
+					deriv_back[num - 1][ii] = 1;
 				}
 				else {
 					deriv_back[num - 1][ii] = 0;
@@ -193,7 +193,7 @@ namespace SSAGES
 		 */
 		void Evaluate(const Snapshot& snapshot) override
 		{
-			// Get data from snapshot. 
+			// Get data from snapshot.
 			auto n = snapshot.GetNumAtoms();
 			const auto& pos = snapshot.GetPositions();
 			auto& comm = snapshot.GetCommunicator();
@@ -211,10 +211,10 @@ namespace SSAGES
 					positions[ii] = pos[local_idx[ii]];
 				}
 			}
-			// By performing a reduce, we actually collect all. This can 
-			// be converted to a more intelligent allgater on rank then bcast. 
+			// By performing a reduce, we actually collect all. This can
+			// be converted to a more intelligent allgater on rank then bcast.
 			MPI_Allreduce(MPI_IN_PLACE, positions.data(), positions.size(), MPI_DOUBLE, MPI_SUM, comm);
-			com = CenterOfMass(atomids_, false);  // center of mass coordinates (not weighted with mass)
+			auto com = snapshot.CenterOfMass(atomids_, false);  // center of mass coordinates (not weighted with mass)
 			// remove translation degree of freedom
 			for (auto& temp_pos: positions) {
 				temp_pos = temp_pos - com;
@@ -233,7 +233,7 @@ namespace SSAGES
 			int num_atoms = deriv_back[0].size() / 3;
 			double average[3] = {0};
 			for (int kk = 0; kk < 3; kk ++) {
-				for (int ii = 0; ii < num_atoms; ii ++) { 
+				for (int ii = 0; ii < num_atoms; ii ++) {
 					average[kk] += deriv_back[0][ii * 3 + kk];
 				}
 				average[kk] /= num_atoms;
@@ -257,7 +257,7 @@ namespace SSAGES
 			validator.Validate(json, path);
 			if(validator.HasErrors())
 				throw BuildException(validator.GetErrors());
-			
+
 			std::vector<int> atomids;
 			for(auto& s : json["atom_ids"])
 				atomids.push_back(s.asInt());
