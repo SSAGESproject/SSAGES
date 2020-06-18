@@ -536,7 +536,7 @@ namespace nnet
         return (layers_.back().a*y_scale_.asDiagonal().inverse()).rowwise() + y_shift_.transpose();
     }
 
-    matrix_t neural_net::get_gradient(int index)
+    vector_t neural_net::get_gradient(int index)
     {
         layers_.back().delta = matrix_t::Identity(layers_.back().size, layers_.back().size)*y_scale_.asDiagonal().inverse();
         for(int i = layers_.size() - 2; i > 0; --i)
@@ -545,7 +545,7 @@ namespace nnet
             layers_[i].delta = (layers_[i+1].delta*layers_[i+1].W)*g.row(index).asDiagonal();
         }
 
-        return layers_[1].delta*layers_[1].W*x_scale_.asDiagonal();
+        return (layers_[1].delta*layers_[1].W*x_scale_.asDiagonal()).transpose();
     }
 
     // this is tanh(x)
