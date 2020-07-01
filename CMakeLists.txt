@@ -15,8 +15,15 @@ endif()
 
 string (TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE_NAME)
 
+# Set the custom modules path
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+
 # Resolve dependencies
+find_package(Git REQUIRED)
 find_package(MPI 1.6 REQUIRED)
+
+# Fetch external dependencies
+include(FetchEigen)
 
 # Schema builder.
 add_subdirectory(schema)
@@ -82,11 +89,6 @@ elseif(HOOMD_ROOT)
 	add_subdirectory(hooks/hoomd/)
 else()
     message( FATAL_ERROR "You cannot build SSAGES without specifying an engine." )
-endif()
-
-# Ensure Git is installed, if needed.
-if(LAMMPS OR GROMACS OR BUILD_TESTS)
-    find_package(Git REQUIRED)
 endif()
 
 ################### END MD ENGINES ######################
