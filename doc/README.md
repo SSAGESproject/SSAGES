@@ -2,7 +2,7 @@ SSAGES Documentation
 ====================
 
 SSAGES's documentation can be found in the [online
-manual](http://miccomcodes.org/manual/index.html). Alternatively, after you
+manual](https://ssagesproject.github.io/docs/index.html). Alternatively, after you
 have built SSAGES you can further build the documentation from the `build/`
 directory.
 
@@ -16,7 +16,7 @@ Make sure you have the following additional tools installed:
 - [sphinx-rtd-theme]     – Read the Docs Sphinx theme.
 - [sphinxcontrib-bibtex] – Sphinx extensions for BibTeX style citations.
 
-[Doxygen]:              http://www.doxygen.org
+[Doxygen]:              https://www.doxygen.nl/index.html
 [Graphviz]:             https://graphviz.org
 [Sphinx]:               https://sphinx-doc.org
 [sphinx-rtd-theme]:     https://sphinx-rtd-theme.readthedocs.io

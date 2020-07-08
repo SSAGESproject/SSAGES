@@ -19,7 +19,7 @@ vary between supported engines.
 +---------------+-----------------------+--------------+------------+
 | `Qbox`_       | 1.60 or newer         | yes          | no         |
 +---------------+-----------------------+--------------+------------+
-| `HOOMD-blue`_ | 2.4 or newer          | yes          | no         |
+| `HOOMD-blue`_ | 2.4.x, 2.5.x          | yes          | no         |
 +---------------+-----------------------+--------------+------------+
 
 Special instructions on how to use SSAGES with a particular engine are
@@ -206,7 +206,7 @@ following three files:
    frequency, and many more (``.mdp`` file)
 
 For example, one can convert a protein ``.pdb`` file from an
-`online database <http://www.rcsb.org/>`_ using GROMACS tools to generate
+`online database <https://www.rcsb.org/>`_ using GROMACS tools to generate
 a ``.gro`` and a ``.top`` file. To generate an input file, use the preprocessor
 ``gmx_mpi grompp`` command:
 
@@ -498,7 +498,7 @@ installation, which contains the ``include`` files needed by SSAGES.
 2. HOOMD can be built using ``make`` (without installation) using the HOOMD
    CMake flag ``-DCOPY_HEADERS=ON``.
 
-For more information on HOOMD CMake flags, see `the HOOMD documentation <https://hoomd-blue.readthedocs.io/en/stable/compiling.html>`_.
+For more information on HOOMD CMake flags, see `the HOOMD documentation <https://hoomd-blue.readthedocs.io/en/v2.5.0/compiling.html>`_.
 After installing HOOMD, specify the SSAGES CMake flag ``-DHOOMD_ROOT=/path/to/hoomd_installation/hoomd``, pointing to the ``hoomd`` directory within the HOOMD-blue installation prefix.
 For example (using 8 ``make`` job slots),
 
@@ -531,6 +531,6 @@ simulation user script should *not* call ``hoomd.run(steps)`` as this will
 be called within SSAGES.
 
 To set
-`HOOMD-blue command-line options <http://hoomd-blue.readthedocs.io/en/stable/command-line-options.html>`_,
+`HOOMD-blue command-line options <https://hoomd-blue.readthedocs.io/en/v2.5.0/command-line-options.html>`_,
 use the SSAGES JSON input file. Set the key ``"args"`` with a string of command
 line options that will be passed to ``hoomd.context.initialize()``.

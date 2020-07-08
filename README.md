@@ -76,7 +76,7 @@ To view the full changelog history, refer to [HISTORY](HISTORY.md).
 The first step is to clone the repository locally.
 
 ```bash
-$ git clone https://github.com/MICCoM/SSAGES-public.git
+$ git clone https://github.com/SSAGESproject/SSAGES.git
 ```
 **SSAGES** uses a CMake build system. It also requires the use of a support MD engine.
 For example, to compile with LAMMPS, execute the following

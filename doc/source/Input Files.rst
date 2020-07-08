@@ -306,5 +306,5 @@ To execute this input file, assigning two processors per walker, one would call 
 
 	mpirun -np 4 ./ssages inputfile.json
 
-.. _JSON: http://json.org
+.. _JSON: https://www.json.org/json-en.html
 .. _Wikipedia: https://en.wikipedia.org/wiki/JSON#JSON_sample

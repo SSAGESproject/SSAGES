@@ -65,8 +65,8 @@ submitting a feature request, please include a reference to relevant literature
 for new methods/CVs/etc., as well as a generalized use case (or more) that can
 motivate adding in the requested feature.
 
-.. _GitHub Issues: https://github.com/MICCoM/SSAGES-public/issues
-.. _GitHub Pull Requests: https://github.com/MICCoM/SSAGES-public/pulls
+.. _GitHub Issues: https://github.com/SSAGESproject/SSAGES/issues
+.. _GitHub Pull Requests: https://github.com/SSAGESproject/SSAGES/pulls
 
 .. _improve_documentation:
 
@@ -85,8 +85,8 @@ program, the API docs are built on `Doxygen`_ to describe the usage of the
 underlying classes and functions for everyone willing to extend and improve
 SSAGES.
 
-.. _Sphinx: http://sphinx-doc.org
-.. _Doxygen: http://www.doxygen.org
+.. _Sphinx: https://www.sphinx-doc.org/en/master/
+.. _Doxygen: https://www.doxygen.nl/index.html
 
 Here are a few ideas on how you can help:
 
@@ -128,7 +128,7 @@ the following programs installed:
 * dot (in Ubuntu this is part of the graphViz package)
 * Sphinx "`Read the docs`_" theme (via ``pip install sphinx_rtd_theme``)
 
-.. _Read the docs: https://github.com/snide/sphinx_rtd_theme
+.. _Read the docs: https://github.com/readthedocs/sphinx_rtd_theme
 
 Once you have successfully built the documentation, you will find the User Manual
 under ``doc/Manual/`` and the API documentation under ``doc/API-doc/html/``
@@ -176,7 +176,7 @@ documentation:
 
     Here you can find more examples for helpful Sphinx markup:
     
-    http://www.sphinx-doc.org/en/stable/markup/para.html
+    https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
 
 * Use examples, a lot of them.
 * In the initial stages: Don't be a perfectionist. Missing documentation is
@@ -199,12 +199,12 @@ include:
 
 The following tutorials are extremely helpful:
 
-* http://www.sphinx-doc.org/en/stable/rest.html
-* http://docutils.sourceforge.net/docs/user/rst/quickref.html
+* https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
+* https://docutils.sourceforge.io/docs/user/rst/quickref.html
 * http://openalea.gforge.inria.fr/doc/openalea/doc/_build/html/source/sphinx/rest_syntax.html
 
-.. _LAMMPS: http://lammps.sandia.gov/doc/Manual.html
-.. _HOOMD-blue: http://hoomd-blue.readthedocs.io/en/stable/index.html#
+.. _LAMMPS: https://lammps.sandia.gov/doc/Manual.html
+.. _HOOMD-blue: https://hoomd-blue.readthedocs.io/en/stable/index.html
 .. _Python: https://docs.python.org/3/
 
 One of the great things of Sphinx is that most documentations have a "view page
@@ -224,7 +224,7 @@ the most important commands:
     These highlighted blocks can be created with ``.. note::``. The content of
     this block needs to be indented. You can also use ``warning`` and
     ``seealso``. Even more can be found
-    `here <http://www.sphinx-doc.org/en/stable/markup/para.html>`_.
+    `here <https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html>`_.
 
 Documenting with Doxygen
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -246,7 +246,7 @@ The mainpage of the Doxygen documentation is written in a separate header file,
 in our case ``doc/mainpage.h``. A good introduction to the Doxygen syntax can
 be found at
 
-* http://www.stack.nl/~dimitri/doxygen/manual/docblocks.html
+* https://www.doxygen.nl/manual/docblocks.html
 
 The basic rule is that Doxygen comments start with ``//!`` or ``/*!`` and
 document the class, namespace or function that directly follows it. Let's start

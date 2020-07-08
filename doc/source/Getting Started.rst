@@ -37,7 +37,7 @@ To clone the Git repository, call
 
 .. code-block:: bash
 
-    git clone https://github.com/MICCoM/SSAGES-public.git
+    git clone https://github.com/SSAGESproject/SSAGES.git
 
 Build SSAGES
 ------------
