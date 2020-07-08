@@ -5,7 +5,7 @@ set (SUPPORTED_GROMACS_VERSIONS
      "2018" "2018.0" "2018.1" "2018.2" "2018.3" "2018.4" "2018.5" "2018.6" "2018.7"
     )
 
-set(DGMX_BUILD_OWN_FFTW OFF CACHE BOOL "Let GROMACS build its own libfftw.")
+set(GMX_BUILD_OWN_FFTW OFF CACHE BOOL "Let GROMACS build its own libfftw.")
 
 if (GROMACS_SRC)
     # Get absolute path in case user specified relative path
