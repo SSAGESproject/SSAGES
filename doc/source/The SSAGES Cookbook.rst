@@ -11,7 +11,7 @@ MICCoM Summer School 2017
 On July 17th--19th, 2017, `MICCoM <http://miccom-center.org/>`_ held a summer
 school session focused on the codes developed within the center, which includes
 SSAGES. The main page for this event is here:
-`MICCoM Computational School 2017 <http://miccom-center.org/summer-school-2017/>`_.
+`MICCoM Computational School 2017 <http://miccom-center.org/summer-school-2017/index.html>`_.
 
 The slides from the relevant talks are included here:
 
