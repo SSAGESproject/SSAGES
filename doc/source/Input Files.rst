@@ -245,6 +245,18 @@ as the simulation proceeds.
 		"cvs": [0, 3]
 	}
 
+If your simulation is using multiple walkers, you must define an array of
+``"output_file"`` that has the same number of filenames as number of walkers.
+For instance, with two walkers, use the syntax below.
+
+.. code-block:: javascript
+
+	"logger": {
+		"frequency": 100,
+		"output_file": ["cvs_w0.dat","cvs_w1.dat"],
+		"cvs": [0, 3]
+	}
+
 The logger is useful in tracking the evolution of the CVs over the course of an
 advanced sampling calculation. Logging CVs can allow for post-simulation
 reweighting, or indicate if there are sampling problems in the system being
