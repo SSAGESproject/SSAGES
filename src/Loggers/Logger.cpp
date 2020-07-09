@@ -99,7 +99,13 @@ namespace SSAGES
 		unsigned int wid = GetWalkerID(world, comm);
 
 		if(json["output_file"].isArray())
+		{
+			if(json["output_file"].size() != GetNumWalkers(world, comm))
+			{
+				throw BuildException({path + ": Multi-walker simulations require a separate output file for each walker."});
+			}
 			name = json["output_file"][wid].asString();
+		}
 		else if(ismulti)
 			throw std::invalid_argument(path + ": Multi-walker simulations require a separate output file for each.");
 		else
