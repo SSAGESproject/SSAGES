@@ -28,7 +28,6 @@ include(FetchEigen)
 # Schema builder.
 add_subdirectory(schema)
 
-include(ExternalProject)
 include_directories(${MPI_INCLUDE_PATH})
 include_directories(${MPI_CXX_INCLUDE_PATH})
 include_directories("${PROJECT_SOURCE_DIR}/src")
@@ -125,7 +124,7 @@ add_executable(ssages
 CONFIGURE_ENGINE()
 
 # Dependencies
-add_dependencies(libssages schema)
+add_dependencies(libssages eigen schema)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra -g")
