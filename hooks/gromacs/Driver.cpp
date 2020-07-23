@@ -61,17 +61,24 @@ namespace SSAGES
 		rh->ConfigureHook(dynamic_cast<Hook*>(&hook));
 
 		std::vector<std::string> args;
+		std::string cmd_args = "";
+
+		// Read arguments into a single string.
 		if(json["args"].isArray())
 		{
 			for(auto& s : json["args"])
-				args.push_back(s.asString());
+			{
+				cmd_args += " " + s.asString();
+			}
 		}
 		else
 		{
-			std::istringstream iss(json["args"].asString());
-			args = std::vector<std::string>(std::istream_iterator<std::string>{iss},
-			                                std::istream_iterator<std::string>());
+			cmd_args = json["args"].asString();
 		}
+		// Separate a single argument string into vector of strings.
+		std::istringstream iss(cmd_args);
+		args = std::vector<std::string>(std::istream_iterator<std::string>{iss},
+		                                std::istream_iterator<std::string>());
 
 		return new Driver(rh, args);
 	}
