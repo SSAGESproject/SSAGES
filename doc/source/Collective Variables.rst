@@ -199,14 +199,24 @@ Gyration Tensor
 Description
 ^^^^^^^^^^^
 
-This CV calculates quantities derived from the *mass-weighted** gyration tensor defined as,
+This CV calculates quantities derived from the symmetric *mass-weighted*
+gyration tensor of a group of :math:`N` atoms defined as,
 
 .. math::
 
-	S_{mn} = \frac{1}{N}\sum_{i=1}^{N}{r_m^i r_n^i}
+	\mathbf{S} = \frac{1}{\sum_{i=1}^{N}{m_i}}\sum_{i=1}^{N}{m_i \left( \mathbf{r}_i - \mathbf{r}_\mathrm{COM}\right) \otimes \left( \mathbf{r}_i - \mathbf{r}_\mathrm{COM}\right)}
 
-where :math:`r_m` is the coordinate of the :math:`m^{\mathrm{th}}` atom in the interial
-frame. The eigenvalues of the radius of gyration tensor are particularly useful as collective variables which quantify the conformation of a molecule (such as a long polymer) or the shape of a given assembly of molecules. With eigenvalues of :math:`\lambda_x^2, \lambda_y^2, \lambda_z^2` defined in the frame of the principal axes of inertia, the following quantities may be computed:
+where :math:`m_i` is the mass and :math:`\mathbf{r}_i` is the vector of
+coordinates of the :math:`i^{\mathrm{th}}` atom, :math:`\mathbf{r}_\mathrm{COM}`
+is the vector of the center of mass of all :math:`N` atoms in the group, and
+:math:`\otimes` is the outer, or tensor, product.
+
+The eigenvalues of the radius of gyration tensor are particularly useful as
+collective variables which quantify the conformation of a molecule (such as a
+long polymer) or the shape of a given assembly of molecules. With eigenvalues
+of :math:`\lambda_x^2,~\lambda_y^2,~\lambda_z^2` (in increasing order)
+defined in the frame of the principal axes of inertia,
+the following quantities may be computed:
 
 Radius of Gyration (Squared)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
