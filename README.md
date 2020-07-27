@@ -23,11 +23,10 @@ versatile. It is currently pre-beta, meaning that there are many rough edges,
 but we are working rapidly to expand its features and fix any bugs. Keep an eye
 on this page for future updates and see below on how to contribute!
 
-## What's New (v0.9.0)
-- New Combined Force–Frequency sampling method
-- Addition of non-weighted internal center of mass calculation
-- Documentation additions
-- New ANN-based collective variable
+## What's New (v0.9.1)
+- Critical bug fix for neural-network based methods
+- Updated Eigen dependecy to v3.3.7
+- Many documentation improvements
 
 To view the full changelog history, refer to [HISTORY](HISTORY.md).
 

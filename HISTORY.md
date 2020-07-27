@@ -1,3 +1,12 @@
+SSAGES v0.9 Release Notes
+=========================
+
+## v0.9.0
+- New Combined Force–Frequency sampling method
+- Addition of non-weighted internal center of mass calculation
+- Documentation additions
+- New ANN-based collective variable
+
 SSAGES v0.8 Release Notes
 =========================
 
