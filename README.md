@@ -25,7 +25,7 @@ on this page for future updates and see below on how to contribute!
 
 ## What's New (v0.9.1)
 - Critical bug fix for neural-network based methods
-- Updated Eigen dependecy to v3.3.7
+- Updated Eigen dependency to v3.3.7
 - Many documentation improvements
 
 To view the full changelog history, refer to [HISTORY](HISTORY.md).
