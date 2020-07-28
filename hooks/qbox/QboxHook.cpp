@@ -145,7 +145,10 @@ namespace SSAGES
 			mass[i] = speciesmass_[type];
 			++i;
 		}
-		
+
+		// Qbox unit cells are always fully periodic.
+		snapshot_->SetPeriodicity({true, true, true});
+
 		Matrix3 H; 
 		Vector3 Hi; 
 		auto box = atomset.child("unit_cell");
