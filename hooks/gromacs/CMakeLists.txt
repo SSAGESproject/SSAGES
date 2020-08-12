@@ -202,11 +202,12 @@ function(CONFIGURE_ENGINE)
     endif()
     include_directories(hooks/gromacs/)
 
-    add_dependencies(gromacs ssagesgmx)
-
     if (GROMACS)
         add_dependencies(ssagesgmx gromacs-download)
     endif (GROMACS)
+
+    add_dependencies(ssagesgmx eigen)
+    add_dependencies(gromacs ssagesgmx)
 
     # To determine GROMACS install dir. 
     include(GNUInstallDirs)
