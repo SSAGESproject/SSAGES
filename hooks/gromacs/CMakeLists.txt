@@ -5,7 +5,7 @@ set (SUPPORTED_GROMACS_VERSIONS
      "2018" "2018.0" "2018.1" "2018.2" "2018.3" "2018.4" "2018.5" "2018.6" "2018.7"
     )
 
-set(DGMX_BUILD_OWN_FFTW OFF CACHE BOOL "Let GROMACS build its own libfftw.")
+set(GMX_BUILD_OWN_FFTW OFF CACHE BOOL "Let GROMACS build its own libfftw.")
 
 if (GROMACS_SRC)
     # Get absolute path in case user specified relative path
@@ -116,7 +116,7 @@ elseif (GROMACS)
         message (WARNING "\nWARNING: Could not find GROMACS version specific patch. "
                            "Attempting to use generic one.")
     endif ()
-    
+
     ExternalProject_Add(
         gromacs-download
         DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
@@ -193,7 +193,7 @@ set (DRIVERSRC
 
 # Function to do post library configuration.
 function(CONFIGURE_ENGINE)
-    # Build custom shared library for dependencies. 
+    # Build custom shared library for dependencies.
     add_library(ssagesgmx SHARED ${HOOKSRC} ${SOURCE})
     target_link_libraries(ssagesgmx ${MPI_CXX_LIBRARIES})
     include_directories("${GROMACS_SRC}/src")
@@ -202,16 +202,17 @@ function(CONFIGURE_ENGINE)
     endif()
     include_directories(hooks/gromacs/)
 
-    add_dependencies(gromacs ssagesgmx)
-
     if (GROMACS)
         add_dependencies(ssagesgmx gromacs-download)
     endif (GROMACS)
 
-    # To determine GROMACS install dir. 
+    add_dependencies(ssagesgmx eigen)
+    add_dependencies(gromacs ssagesgmx)
+
+    # To determine GROMACS install dir.
     include(GNUInstallDirs)
-    target_link_libraries(ssages 
-        ssagesgmx 
+    target_link_libraries(ssages
+        ssagesgmx
         "${CMAKE_BINARY_DIR}/hooks/gromacs/gromacs/${CMAKE_INSTALL_LIBDIR}/libgromacs_mpi.so"
         "${CMAKE_BINARY_DIR}/hooks/gromacs/gromacs/${CMAKE_INSTALL_LIBDIR}/libmdrun.a"
         )
