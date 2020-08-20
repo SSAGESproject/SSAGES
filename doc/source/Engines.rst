@@ -19,7 +19,7 @@ vary between supported engines.
 +---------------+-----------------------+--------------+------------+
 | `Qbox`_       | 1.60 or newer         | yes          | no         |
 +---------------+-----------------------+--------------+------------+
-| `HOOMD-blue`_ | 2.4.x, 2.5.x          | yes          | no         |
+| `HOOMD-blue`_ | 2.4.0 or newer        | yes          | no         |
 +---------------+-----------------------+--------------+------------+
 
 Special instructions on how to use SSAGES with a particular engine are
@@ -487,35 +487,58 @@ HOOMD-blue
 Building
 ~~~~~~~~
 
-HOOMD-blue supports SSAGES on the current ``master`` branch as of 2018-08-01,
-and will be supported in releases v2.4.0 and later. HOOMD-blue must be built
-with **MPI support enabled**, using the HOOMD CMake flag ``-DMPI_ENABLED=ON``.
-If building HOOMD from source, there are two ways to create a valid
-installation, which contains the ``include`` files needed by SSAGES.
-
-1. HOOMD can be installed with ``make install`` to the location specified by
-   the HOOMD CMake flag ``-DCMAKE_INSTALL_PREFIX``.
-2. HOOMD can be built using ``make`` (without installation) using the HOOMD
-   CMake flag ``-DCOPY_HEADERS=ON``.
-
-For more information on HOOMD CMake flags, see `the HOOMD documentation <https://hoomd-blue.readthedocs.io/en/v2.5.0/compiling.html>`_.
-After installing HOOMD, specify the SSAGES CMake flag ``-DHOOMD_ROOT=/path/to/hoomd_installation/hoomd``, pointing to the ``hoomd`` directory within the HOOMD-blue installation prefix.
+HOOMD-blue supports SSAGES in releases v2.4.0 and later. HOOMD-blue must be built
+with **MPI support enabled**, using the HOOMD CMake flag ``-DENABLE_MPI=ON``.
+It is recommended to use a Python virtual environment with HOOMD-blue, as
+described in `the HOOMD compilation instructions <https://hoomd-blue.readthedocs.io/en/stable/installation.html#compile-hoomd-blue>`_.
+With the virtual environment active, building HOOMD-blue and SSAGES from source
+can use Python to appropriately set relevant CMake variables.
 For example (using 8 ``make`` job slots),
 
 .. code:: bash
 
-        cd /path/to/hoomd
-        mkdir build
-        cd build/
-        cmake ../ -DENABLE_MPI=on -DCMAKE_INSTALL_PREFIX=/path/to/hoomd_installation
-        make install -j 8
+    cd /path/to/HOOMD
+    mkdir build
+    cd build/
+    python3 -m venv /path/to/new/virtual/environment --system-site-packages
+    source /path/to/new/virtual/environment/bin/activate
+    cmake .. -DCMAKE_INSTALL_PREFIX=$(python3 -c "import site; print(site.getsitepackages()[0])") -DENABLE_MPI=ON
+    make install -j 8
 
-        cd /path/to/SSAGES
-        mkdir build
-        cd build/
-        # Note that this path adds a suffix .../hoomd
-        cmake ../ -DHOOMD_ROOT=/path/to/hoomd_installation/hoomd
-        make -j 8
+    cd /path/to/SSAGES
+    mkdir build
+    cd build/
+    cmake .. -DHOOMD=ON
+    make -j 8
+
+Alternatively, HOOMD can be built using ``make`` (without installation) using
+the HOOMD CMake flag ``-DCOPY_HEADERS=ON``.
+For more information on HOOMD CMake flags, see `the HOOMD documentation <https://hoomd-blue.readthedocs.io/en/stable/installation.html>`_.
+In this case, you must specify the SSAGES CMake flag
+``-DHOOMD_ROOT=/path/to/hoomd_installation/hoomd``,
+pointing to the ``hoomd`` directory within the HOOMD-blue installation prefix.
+
+.. code:: bash
+
+    cd /path/to/HOOMD
+    mkdir build
+    cd build/
+    cmake .. -DCOPY_HEADERS=ON -DENABLE_MPI=ON
+    make -j 8
+
+    cd /path/to/SSAGES
+    mkdir build
+    cd build/
+    cmake .. -DHOOMD_ROOT=/path/to/HOOMD/build/hoomd
+    make -j 8
+
+It may be necessary to put the HOOMD build directory in your ``PYTHONPATH``,
+so that your Python interpreter can find the ``hoomd`` module. Set this
+variable with the following command.
+
+.. code:: bash
+
+    export PYTHONPATH="${PYTHONPATH}:/path/to/hoomd/build"
 
 Running
 ~~~~~~~
