@@ -73,9 +73,9 @@ void HOOMDHook::SyncToSnapshot() //put HOOMD values -> Snapshot
         // Set periodicity.
         auto boxPeriodicity = box.getPeriodic();
         Bool3 snap_periodicity = {
-            boxPeriodicity.x,
-            boxPeriodicity.y,
-            boxPeriodicity.z
+            boxPeriodicity.x != 0,
+            boxPeriodicity.y != 0,
+            boxPeriodicity.z != 0
         };
         snapshot_->SetPeriodicity(snap_periodicity);
 

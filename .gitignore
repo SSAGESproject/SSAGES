@@ -1,3 +1,6 @@
+# External projects
+include/Eigen/
+
 # Build directories
 build*/
 

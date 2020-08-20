@@ -15,13 +15,19 @@ endif()
 
 string (TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE_NAME)
 
+# Set the custom modules path
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+
 # Resolve dependencies
+find_package(Git REQUIRED)
 find_package(MPI 1.6 REQUIRED)
+
+# Fetch external dependencies
+include(FetchEigen)
 
 # Schema builder.
 add_subdirectory(schema)
 
-include(ExternalProject)
 include_directories(${MPI_INCLUDE_PATH})
 include_directories(${MPI_CXX_INCLUDE_PATH})
 include_directories("${PROJECT_SOURCE_DIR}/src")
@@ -67,6 +73,7 @@ set(LAMMPS_SRC "" CACHE PATH "LAMMPS source directory.")
 set(GROMACS_SRC "" CACHE PATH "GROMACS source directory.")
 set(QBOX NO CACHE BOOL "Use QBox simulation engine.")
 set(OPENMD_SRC "" CACHE PATH "OpenMD source directory.")
+set(HOOMD NO CACHE BOOL "Use HOOMD-blue simulation engine.")
 set(HOOMD_ROOT "" CACHE PATH "HOOMD-blue installation directory.")
 
 # Determine which simulation engine to use.
@@ -78,15 +85,10 @@ elseif(QBOX)
     add_subdirectory(hooks/qbox/)
 elseif(OPENMD_SRC)
 	add_subdirectory(hooks/openmd/)
-elseif(HOOMD_ROOT)
+elseif(HOOMD OR HOOMD_ROOT)
 	add_subdirectory(hooks/hoomd/)
 else()
     message( FATAL_ERROR "You cannot build SSAGES without specifying an engine." )
-endif()
-
-# Ensure Git is installed, if needed.
-if(LAMMPS OR GROMACS OR BUILD_TESTS)
-    find_package(Git REQUIRED)
 endif()
 
 ################### END MD ENGINES ######################
@@ -123,7 +125,7 @@ add_executable(ssages
 CONFIGURE_ENGINE()
 
 # Dependencies
-add_dependencies(libssages schema)
+add_dependencies(libssages eigen schema)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra -g")

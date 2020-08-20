@@ -117,9 +117,30 @@ namespace SSAGES
             execution_mode = ExecutionConfiguration::executionMode::GPU;
             }
 
+        std::vector<int> gpu_id(1,-1);
+#ifdef HOOMD_PRE_2_6
+        //2.4.x, 2.5.x
         auto exec_conf = std::make_shared<ExecutionConfiguration>(
-          execution_mode, std::vector<int>{-1}, false, false,
-          std::shared_ptr<Messenger>(), 0, rh->GetLocalComm());
+            execution_mode,
+            gpu_id,
+            false,
+            false,
+            std::shared_ptr<Messenger>(),
+            0,
+            rh->GetLocalComm()
+        );
+#else
+        //2.6+
+        MPIConfiguration mpi_config(rh->GetLocalComm());
+        auto exec_conf = std::make_shared<ExecutionConfiguration>(
+            execution_mode,
+            gpu_id,
+            false,
+            false,
+            std::make_shared<MPIConfiguration>(mpi_config),
+            std::shared_ptr<Messenger>()
+        );
+#endif
 
         auto hook = std::make_shared<HOOMDHook>();
         // This uses .get() on a shared_ptr because SSAGES doesn't accept
