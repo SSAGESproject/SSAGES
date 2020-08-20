@@ -27,6 +27,8 @@ on this page for future updates and see below on how to contribute!
 - Critical bug fix for neural-network based methods
 - Updated Eigen dependency to v3.3.7
 - Many documentation improvements
+- Support for newer HOOMD versions (2.6+)
+- Build process fixes
 
 To view the full changelog history, refer to [HISTORY](HISTORY.md).
 
