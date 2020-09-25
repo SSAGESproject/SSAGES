@@ -1,5 +1,6 @@
 # External projects
 include/Eigen/
+include/mxx/
 
 # Build directories
 build*/

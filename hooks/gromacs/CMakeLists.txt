@@ -206,7 +206,7 @@ function(CONFIGURE_ENGINE)
         add_dependencies(ssagesgmx gromacs-download)
     endif (GROMACS)
 
-    add_dependencies(ssagesgmx eigen)
+    add_dependencies(ssagesgmx eigen mxx)
     add_dependencies(gromacs ssagesgmx)
 
     # To determine GROMACS install dir. 

@@ -24,6 +24,7 @@ find_package(MPI 1.6 REQUIRED)
 
 # Fetch external dependencies
 include(FetchEigen)
+include(FetchMxx)
 
 # Schema builder.
 add_subdirectory(schema)
@@ -125,7 +126,7 @@ add_executable(ssages
 CONFIGURE_ENGINE()
 
 # Dependencies
-add_dependencies(libssages eigen schema)
+add_dependencies(libssages eigen mxx schema)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra -g")
