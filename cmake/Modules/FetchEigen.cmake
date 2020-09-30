@@ -8,7 +8,7 @@ ExternalProject_Add(eigen
     # For instance, GIT_SHALLOW is available from CMake 3.6
     DOWNLOAD_COMMAND ${GIT_EXECUTABLE} clone --branch=${EIGEN_TAG} --depth=1
         -c advice.detachedHead=false ${EIGEN_REPOSITORY}
-    UPDATE_COMMAND ${GIT_EXECUTABLE} pull
+    UPDATE_COMMAND ""
     PATCH_COMMAND ${GIT_EXECUTABLE} apply ${EIGEN_PATCH}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ${CMAKE_COMMAND} -E copy_directory
