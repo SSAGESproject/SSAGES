@@ -23,12 +23,12 @@ versatile. It is currently pre-beta, meaning that there are many rough edges,
 but we are working rapidly to expand its features and fix any bugs. Keep an eye
 on this page for future updates and see below on how to contribute!
 
-## What's New (v0.9.1)
-- Critical bug fix for neural-network based methods
-- Updated Eigen dependency to v3.3.7
-- Many documentation improvements
-- Support for newer HOOMD versions (2.6+)
-- Build process fixes
+## What's New (v0.9.2)
+- Critical bug fix for patching Eigen with GROMACS
+- Correction to gradient of AngleCV
+- Additional checks and docs for multiwalker loggers
+- Support newer LAMMPS versions
+- Minor source cleanup
 
 To view the full changelog history, refer to [HISTORY](HISTORY.md).
 

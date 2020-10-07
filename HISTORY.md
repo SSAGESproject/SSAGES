@@ -1,6 +1,13 @@
 SSAGES v0.9 Release Notes
 =========================
 
+## v0.9.1
+- Critical bug fix for neural-network based methods
+- Updated Eigen dependency to v3.3.7
+- Many documentation improvements
+- Support for newer HOOMD versions (2.6+)
+- Build process fixes
+
 ## v0.9.0
 - New Combined Force–Frequency sampling method
 - Addition of non-weighted internal center of mass calculation
