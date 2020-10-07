@@ -116,18 +116,19 @@ namespace SSAGES
 			auto dotP = rij.dot(rkj);
 			auto nrij = rij.norm();
 			auto nrkj = rkj.norm();
+			auto dotPnn = dotP/(nrij*nrkj);
 
-			val_ = acos(dotP/(nrij*nrkj));
+			val_ = acos(dotPnn);
 
 			// Calculate gradients
-			auto prefactor = -1.0/(sqrt(1. - dotP/(nrij*nrkj))*nrij*nrkj);
+			auto prefactor = -1.0/(sqrt(1. - dotPnn*dotPnn)*nrij*nrkj);
 
 			Vector3 gradi{0, 0, 0}, gradk{0, 0, 0};
 			if(iindex != -1) gradi = prefactor*(rkj - dotP*rij/(nrij*nrij));
 			if(kindex != -1) gradk = prefactor*(rij - dotP*rkj/(nrkj*nrkj));
 			MPI_Allreduce(MPI_IN_PLACE, gradi.data(), 3, MPI_DOUBLE, MPI_SUM, comm);
 			MPI_Allreduce(MPI_IN_PLACE, gradk.data(), 3, MPI_DOUBLE, MPI_SUM, comm);
-			if(iindex != -1) grad_[iindex] = gradi;	
+			if(iindex != -1) grad_[iindex] = gradi;
 			if(kindex != -1) grad_[kindex] = gradk;
 			if(jindex != -1) grad_[jindex] = -gradi - gradk;
 		}
