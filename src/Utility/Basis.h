@@ -2,8 +2,6 @@
 #include "json/json.h"
 #include "../Grids/Grid.h"
 
-#define UNUSED(x) (void)(x)
-
 namespace SSAGES
 {
     //! Look-up table for basis functions.
@@ -141,8 +139,7 @@ namespace SSAGES
          *
          * \return Norm of a specific order of polynomial.
          */
-        virtual double GetNorm(int order) {
-            UNUSED(order);
+        virtual double GetNorm(int /* order */) {
             return 0;
         }
 
@@ -153,9 +150,7 @@ namespace SSAGES
          *
          * \return Output value for function.
          */
-        virtual double Evaluate(double val, int order) {
-            UNUSED(val);
-            UNUSED(order);
+        virtual double Evaluate(double /* val */, int /* order */) {
             return 0;
         }
 
@@ -166,20 +161,17 @@ namespace SSAGES
          *
          * \return Gradient for function.
          */
-        virtual double EvalGrad(double val, int order) {
-            UNUSED(val);
-            UNUSED(order);
+        virtual double EvalGrad(double /* val */, int /* order */) {
             return 0;
         }
 
-        //! Calculates the gradient of the basis function.
+        //! Calculates the weight of the basis function.
         /*!
          * \param val Input value for function.
          *
-         * \return Gradient of function.
+         * \return Weight of function.
          */
-        virtual double Weight(double val) {
-            UNUSED(val);
+        virtual double Weight(double /* val */) {
             return 1;
         }
 
