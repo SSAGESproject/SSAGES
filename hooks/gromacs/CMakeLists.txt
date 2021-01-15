@@ -120,7 +120,7 @@ elseif (GROMACS)
     ExternalProject_Add(
         gromacs-download
         DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
-        GIT_REPOSITORY git://git.gromacs.org/gromacs.git
+        GIT_REPOSITORY https://gitlab.com/gromacs/gromacs.git
         GIT_TAG v${GROMACS_VERSION}
         TIMEOUT 600
         CONFIGURE_COMMAND ""
