@@ -162,7 +162,11 @@ repository.
 
 Common options for building GROMACS will be passed through to the GROMACS
 compilation step. For instance, options such as ``-DGMX_BUILD_OWN_FFTW=ON``,
-``-DGMX_GPU=ON``, and ``-DGMX_DOUBLE=ON`` are supported.
+``-DGMX_GPU=ON``, and ``-DGMX_DOUBLE=ON`` are supported. With newer versions
+of the ``hwloc`` package, GROMACS may not be able to automatically detect the
+SIMD level. A workaround is to manually specify this with
+``-DGMX_SIMD=AVX2_256``, which will turn off automatic detection using the
+``hwloc`` package.
 
 .. warning::
 
