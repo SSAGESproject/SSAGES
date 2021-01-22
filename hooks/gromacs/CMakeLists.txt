@@ -142,6 +142,11 @@ else ()
     set (GMX_LIBRARIES_ARGS "-DGMX_COMMON_LIBRARIES=$<TARGET_FILE:libssages>")
 endif ()
 
+# If a SIMD level is set, turn off hwloc
+if (GMX_SIMD)
+    set (GMX_SIMD_FLAGS "-DGMX_HWLOC=OFF;-DGMX_SIMD=${GMX_SIMD}")
+endif ()
+
 # Configure patch.
 configure_file (
     "${CMAKE_CURRENT_SOURCE_DIR}/apply_patch.sh.in"
@@ -168,6 +173,7 @@ ExternalProject_Add(
     -DGMX_DOUBLE=${GMX_DOUBLE}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DGMX_BUILD_OWN_FFTW=${GMX_BUILD_OWN_FFTW}
+    ${GMX_SIMD_FLAGS}
     -DGMX_GPU=${GMX_GPU}
     -DCUDA_PROPAGATE_HOST_FLAGS=OFF
     -DCUDA_NVCC_FLAGS=${CUDA_NVCC_FLAGS}
