@@ -59,7 +59,7 @@ if (LAMMPS_SRC)
     endif ()
 elseif (LAMMPS)
     set (LAMMPS_VERSION ${LAMMPS})
-    
+
     # Check if LAMMPS version is supported, otherwise download default
     if (NOT ";${SUPPORTED_LAMMPS_VERSIONS};" MATCHES ";${LAMMPS_VERSION};")
         set (LAMMPS_VERSION "30 Jul 2016")
@@ -72,14 +72,13 @@ elseif (LAMMPS)
             list(FIND SUPPORTED_LAMMPS_VERSIONS "${LAMMPS_VERSION}" IDX)
             list(GET SUPPORTED_LAMMPS_TAGS ${IDX} LAMMPS_TAG)
         endif ()
-        
     endif ()
-    
+
     # Check if LAMMPS tag is supported
     if (NOT ";${SUPPORTED_LAMMPS_TAGS};" MATCHES ";${LAMMPS_TAG};")
         message (FATAL_ERROR "\nWARNING: LAMMPS tag \"${LAMMPS_TAG}\" is malformed.")
     endif ()
-    
+
     ExternalProject_Add(
         lammps-download
         DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
@@ -182,12 +181,12 @@ ExternalProject_Add(
     DOWNLOAD_COMMAND ""
     SOURCE_DIR ${LAMMPS_SRC}
     CONFIGURE_COMMAND ""
-    BUILD_COMMAND $(MAKE) mpi mode=shlib 
-    CCFLAGS=-I${PROJECT_SOURCE_DIR}/src  
-    CCFLAGS+=-I${PROJECT_SOURCE_DIR}/include  
+    BUILD_COMMAND $(MAKE) mpi mode=shlib
+    CCFLAGS=-I${PROJECT_SOURCE_DIR}/src
+    CCFLAGS+=-I${PROJECT_SOURCE_DIR}/include
     CCFLAGS+=-std=c++11
     CCFLAGS+=-O3
-    LIB+=${CMAKE_BINARY_DIR}/libssages.a
+    LIB+=$<TARGET_FILE:libssages>
     INSTALL_COMMAND ""
     BUILD_IN_SOURCE true
 )
@@ -210,7 +209,13 @@ set(HOOKSRC
 )
 
 set(DRIVERSRC
-    hooks/lammps/Driver.cpp 
+    hooks/lammps/Driver.cpp
+    PARENT_SCOPE
+)
+
+# Libraries from the engine to link
+set(ENGINE_LIBRARIES
+    "${LAMMPS_SRC}/liblammps_mpi.so"
     PARENT_SCOPE
 )
 
@@ -218,10 +223,9 @@ set(DRIVERSRC
 function(CONFIGURE_ENGINE)
     include_directories("${LAMMPS_SRC}")
     include_directories(hooks/lammps/)
-    add_dependencies(lammps libssages)
     if (LAMMPS)
         add_dependencies(libssages lammps-download)
     endif (LAMMPS)
-    target_link_libraries(ssages libssages "${LAMMPS_SRC}/liblammps_mpi.so")
-    add_dependencies(ssages lammps)    
+    add_dependencies(lammps libssages)
+    add_dependencies(ssages lammps)
 endfunction()
