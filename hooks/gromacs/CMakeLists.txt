@@ -137,9 +137,9 @@ set (GRO_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR
 set (CUDA_NVCC_FLAGS "-std=c++11; -I${PROJECT_SOURCE_DIR}/src; -I${PROJECT_SOURCE_DIR}/include; -I${CMAKE_CURRENT_SOURCE_DIR}")
 
 if (GROMACS_VERSION MATCHES "^5\\.1(\\.[0-9]+)?$" OR GROMACS_VERSION MATCHES "^2016(\\.[0-9]+)?$")
-    set (GMX_LIBRARIES_ARGS "-DGMX_EXTRA_LIBRARIES=${CMAKE_BINARY_DIR}/libssagesgmx.so")
+    set (GMX_LIBRARIES_ARGS "-DGMX_EXTRA_LIBRARIES=$<TARGET_FILE:libssages>")
 else ()
-    set (GMX_LIBRARIES_ARGS "-DGMX_COMMON_LIBRARIES=${CMAKE_BINARY_DIR}/libssagesgmx.so")
+    set (GMX_LIBRARIES_ARGS "-DGMX_COMMON_LIBRARIES=$<TARGET_FILE:libssages>")
 endif ()
 
 # Configure patch.
@@ -181,40 +181,34 @@ ExternalProject_Add_Step(
 )
 
 # Add source for appropriate package hook.
-set (HOOKSRC
+set(HOOKSRC
     hooks/gromacs/GromacsHook.cpp
     PARENT_SCOPE
 )
 
-set (DRIVERSRC
+set(DRIVERSRC
     hooks/gromacs/Driver.cpp
+    PARENT_SCOPE
+)
+
+# Libraries from the engine to link
+include(GNUInstallDirs)
+set(ENGINE_LIBRARIES
+    "${CMAKE_BINARY_DIR}/hooks/gromacs/gromacs/${CMAKE_INSTALL_LIBDIR}/libgromacs_mpi.so"
+    "${CMAKE_BINARY_DIR}/hooks/gromacs/gromacs/${CMAKE_INSTALL_LIBDIR}/libmdrun.a"
     PARENT_SCOPE
 )
 
 # Function to do post library configuration.
 function(CONFIGURE_ENGINE)
-    # Build custom shared library for dependencies. 
-    add_library(ssagesgmx SHARED ${HOOKSRC} ${SOURCE})
-    target_link_libraries(ssagesgmx ${MPI_CXX_LIBRARIES})
     include_directories("${GROMACS_SRC}/src")
+    include_directories(hooks/gromacs/)
     if(GROMACS_VERSION MATCHES "^5\\.1(\\.[0-9]+)?$")
         include_directories("${GROMACS_SRC}/src/external/boost")
     endif()
-    include_directories(hooks/gromacs/)
-
     if (GROMACS)
-        add_dependencies(ssagesgmx gromacs-download)
+        add_dependencies(gromacs gromacs-download)
     endif (GROMACS)
-
-    add_dependencies(ssagesgmx eigen mxx)
-    add_dependencies(gromacs ssagesgmx)
-
-    # To determine GROMACS install dir. 
-    include(GNUInstallDirs)
-    target_link_libraries(ssages 
-        ssagesgmx 
-        "${CMAKE_BINARY_DIR}/hooks/gromacs/gromacs/${CMAKE_INSTALL_LIBDIR}/libgromacs_mpi.so"
-        "${CMAKE_BINARY_DIR}/hooks/gromacs/gromacs/${CMAKE_INSTALL_LIBDIR}/libmdrun.a"
-        )
+    add_dependencies(gromacs libssages)
     add_dependencies(ssages gromacs)
 endfunction()

@@ -43,6 +43,14 @@ set(DRIVERSRC
     PARENT_SCOPE
 )
 
+# Libraries from the engine to link
+set(ENGINE_LIBRARIES
+    "${CMAKE_BINARY_DIR}/hooks/openmd/libopenmd_core.a"
+    "${CMAKE_BINARY_DIR}/hooks/openmd/libopenmd_parallel.a"
+    "${CMAKE_BINARY_DIR}/hooks/openmd/libopenmd_core.a"
+    PARENT_SCOPE
+)
+
 set(EXTRA_CONFIG "${CMAKE_CURRENT_BINARY_DIR}/openmd/src/openmd-build/config.h" PARENT_SCOPE)
 
 # Function to do post library configuration.
@@ -50,14 +58,8 @@ function(CONFIGURE_ENGINE)
 	include_directories(${OPENMD_SRC}/src)
 	include_directories(hooks/openmd/)
 	add_dependencies(libssages openmd)
-	add_dependencies(ssages libssages openmd)
+	add_dependencies(ssages openmd)
 	set_target_properties(ssages PROPERTIES
-	COMPILE_DEFINITIONS IS_MPI
+		COMPILE_DEFINITIONS IS_MPI
 	)
-	target_link_libraries(ssages 
-		libssages
-		${CMAKE_CURRENT_BINARY_DIR}/hooks/openmd/libopenmd_core.a
-		${CMAKE_CURRENT_BINARY_DIR}/hooks/openmd/libopenmd_parallel.a
-		${CMAKE_CURRENT_BINARY_DIR}/hooks/openmd/libopenmd_core.a
-		)
 endfunction()

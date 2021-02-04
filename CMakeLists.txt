@@ -67,6 +67,9 @@ set(SOURCE
 
 ####################### MD ENGINES #########################
 
+# Initialize list of engine libraries to link to SSAGES
+set(ENGINE_LIBRARIES "")
+
 # Set variables for supported engines.
 set(LAMMPS NO CACHE BOOL "Use LAMMPS simulation engine.")
 set(GROMACS NO CACHE BOOL "Use GROMACS simulation engine.")
@@ -101,7 +104,7 @@ configure_file (
 )
 
 # SSAGES library.
-add_library(libssages ${HOOKSRC} ${SOURCE})
+add_library(libssages SHARED ${HOOKSRC} ${SOURCE})
 set_target_properties(libssages PROPERTIES PREFIX "")
 target_link_libraries(libssages ${MPI_CXX_LIBRARIES})
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -116,6 +119,9 @@ endif ()
 set_property(TARGET libssages PROPERTY CXX_STANDARD 11)
 set_property(TARGET libssages PROPERTY CXX_STANDARD_REQUIRED ON)
 
+# Dependencies
+add_dependencies(libssages eigen mxx schema)
+
 # SSAGES executable.
 add_executable(ssages
     src/main.cpp
@@ -125,8 +131,10 @@ add_executable(ssages
 # Call MD engine configuration.
 CONFIGURE_ENGINE()
 
-# Dependencies
-add_dependencies(libssages eigen mxx schema)
+target_link_libraries(ssages
+    libssages
+    ${ENGINE_LIBRARIES}
+)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra -g")
