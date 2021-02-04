@@ -44,7 +44,7 @@ namespace SSAGES
 	private:
 		Label atomids_;   // indices of atoms
 		double scaling_factor_;  // scaling factor to make input unitless, note that it is unit dependent (a model trained with A will have different scaling factor with one trained with nm)
-		std::vector<int> num_nodes_;  // numbers of nodes for neural network
+		std::vector<unsigned int> num_nodes_;  // numbers of nodes for neural network
 		std::vector<Eigen::MatrixXd> weight_coeff_;
 		std::vector<Vector> bias_;
 		std::vector<std::string> activations_;
@@ -66,7 +66,7 @@ namespace SSAGES
 		ANNCV(
 			Label atomids,
 			double scaling_factor,
-			std::vector<int> num_nodes,
+			std::vector<unsigned int> num_nodes,
 			std::string coeff_file, // file storing weights and bias of ANN
 			std::vector<std::string> activations,
 			int out_index
@@ -131,7 +131,7 @@ namespace SSAGES
 
 			std::vector<int> found;
 			snapshot.GetLocalIndices(atomids_, &found);
-			int nfound = found.size();
+			size_t nfound = found.size();
 			MPI_Allreduce(MPI_IN_PLACE, &nfound, 1, MPI_INT, MPI_SUM, snapshot.GetCommunicator());
 
 			if(nfound != atomids_.size())
@@ -147,7 +147,7 @@ namespace SSAGES
 			std::vector<Vector> output_of_layers;
 			Vector temp_out = input_vec;
 			output_of_layers.push_back(temp_out);
-			for (int ii = 0; ii < weight_coeff_.size(); ii ++) {
+			for (size_t ii = 0; ii < weight_coeff_.size(); ii ++) {
 				temp_out = weight_coeff_[ii].transpose() * temp_out + bias_[ii];
 				if (activations_[ii] == "Tanh") {
 					for (int kk = 0; kk < temp_out.size(); kk ++) {
@@ -206,7 +206,7 @@ namespace SSAGES
 			std::vector<Vector3> positions(atomids_.size(), Vector3({0,0,0}));
 			Label local_idx;
 			snapshot.GetLocalIndices(atomids_, &local_idx);
-			for (int ii = 0; ii < atomids_.size(); ii ++) {
+			for (size_t ii = 0; ii < atomids_.size(); ii ++) {
 				if (local_idx[ii] != -1) {
 					positions[ii] = pos[local_idx[ii]];
 				}
@@ -220,8 +220,8 @@ namespace SSAGES
 				temp_pos = temp_pos - com;
 			}
 			Vector input_vec(positions.size() * 3);  // flatten input vector
-			for (int ii = 0; ii < positions.size(); ii ++) {
-				for (int jj = 0; jj < 3; jj ++) {
+			for (size_t ii = 0; ii < positions.size(); ii ++) {
+				for (size_t jj = 0; jj < 3; jj ++) {
 					input_vec[ii * 3 + jj] = positions[ii][jj];
 				}
 			}
@@ -262,9 +262,9 @@ namespace SSAGES
 			for(auto& s : json["atom_ids"])
 				atomids.push_back(s.asInt());
 			double scaling_factor = json["scaling_factor"].asDouble();
-			std::vector<int> num_nodes;
+			std::vector<unsigned int> num_nodes;
 			for (auto &s : json["num_nodes"])
-				num_nodes.push_back(s.asInt());
+				num_nodes.push_back(s.asUInt());
 			std::vector<std::string> activations;
 			std::string coeff_file = json["coeff_file"].asString();
 			for (auto &s : json["activations"]) {
