@@ -22,8 +22,24 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 find_package(Git REQUIRED)
 find_package(MPI 1.6 REQUIRED)
 
+# Make sure Python is available
+if (CMAKE_VERSION VERSION_LESS 3.12)
+    find_package (PythonInterp REQUIRED)
+    set (PYTHON_INTERP_FOUND ${PYTHONINTERP_FOUND})
+    set (PYTHON_INTERP_EXE ${PYTHON_EXECUTABLE})
+else ()
+    find_package (Python REQUIRED COMPONENTS Interpreter)
+    set (PYTHON_INTERP_FOUND ${Python_Interpreter_FOUND})
+    set (PYTHON_INTERP_EXE ${Python_EXECUTABLE})
+endif ()
+if (NOT PYTHON_INTERP_FOUND)
+    message (SEND_ERROR "\nERROR: Python binary not found!")
+endif ()
+
 # Fetch external dependencies
+include(ExternalProject)
 include(FetchEigen)
+include(FetchJsonCpp)
 include(FetchMxx)
 
 # Schema builder.
@@ -120,7 +136,7 @@ set_property(TARGET libssages PROPERTY CXX_STANDARD 11)
 set_property(TARGET libssages PROPERTY CXX_STANDARD_REQUIRED ON)
 
 # Dependencies
-add_dependencies(libssages eigen mxx schema)
+add_dependencies(libssages eigen jsoncpp mxx schema)
 
 # SSAGES executable.
 add_executable(ssages
