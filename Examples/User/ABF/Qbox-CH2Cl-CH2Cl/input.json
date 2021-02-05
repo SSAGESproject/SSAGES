@@ -1,0 +1,39 @@
+{
+        "walkers": 1,
+	"input": ["md.i"],
+	"md_iterations" : 80000,
+	"qm_iterations" : 20,
+        "wf_iterations" : 5,
+	"CVs" : 
+	[
+		{
+                        "periodic": true,
+                        "type" : "Torsional",
+                        "atom_ids" : [1, 3, 4, 2]
+		}
+	],
+	"methods": [
+		{
+		"type" : "ABF",
+		"CV_lower_bounds" : [-3.14159265358979323846],
+		"CV_upper_bounds" : [3.14159265358979323846],
+		"CV_bins" : [36],
+		"CV_restraint_minimums" : [-5],
+		"CV_restraint_maximums" : [5],
+		"CV_restraint_spring_constants" : [0],
+		"timestep" : 20,
+		"CV_isperiodic": [false],
+		"minimum_count" : 100,
+		"output_file" : "F_out",
+		"output_frequency" : 100,
+		"unit_conversion" : 1836.152674,
+		"frequency" : 1,
+        "restart": false,
+		"cvs" :[0]
+	}
+	],
+	"logger" : {
+		"output_file" : ["cvs0.dat"],
+		"frequency" : 1
+	}
+}
