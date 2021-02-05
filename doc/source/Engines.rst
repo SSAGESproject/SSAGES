@@ -160,6 +160,10 @@ repository.
 
 	cmake -DGROMACS_SRC=/path/to/gromacs ..
 
+Common options for building GROMACS will be passed through to the GROMACS
+compilation step. For instance, options such as ``-DGMX_BUILD_OWN_FFTW=ON``,
+``-DGMX_GPU=ON``, and ``-DGMX_DOUBLE=ON`` are supported.
+
 .. warning::
 
 	Once you link SSAGES to a particular GROMACS source, you will be
@@ -181,13 +185,13 @@ Setup
 
 After compiling GROMACS with SSAGES, you can use all of GROMACS’s available
 tools to set up systems and generate input files. The executable is located at
-``hooks/gromacs/gromacs/bin/gmx_mpi`` within the build directory.
+``hooks/gromacs/gromacs/bin/gmx_ssages`` within the build directory.
 
 .. note::
 
-	Note that, the ``gmx_mpi`` executable in the SSAGES folder will NOT
+	Note that, the ``gmx_ssages`` executable in the SSAGES folder will NOT
 	function normally for running regular GROMACS simulations via
-	``gmx_mpi mdrun``.
+	``gmx_ssages mdrun``.
 
 As GROMACS has in-depth
 `Documentation <http://manual.gromacs.org/documentation/current/user-guide/>`_
@@ -208,11 +212,11 @@ following three files:
 For example, one can convert a protein ``.pdb`` file from an
 `online database <https://www.rcsb.org/>`_ using GROMACS tools to generate
 a ``.gro`` and a ``.top`` file. To generate an input file, use the preprocessor
-``gmx_mpi grompp`` command:
+``gmx_ssages grompp`` command:
 
 .. code-block:: bash
 
-	gmx_mpi grompp -f npt.mdp -p topol.top -c conf.gro -o input.tpr
+	gmx_ssages grompp -f npt.mdp -p topol.top -c conf.gro -o input.tpr
 
 There are example ``.gro``, ``.mdp``, ``.top``, ``.tpr``, and ``.json`` inputs
 available in the Examples folder.
