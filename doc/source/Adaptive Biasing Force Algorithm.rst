@@ -382,8 +382,8 @@ prepare the input files yourself using GROMACS tools (if compiled with -DGROMACS
 
 .. code-block:: bash
 
-    /build/hooks/gromacs/gromacs/bin/gmx_mpi grompp -f nvt.mdp -p topol.top -c adp.gro -o example_adp0.tpr
-    /build/hooks/gromacs/gromacs/bin/gmx_mpi grompp -f nvt.mdp -p topol.top -c adp.gro -o example_adp1.tpr
+    /build/hooks/gromacs/gromacs/bin/gmx_ssages grompp -f nvt.mdp -p topol.top -c adp.gro -o example_adp0.tpr
+    /build/hooks/gromacs/gromacs/bin/gmx_ssages grompp -f nvt.mdp -p topol.top -c adp.gro -o example_adp1.tpr
 
 Be sure to change the seed in .mdp files for random velocity generation, 
 so walkers can explore different places on the free energy surface.
@@ -473,8 +473,8 @@ prepare the input files yourself using GROMACS tools (if compiled with -DGROMACS
 
 .. code-block:: bash
 
-    /build/hooks/gromacs/gromacs/bin/gmx_mpi grompp -f npt.mdp -p topol.top -c NaCl.gro -o example_NaCl0.tpr
-    /build/hooks/gromacs/gromacs/bin/gmx_mpi grompp -f npt.mdp -p topol.top -c NaCl.gro -o example_NaCl1.tpr
+    /build/hooks/gromacs/gromacs/bin/gmx_ssages grompp -f npt.mdp -p topol.top -c NaCl.gro -o example_NaCl0.tpr
+    /build/hooks/gromacs/gromacs/bin/gmx_ssages grompp -f npt.mdp -p topol.top -c NaCl.gro -o example_NaCl1.tpr
 
 Be sure to change the seed in .mdp files for random velocity generation, 
 so walkers can explore different places on the free energy surface.
