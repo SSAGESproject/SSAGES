@@ -2,7 +2,6 @@ set(EIGEN_REPOSITORY "https://gitlab.com/libeigen/eigen.git")
 set(EIGEN_TAG 3.3.7)
 set(EIGEN_PATCH "${CMAKE_CURRENT_SOURCE_DIR}/include/patches/eigen-using-std-real.patch")
 
-include(ExternalProject)
 ExternalProject_Add(eigen
     # Using DOWNLOAD_COMMAND instead of GIT_REPOSITORY to pass some convenient git flags.
     # For instance, GIT_SHALLOW is available from CMake 3.6
