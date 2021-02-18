@@ -6,7 +6,7 @@ ExternalProject_Add(mxx
     # For instance, GIT_SHALLOW is available from CMake 3.6
     DOWNLOAD_COMMAND ${GIT_EXECUTABLE} clone --branch=${MXX_TAG} --depth=1
         -c advice.detachedHead=false ${MXX_REPOSITORY}
-    UPDATE_COMMAND ${GIT_EXECUTABLE} pull
+    UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ${CMAKE_COMMAND} -E copy_directory
         <SOURCE_DIR>/include/mxx ${CMAKE_CURRENT_SOURCE_DIR}/include/mxx

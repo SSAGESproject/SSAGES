@@ -6,7 +6,7 @@ ExternalProject_Add(jsoncpp
     # For instance, GIT_SHALLOW is available from CMake 3.6
     DOWNLOAD_COMMAND ${GIT_EXECUTABLE} clone --branch=${JSONCPP_TAG} --depth=1
         -c advice.detachedHead=false ${JSONCPP_REPOSITORY}
-    UPDATE_COMMAND ${GIT_EXECUTABLE} pull
+    UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     BUILD_IN_SOURCE ON
     BUILD_COMMAND ${PYTHON_INTERP_EXE} amalgamate.py
