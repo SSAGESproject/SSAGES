@@ -148,7 +148,8 @@ configure_file (
     "${CMAKE_CURRENT_BINARY_DIR}/apply_patch.sh"
 )
 
-set (GMX_SUFFIX "_ssages" PARENT_SCOPE)
+# Custom suffix for SSAGES-specific build of GROMACS
+set (GMX_SUFFIX "_ssages")
 
 # Add gromacs as external project
 ExternalProject_Add(
@@ -198,7 +199,7 @@ set(DRIVERSRC
 # Libraries from the engine to link
 include(GNUInstallDirs)
 set(ENGINE_LIBRARIES
-    "${CMAKE_BINARY_DIR}/hooks/gromacs/gromacs/${CMAKE_INSTALL_LIBDIR}/libgromacs_mpi.so"
+    "${CMAKE_BINARY_DIR}/hooks/gromacs/gromacs/${CMAKE_INSTALL_LIBDIR}/libgromacs${GMX_SUFFIX}.so"
     "${CMAKE_BINARY_DIR}/hooks/gromacs/gromacs/${CMAKE_INSTALL_LIBDIR}/libmdrun.a"
     PARENT_SCOPE
 )
