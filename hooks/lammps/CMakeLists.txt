@@ -6,7 +6,7 @@ set (SUPPORTED_LAMMPS_VERSIONS
      "31 Mar 2017" "11 Aug 2017"
      "16 Mar 2018" "22 Aug 2018" "12 Dec 2018"
      "5 Jun 2019" "7 Aug 2019"
-     "3 Mar 2020"
+     "3 Mar 2020" "29 Oct 2020"
     )
 # List of git tags for above versions
 # Starting with version 15 Sep 2016, the tags are named by date
@@ -17,7 +17,7 @@ set (SUPPORTED_LAMMPS_TAGS
      "stable_31Mar2017" "stable_11Aug2017"
      "stable_16Mar2018" "stable_22Aug2018" "stable_12Dec2018"
      "stable_5Jun2019" "stable_7Aug2019"
-     "stable_3Mar2020"
+     "stable_3Mar2020" "stable_29Oct2020"
     )
 if (LAMMPS_SRC)
     # Get absolute path in case user specified relative path
