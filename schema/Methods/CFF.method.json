@@ -92,6 +92,9 @@
         "min_loss" : {
             "type" : "number",
             "minimum" : 0
+        },
+        "cvs" : {
+            "type" : "array"
         }
     },
     "required" : 

@@ -85,6 +85,9 @@
         },
         "load_bias" : {
             "type" : "string"
+        },
+        "cvs" : {
+            "type" : "array"
         }
     },
     "required" : [
