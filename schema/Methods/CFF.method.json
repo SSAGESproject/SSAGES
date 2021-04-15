@@ -1,66 +1,66 @@
 {
-    "type" : "object", 
-    "varname" : "CFFMethod", 
+    "type" : "object",
+    "varname" : "CFFMethod",
     "properties" : {
         "type" : {
-            "type" : "string", 
+            "type" : "string",
             "enum" : ["CFF"]
-        }, 
+        },
         "topology" : {
-            "type" : "array", 
+            "type" : "array",
             "minItems" : 1,
-            "items" : { 
-                "type" : "integer", 
+            "items" : {
+                "type" : "integer",
                 "minimum" : 1
-            } 
-        }, 
+            }
+        },
         "weight" : {
             "type" : "number",
-            "minimum" : 0 
+            "minimum" : 0
         },
         "grid" : {
             "type" : "object"
         },
         "temperature" : {
-            "type" : "number", 
+            "type" : "number",
             "minimum" : 0
         },
-		"lower_bounds" : {
-			"type" : "array", 
-			"minItems" : 1,
-			"items" : {
-				"type" : "number"
-			}
-		},
-		"upper_bounds" : {
-			"type" : "array", 
-			"minItems" : 1,
-			"items" : {
-				"type" : "number"
-			}
-		},
-		"lower_bound_restraints" : {
-			"type" : "array", 
-			"minItems" : 1,
-			"items" : {
-				"type" : "number"
-			}
-		},
-		"upper_bound_restraints" : {
-			"type" : "array", 
-			"minItems" : 1,
-			"items" : {
-				"type" : "number"
-			}
-		},
-    	"prev_weight" : {
-       		"type" : "number", 
-       		"minimum" : 0, 
-       		"maximum" : 1
-			},
-	"nsweep" : {
-		"type" : "integer", 
-		"minimum" : 1
+        "lower_bounds" : {
+            "type" : "array",
+            "minItems" : 1,
+            "items" : {
+                "type" : "number"
+            }
+        },
+        "upper_bounds" : {
+            "type" : "array",
+            "minItems" : 1,
+            "items" : {
+                "type" : "number"
+            }
+        },
+        "lower_bound_restraints" : {
+            "type" : "array",
+            "minItems" : 1,
+            "items" : {
+                "type" : "number"
+            }
+        },
+        "upper_bound_restraints" : {
+            "type" : "array",
+            "minItems" : 1,
+            "items" : {
+                "type" : "number"
+            }
+        },
+        "prev_weight" : {
+            "type" : "number",
+            "minimum" : 0,
+            "maximum" : 1
+        },
+        "nsweep" : {
+            "type" : "integer",
+            "minimum" : 1
         },
         "output_file" : {
             "type" : "string"
@@ -69,45 +69,47 @@
             "type" : "boolean"
         },
         "converge_iters" : {
-            "type" : "integer", 
+            "type" : "integer",
             "minimum" : 0
         },
         "max_iters" : {
-            "type" : "integer", 
+            "type" : "integer",
             "minimum" : 0
-        }, 
+        },
         "timestep" : {
             "type" : "number"
-        }, 
-	"ratio" : {
-		"type" : "number"
-	},
+        },
+        "ratio" : {
+            "type" : "number"
+        },
         "unit_conversion" : {
-            "type" : "number" 
-	},
-         "minimum_count" : {
-                 "type" : "integer",
-                 "minimum" : 0
-    },
+            "type" : "number"
+        },
+        "minimum_count" : {
+            "type" : "integer",
+            "minimum" : 0
+        },
         "min_loss" : {
             "type" : "number",
             "minimum" : 0
+        },
+        "cvs" : {
+            "type" : "array"
         }
     },
-    "required" : 
-	[
-        "type", 
-        "topology", 
-        "grid", 
+    "required" : [
+        "type",
+        "topology",
+        "grid",
         "lower_bound_restraints",
-		"upper_bound_restraints",
-		"lower_bounds",
-		"upper_bounds",
-		"temperature",
-		"timestep",
-		"unit_conversion",
-		"nsweep",
-		"minimum_count"
+        "upper_bound_restraints",
+        "lower_bounds",
+        "upper_bounds",
+        "temperature",
+        "timestep",
+        "unit_conversion",
+        "nsweep",
+        "minimum_count"
     ],
     "additionalProperties" : false
 }
