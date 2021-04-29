@@ -32,6 +32,7 @@
 #include <sstream>
 #include <iomanip>
 #include <unistd.h>
+#include <string.h>
 
 namespace SSAGES
 {
