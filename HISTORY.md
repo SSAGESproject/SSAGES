@@ -1,6 +1,15 @@
 SSAGES v0.9 Release Notes
 =========================
 
+## v0.9.3
+- Numerous improvements to the GROMACS hook
+- New Qbox examples
+- Support for newer LAMMPS versions
+- Engine version is now logged
+- ANN and CFF schemas now include a CVs section
+- Source cleanup: Fetching external dependencies at build time
+- Other minor source cleanup changes
+
 ## v0.9.2
 - Critical bug fix for patching Eigen with GROMACS
 - Correction to gradient of AngleCV
