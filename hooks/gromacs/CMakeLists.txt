@@ -120,7 +120,7 @@ elseif (GROMACS)
     ExternalProject_Add(
         gromacs-download
         DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
-        GIT_REPOSITORY git://git.gromacs.org/gromacs.git
+        GIT_REPOSITORY https://gitlab.com/gromacs/gromacs.git
         GIT_TAG v${GROMACS_VERSION}
         TIMEOUT 600
         CONFIGURE_COMMAND ""
@@ -132,14 +132,20 @@ endif ()
 
 set (GROMACS_SRC ${GROMACS_SRC} PARENT_SCOPE)
 set (GROMACS_VERSION ${GROMACS_VERSION} PARENT_SCOPE)
+set (MD_ENGINE_VERSION "GROMACS version ${GROMACS_VERSION}" PARENT_SCOPE)
 
 set (GRO_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}")
 set (CUDA_NVCC_FLAGS "-std=c++11; -I${PROJECT_SOURCE_DIR}/src; -I${PROJECT_SOURCE_DIR}/include; -I${CMAKE_CURRENT_SOURCE_DIR}")
 
 if (GROMACS_VERSION MATCHES "^5\\.1(\\.[0-9]+)?$" OR GROMACS_VERSION MATCHES "^2016(\\.[0-9]+)?$")
-    set (GMX_LIBRARIES_ARGS "-DGMX_EXTRA_LIBRARIES=${CMAKE_BINARY_DIR}/libssagesgmx.so")
+    set (GMX_LIBRARIES_ARGS "-DGMX_EXTRA_LIBRARIES=$<TARGET_FILE:libssages>")
 else ()
-    set (GMX_LIBRARIES_ARGS "-DGMX_COMMON_LIBRARIES=${CMAKE_BINARY_DIR}/libssagesgmx.so")
+    set (GMX_LIBRARIES_ARGS "-DGMX_COMMON_LIBRARIES=$<TARGET_FILE:libssages>")
+endif ()
+
+# If a SIMD level is set, turn off hwloc
+if (GMX_SIMD)
+    set (GMX_SIMD_FLAGS "-DGMX_HWLOC=OFF;-DGMX_SIMD=${GMX_SIMD}")
 endif ()
 
 # Configure patch.
@@ -147,6 +153,9 @@ configure_file (
     "${CMAKE_CURRENT_SOURCE_DIR}/apply_patch.sh.in"
     "${CMAKE_CURRENT_BINARY_DIR}/apply_patch.sh"
 )
+
+# Custom suffix for SSAGES-specific build of GROMACS
+set (GMX_SUFFIX "_ssages")
 
 # Add gromacs as external project
 ExternalProject_Add(
@@ -158,11 +167,14 @@ ExternalProject_Add(
     CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
     -DGMX_MPI=ON
+    -DGMX_DEFAULT_SUFFIX=OFF -DGMX_BINARY_SUFFIX=${GMX_SUFFIX} -DGMX_LIBS_SUFFIX=${GMX_SUFFIX}
     -DCMAKE_CXX_FLAGS=${GRO_CXX_ARGS}
     -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     ${GMX_LIBRARIES_ARGS}
+    -DGMX_DOUBLE=${GMX_DOUBLE}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DGMX_BUILD_OWN_FFTW=${GMX_BUILD_OWN_FFTW}
+    ${GMX_SIMD_FLAGS}
     -DGMX_GPU=${GMX_GPU}
     -DCUDA_PROPAGATE_HOST_FLAGS=OFF
     -DCUDA_NVCC_FLAGS=${CUDA_NVCC_FLAGS}
@@ -181,40 +193,34 @@ ExternalProject_Add_Step(
 )
 
 # Add source for appropriate package hook.
-set (HOOKSRC
+set(HOOKSRC
     hooks/gromacs/GromacsHook.cpp
     PARENT_SCOPE
 )
 
-set (DRIVERSRC
+set(DRIVERSRC
     hooks/gromacs/Driver.cpp
+    PARENT_SCOPE
+)
+
+# Libraries from the engine to link
+include(GNUInstallDirs)
+set(ENGINE_LIBRARIES
+    "${CMAKE_BINARY_DIR}/hooks/gromacs/gromacs/${CMAKE_INSTALL_LIBDIR}/libgromacs${GMX_SUFFIX}.so"
+    "${CMAKE_BINARY_DIR}/hooks/gromacs/gromacs/${CMAKE_INSTALL_LIBDIR}/libmdrun.a"
     PARENT_SCOPE
 )
 
 # Function to do post library configuration.
 function(CONFIGURE_ENGINE)
-    # Build custom shared library for dependencies.
-    add_library(ssagesgmx SHARED ${HOOKSRC} ${SOURCE})
-    target_link_libraries(ssagesgmx ${MPI_CXX_LIBRARIES})
     include_directories("${GROMACS_SRC}/src")
+    include_directories(hooks/gromacs/)
     if(GROMACS_VERSION MATCHES "^5\\.1(\\.[0-9]+)?$")
         include_directories("${GROMACS_SRC}/src/external/boost")
     endif()
-    include_directories(hooks/gromacs/)
-
     if (GROMACS)
-        add_dependencies(ssagesgmx gromacs-download)
+        add_dependencies(gromacs gromacs-download)
     endif (GROMACS)
-
-    add_dependencies(ssagesgmx eigen)
-    add_dependencies(gromacs ssagesgmx)
-
-    # To determine GROMACS install dir.
-    include(GNUInstallDirs)
-    target_link_libraries(ssages
-        ssagesgmx
-        "${CMAKE_BINARY_DIR}/hooks/gromacs/gromacs/${CMAKE_INSTALL_LIBDIR}/libgromacs_mpi.so"
-        "${CMAKE_BINARY_DIR}/hooks/gromacs/gromacs/${CMAKE_INSTALL_LIBDIR}/libmdrun.a"
-        )
+    add_dependencies(gromacs libssages)
     add_dependencies(ssages gromacs)
 endfunction()

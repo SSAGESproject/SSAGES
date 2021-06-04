@@ -1,6 +1,13 @@
 SSAGES v0.9 Release Notes
 =========================
 
+## v0.9.2
+- Critical bug fix for patching Eigen with GROMACS
+- Correction to gradient of AngleCV
+- Additional checks and docs for multiwalker loggers
+- Support newer LAMMPS versions
+- Minor source cleanup
+
 ## v0.9.1
 - Critical bug fix for neural-network based methods
 - Updated Eigen dependency to v3.3.7

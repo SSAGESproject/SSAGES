@@ -1,5 +1,8 @@
 # External projects
 include/Eigen/
+include/json/
+src/JSON/jsoncpp.cpp
+include/mxx/
 
 # Build directories
 build*/

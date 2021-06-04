@@ -23,12 +23,14 @@ versatile. It is currently pre-beta, meaning that there are many rough edges,
 but we are working rapidly to expand its features and fix any bugs. Keep an eye
 on this page for future updates and see below on how to contribute!
 
-## What's New (v0.9.2)
-- Critical bug fix for patching Eigen with GROMACS
-- Correction to gradient of AngleCV
-- Additional checks and docs for multiwalker loggers
-- Support newer LAMMPS versions
-- Minor source cleanup
+## What's New (v0.9.3)
+- Numerous improvements to the GROMACS hook
+- New Qbox examples
+- Support for newer LAMMPS versions
+- Engine version is now logged
+- ANN and CFF schemas now include a CVs section
+- Source cleanup: Fetching external dependencies at build time
+- Other minor source cleanup changes
 
 To view the full changelog history, refer to [HISTORY](HISTORY.md).
 

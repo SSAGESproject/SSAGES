@@ -1,8 +1,8 @@
 # Add testing 
 set(TEST_DEPS  
     ${GTEST_LIBRARY_PATH}
-    ${GTEST_LIBRARY_MAIN_PATH}
     libssages
+    ${ENGINE_LIBRARIES}
 )
 
 set (UNIT_TESTS
@@ -38,7 +38,7 @@ foreach (TEST ${UNIT_TESTS})
     add_executable (${TEST} unit_tests/${TEST}.cpp)
     target_link_libraries (${TEST} ${TEST_DEPS})
     target_include_directories (${TEST} PRIVATE "${GTEST_INCLUDE_DIR}")
-    add_dependencies (${TEST} googletest)
+    add_dependencies (${TEST} googletest ssages)
     add_test(UNIT_TEST_${TEST} ${TEST})
 endforeach (TEST ${UNIT_TESTS})
 

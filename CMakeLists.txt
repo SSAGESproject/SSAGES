@@ -22,8 +22,25 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 find_package(Git REQUIRED)
 find_package(MPI 1.6 REQUIRED)
 
+# Make sure Python is available
+if (CMAKE_VERSION VERSION_LESS 3.12)
+    find_package (PythonInterp REQUIRED)
+    set (PYTHON_INTERP_FOUND ${PYTHONINTERP_FOUND})
+    set (PYTHON_INTERP_EXE ${PYTHON_EXECUTABLE})
+else ()
+    find_package (Python REQUIRED COMPONENTS Interpreter)
+    set (PYTHON_INTERP_FOUND ${Python_Interpreter_FOUND})
+    set (PYTHON_INTERP_EXE ${Python_EXECUTABLE})
+endif ()
+if (NOT PYTHON_INTERP_FOUND)
+    message (SEND_ERROR "\nERROR: Python binary not found!")
+endif ()
+
 # Fetch external dependencies
+include(ExternalProject)
 include(FetchEigen)
+include(FetchJsonCpp)
+include(FetchMxx)
 
 # Schema builder.
 add_subdirectory(schema)
@@ -66,6 +83,9 @@ set(SOURCE
 
 ####################### MD ENGINES #########################
 
+# Initialize list of engine libraries to link to SSAGES
+set(ENGINE_LIBRARIES "")
+
 # Set variables for supported engines.
 set(LAMMPS NO CACHE BOOL "Use LAMMPS simulation engine.")
 set(GROMACS NO CACHE BOOL "Use GROMACS simulation engine.")
@@ -100,7 +120,7 @@ configure_file (
 )
 
 # SSAGES library.
-add_library(libssages ${HOOKSRC} ${SOURCE})
+add_library(libssages SHARED ${HOOKSRC} ${SOURCE})
 set_target_properties(libssages PROPERTIES PREFIX "")
 target_link_libraries(libssages ${MPI_CXX_LIBRARIES})
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -115,6 +135,9 @@ endif ()
 set_property(TARGET libssages PROPERTY CXX_STANDARD 11)
 set_property(TARGET libssages PROPERTY CXX_STANDARD_REQUIRED ON)
 
+# Dependencies
+add_dependencies(libssages eigen jsoncpp mxx schema)
+
 # SSAGES executable.
 add_executable(ssages
     src/main.cpp
@@ -124,8 +147,10 @@ add_executable(ssages
 # Call MD engine configuration.
 CONFIGURE_ENGINE()
 
-# Dependencies
-add_dependencies(libssages eigen schema)
+target_link_libraries(ssages
+    libssages
+    ${ENGINE_LIBRARIES}
+)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set_target_properties(ssages PROPERTIES COMPILE_FLAGS "-Wall -Wextra -g")
@@ -150,58 +175,7 @@ endif()
 add_subdirectory(doc)
 
 if (BUILD_TESTS)
-    message(STATUS "")
-
-    # Find Google Test Framework
-    include(ExternalProject)
-
-    # Set default ExternalProject root directory
-    set_directory_properties(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/extern)
-
-    # Add gtest
-    # http://stackoverflow.com/questions/9689183/cmake-googletest
-    ExternalProject_Add(
-        googletest
-        DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR}
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG release-1.8.0
-        TIMEOUT 600
-        CMAKE_ARGS
-        -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-        # # Force separate output paths for debug and release builds to allow easy
-        # # identification of correct lib in subsequent TARGET_LINK_LIBRARIES commands
-        # CMAKE_ARGS -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG:PATH=DebugLibs
-        # -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE:PATH=ReleaseLibs
-        # -Dgtest_force_shared_crt=ON
-        # Disable install step
-        INSTALL_COMMAND ""
-        # Wrap download, configure and build steps in a script to log output
-        LOG_DOWNLOAD ON
-        LOG_CONFIGURE ON
-        LOG_BUILD ON
-    )
-
-    # Specify include dir
-    ExternalProject_Get_Property(googletest source_dir)
-    set(GTEST_INCLUDE_DIR ${source_dir}/googletest/include)
-
-    ExternalProject_Get_Property(googletest binary_dir)
-    set(GTEST_LIBRARY_PATH ${binary_dir}/googlemock/gtest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest.a)
-    set(GTEST_LIBRARY_MAIN_PATH ${binary_dir}/googlemock/gtest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main.a)
-    set(GTEST_LIBRARY gtest)
-    add_library(${GTEST_LIBRARY} UNKNOWN IMPORTED)
-    set_property(TARGET ${GTEST_LIBRARY} PROPERTY IMPORTED_LOCATION
-    ${GTEST_LIBRARY_PATH} )
-    add_dependencies(${GTEST_LIBRARY} googletest)
-
-    message(STATUS "")
-    message(STATUS "*** Google Test Framework will be used for unit tests")
-    message(STATUS "*** GTEST_LIBRARY_PATH = ${GTEST_LIBRARY_PATH}")
-    message(STATUS "*** GTEST_INCLUDE_DIR  = ${GTEST_INCLUDE_DIR}")
-    message(STATUS "")
-    # End gtest
-
+    include(FetchGoogletest)
     enable_testing()
     add_subdirectory(test)
 endif (BUILD_TESTS)

@@ -32,6 +32,7 @@
 #include <sstream>
 #include <iomanip>
 #include <unistd.h>
+#include <string.h>
 
 namespace SSAGES
 {
@@ -61,7 +62,7 @@ namespace SSAGES
 			msg << runtime_error::what() << ": "
 				<< "See errors for details.";
 
-			return msg.str().c_str();
+			return strdup(msg.str().c_str());
 		}
 
 		//! Get specific error message

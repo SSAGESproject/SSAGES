@@ -166,11 +166,11 @@ namespace LAMMPS_NS
 	
 		snapshot_->SetOrigin(origin);
 
-		// Set periodicity. 
+		// Set periodicity.
 		snapshot_->SetPeriodicity({
-			domain->xperiodic, 
-			domain->yperiodic, 
-			domain->zperiodic
+			domain->xperiodic != 0,
+			domain->yperiodic != 0,
+			domain->zperiodic != 0
 		});
 
 		// Zero the virial - we are only interested in accumulation.

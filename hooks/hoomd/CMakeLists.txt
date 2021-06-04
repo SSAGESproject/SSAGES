@@ -19,6 +19,8 @@ if (HOOMD_ROOT)
     set(HOOMD_ROOT ${HOOMD_ROOT} PARENT_SCOPE)
 endif ()
 
+set (MD_ENGINE_VERSION "HOOMD-blue version ${HOOMD_VERSION}" PARENT_SCOPE)
+
 set(HOOKSRC
     hooks/hoomd/HOOMDHook.cpp
     PARENT_SCOPE
@@ -29,10 +31,13 @@ set(DRIVERSRC
     PARENT_SCOPE
 )
 
+# ENGINE_LIBRARIES must be set *after* FindHOOMD.cmake is included
+
 # Function to do post library configuration.
 function(CONFIGURE_ENGINE)
     include_directories(hooks/hoomd)
     include(hooks/hoomd/FindHOOMD.cmake)
+
     if ("${HOOMD_VERSION}" VERSION_LESS "2.4.0")
         message (FATAL_ERROR "\nERROR: HOOMD-blue versions before 2.4.0 are "
                              "not supported by SSAGES.\n")
@@ -43,5 +48,11 @@ function(CONFIGURE_ENGINE)
     if ("${HOOMD_VERSION}" VERSION_LESS "2.6.0")
         add_definitions(-DHOOMD_PRE_2_6)
     endif ()
-    target_link_libraries(ssages libssages ${HOOMD_LIBRARIES} ${PYTHON_LIBRARY})
+
+    # Libraries from the engine to link
+    set(ENGINE_LIBRARIES
+        "${HOOMD_LIBRARIES}"
+        ${PYTHON_LIBRARY}
+        PARENT_SCOPE
+    )
 endfunction()

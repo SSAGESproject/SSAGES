@@ -665,13 +665,19 @@ namespace SSAGES
 		auto flavor = json.get("flavor", "none").asString();
 		auto output_directory = json.get("outputDirectoryName", "FFSoutput").asString();
 
+		// TODO: Implement multiple processes per walker
+		if(mxx::comm(comm).size() > 1)
+		{
+			throw BuildException({"Forward Flux currently only works with 1 process per walker."});
+		}
+
 		if(flavor == "DirectForwardFlux")
 		{
 			return new DirectForwardFlux(world, comm, ninterfaces, interfaces, N0Target, M, initialFluxFlag, saveTrajectories, currentInterface, output_directory, freq);            	
 		}
 		else 
 		{
-			throw BuildException({"Unknow flavor of forward flux. The options are \"DirectForwardFlux\""});
+			throw BuildException({"Unknown flavor of forward flux. The options are \"DirectForwardFlux\""});
 		}
 	}
 }
