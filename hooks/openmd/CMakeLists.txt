@@ -1,3 +1,52 @@
+# List of supported versions of OpenMD
+set(SUPPORTED_OPENMD_VERSIONS
+    "2.5.0" "2.6.0"
+)
+
+# Get absolute path in case user specified relative path
+if (IS_ABSOLUTE ${OPENMD_SRC})
+    get_filename_component(OPENMD_SRC ${OPENMD_SRC} ABSOLUTE)
+else ()
+    get_filename_component(OPENMD_SRC ${PROJECT_BINARY_DIR}/${OPENMD_SRC}
+                           ABSOLUTE)
+endif ()
+
+# Check if directory OPENMD_SRC exists
+if (NOT EXISTS ${OPENMD_SRC})
+	message (FATAL_ERROR "\nERROR: Directory ${OPENMD_SRC} does not exist.")
+endif (NOT EXISTS ${OPENMD_SRC})
+
+# Check if directory contains OpenMD source files
+if (NOT EXISTS ${OPENMD_SRC}/src/applications/openmd/openmd.cpp)
+	# Check if subdirectory was specified
+	if (EXISTS ${OPENMD_SRC}/applications/openmd/openmd.cpp)
+		get_filename_component (OPENMD_SRC ${OPENMD_SRC}/.. ABSOLUTE)
+	else ()
+		# Directory does not contain OpenMD source
+		message (FATAL_ERROR "\nERROR: Directory ${OPENMD_SRC} does not "
+		                       "contain OpenMD source files "
+		                       "(file src/applications/openmd/openmd.cpp "
+		                       "not found).")
+	endif ()
+endif ()
+
+execute_process (
+	COMMAND "sed" "-n"
+	"s/set (VERSION_\\(MAJOR\\|MINOR\\|TINY\\) \"\\([0-9]\\+\\)\")/\\2/p"
+	"${OPENMD_SRC}/CMakeLists.txt"
+	COMMAND "sed" "-e" ":a" "-e" "N" "-e" "\$!ba" "-e" "s/\\n/./g"
+	OUTPUT_VARIABLE OPENMD_VERSION
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+# Check if OpenMD version is supported
+if (NOT ";${SUPPORTED_OPENMD_VERSIONS};" MATCHES ";${OPENMD_VERSION};")
+	message (FATAL_ERROR "\nERROR: OpenMD version \"${OPENMD_VERSION}\" is "
+	"currently not supported by SSAGES.")
+endif (NOT ";${SUPPORTED_OPENMD_VERSIONS};" MATCHES ";${OPENMD_VERSION};")
+
+set (MD_ENGINE_VERSION "OpenMD version ${OPENMD_VERSION}" PARENT_SCOPE)
+
 set(OPENMD_CXX_ARGS "-std=c++11 -I${PROJECT_SOURCE_DIR}/src -I${PROJECT_SOURCE_DIR}/include -I${PROJECT_SOURCE_DIR}/hooks/openmd")
 
 # Configure patch.

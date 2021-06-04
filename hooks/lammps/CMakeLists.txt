@@ -93,6 +93,7 @@ elseif (LAMMPS)
 endif ()
 
 set (LAMMPS_SRC ${LAMMPS_SRC} PARENT_SCOPE)
+set (MD_ENGINE_VERSION "LAMMPS version ${LAMMPS_VERSION}" PARENT_SCOPE)
 
 # List of optional LAMMPS packages (as of 1 Jun 2018)
 set (LAMMPS_PACKAGES "all"      # All packages

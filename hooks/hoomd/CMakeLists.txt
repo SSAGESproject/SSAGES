@@ -19,6 +19,8 @@ if (HOOMD_ROOT)
     set(HOOMD_ROOT ${HOOMD_ROOT} PARENT_SCOPE)
 endif ()
 
+set (MD_ENGINE_VERSION "HOOMD-blue version ${HOOMD_VERSION}" PARENT_SCOPE)
+
 set(HOOKSRC
     hooks/hoomd/HOOMDHook.cpp
     PARENT_SCOPE

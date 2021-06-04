@@ -15,7 +15,7 @@ vary between supported engines.
 +---------------+-----------------------+--------------+------------+
 | `GROMACS`_    | 5.1.x, 2016.x, 2018.x | yes          | yes        |
 +---------------+-----------------------+--------------+------------+
-| `OpenMD`_     | 2.5                   | no           | no         |
+| `OpenMD`_     | 2.5, 2.6              | no           | no         |
 +---------------+-----------------------+--------------+------------+
 | `Qbox`_       | 1.60 or newer         | yes          | no         |
 +---------------+-----------------------+--------------+------------+
@@ -285,6 +285,7 @@ confident that SSAGES will *not* work with other versions of OpenMD out of
 the box, in contrast to LAMMPS.
 
 * 2.5
+* 2.6
 
 Running
 ~~~~~~~
