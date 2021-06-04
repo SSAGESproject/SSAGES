@@ -53,10 +53,12 @@ int main(int argc, char* argv[])
 		<< "\n"
 		<< "Optional parameters:\n"
 		<< " -h | --help - Print this help message\n"
-		<< " --version   - Print SSAGES version and quit\n";
+		<< " --version   - Print SSAGES and engine version and quit\n";
 
 	std::stringstream versionStream;
-	versionStream << "SSAGES version " << SSAGES_VERSION << "\n";
+	versionStream
+		<< "SSAGES version " << SSAGES_VERSION << "\n"
+		<< "Engine: " << MD_ENGINE_VERSION << "\n";
 
 	// Define short options, e.g. -h
 	const char *OPT_STRING = "h!";

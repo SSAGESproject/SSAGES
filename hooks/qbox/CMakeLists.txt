@@ -1,5 +1,8 @@
+# Qbox uses a client/server interface, so it must be compiled separately
+set (MD_ENGINE_VERSION "Qbox (client/server interface)" PARENT_SCOPE)
+
 set(HOOKSRC
-	hooks/qbox/QboxHook.cpp
+    hooks/qbox/QboxHook.cpp
     PARENT_SCOPE
 )
 
