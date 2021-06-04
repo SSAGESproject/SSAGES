@@ -1,6 +1,29 @@
 SSAGES v0.9 Release Notes
 =========================
 
+## v0.9.3
+- Numerous improvements to the GROMACS hook
+- New Qbox examples
+- Support for newer LAMMPS versions
+- Engine version is now logged
+- ANN and CFF schemas now include a CVs section
+- Source cleanup: Fetching external dependencies at build time
+- Other minor source cleanup changes
+
+## v0.9.2
+- Critical bug fix for patching Eigen with GROMACS
+- Correction to gradient of AngleCV
+- Additional checks and docs for multiwalker loggers
+- Support newer LAMMPS versions
+- Minor source cleanup
+
+## v0.9.1
+- Critical bug fix for neural-network based methods
+- Updated Eigen dependency to v3.3.7
+- Many documentation improvements
+- Support for newer HOOMD versions (2.6+)
+- Build process fixes
+
 ## v0.9.0
 - New Combined Force–Frequency sampling method
 - Addition of non-weighted internal center of mass calculation
