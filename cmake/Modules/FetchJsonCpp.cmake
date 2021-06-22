@@ -10,8 +10,8 @@ ExternalProject_Add(jsoncpp
     CONFIGURE_COMMAND ""
     BUILD_IN_SOURCE ON
     BUILD_COMMAND ${PYTHON_INTERP_EXE} amalgamate.py
-                  -s ${CMAKE_CURRENT_SOURCE_DIR}/src/JSON/jsoncpp.cpp
-                  -i ${CMAKE_CURRENT_SOURCE_DIR}/include/json/json.h
+          COMMAND ${CMAKE_COMMAND} -E copy_if_different <SOURCE_DIR>/dist/jsoncpp.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/JSON/jsoncpp.cpp
+          COMMAND ${CMAKE_COMMAND} -E copy_if_different <SOURCE_DIR>/dist/json/json.h ${CMAKE_CURRENT_SOURCE_DIR}/include/json/json.h
     INSTALL_COMMAND ""
     LOG_DOWNLOAD ON
     LOG_UPDATE ON
