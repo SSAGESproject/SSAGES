@@ -64,6 +64,7 @@ namespace SSAGES
 		snapshot_->SetTemperature(thermo.getTemperature());
 		snapshot_->SetEnergy(thermo.getTotalEnergy());
 		snapshot_->SetKb(Constants::kB);
+		snapshot_->SetUnitConv(1.0/Constants::energyConvert);
 
 		// Loop through and get atom properties.
 		size_t index = 0;

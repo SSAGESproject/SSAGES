@@ -145,15 +145,6 @@ namespace SSAGES
 		 */
 		int FBackupInterv_;
 
-		//! Unit Conversion Constant from W dot P to Force
-		/*!
-		 * It is crucial that unit conversion is entered correctly.
-		 * Unit conversion from d(momentum)/d(time) to force for the simulation.
-		 * For LAMMPS using units real, this is
-		 * 2390.06 (gram.angstrom/mole.femtosecond^2 -> kcal/mole.angstrom)
-		 */
-		double unitconv_;
-
 		//! Computes the bias force.
 		/*!
 		 * \param snapshot Current simulation snapshot.
@@ -202,7 +193,6 @@ namespace SSAGES
 		 * \param Fworld_filename Name to read/write raw generalized force histograms.
 		 * \param histdetails Minimum, maximum and number of bins for each CV.
 		 * \param FBackupInterv Set how often the adaptive force histograms are backed up.
-		 * \param unitconv Unit conversion from d(momentum)/d(time) to force.
 		 * \param timestep Simulation time step.
 		 * \param frequency Frequency with which this method is invoked.
 		 *
@@ -226,14 +216,13 @@ namespace SSAGES
 			std::string Fworld_filename,
 			const std::vector<std::vector<double>>& histdetails,
 			int FBackupInterv,
-			double unitconv,
 			double timestep,
 			unsigned int frequency) :
 		Method(frequency, world, comm), N_(N), Nworld_(Nworld), F_(F), Fworld_(Fworld),  restraint_(restraint), isperiodic_(isperiodic), periodicboundaries_(periodicboundaries),
 		min_(min), wdotp1_(), wdotp2_(), Fold_(), massweigh_(massweigh),
 		biases_(), dim_(0), filename_(filename), Nworld_filename_(Nworld_filename), Fworld_filename_(Fworld_filename),
 		histdetails_(histdetails), 
-		FBackupInterv_(FBackupInterv), unitconv_(unitconv), timestep_(timestep),
+		FBackupInterv_(FBackupInterv), timestep_(timestep),
 		iteration_(0)
 		{
 		}

@@ -99,7 +99,6 @@ Example Input
             "minimum_count" : 50,
             "output_file" : "F_out",
             "output_frequency" : 1000,
-            "unit_conversion" : 1,
             "frequency" : 1
         }
     ]
@@ -192,7 +191,7 @@ These arrays define the lower and upper end of the period. This only matters if
 ``CV_isperiodic`` is ``true`` for the CV.
 
 
-**Define time and unit parameters**
+**Define time parameter**
 
 .. code-block:: javascript
 
@@ -201,15 +200,6 @@ These arrays define the lower and upper end of the period. This only matters if
 The timestep of the simulation. Units depend on the conversion factor that
 follows. This must be entered correctly, otherwise the generalized force estimate
 will be incorrect.
-
-.. code-block:: javascript
-
-    "unit_conversion" : 1,
-
-Defines the unit conversion from d(momentum)/d(time) to force for the
-simulation. For LAMMPS using units real, this is
-2390.06 (gram.angstrom/mole.femtosecond^2 -> kcal/mole.angstrom).
-For GROMACS, this is 1.
 
 .. code-block:: javascript
 

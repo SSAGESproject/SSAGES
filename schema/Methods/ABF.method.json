@@ -170,6 +170,6 @@
 			"type" : "array"
 		}
 	},
-	"required": ["type", "CV_lower_bounds", "CV_upper_bounds", "CV_restraint_minimums", "CV_restraint_maximums", "CV_restraint_spring_constants", "CV_bins", "CV_isperiodic", "timestep", "unit_conversion"],
+	"required": ["type", "CV_lower_bounds", "CV_upper_bounds", "CV_restraint_minimums", "CV_restraint_maximums", "CV_restraint_spring_constants", "CV_bins", "CV_isperiodic", "timestep"],
 	"additionalProperties": false
 }

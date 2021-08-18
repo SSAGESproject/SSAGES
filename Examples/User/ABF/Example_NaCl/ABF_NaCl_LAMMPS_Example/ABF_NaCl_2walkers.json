@@ -30,7 +30,6 @@
 		"minimum_count" : 200,
 		"output_file" : "F_out",
 		"output_frequency" : 1000,
-		"unit_conversion" : 2390.06,
 		"frequency" : 1
 	}]
 }

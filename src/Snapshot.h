@@ -77,6 +77,7 @@ namespace SSAGES
 		double temperature_; //!< Current temperature
 		double energy_; //!< Average per-particle energy
 		double kb_; //!< Kb from the MD driver
+		double dMdt2f_; //!< Unit conversion from d(momentum)/dt to force
 
 		double dielectric_; //!< Dielectric
 		double qqrd2e_; //!<qqrd2e
@@ -317,6 +318,18 @@ namespace SSAGES
 		 * \param natoms Number of atoms in this snapshot
 		 */
 		void SetNumAtoms(unsigned int natoms) { nlocal_ = natoms; }
+
+		//! Set unit conversion factor from d(momentum)/dt to force.
+		/*!
+		 * \param dMdt2f New unit conversion factor from d(momentum)/dt to force
+		 */
+		void SetUnitConv(double dMdt2f) { dMdt2f_ = dMdt2f; }
+
+		//! Access unit conversion factor from d(momentum)/dt to force.
+		/*!
+		 * \return double Current unit conversion factor from d(momentum)/dt to force
+		 */
+		double GetUnitConv() const { return dMdt2f_; }
 
 		//! Access the particle positions
 		/*!

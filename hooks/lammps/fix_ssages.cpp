@@ -155,6 +155,7 @@ namespace LAMMPS_NS
 
 		snapshot_->SetHMatrix(H);
 		snapshot_->SetKb(force->boltz);
+		snapshot_->SetUnitConv(1.0/force->ftm2v);
 
 		// Get box origin. 
 		Vector3 origin;

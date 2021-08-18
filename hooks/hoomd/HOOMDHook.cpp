@@ -111,11 +111,9 @@ void HOOMDHook::SyncToSnapshot() //put HOOMD values -> Snapshot
     auto etot = thermo_->getKineticEnergy() + thermo_->getPotentialEnergy();
     snapshot_->SetEnergy(etot/n);
     snapshot_->SetIteration(timestep_);
-    snapshot_->SetKb(1); // TODO: verify that Kb = 1
-    //snapshot_->SetDielectric( /* TODO: Do we need this? */ );
-    //snapshot_->Setqqrd2e( /* TODO: Do we need this? */ );
+    snapshot_->SetKb(1.0); // HOOMD uses "kT", so kB is implied to be 1.
+    snapshot_->SetUnitConv(1.0); // HOOMD uses consistent units
 
-    // TODO: LAMMPS fix sets this to zero, not sure if this is desired for HOOMD
     // Zero the virial - we are only interested in accumulation.
     snapshot_->SetVirial(Matrix3::Zero());
 

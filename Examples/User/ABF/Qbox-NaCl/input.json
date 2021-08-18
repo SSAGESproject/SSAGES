@@ -26,7 +26,6 @@
 		"minimum_count" : 100,
 		"output_file" : "F_out",
 		"output_frequency" : 10,
-		"unit_conversion" : 1836.152674,
 		"frequency" : 1,
 		"cvs" :[0]
 	}

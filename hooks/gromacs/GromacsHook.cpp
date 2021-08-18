@@ -87,6 +87,7 @@ namespace SSAGES
 		snapshot_->SetEnergy(potenergy);
 		snapshot_->SetKb(kb);
 		snapshot_->SetNumAtoms(natoms);
+		snapshot_->SetUnitConv(1.0); // GROMACS uses consistent units
 
 		for(int i = 0; i < natoms; ++i)
 		{

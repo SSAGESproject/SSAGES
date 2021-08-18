@@ -80,6 +80,7 @@ namespace SSAGES
 		auto& mass = snapshot->GetMasses();
 		auto& forces = snapshot->GetForces();
 		auto n = snapshot->GetNumAtoms();
+		auto unitconv = snapshot->GetUnitConv();
 		
 
 		//! Coord holds where we are in CV space in current timestep.
@@ -126,7 +127,7 @@ namespace SSAGES
 	
 		// Compute d(wdotp)/dt second order backwards finite difference. 
 		// Adding old force removes bias. 
-		Eigen::VectorXd dwdotpdt = unitconv_*(1.5*wdotp - 2.0*wdotp1_ + 0.5*wdotp2_)/timestep_ + Fold_;
+		Eigen::VectorXd dwdotpdt = unitconv*(1.5*wdotp - 2.0*wdotp1_ + 0.5*wdotp2_)/timestep_ + Fold_;
 
 		// If we are in bounds, sum force into running total.
 		if(boundsCheck(cvVals) && IsMasterRank(comm_))
@@ -416,7 +417,6 @@ namespace SSAGES
 		
 		// Read in JSON info.
 		auto FBackupInterv = json.get("output_frequency", 1000).asInt();
-		auto unitconv = json.get("unit_conversion", 0).asDouble();
 		auto timestep = json.get("timestep", 2).asDouble();
 		auto min = json.get("minimum_count", 200).asDouble();
 		auto massweigh = json.get("mass_weighing",false).asBool();			
@@ -432,6 +432,13 @@ namespace SSAGES
 		auto filename = json.get("output_file", "F_out").asString();
 		auto Nworld_filename = json.get("Nworld_output_file", "Nworld").asString();
 		auto Fworld_filename = json.get("Fworld_output_file", "Fworld_cv").asString();
+
+		// Deprecated JSON entries
+		if(json.isMember("unit_conversion"))
+		{
+			std::cerr << std::endl << "WARNING: JSON field \"unit_conversion\" is deprecated.";
+			std::cerr << std::endl << "         SSAGES will automatically get this value from the Engine." << std::endl;
+		}
 
 		// Generate the grids based on JSON.
 		Grid<int> *N;
@@ -545,7 +552,7 @@ namespace SSAGES
 			}
 		}
 
-		auto* m = new ABF(world, comm, N, Nworld, F, Fworld, restraint, isperiodic, periodicboundaries, min, massweigh, filename, Nworld_filename, Fworld_filename, histdetails, FBackupInterv, unitconv, timestep, freq);
+		auto* m = new ABF(world, comm, N, Nworld, F, Fworld, restraint, isperiodic, periodicboundaries, min, massweigh, filename, Nworld_filename, Fworld_filename, histdetails, FBackupInterv, timestep, freq);
 
 		if(json.isMember("iteration"))
 			m->SetIteration(json.get("iteration",0).asInt());

@@ -43,7 +43,6 @@ Example Input
             "lower_bound_restraints" : [0.0,0.0],
             "upper_bound_restraints" : [0.0,0.0],
             "timestep" : 0.001,
-            "unit_conversion" : 1,
             "minimum_count" : 3000,
             "overwrite_output": true
         }
@@ -140,7 +139,7 @@ These arrays define the minimum and maximum values for the CV restraints in orde
 
 These arrays define the spring constant for the lower and upper bounds.
 
-**Define time and unit parameters**
+**Define time parameter**
 
 .. code-block:: javascript
 
@@ -148,14 +147,6 @@ These arrays define the spring constant for the lower and upper bounds.
 
 The timestep of the simulation. Units depend on the conversion factor that follows. This
 must be entered correctly, otherwise the generalized force estimate will be incorrect.
-
-.. code-block:: javascript
-
-    "unit_conversion" : 1,
-
-Defines the unit conversion from d(momentum)/d(time) to force for the simulation. For
-LAMMPS using units real, this is 2390.06 (gram.angstrom/mole.femtosecond^2 ->
-kcal/mole.angstrom). For GROMACS, this is 1.
 
 .. code-block:: javascript
 

@@ -26,6 +26,10 @@ namespace SSAGES
 		//! Boltzmann constant in Hartree/K.
 		double kb = 1.0 / ( 11605.0 * 2.0 * 13.6058 );
 
+		//! Conversion between a.m.u. and a.u.
+		//! https://physics.nist.gov/cgi-bin/cuu/Value?mpsme
+		double unitconv = 1836.152673;
+
 		//! Get species index from species vector.
 		int GetSpeciesIndex(const std::string& species)
 		{

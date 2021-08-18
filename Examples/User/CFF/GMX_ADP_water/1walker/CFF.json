@@ -40,7 +40,6 @@
 			"lower_bound_restraints" : [0.0,0.0],
 			"upper_bound_restraints" : [0.0,0.0],
 			"timestep" : 0.001,
-			"unit_conversion" : 1,
 			"minimum_count" : 100
 		}
 	],

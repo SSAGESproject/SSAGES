@@ -114,9 +114,6 @@ namespace SSAGES
 		//! Number of CVs in system.
 		int dim_;
 
-		//! Unit conversion from mass*velocity/time to force.
-		double unitconv_;
-
 		//! The minimum number of hits required before full biasing, bias is
 		//! F_[i]/max(N_[i],min_).
 		int min_;
@@ -140,7 +137,6 @@ namespace SSAGES
 		 * \param lowerk Lower bound restraints for CVs.
 		 * \param upperk Upper bound restraints for CVs.
 		 * \param temperature Temperature of the simulation.
-		 * \param unitconv Unit conversion from d(momentum)/d(time) to force.
 		 * \param timestep Simulation time step.
 		 * \param weight Relative weight of the statistics in sweep.
 		 * \param nsweep Number of iterations in the sweep.
@@ -162,7 +158,6 @@ namespace SSAGES
 			const std::vector<double>& lowerk,
 			const std::vector<double>& upperk,
 			double temperature,
-			double unitconv,
 			double timestep,
 			double weight,
 			unsigned int nsweep,
@@ -173,7 +168,7 @@ namespace SSAGES
 			temp_(temperature), kbt_(), F_(F), Fworld_(Fworld), fgrid_(fgrid),
 			hgrid_(hgrid), ugrid_(ugrid), hist_(), bias_(), lowerb_(lowerb),
 			upperb_(upperb), lowerk_(lowerk), upperk_(upperk), outfile_("CFF.out"),
-			overwrite_(true), unitconv_(unitconv), min_(min)
+			overwrite_(true), min_(min)
 		{
 			// Create histogram grid matrix.
 			hist_.resize(hgrid_->size(), hgrid_->GetDimension());

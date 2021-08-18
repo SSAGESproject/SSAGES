@@ -87,6 +87,7 @@ namespace SSAGES
 		auto& forces = snapshot->GetForces();
 		auto& virial = snapshot->GetVirial();
 		auto n = snapshot->GetNumAtoms();
+		auto unitconv = snapshot->GetUnitConv();
 
 		using NAtoms = decltype(n);
 
@@ -145,7 +146,7 @@ namespace SSAGES
 
 		// Compute d(wdotp)/dt second order backwards finite difference.
 		// Adding old force removes bias.
-		Eigen::VectorXd dwdotpdt = unitconv_*(1.5*wdotp - 2.0*wdotp1_ + 0.5*wdotp2_)/timestep_ + Fold_;
+		Eigen::VectorXd dwdotpdt = unitconv*(1.5*wdotp - 2.0*wdotp1_ + 0.5*wdotp2_)/timestep_ + Fold_;
 		Eigen::VectorXd derivatives = Eigen::VectorXd::Zero(dim_);
 
 		// If we are in bounds, sum force and frequency into running total.
@@ -451,9 +452,15 @@ namespace SSAGES
 		auto weight = json.get("weight", 1.).asDouble();
 		auto temp = json["temperature"].asDouble();
 		auto nsweep = json["nsweep"].asUInt();
-		auto unitconv = json.get("unit_conversion", 1).asDouble();
 		auto timestep = json.get("timestep", 0.002).asDouble();
 		auto min = json.get("minimum_count", 200).asInt();
+
+		// Deprecated JSON entries
+		if(json.isMember("unit_conversion"))
+		{
+			std::cerr << std::endl << "WARNING: JSON field \"unit_conversion\" is deprecated.";
+			std::cerr << std::endl << "         SSAGES will automatically get this value from the Engine." << std::endl;
+		}
 
 		// Assume all vectors are the same size.
 		std::vector<double> lowerb, upperb, lowerk, upperk;
@@ -466,7 +473,7 @@ namespace SSAGES
 			upperb.push_back(json["upper_bounds"][i].asDouble());
 		}
 
-		auto* m = new CFF(world, comm, topol, fgrid, hgrid, ugrid, F, Fworld, lowerb, upperb, lowerk, upperk, temp, unitconv, timestep, weight, nsweep, min);
+		auto* m = new CFF(world, comm, topol, fgrid, hgrid, ugrid, F, Fworld, lowerb, upperb, lowerk, upperk, temp, timestep, weight, nsweep, min);
 
 		// Set optional params.
 		m->SetPrevWeight(json.get("prev_weight", 1).asDouble());
