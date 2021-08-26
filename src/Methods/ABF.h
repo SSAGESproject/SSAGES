@@ -122,6 +122,9 @@ namespace SSAGES
 		//! Principal output of the method.
 		std::string filename_;
 
+		//! Overwrite world data.
+		bool overwrite_;
+
 		//! Nworld print out filename, for restarts.
 		std::string Nworld_filename_;
 
@@ -189,6 +192,7 @@ namespace SSAGES
 		 * \param min Minimum number of hist in a histogram bin before biasing is applied.
 		 * \param massweigh Turn mass weighing on/off.
 		 * \param filename Name for output file.
+		 * \param overwrite Turn output overwriting on/off.
 		 * \param Nworld_filename Name to read/write CV histogram.
 		 * \param Fworld_filename Name to read/write raw generalized force histograms.
 		 * \param histdetails Minimum, maximum and number of bins for each CV.
@@ -212,6 +216,7 @@ namespace SSAGES
 			double min,
 			bool massweigh,
 			std::string filename,
+			bool overwrite,
 			std::string Nworld_filename,
 			std::string Fworld_filename,
 			const std::vector<std::vector<double>>& histdetails,
@@ -220,7 +225,8 @@ namespace SSAGES
 			unsigned int frequency) :
 		Method(frequency, world, comm), N_(N), Nworld_(Nworld), F_(F), Fworld_(Fworld),  restraint_(restraint), isperiodic_(isperiodic), periodicboundaries_(periodicboundaries),
 		min_(min), wdotp1_(), wdotp2_(), Fold_(), massweigh_(massweigh),
-		biases_(), dim_(0), filename_(filename), Nworld_filename_(Nworld_filename), Fworld_filename_(Fworld_filename),
+		biases_(), dim_(0), filename_(filename), overwrite_(overwrite),
+		Nworld_filename_(Nworld_filename), Fworld_filename_(Fworld_filename),
 		histdetails_(histdetails), 
 		FBackupInterv_(FBackupInterv), timestep_(timestep),
 		iteration_(0)

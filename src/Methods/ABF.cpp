@@ -252,7 +252,7 @@ namespace SSAGES
 		for(size_t i = 0 ; i < dim_; ++i)
 			gridPoints = gridPoints * N_->GetNumPoints(i);
 
-		worldout_.open(filename_, std::ios::out);
+		worldout_.open(filename_, overwrite_ ? std::ios::out : std::ios::app);
 		worldout_ << std::endl;
 		worldout_ << "Iteration: " << iteration_ << std::endl;			
 		worldout_ << "Printing out the current Adaptive Biasing Vector Field." << std::endl;
@@ -430,6 +430,7 @@ namespace SSAGES
 
 		auto freq = json.get("frequency", 1).asInt();
 		auto filename = json.get("output_file", "F_out").asString();
+		bool overwrite = json.get("overwrite_output", true).asBool();
 		auto Nworld_filename = json.get("Nworld_output_file", "Nworld").asString();
 		auto Fworld_filename = json.get("Fworld_output_file", "Fworld_cv").asString();
 
@@ -552,7 +553,7 @@ namespace SSAGES
 			}
 		}
 
-		auto* m = new ABF(world, comm, N, Nworld, F, Fworld, restraint, isperiodic, periodicboundaries, min, massweigh, filename, Nworld_filename, Fworld_filename, histdetails, FBackupInterv, timestep, freq);
+		auto* m = new ABF(world, comm, N, Nworld, F, Fworld, restraint, isperiodic, periodicboundaries, min, massweigh, filename, overwrite, Nworld_filename, Fworld_filename, histdetails, FBackupInterv, timestep, freq);
 
 		if(json.isMember("iteration"))
 			m->SetIteration(json.get("iteration",0).asInt());

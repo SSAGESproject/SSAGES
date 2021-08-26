@@ -227,6 +227,13 @@ This is a string value defining the file name for the adaptive vector force
 field that is acquired. The default name is "F_out".
 
 .. code-block:: javascript
+
+    "overwrite_output" : true,
+
+*Optional*: Indicates whether to overwrite or to append (useful for analyzing
+time series) the values of the generalized force.
+
+.. code-block:: javascript
     
     "Fworld_output_file" : "Fworld_cv"
 

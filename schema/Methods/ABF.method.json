@@ -132,6 +132,10 @@
 			"type" : "string"
 		},
 
+		"overwrite_output" : {
+			"type" : "boolean"
+		},
+
 		"Fworld_output_file" : {
 			"type" : "string"
 		},
