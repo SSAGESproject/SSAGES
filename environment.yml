@@ -1,0 +1,13 @@
+name: SSAGES
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - numpy
+  - scipy
+  - matplotlib
+  - doxygen
+  - sphinx
+  - sphinx_rtd_theme
+  - sphinxcontrib-bibtex

@@ -18,13 +18,22 @@ installed:
 +------------+------------------+-----------------------------------+
 | `cmake`_   | 2.8 or higher    | cmake                             |
 +------------+------------------+-----------------------------------+
-| `python`_  | 2.7              | python2.7                         |
+| `python`_  | 3.6              | python3.6                         |
 +------------+------------------+-----------------------------------+
 
 .. _openmpi: https://www.open-mpi.org/
 .. _gcc: https://gcc.gnu.org/
 .. _cmake: https://cmake.org/
 .. _python: https://www.python.org/
+
+If you would like to use Conda to install some prerequisites (i.e. Doxygen and
+Sphinx for documentation, Python packages for analysis), use the included
+environment.yml file to install a SSAGES-specific environment named "SSAGES".
+
+.. code-block:: bash
+
+    conda env create -f environment.yml
+    conda activate SSAGES
 
 Get the Source Code
 -------------------

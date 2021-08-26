@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "SSAGES"
+version = "0.9.3"
+description = "Useful environment to run SSAGES analysis scripts"
+authors = ["The SSAGES team"]
+
+[tool.poetry.dependencies]
+python = ">=3.7,<3.10"
+numpy = "^1.21.0"
+scipy = "^1.7.0"
+matplotlib = "^3.4.2"
+sphinx = "^4.0.3"
+sphinxcontrib-bibtex = "^2.3.0"
+sphinx-rtd-theme = "^0.5.2"
+pydot = "^1.4.2"
+
+[tool.poetry2conda]
+name = "SSAGES"
