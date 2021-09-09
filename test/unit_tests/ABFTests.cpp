@@ -27,7 +27,12 @@ protected:
 		// Set up three timepoints.
 		snapshot1 = new Snapshot(comm, 0);
 		snapshot2 = new Snapshot(comm, 0);
-		snapshot3 = new Snapshot(comm, 0);		
+		snapshot3 = new Snapshot(comm, 0);
+
+		// Unit conversion
+		snapshot1->dMdt2f_ = 1;
+		snapshot2->dMdt2f_ = 1;
+		snapshot3->dMdt2f_ = 1;
 
 		snapshot1->SetNumAtoms(1);
 		snapshot2->SetNumAtoms(1);
@@ -142,11 +147,11 @@ protected:
 						5, // min hists before applying bias
 						false, // mass weighing
 						"testout", // filename
+						true, // overwrite testout
 						"Nworld", //Nworld_filename
 						"Fworld_cv",  //Fworld_filename
 						histdetails, // hist details
 						10, // Backup interval
-						1,  // Unit conversion
 						1, // timestep
 						1); // frequency
 					
@@ -191,8 +196,8 @@ TEST_F(ABFTests,Initialization)
 	int dim = 3;
 	
 	// Check for correct initialization.	
-	EXPECT_TRUE(((Method->N_)->size()) == 8);
-	EXPECT_TRUE(Method->F_.size() == 3);
+	EXPECT_EQ(Method->N_->size(), 8);
+	EXPECT_EQ(Method->F_.size(), 3);
 
 	/*
 	for(size_t i = 0; i < dim ; ++i)
@@ -241,7 +246,7 @@ TEST_F(ABFTests,CV_outofboundscheck)
 	
 	for(auto& point : *(Method->N_))
 	{
-		EXPECT_TRUE(point == 0);
+		EXPECT_EQ(point, 0);
 	}
 	/*
 	{
@@ -282,22 +287,19 @@ TEST_F(ABFTests,MD_steps_inboundscheck)
 	Method->ABF::PostIntegration(snapshot3, cvmanager);
 
 	// Check that hits are recorded correctly
-	EXPECT_TRUE(Method->N_->at({0,1,0}) == 2);
+	EXPECT_EQ(Method->N_->at({0,1,0}), 2);
 
-	
-	EXPECT_TRUE(Method->F_[0]->at({0,1,0}) == -8.0);
-	EXPECT_TRUE(Method->F_[1]->at({0,1,0}) == -20.4);
-	EXPECT_TRUE(Method->F_[2]->at({0,1,0}) == -32.8);
-	
+	EXPECT_NEAR(Method->F_[0]->at({0,1,0}), -8.0, eps);
+	EXPECT_NEAR(Method->F_[1]->at({0,1,0}), -20.4, eps);
+	EXPECT_NEAR(Method->F_[2]->at({0,1,0}), -32.8, eps);
+
 	// Check that the biases are accurate
 	EXPECT_NEAR(Method->biases_[0][0], 1.6, eps);
 	EXPECT_NEAR(Method->biases_[0][1], 4.08, eps);
 	EXPECT_NEAR(Method->biases_[0][2], 6.56, eps);
-	
-	
+
 	// Check that the biases added to forces correctly
 	EXPECT_NEAR(snapshot3->GetForces()[0][0], 1.6, eps);
 	EXPECT_NEAR(snapshot3->GetForces()[0][1], 4.08, eps);
 	EXPECT_NEAR(snapshot3->GetForces()[0][2], 6.56, eps);
-	
 }
