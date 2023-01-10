@@ -287,12 +287,15 @@ namespace SSAGES
 		unsigned int npicks = _M[0];
 		std::vector<unsigned int> picks;
 		picks.resize(npicks);
-		// if the initial flux has already been realized or 
-		//the calculation starts from a non-zero interface (restart)
-		if (initializeQueueFlag)
-			{
-				_N[_current_interface]=_NLastSuccessful;
-			}
+		
+		// if the initial flux has already been realized or
+		// we've got more than _N0Target configurations for zero surface 		
+		if (_current_interface == 0)
+			_N[_current_interface]=_N0Target;
+
+		//if the calculation starts from a non-zero surface (for restart)
+		if (_N[_current_interface] == 0)
+			_N[_current_interface]=_NLastSuccessful;
 
 		if(IsMasterRank(world_))
 		{
