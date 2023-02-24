@@ -24,6 +24,10 @@
 			"type" : "integer",
 			"minimum" : 1
 		},
+		"NLastSuccessful" : {
+			"type" : "integer",
+			"minimum" : 1
+		},
 		"trials" : {
 			"type" : "array",
 			"minItems" : 1,

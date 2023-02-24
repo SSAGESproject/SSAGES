@@ -58,7 +58,7 @@ namespace SSAGES
 		// Else check the FFS interfaces
 		else
 		{
-			CheckForInterfaceCrossings(snapshot, cvmanager);
+			CheckForInterfaceCrossings(snapshot, cvmanager); 
 			//FluxBruteForce(snapshot,cvs);
 		}
 		// Other modes?
@@ -287,10 +287,19 @@ namespace SSAGES
 		unsigned int npicks = _M[0];
 		std::vector<unsigned int> picks;
 		picks.resize(npicks);
+		
+		// if the initial flux has already been realized or
+		// we've got more than _N0Target configurations for zero surface 		
+		if (_current_interface == 0)
+			_N[_current_interface]=_N0Target;
+
+		//if the calculation starts from a non-zero surface (for restart)
+		if (_N[_current_interface] == 0)
+			_N[_current_interface]=_NLastSuccessful;
 
 		if(IsMasterRank(world_))
 		{
-			std::uniform_int_distribution<int> distribution(0,_N[0]-1);
+			std::uniform_int_distribution<int> distribution(0,_N[_current_interface]-1);
 		  	for (unsigned int i=0; i < npicks ; i++)
 				picks[i] = distribution(_generator);
 		}
@@ -298,7 +307,7 @@ namespace SSAGES
 
 		//set correct attempt index if a given ID is picked twice
 		std::vector<unsigned int> attempt_count;
-		attempt_count.resize(_N[0],0);
+		attempt_count.resize(_N[_current_interface],0);
 
 		//each proc adds to the queue
 		for (unsigned int i=0; i < npicks ; i++)

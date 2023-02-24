@@ -58,10 +58,10 @@ namespace SSAGES
 		DirectForwardFlux(const MPI_Comm& world,
 		                  const MPI_Comm& comm, 
 		                  double ninterfaces, std::vector<double> interfaces,
-		                  unsigned int N0Target, std::vector<unsigned int> M,
+		                  unsigned int N0Target, unsigned int NLastSuccessful, std::vector<unsigned int> M,
 		                  bool initialFluxFlag, bool saveTrajectories, 
 		                  unsigned int currentInterface, std::string output_directory, unsigned int frequency)
-		: ForwardFlux(world, comm, ninterfaces, interfaces, N0Target, M, 
+		: ForwardFlux(world, comm, ninterfaces, interfaces, N0Target, NLastSuccessful, M, 
 		              initialFluxFlag, saveTrajectories, currentInterface, output_directory, frequency) {}
 
 		//! Post-integration hook.

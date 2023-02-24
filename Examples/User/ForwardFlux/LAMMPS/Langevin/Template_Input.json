@@ -17,6 +17,7 @@
 			"interfaces" : [],
 			"nInterfaces" : 5,
 			"N0Target" : 100,
+			"NLastSuccessful": 100,
 			"computeInitialFlux" : true,
 			"outputDirectoryName" : "FFSoutput",
 			"saveTrajectories" : true

@@ -101,6 +101,9 @@ namespace SSAGES
         //! Number of configurations to store at lambda0, target
         unsigned int _N0Target;
 
+        //! Number of configurations stored at last achived interface, for restart
+        unsigned int _NLastSuccessful;
+
         //! Flux of trajectories out of state A. Denoted PhiA0 over h_A in Allen2009.
         double _fluxA0;
 
@@ -272,6 +275,7 @@ namespace SSAGES
 		 * \param ninterfaces Number of interfaces.
 		 * \param interfaces Vector of interfaces.
 		 * \param N0Target Required number of initial configurations.
+         * \param NLastSuccessful The number of stored configurations at last achieved interface.
 		 * \param M Vector of trials.
 		 * \param initialFluxFlag Flag for first step of this method.
 		 * \param saveTrajectories Flag to save flux trajectories.
@@ -284,10 +288,10 @@ namespace SSAGES
 		ForwardFlux(const MPI_Comm& world,
 		            const MPI_Comm& comm, 
 		            double ninterfaces, std::vector<double> interfaces,
-		            unsigned int N0Target, std::vector<unsigned int> M,
+		            unsigned int N0Target, unsigned int NLastSuccessful, std::vector<unsigned int> M,
 		            bool initialFluxFlag, bool saveTrajectories,
 		            unsigned int currentInterface, std::string output_directory, unsigned int frequency) : 
-		 Method(frequency, world, comm), _ninterfaces(ninterfaces), _interfaces(interfaces), _N0Target(N0Target), 
+		 Method(frequency, world, comm), _ninterfaces(ninterfaces), _interfaces(interfaces), _N0Target(N0Target), _NLastSuccessful(NLastSuccessful),
 		 _M(M), _initialFluxFlag(initialFluxFlag), _saveTrajectories(saveTrajectories), _current_interface(currentInterface),
 		 _output_directory(output_directory), _generator(1), iteration_(0) 
 		{
@@ -349,17 +353,23 @@ namespace SSAGES
 				std::cerr << "\n";
 				MPI_Abort(world_, EXIT_FAILURE);
 			}
-
+        
 			// This is to generate an artificial Lambda0ConfigLibrary, Hadi's code does this for real
 			// THIS SHOULD BE SOMEWHERE ELSE!!! 
+
+			if (!_initialFluxFlag)
+			{
+                _N0Target = NLastSuccessful;
+			}
+
 			Lambda0ConfigLibrary.resize(_N0Target);
 			std::normal_distribution<double> distribution(0,1);
 			for (unsigned int i = 0; i < _N0Target ; i++)
 			{
-				Lambda0ConfigLibrary[i].l = 0;
+				Lambda0ConfigLibrary[i].l = _current_interface;
 				Lambda0ConfigLibrary[i].n = i;
 				Lambda0ConfigLibrary[i].a = 0;
-				Lambda0ConfigLibrary[i].lprev = 0;
+				Lambda0ConfigLibrary[i].lprev = _current_interface;
 				Lambda0ConfigLibrary[i].nprev = i;
 				Lambda0ConfigLibrary[i].aprev = 0;
 				//FFSConfigID ffsconfig = Lambda0ConfigLibrary[i];

@@ -658,6 +658,7 @@ namespace SSAGES
 			throw BuildException({"The size of \"interfaces\" and \"trials\" must be equal to \"nInterfaces\". See documentation for more information"});
 
 		auto N0Target = json.get("N0Target", 1).asInt();
+		auto NLastSuccessful = json.get("NLastSuccessful", 1).asInt();
 		auto initialFluxFlag = json.get("computeInitialFlux", true).asBool();
 		auto saveTrajectories = json.get("saveTrajectories", true).asBool();
 		auto currentInterface = json.get("currentInterface", 0).asInt();
@@ -673,7 +674,7 @@ namespace SSAGES
 
 		if(flavor == "DirectForwardFlux")
 		{
-			return new DirectForwardFlux(world, comm, ninterfaces, interfaces, N0Target, M, initialFluxFlag, saveTrajectories, currentInterface, output_directory, freq);            	
+			return new DirectForwardFlux(world, comm, ninterfaces, interfaces, N0Target, NLastSuccessful, M, initialFluxFlag, saveTrajectories, currentInterface, output_directory, freq);            	
 		}
 		else 
 		{
